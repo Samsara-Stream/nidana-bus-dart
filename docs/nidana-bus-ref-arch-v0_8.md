@@ -2,8 +2,8 @@
 
 **Status:** Draft  
 **Author:** Purbo  
-**Version:** 0.8.2
-**Date:** 2026-03-18  
+**Version:** 0.8.3
+**Date:** 2026-04-01
 
 ## Abstract
 
@@ -182,7 +182,7 @@ val cartItems = StateTopic<CartItems>(name: "checkout.cart-items")
 
 A topic is a typed key. The bus owns the backing reactive subject and creates it on first reference, seeded with the initial value declared in the topic definition. It supports publishing values and subscribing to value streams. See [Section 2.5](#25-topic-initialization) for the full initialization model.
 
-Topics are **not owned** by any single module or service. They exist on the bus as shared infrastructure. Any topology can read from or write to any topic it declares a dependency on.
+Topics are **not owned** by any single module or service. They exist on the bus as shared infrastructure. Any topology can read from or write to any topic it declares a dependency on. When multiple topologies write to the same `StateTopic`, last-write-wins semantics apply (the backing subject holds only the most recent value). For topics where write contention is expected or where updates must be merged, consider using an `EventTopic` carrying update intents, with a dedicated reducer topology that produces the canonical state on a `StateTopic`. Ownership annotations (see [Section 3.4](#34-topic-registry-organization)) can enforce single-writer policies at the governance level.
 
 #### Topic Variants
 
@@ -226,7 +226,11 @@ The **Bus** is the runtime engine. Its responsibilities:
 
 Backpressure and rate-limiting are topology-level concerns, expressed through combinators declared in the topology itself (see [Section 5.3](#53-reactive-combinators)). Error handling is a shell-boundary concern owned by services and modules (see [Section 9](#9-error-handling-strategies)).
 
-The bus is a singleton per application process. It is the only true singleton in the architecture.
+**Ordering and reentrancy.** The bus delegates publish and subscription ordering to the underlying reactive primitive. Per-topic ordering is guaranteed (a single backing subject delivers values in publication order). Cross-topic ordering is *not* guaranteed: if topology A publishes to topic X and topic Y, subscribers to X and Y may observe the values in either order depending on the reactive engine's scheduling. If a subscriber publishes to another topic during handling (reentrant publish), delivery semantics depend on the platform's reactive library (synchronous for RxDart's BehaviorSubject, microtask-deferred for Kotlin's StateFlow, etc.). This specification does not mandate cross-platform behavioral equivalence for reentrancy; implementations should document their platform's behavior. For `StateTopic`, duplicate suppression (`distinctUntilChanged`) is not implicit. Topologies that need it should apply it explicitly.
+
+The bus is a singleton per application process (or, more precisely, per coordination domain; see the scoping note below). It is the only true singleton in the architecture.
+
+**Coordination domain scoping.** "One singleton per process" is the common case. For platforms where the process boundary does not match the coordination boundary, the bus should be scoped per coordination domain: one per app instance on iPad multi-window, one per tab in the browser, one per request in server-side rendering, one per test in parallel test execution. The bus contract is "one shared namespace of typed topics"; the coordination domain is wherever that namespace should be isolated.
 
 ### 2.4 Message Envelope 
 
@@ -271,7 +275,7 @@ The correlationId tells you "show me everything related to this order." The caus
 
 #### Who Creates Topics?
 
-A `Topic<T>` object is a pure typed key: a name, a type tag, and an initial value. It carries no reactive machinery of its own. The bus owns all backing reactive subjects. When the bus first encounters a topic reference (via a `read()` or `write()` call in any topology declaration), it creates a `BehaviorSubject` seeded with the topic's declared initial value.
+A `Topic<T>` object is a pure typed key: a name, a type tag, and (for `StateTopic`) an initial value. It carries no reactive machinery of its own. The bus owns all backing reactive subjects. When the bus first encounters a topic reference (via a `read()` or `write()` call in any topology declaration), it creates the appropriate backing primitive: a `BehaviorSubject` seeded with the declared initial value for `StateTopic`, a `PublishSubject` for `EventTopic`, or a `ReplaySubject(N)` for `ReplayTopic` (see the variant table in [Section 2.1](#21-topic)).
 
 ```
 // Topic<T> is a typed key — no subject created yet
@@ -374,10 +378,10 @@ The solution: **`Topic<T>` is a typed reference object**, not a string. The stri
 ```
 // Pseudocode - platform syntax varies
 class CheckoutTopics {
-  static final cartItems   = StateTopic<CartItems>("checkout.cart-items")
-  static final uiState     = StateTopic<CheckoutUIState>("checkout.ui-state")
+  static final cartItems   = StateTopic<CartItems>("checkout.cart-items", initial: CartItems.empty())
+  static final uiState     = StateTopic<CheckoutUIState>("checkout.ui-state", initial: CheckoutUIState.idle())
   static final submitOrder = EventTopic<OrderRequest>("checkout.submit-order")
-  static final orderResult = StateTopic<Result<OrderConfirmation, OrderError>>("checkout.order-result")
+  static final orderResult = StateTopic<Result<OrderConfirmation, OrderError>>("checkout.order-result", initial: Result.pending())
 }
 
 // Usage in topology - no strings, full type safety
@@ -623,15 +627,17 @@ This symmetry is deliberate. From the bus's perspective, there is no structural 
 
 ### 4.3 What Lives Where
 
-| Component | Layer | Pure? | Responsibility |
+| Component | Layer | Domain effects? | Responsibility |
 |---|---|---|---|
-| **Topic Registry** | Pure Core | Yes | Type-safe topic references, compile-time contracts |
-| **Topic instances** (reactive subjects) | Pure Core | Yes | Hold state, route messages |
-| **Active topologies** (running subscriptions) | Pure Core | Yes | Pure stream transformations |
-| **Bus / Runtime** | Pure Core | Yes | Lifecycle management, subscription wiring |
-| **Service** | Upper Shell | No | I/O side effects (network, disk, sensors) |
-| **Page / Widget** | Lower Shell | No | Rendering side effects (UI, gestures, navigation) |
+| **Topic Registry** | Pure Core | None | Type-safe topic references, compile-time contracts |
+| **Topic instances** (reactive subjects) | Pure Core | None | Hold state, route messages |
+| **Active topologies** (running subscriptions) | Pure Core | None | Pure stream transformations |
+| **Bus / Runtime** | Pure Core | None | Lifecycle management, subscription wiring |
+| **Service** | Upper Shell | I/O | I/O side effects (network, disk, sensors) |
+| **Page / Widget** | Lower Shell | Rendering | Rendering side effects (UI, gestures, navigation) |
 | **Module** | Organizational | - | Groups related pages and defines their topologies |
+
+**A note on "pure core."** The components in the pure core layer perform no *domain* side effects: no network I/O, no disk access, no UI rendering. The bus runtime does perform *infrastructure* effects (creating reactive subjects, managing subscriptions, wiring lifecycle events), and topic instances hold mutable state internally (the backing subject's current value). These are infrastructure mechanics, not domain logic. The "pure core" label means the layer is free of application-level side effects, not that every internal operation satisfies strict referential transparency. Topology *definitions* and *transformers* are genuinely pure in the FP sense. The bus *runtime* that executes them is not.
 
 ### 4.4 Upper Shell: Services
 
@@ -652,7 +658,7 @@ The bus layer contains:
 - **Active topology instances**: the live reactive subscriptions wired from topology declarations.
 - The **topology activation/deactivation machinery** (see [Section 6: Lifecycle Management](#6-lifecycle-management)).
 
-No side effects occur in this layer. Topologies are pure transformations: given input streams, produce output streams. The bus wires them together.
+No *domain* side effects occur in this layer. Topologies are pure transformations: given input streams, produce output streams. The bus wires them together. (The bus runtime performs infrastructure effects internally; see the note in Section 4.3.)
 
 ### 4.6 Lower Shell: Modules and Pages
 
@@ -737,6 +743,8 @@ topology("checkout-flow") {
 }
 ```
 
+**What `declare()` may and may not do.** The `declare()` method should contain only stream wiring operations: `read`, `write`, `combine`, `map`, `on`, and other combinator calls. It should not perform I/O, access external state, or contain imperative logic that depends on runtime values. Conditional wiring based on compile-time configuration (e.g., a build-time feature flag constant) is acceptable. Reading a topic's current value synchronously to decide which streams to wire is not, because it introduces path dependence on activation order. If wiring must vary at runtime, model it as a data-driven topology that reads a configuration topic and uses reactive operators (e.g., `switchMap` on a feature flag stream) to select between pipelines.
+
 ### 5.2 Transformer Design
 
 Transformers should be **named, standalone pure functions**, not inline closures. The topology is the wiring (which streams connect to which); transformers are the logic (what happens to the data).
@@ -786,6 +794,12 @@ Transformers within a topology use standard reactive combinators:
 | `sample` | Emit latest value at fixed intervals | High-frequency sensor → UI |
 
 The full Rx combinator vocabulary is available internally, but the topology DSL should expose a curated subset that covers 90% of use cases. Advanced users can drop to raw Rx when needed.
+
+**Effectful stream sources and the purity boundary.** Some combinators (notably `switchMap`) subscribe to inner streams that may originate from effectful sources, for example an API call triggered by a search query change. This does not make the topology itself effectful. The topology's `declare()` method is pure wiring: it composes streams and connects them to topics. It does not know or care whether an input stream is backed by a `BehaviorSubject`, a shell-provided HTTP stream, or a test stub. The effect (the actual network call) is owned by the shell adapter that produces the stream. The topology only sees a typed `Stream<T>`.
+
+In concrete terms: a service at the shell boundary exposes an effectful operation as a stream factory (e.g., `searchApi(query) → Stream<SearchResult>`). The topology wires it via `switchMap`. The topology's code is still pure wiring; the side effect lives in the service. This is the same separation that applies everywhere in the architecture: the pure core composes streams, the imperative shells produce and consume them.
+
+Error-handling operators (`retryWhen`, `catchError`, `onErrorResumeNext`) follow the same principle. They appear inside topology pipelines to catch exceptions from effectful stream sources and convert them to typed error values on topics. They are the mechanism by which shell-boundary failures enter the topology's error-as-values model (see [Section 9](#9-error-handling-strategies)).
 
 **Backpressure ownership.** The last four combinators in the table (`debounce`, `throttle`, `buffer`, `sample`) are the mechanism for all backpressure and rate-limiting in the architecture. They are topology-level choices, made deliberately per stream by the developer who knows that stream's semantics. The bus imposes no global backpressure policy. Different topics have legitimately different needs. A `NavCommand` topic and a high-frequency sensor topic have nothing in common. Any global policy would either over-constrain some streams or under-protect others. The topology is where this decision belongs.
 
@@ -1231,7 +1245,7 @@ Regardless of technology, the rule is: **never use bare primitives on a topic**.
 
 ## 8. Cross-Cutting Concerns
 
-Cross-cutting concerns are **not special-cased**. They are modules and services with topologies, just like any other component. This is a deliberate design choice: the architecture has no privileged observers.
+Cross-cutting concerns are **not special-cased**. They are modules and services with topologies, just like any other component. This is a deliberate design choice: at the topology level, the architecture has no privileged observers. No topology has special access to traffic that other topologies cannot see. The bus runtime itself has internal access to all traffic (it is the execution substrate), and bus-level interceptors (see below) leverage this for tooling and observability. But these are infrastructure capabilities of the library, not user-space topology privileges.
 
 ```mermaid
 %%{init:{'theme':'base','themeVariables':{'primaryTextColor':'#1e293b','lineColor':'#475569','edgeLabelBackground':'#ffffff','tertiaryTextColor':'#1e293b'}}}%%
@@ -1390,8 +1404,8 @@ These failure categories become structurally impossible when the architecture is
 | Failure Category | How the Architecture Eliminates It | Traditional Equivalent |
 |---|---|---|
 | **Race conditions on shared mutable state** | Data contracts on topics are immutable. A `Topic<CartItems>` emits immutable snapshots. There is no mutable object for two threads to contend over. | `ConcurrentModificationException`, null pointer on partially-mutated state, corrupted shared singleton |
-| **Cascading failures across features** | Topologies are isolated. An error in the payment topology does not propagate to the auth topology or the analytics topology. Each topology's error boundary is self-contained. | An unhandled exception in a callback chain taking down unrelated components |
-| **Unhandled exceptions in business logic** | Transformers are pure functions. When errors are modeled as values (`Result<T, E>`), there is no exception to throw. The failure is data on a topic, not a stack-unwinding crash. | `NullPointerException` deep in a ViewModel, uncaught `Future` errors |
+| **Cascading failures across features** | Topologies are isolated. An error in the payment topology does not propagate to the auth topology or the analytics topology. Each topology's error boundary is self-contained. Note: this is *fault isolation* (exception propagation). If a topology writes corrupted data to a shared topic, downstream topologies will still read it. Data integrity is a contract-level concern, not a runtime isolation property. | An unhandled exception in a callback chain taking down unrelated components |
+| **Unhandled exceptions in business logic** | Transformers are pure functions. When errors are modeled as values (`Result<T, E>`) per [Section 9](#9-error-handling-strategies), there is no exception to throw. The failure is data on a topic, not a stack-unwinding crash. The architecture *enables* exception-free business logic but does not *enforce* it; a developer can still throw, index out of bounds, or unwrap null inside a transformer. The structural guarantee is that such exceptions are confined to the topology's error boundary and cannot terminate the backing subject (see [Section 2.3](#23-bus-runtime)). | `NullPointerException` deep in a ViewModel, uncaught `Future` errors |
 | **Zombie subscriptions / listener leaks** | Explicit lifecycle scopes (APPLICATION, MODULE, PAGE) tie topology activation to well-defined boundaries. When a scope ends, all its subscriptions are disposed automatically. | Forgotten `removeListener` / `dispose` calls causing memory pressure, leading to OOM or ANR |
 | **Invisible coupling failures** | Components couple only through typed data contracts. Changing a service's internal implementation cannot break a page that reads from the same topic. There are no hidden interface dependencies to violate. | Service interface change silently breaking a consumer three layers away |
 | **Type mismatch at runtime** | Topic references carry compile-time type information. Publishing a `String` to a `Topic<CartItems>` is a compiler error. | `ClassCastException` from untyped event buses or stringly-typed message passing |
@@ -1404,10 +1418,12 @@ These failure categories are significantly mitigated but not eliminated. The arc
 |---|---|---|
 | **Blocking the main thread (ANR)** | Reactive streams are inherently asynchronous. The topology model naturally pushes I/O to background streams. Services perform side effects outside the main thread by convention. | A developer writes a synchronous network call inside a service before publishing to a topic. A transformer performs O(n²) computation on a large dataset on the main thread. |
 | **Unbounded memory growth** | Topic cleanup strategies (hybrid: StateTopic permanent, EventTopic auto-GC) and explicit buffer limits on ReplayTopic. Scope-based topology teardown prevents subscription accumulation. | A StateTopic accumulates large objects without cleanup. A ReplayTopic is configured with an excessively large buffer. |
-| **Deadlocks / circular dependencies** | Topologies declare reads/writes explicitly, making dependency graphs inspectable. Dev tooling can detect cycles at registration time. | A circular topology chain (A writes to topic X, B reads X and writes Y, C reads Y and writes X) creates an infinite loop. This is detectable but not prevented by the type system. |
+| **Deadlocks / circular dependencies** | Topologies declare reads/writes explicitly, making dependency graphs inspectable. Dev tooling can detect and reject cycles at registration time (see cycle policy below). | A circular topology chain (A writes to topic X, B reads X and writes Y, C reads Y and writes X) creates an infinite loop. This is detectable but not prevented by the type system. |
 | **Topology as sequencer** | The architecture, combined with Section 5.4 guidance, makes the correct pattern (state machine reducer) more natural than the misuse pattern. | A developer implements a multi-step sequential process as a chain of `on` handlers within a single topology. This is functionally correct but semantically wrong: it pollutes the topic registry with internal implementation details and makes the process harder to test and reason about. |
 | **Stale state on rehydration** | Per-topic persistence opt-in prevents accidental rehydration of transient state. | Developer enables persistence on a topic carrying network state, causing the app to render stale data on restart. |
 | **Slow transformers causing jank** | Pure function design makes transformers easy to profile and benchmark in isolation. Scheduler control allows offloading heavy transforms to background threads. | A transformer doing expensive serialization or image processing on the main thread scheduler. |
+
+**Cycle policy.** Cycles in the cross-topology dependency graph (topology A writes topic X, topology B reads X and writes Y, topology C reads Y and writes X) are considered a design error. The bus should detect cycles via topological sort of the read/write dependency graph at activation time and reject the offending topology with a clear error. If a feedback or fixed-point convergence pattern is genuinely needed, it should be expressed *within a single topology* using `scan` (which bounds the feedback loop to one pipeline), not across multiple topologies where the feedback is invisible and unbounded. A CI lint or static analysis step (see [Section 11.4](#114-automated-verification-pipeline)) should flag strongly connected components in the system-wide topology graph.
 
 ### 10.3 Quantifiable Impact
 
@@ -1434,7 +1450,7 @@ This section examines the architecture through the lens of formal reasoning: wha
 
 ### 11.1 Category-Theoretic Foundations
 
-The architecture has meaningful connections to structures studied in category theory. These connections are not merely decorative. They explain *why* the composition model works and what invariants it preserves.
+The architecture has meaningful connections to structures studied in category theory. These connections are not merely decorative. They explain *why* the composition model works and what invariants it preserves. The properties described below hold under the assumption that topologies use pure transformers and that stream sources behave deterministically. Topologies that include effectful stream sources (see the effectful stream boundary note in [Section 5.3](#53-reactive-combinators)) or time-dependent operators (see [Section 11.2](#112-determinism)) fall outside the pure subset and the categorical guarantees apply only to the pure portions of the pipeline.
 
 **The bus as a category.** The Nidana Bus can be viewed as a category where **topics are objects** and **topologies are morphisms** (arrows between objects). A topology that reads `Topic<A>` and writes `Topic<B>` is a morphism `A → B`. Composition of morphisms corresponds to chaining topologies through shared topics: if topology F is `A → B` and topology G is `B → C`, their composition through `Topic<B>` yields the composite morphism `A → C`, even though F and G have no knowledge of each other.
 
@@ -1582,11 +1598,11 @@ No mocking, no framework, no bus. The pure function is the unit under test.
 
 **Level 2: Topology invariants (model checking).**
 
-Because a topology is a declarative graph of typed streams with pure transformations, it can be modeled as a **Kahn Process Network** (KPN), a well-studied formal model where deterministic processes communicate through FIFO channels. Key decidable properties of KPNs:
+Because a topology is a declarative graph of typed streams with pure transformations, it can be modeled as a **Kahn Process Network** (KPN), a well-studied formal model where deterministic processes communicate through FIFO channels. The KPN analogy holds for the pure subset of a topology (deterministic transformers over non-effectful streams). Operators that cancel in-flight work (`switchMap`) or depend on wall-clock time (`debounce`, `timeout`) take the pipeline outside the KPN model, since KPN processes are deterministic functions from input histories to output histories. Within the pure subset, the following properties are decidable:
 
 - **Determinism.** A KPN with deterministic processes is itself deterministic. Since pure transformers are deterministic, a topology of pure transformers is deterministic.
 - **Deadlock freedom.** If every topology can always consume input (no blocking reads on empty topics), the system is deadlock-free.
-- **Boundedness.** Whether topic buffers can grow without bound is decidable for finite-state topologies.
+- **Boundedness.** Whether topic buffers can grow without bound is decidable for finite-state topologies (specifically, for the marked-graph subclass of Petri nets that maps to finite-state stream pipelines).
 
 Tools like **TLA+** or **Alloy** could model a topology graph and verify temporal properties at the system level: "after a logout event, all feature modules eventually reach an unauthenticated state" or "no `OrderRequest` is ever emitted without a preceding valid `AuthState`." These are **liveness** and **safety** properties in the temporal logic sense — the frontier beyond what Curry-Howard gives you on practical platforms.
 
@@ -1850,8 +1866,8 @@ The architecture is platform-agnostic in concept. This section maps each concept
 
 ```dart
 abstract class CheckoutTopics {
-  static final cartItems   = StateTopic<CartItems>('checkout.cart-items');
-  static final uiState     = StateTopic<CheckoutUIState>('checkout.ui-state');
+  static final cartItems   = StateTopic<CartItems>('checkout.cart-items', initial: CartItems.empty());
+  static final uiState     = StateTopic<CheckoutUIState>('checkout.ui-state', initial: CheckoutUIState.idle());
   static final submitOrder = EventTopic<OrderRequest>('checkout.submit-order');
 }
 ```
@@ -1860,8 +1876,8 @@ abstract class CheckoutTopics {
 
 ```kotlin
 object CheckoutTopics {
-    val cartItems   = StateTopic<CartItems>("checkout.cart-items")
-    val uiState     = StateTopic<CheckoutUIState>("checkout.ui-state")
+    val cartItems   = StateTopic<CartItems>("checkout.cart-items", initial = CartItems.empty())
+    val uiState     = StateTopic<CheckoutUIState>("checkout.ui-state", initial = CheckoutUIState.idle())
     val submitOrder = EventTopic<OrderRequest>("checkout.submit-order")
 }
 ```
@@ -1870,8 +1886,8 @@ object CheckoutTopics {
 
 ```swift
 enum CheckoutTopics {
-    static let cartItems   = StateTopic<CartItems>("checkout.cart-items")
-    static let uiState     = StateTopic<CheckoutUIState>("checkout.ui-state")
+    static let cartItems   = StateTopic<CartItems>("checkout.cart-items", initial: .empty())
+    static let uiState     = StateTopic<CheckoutUIState>("checkout.ui-state", initial: .idle())
     static let submitOrder = EventTopic<OrderRequest>("checkout.submit-order")
 }
 ```
@@ -1999,14 +2015,14 @@ The bus and topic registry map directly to TypeScript with strong type safety:
 ```typescript
 // Topic Registry - identical pattern to mobile
 export const AuthTopics = {
-  state:      new StateTopic<AuthState>('auth.state'),
+  state:      new StateTopic<AuthState>('auth.state', { initial: AuthState.unauthenticated() }),
   loginEvent: new EventTopic<LoginCredentials>('auth.login-event'),
-  logoutEvent: new EventTopic<void>('auth.logout-event'),
+  logoutEvent: new EventTopic<LogoutIntent>('auth.logout-event'),
 } as const;
 
 export const CheckoutTopics = {
-  cartItems:   new StateTopic<CartItems>('checkout.cart-items'),
-  uiState:     new StateTopic<CheckoutUIState>('checkout.ui-state'),
+  cartItems:   new StateTopic<CartItems>('checkout.cart-items', { initial: CartItems.empty() }),
+  uiState:     new StateTopic<CheckoutUIState>('checkout.ui-state', { initial: CheckoutUIState.idle() }),
   submitOrder: new EventTopic<OrderRequest>('checkout.submit-order'),
 } as const;
 ```
@@ -2133,13 +2149,37 @@ The paradigm shift happens at the *architecture* level. Instead of colocating st
 Angular is the most natural fit. Angular applications already use RxJS pervasively, services are singleton-scoped by default, and the DI system can provide the bus instance.
 
 ```typescript
-// Angular service defining a topology - very natural mapping
+// Application-scoped topology - activated at root level
 @Injectable({ providedIn: 'root' })
-export class CheckoutService {
+export class AuthService {
   constructor(private bus: NidanaBus) {
-    this.bus.activate(checkoutTopology, Scope.MODULE);
+    this.bus.activate(authTopology, Scope.APPLICATION);
   }
 }
+
+// Module-scoped topology - activated via route-level provider
+@Injectable()
+export class CheckoutService implements OnDestroy {
+  private handle: TopologyHandle;
+
+  constructor(private bus: NidanaBus) {
+    this.handle = this.bus.activate(checkoutTopology, Scope.MODULE);
+  }
+
+  ngOnDestroy() {
+    this.bus.deactivate(this.handle);
+  }
+}
+
+// Route config - CheckoutService scoped to /checkout/* routes
+const routes: Routes = [{
+  path: 'checkout',
+  providers: [CheckoutService],
+  children: [
+    { path: '', component: CartComponent },
+    { path: 'payment', component: PaymentComponent },
+  ]
+}];
 ```
 
 ```typescript
@@ -2173,15 +2213,28 @@ The topology's output stream is directly assignable to an Angular `Observable` a
 Vue's Composition API maps cleanly to topic subscriptions via `ref()` and lifecycle hooks:
 
 ```typescript
-// Composable - Vue's equivalent of a custom hook
-export function useCheckoutUI() {
-  const uiState = ref<CheckoutUIState>(bus.getCurrentValue(CheckoutTopics.uiState));
+// useTopology - activates a topology for the component's lifecycle
+export function useTopology(topology: TopologyDefinition): void {
+  let handle: TopologyHandle;
+
+  onMounted(() => {
+    handle = bus.activate(topology);
+  });
+
+  onUnmounted(() => {
+    bus.deactivate(handle);
+  });
+}
+
+// useTopic - subscribes to a topic's current value
+export function useTopic<T>(topic: StateTopic<T>): Readonly<Ref<T>> {
+  const state = ref<T>(bus.getCurrentValue(topic)) as Ref<T>;
 
   let subscription: Subscription;
 
   onMounted(() => {
-    subscription = bus.observe(CheckoutTopics.uiState).subscribe(value => {
-      uiState.value = value;
+    subscription = bus.observe(topic).subscribe(value => {
+      state.value = value;
     });
   });
 
@@ -2189,15 +2242,22 @@ export function useCheckoutUI() {
     subscription.unsubscribe();
   });
 
-  return { uiState: readonly(uiState) };
+  return readonly(state);
+}
+
+// usePublish - returns a callback that publishes to a topic
+export function usePublish<T>(topic: EventTopic<T>): (value: T) => void {
+  return (value: T) => bus.publish(topic, value);
 }
 ```
 
 ```vue
-<!-- Component - idiomatic Vue -->
+<!-- Component - idiomatic Vue, mirrors React hook pattern -->
 <script setup>
-const { uiState } = useCheckoutUI();
-const addItem = (item) => bus.publish(CheckoutTopics.addItem, item);
+useTopology(checkoutTopology);  // activate on mount, deactivate on unmount
+
+const uiState = useTopic(CheckoutTopics.uiState);
+const addItem = usePublish(CheckoutTopics.addItem);
 </script>
 
 <template>
@@ -2205,6 +2265,19 @@ const addItem = (item) => bus.publish(CheckoutTopics.addItem, item);
     <CartItem v-for="item in uiState.items" :key="item.id" :item="item" />
     <button @click="addItem(newItem)">Add Item</button>
   </div>
+</template>
+```
+
+For **module-scoped** topologies, `useTopology` is called in a layout component wrapping the module's routes:
+
+```vue
+<!-- CheckoutLayout.vue - topology lives as long as user is in /checkout/* -->
+<script setup>
+useTopology(checkoutFlowTopology);
+</script>
+
+<template>
+  <RouterView />
 </template>
 ```
 

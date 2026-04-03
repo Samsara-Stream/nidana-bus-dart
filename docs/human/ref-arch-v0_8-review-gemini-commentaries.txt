@@ -1,0 +1,8 @@
+About section 1:
+- On Exception Safety: I understand that "natively terminate subscriptions or subjects when an unhandled exception occurs inside operators like map or combineLatest." My point is, the library user *should not* do any side-effects in the operators (including exception throwing). Functions passed to the operators *should be* pure, and possible errors should be propagated as values (e.g. wrap it in `Result` or `Maybe`, or produce some value in an error topic). However, I also understand that the Rx or language features might not enforce the user to be disciplined. Maybe mention some kind "do side-effects at your own risk, but we strongly advise you against it, unless you really know what you're doing".
+- UI Testing: I always think with this arrangement, UI testing would be much easier than, say, using MVC, etc. Just give it a Test bus, emit some values to some topics, simulate the UI interaction, then listen and assert some values. Imagine testing a full UI with MVC with countless undeterministic components and some unrealistic mocks.
+About section 2:
+- Shared Mutable State. I think there is a misunderstanding here. There cannot be race condition. Multiple emits from multiple topologies will be handled by the library. The state kept in the `StateTopic` would be the last.
+
+etc. etc.
+
