@@ -2,8 +2,8 @@
 
 **Status:** Draft  
 **Author:** Purbo  
-**Version:** 0.8.3
-**Date:** 2026-04-01
+**Version:** 0.8.4
+**Date:** 2026-04-03
 
 ## Abstract
 
@@ -222,7 +222,7 @@ The **Bus** is the runtime engine. Its responsibilities:
 - **Activates topologies** by taking a topology declaration and wiring it into live reactive subscriptions.
 - **Deactivates topologies** by disposing subscriptions when a lifecycle scope ends.
 - **Delegates reactive execution** to the underlying library (RxDart, RxJS, Flow, Combine). The bus does not implement schedulers, backpressure, or stream combinators — it provides a seam for injecting a scheduler (used in tests to replace wall-clock time with a virtual time scheduler) and otherwise defers to the reactive engine.
-- **Survives subscriber errors.** If a subscriber throws despite the defensive design described in [Section 9](#9-error-handling-strategies), the bus must not let that exception terminate the backing subject. This is the bus's only error-related responsibility — a survival guarantee, not error handling.
+- **Error delegation.** The bus delegates reactive execution to the underlying library (RxDart, Flow, Combine). If a topology's pure transformer throws an unhandled exception, the underlying reactive framework will terminate that topology's subscription. The bus does *not* intercept developer exceptions. This is by design: the architecture's error model ([Section 9](#9-error-handling-strategies)) uses error-as-values, making unhandled exceptions a code defect, not a runtime scenario the bus should paper over.
 
 Backpressure and rate-limiting are topology-level concerns, expressed through combinators declared in the topology itself (see [Section 5.3](#53-reactive-combinators)). Error handling is a shell-boundary concern owned by services and modules (see [Section 9](#9-error-handling-strategies)).
 
@@ -270,6 +270,8 @@ User taps "Place Order"
 ```
 
 The correlationId tells you "show me everything related to this order." The causation chain tells you "show me *why* this payment was attempted" by walking the causationId links backward. This distinction matters for debugging (tracing a specific failure path) versus monitoring (tracking operation completion rates).
+
+**Transparent propagation.** Pure transformers operate solely on the payload `T` and are unaware of the `MessageEnvelope`. The bus automatically threads correlation and causation IDs: when a topology consumes a message from an input topic and the topology's wiring produces a publish to an output topic, the bus attaches the incoming message's `id` as the outgoing message's `causationId` and preserves the `correlationId`. The specific mechanism is an implementation concern of the bus runtime (varying by platform) and does not affect topology or transformer code. The invariant is: *within a single topology activation, the causal chain is maintained automatically without transformer involvement.*
 
 ### 2.5 Topic Initialization
 
@@ -359,6 +361,8 @@ class PersistenceService {
 ```
 
 No two-phase protocol (i.e. initialize service with value, then publish it on `declare`). No bus lifecycle orchestration. No race conditions between services. The topic is always readable; services publish when they're ready; consumers react to every state transition including the initial one.
+
+**Handling the initialization transition.** For state where the initial value differs visibly from the hydrated value, the domain ADT should include an explicit `Initializing` or `Unknown` variant. Use it as the `StateTopic`'s initial value. UI modules match on this variant to render a splash screen or loading skeleton until the persistence service publishes the resolved state. This prevents the UI from briefly flickering an incorrect state (e.g., showing a login screen before the stored token is loaded). This is not special bus machinery. It is standard ADT design applied to the initialization problem: make the "not yet known" state explicitly representable rather than conflating it with a semantically different default.
 
 ## 3. Topic Registry and Type Safety
 
@@ -1383,6 +1387,8 @@ graph TB
 
 3. **Distinguish recoverable from fatal.** Recoverable errors (network timeout, validation failure) are routed to domain-specific topics and handled by retry logic or fallback states. Fatal errors (corrupt state, unrecoverable crash) are routed to `Topic<AppError>` for global handling.
 
+4. **Transformers must not throw.** Throwing an exception inside a `map` or `combine` operator will terminate the topology's subscription (see [Section 2.3](#23-bus-runtime)). Developers must catch expected exceptions at the shell boundary or within the transformer and emit them as values (e.g., using `Result<T, E>`). Performing side-effects inside operators is at the developer's own risk and is strongly advised against.
+
 ### 9.3 Error Handling Approaches
 
 | Approach | Mechanism | When To Use |
@@ -1403,9 +1409,9 @@ These failure categories become structurally impossible when the architecture is
 
 | Failure Category | How the Architecture Eliminates It | Traditional Equivalent |
 |---|---|---|
-| **Race conditions on shared mutable state** | Data contracts on topics are immutable. A `Topic<CartItems>` emits immutable snapshots. There is no mutable object for two threads to contend over. | `ConcurrentModificationException`, null pointer on partially-mutated state, corrupted shared singleton |
+| **Race conditions on shared mutable state** | Data contracts on topics are immutable. A `Topic<CartItems>` emits immutable snapshots. There is no mutable object for two threads to contend over. Multiple emits from multiple topologies are serialized by the underlying reactive library; the `StateTopic` simply holds the last value. *Note on logical contention:* while memory races are eliminated, logical read-modify-write contention can still occur if multiple topologies independently read a `StateTopic`, transform the value, and write it back (the second write may overwrite the first's intent). For contested state, use the reducer pattern ([Section 5.4](#54-topology-misuse-the-sequencer-anti-pattern)) with an `EventTopic` carrying intents and a single reducer topology owning the canonical state. | `ConcurrentModificationException`, null pointer on partially-mutated state, corrupted shared singleton |
 | **Cascading failures across features** | Topologies are isolated. An error in the payment topology does not propagate to the auth topology or the analytics topology. Each topology's error boundary is self-contained. Note: this is *fault isolation* (exception propagation). If a topology writes corrupted data to a shared topic, downstream topologies will still read it. Data integrity is a contract-level concern, not a runtime isolation property. | An unhandled exception in a callback chain taking down unrelated components |
-| **Unhandled exceptions in business logic** | Transformers are pure functions. When errors are modeled as values (`Result<T, E>`) per [Section 9](#9-error-handling-strategies), there is no exception to throw. The failure is data on a topic, not a stack-unwinding crash. The architecture *enables* exception-free business logic but does not *enforce* it; a developer can still throw, index out of bounds, or unwrap null inside a transformer. The structural guarantee is that such exceptions are confined to the topology's error boundary and cannot terminate the backing subject (see [Section 2.3](#23-bus-runtime)). | `NullPointerException` deep in a ViewModel, uncaught `Future` errors |
+| **Unhandled exceptions in business logic** | Transformers are pure functions. When errors are modeled as values (`Result<T, E>`) per [Section 9](#9-error-handling-strategies), there is no exception to throw. The failure is data on a topic, not a stack-unwinding crash. The architecture *enables* exception-free business logic but does not *enforce* it; a developer can still throw, index out of bounds, or unwrap null inside a transformer. Such exceptions are confined to the topology's error boundary: the underlying reactive framework terminates that topology's subscription, not the backing subject itself (see [Section 2.3](#23-bus-runtime)). Other topologies subscribed to the same topic are unaffected. | `NullPointerException` deep in a ViewModel, uncaught `Future` errors |
 | **Zombie subscriptions / listener leaks** | Explicit lifecycle scopes (APPLICATION, MODULE, PAGE) tie topology activation to well-defined boundaries. When a scope ends, all its subscriptions are disposed automatically. | Forgotten `removeListener` / `dispose` calls causing memory pressure, leading to OOM or ANR |
 | **Invisible coupling failures** | Components couple only through typed data contracts. Changing a service's internal implementation cannot break a page that reads from the same topic. There are no hidden interface dependencies to violate. | Service interface change silently breaking a consumer three layers away |
 | **Type mismatch at runtime** | Topic references carry compile-time type information. Publishing a `String` to a `Topic<CartItems>` is a compiler error. | `ClassCastException` from untyped event buses or stringly-typed message passing |
@@ -1424,6 +1430,8 @@ These failure categories are significantly mitigated but not eliminated. The arc
 | **Slow transformers causing jank** | Pure function design makes transformers easy to profile and benchmark in isolation. Scheduler control allows offloading heavy transforms to background threads. | A transformer doing expensive serialization or image processing on the main thread scheduler. |
 
 **Cycle policy.** Cycles in the cross-topology dependency graph (topology A writes topic X, topology B reads X and writes Y, topology C reads Y and writes X) are considered a design error. The bus should detect cycles via topological sort of the read/write dependency graph at activation time and reject the offending topology with a clear error. If a feedback or fixed-point convergence pattern is genuinely needed, it should be expressed *within a single topology* using `scan` (which bounds the feedback loop to one pipeline), not across multiple topologies where the feedback is invisible and unbounded. A CI lint or static analysis step (see [Section 11.4](#114-automated-verification-pipeline)) should flag strongly connected components in the system-wide topology graph.
+
+**Note on dynamic publishes.** Static cycle detection covers the declared read/write graph. An `on()` handler that conditionally publishes to a topic not declared as a write dependency is invisible to static analysis. The bus should detect reentrancy at runtime (a publish during handling that would feed back into the same topology's active handler chain) and surface a diagnostic. Static analysis catches the structural case; runtime reentrancy detection handles the dynamic case.
 
 ### 10.3 Quantifiable Impact
 
@@ -2345,7 +2353,9 @@ Topologies and transformers are testable at multiple levels:
 
 **Level 3: Integration tests.** Spin up a real bus with multiple topologies, publish a sequence of events, and assert on the system-wide behavior. This tests cross-topology composition.
 
-Open question: should the library provide a `TestBus` or `TestTopologyBuilder` that simplifies Level 2 testing with built-in assertion helpers?
+**Level 4: UI / Page tests.** Because pages interact with the bus exclusively through typed topics, UI testing collapses to: inject a `TestBus`, synchronously publish values to input topics (e.g., `testBus.publish(AuthTopics.state, AuthState.authenticated(user))`), and assert the UI renders the expected output. User interactions are verified by asserting the correct event was published to the expected topic. No service mocking, no ViewModel stubbing, no lifecycle simulation required.
+
+Open question: should the library provide a `TestBus` or `TestTopologyBuilder` that simplifies Level 2 and Level 4 testing with built-in assertion helpers?
 
 ### 16.2 DevTools and Observability
 
