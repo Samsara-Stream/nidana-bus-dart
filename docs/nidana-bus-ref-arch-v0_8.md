@@ -1086,7 +1086,7 @@ sequenceDiagram
     participant Page as Checkout Page
     participant Bus as Nidana Bus
     participant Topo as Checkout Topology
-    participant Topic as Topic&lt;CartItems&gt;
+    participant Topic as Topic‹CartItems›
 
     Note over Topic: Holds cart state: [Item A, Item B]
 
