@@ -495,7 +495,6 @@ The key insight: **modules and services _define_ topologies (as pure declaration
 ### 4.1 Layer Diagram
 
 ```mermaid
-%%{init:{'theme':'base','themeVariables':{'primaryTextColor':'#1e293b','lineColor':'#475569','edgeLabelBackground':'#ffffff','tertiaryTextColor':'#1e293b'}}}%%
 graph TB
     subgraph SHELL_UPPER ["Imperative Shell: Services (Side Effects: I/O)"]
         direction LR
@@ -591,7 +590,6 @@ Services and pages are **structurally identical** in their relationship to the b
 4. **Perform side effects** at the edge. Services face machines (network, disk, sensors), pages face humans (rendering, gestures, navigation).
 
 ```mermaid
-%%{init:{'theme':'base','themeVariables':{'primaryTextColor':'#1e293b','lineColor':'#475569','edgeLabelBackground':'#ffffff','tertiaryTextColor':'#1e293b'}}}%%
 graph TB
     subgraph SERVICE ["Service (Upper Shell)"]
         S_SIDE["Side Effect:<br/>Network I/O"]
@@ -685,7 +683,6 @@ The relationship between modules, topologies, and pages is flexible:
 Topologies compose through shared topics, not through direct references. This is the key architectural insight: **topics are the composition boundary, and data contracts (types) are the sole coupling.**
 
 ```mermaid
-%%{init:{'theme':'base','themeVariables':{'primaryTextColor':'#1e293b','lineColor':'#475569','edgeLabelBackground':'#ffffff','tertiaryTextColor':'#1e293b'}}}%%
 graph LR
     subgraph Topology_Auth ["Topology: Auth"]
         TA_in["Login Event"] -->|transform| TA_out["AuthState"]
@@ -925,7 +922,6 @@ This is the most critical design decision in the architecture. Topologies are re
 Four scopes are needed to cover the full range of real-world patterns:
 
 ```mermaid
-%%{init:{'theme':'base','themeVariables':{'primaryTextColor':'#1e293b','lineColor':'#475569','edgeLabelBackground':'#ffffff','tertiaryTextColor':'#1e293b'}}}%%
 graph TB
     subgraph APP ["Application Scope (process lifetime)"]
         AT1(["Topic: AuthState"])
@@ -1085,13 +1081,12 @@ A critical distinction: **topics and topologies have different lifecycles.**
 This separation gives you **state persistence across navigation for free**. When a user leaves the checkout module and returns, the `Topic<CartItems>` still holds its last value on the bus. When the checkout topology reactivates, it subscribes to the topic and immediately receives the current cart state via `BehaviorSubject` replay.
 
 ```mermaid
-%%{init:{'theme':'base','themeVariables':{'primaryTextColor':'#1e293b','lineColor':'#475569','edgeLabelBackground':'#ffffff','tertiaryTextColor':'#1e293b'}}}%%
 sequenceDiagram
     participant User
     participant Page as Checkout Page
     participant Bus as Nidana Bus
     participant Topo as Checkout Topology
-    participant Topic as Topic<CartItems>
+    participant Topic as Topic&lt;CartItems&gt;
 
     Note over Topic: Holds cart state: [Item A, Item B]
 
@@ -1252,7 +1247,6 @@ Regardless of technology, the rule is: **never use bare primitives on a topic**.
 Cross-cutting concerns are **not special-cased**. They are modules and services with topologies, just like any other component. This is a deliberate design choice: at the topology level, the architecture has no privileged observers. No topology has special access to traffic that other topologies cannot see. The bus runtime itself has internal access to all traffic (it is the execution substrate), and bus-level interceptors (see below) leverage this for tooling and observability. But these are infrastructure capabilities of the library, not user-space topology privileges.
 
 ```mermaid
-%%{init:{'theme':'base','themeVariables':{'primaryTextColor':'#1e293b','lineColor':'#475569','edgeLabelBackground':'#ffffff','tertiaryTextColor':'#1e293b'}}}%%
 graph TB
     subgraph BUS ["Nidana Bus (Pure Core)"]
         T_AUTH(["AuthState"])
@@ -1338,7 +1332,6 @@ Error handling in a reactive data-flow architecture requires careful thought. Er
 ### 9.1 Error Propagation Model
 
 ```mermaid
-%%{init:{'theme':'base','themeVariables':{'primaryTextColor':'#1e293b','lineColor':'#475569','edgeLabelBackground':'#ffffff','tertiaryTextColor':'#1e293b'}}}%%
 graph TB
     subgraph SOURCE ["Error Sources"]
         S1["Service I/O Failure"]
@@ -1787,7 +1780,6 @@ It is *technically possible* to place an existing state management pattern (BLoC
 Consider what happens when you interpose BLoC between a topology and a page:
 
 ```mermaid
-%%{init:{'theme':'base','themeVariables':{'primaryTextColor':'#1e293b','lineColor':'#475569','edgeLabelBackground':'#ffffff','tertiaryTextColor':'#1e293b'}}}%%
 graph LR
     subgraph PURE ["Pure Core"]
         TOPO["Topology"]
@@ -2531,7 +2523,6 @@ The adoption path is incremental (see [Section 14.5](#145-addressing-react-commu
 ## Appendix B: Full System Diagram
 
 ```mermaid
-%%{init:{'theme':'base','themeVariables':{'primaryTextColor':'#1e293b','lineColor':'#475569','edgeLabelBackground':'#ffffff','tertiaryTextColor':'#1e293b'}}}%%
 graph TB
     subgraph SERVICES ["Services (Upper Imperative Shell)"]
         direction LR
