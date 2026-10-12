@@ -1,0 +1,3 @@
+[submodule "ref/nidana-docs"]
+	path = ref/nidana-docs
+	url = git@github.com-personal:Samsara-Stream/nidana-docs.git
