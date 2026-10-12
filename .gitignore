@@ -1,0 +1,67 @@
+# nidana-bus-dart
+#
+# Tracked on purpose, do not add here:
+#   .agents/skills/  .claude/skills/  .claude/commands/  .claude/settings.json  skills-lock.json
+#   .fvmrc  pubspec.lock (workspace root only)
+#   hsdd/  hsdd-context/  openspec/  docs/superpowers/plans/
+
+# OS
+.DS_Store
+Desktop.ini
+._*
+Thumbs.db
+.Spotlight-V100
+.Trashes
+
+# Scratch (anything worth keeping moves to docs/)
+tmp/
+
+# Dart and pub (https://dart.dev/tools/pub/private-files)
+.dart_tool/
+build/
+doc/api/
+coverage/
+# The workspace root pubspec.lock is committed so gates resolve the same versions
+# on every run; lockfiles below the root (non-member examples) are not.
+*/**/pubspec.lock
+# Written by melos 6 and earlier during bootstrap; pub workspaces do not need them
+pubspec_overrides.yaml
+
+# Flutter (the adapter package and any example app)
+.flutter-plugins
+.flutter-plugins-dependencies
+**/Flutter/ephemeral/
+**/flutter/ephemeral/
+**/ios/Pods/
+**/ios/.symlinks/
+**/ios/Flutter/Generated.xcconfig
+**/ios/Flutter/flutter_export_environment.sh
+**/android/.gradle/
+**/android/local.properties
+**/GeneratedPluginRegistrant.*
+
+# FVM: the SDK link is per machine; .fvmrc is the pin and stays tracked
+.fvm/
+
+# Claude Code: personal settings stay local; skills, commands and settings.json are shared
+.claude/settings.local.json
+CLAUDE.local.md
+
+# HSDD: seam-extractor scratch (hsdd-adopt), never committed
+.hsdd-seams.json
+
+# Editors
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+
+# Node (HSDD scripts are dependency-free .mjs; this only guards stray installs)
+node_modules/
+*.log
+
+# Secrets
+.env
+.env.*
+!.env.example

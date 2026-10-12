@@ -1,0 +1,71 @@
+{
+  "version": 1,
+  "skills": {
+    "hsdd-adopt": {
+      "source": "mpurbo/hsdd",
+      "sourceType": "github",
+      "skillPath": "skills/hsdd-adopt/SKILL.md",
+      "computedHash": "bf0e5f2eb9fc5b6988f7786412442db108bbd1e33c04e26bb64415e486885629"
+    },
+    "hsdd-adr": {
+      "source": "mpurbo/hsdd",
+      "sourceType": "github",
+      "skillPath": "skills/hsdd-adr/SKILL.md",
+      "computedHash": "e412567bec8dfe8b7f4b715308f34b38bcb86cc7f25ce2b073da2e171894db5e"
+    },
+    "hsdd-checkpoint": {
+      "source": "mpurbo/hsdd",
+      "sourceType": "github",
+      "skillPath": "skills/hsdd-checkpoint/SKILL.md",
+      "computedHash": "37c145c9df69798ad5536f6078f328a8d4b8e24e599684b6de351c9a9ade56d9"
+    },
+    "hsdd-config": {
+      "source": "mpurbo/hsdd",
+      "sourceType": "github",
+      "skillPath": "skills/hsdd-config/SKILL.md",
+      "computedHash": "8951993255c572487606e13d335633aa33edf1a6c8b03959c4c6ecded04a0914"
+    },
+    "hsdd-contract": {
+      "source": "mpurbo/hsdd",
+      "sourceType": "github",
+      "skillPath": "skills/hsdd-contract/SKILL.md",
+      "computedHash": "20d40e25b5e147d844c6a0314b69c4c6a275c3d9f528fa52493417138db64e99"
+    },
+    "hsdd-intake": {
+      "source": "mpurbo/hsdd",
+      "sourceType": "github",
+      "skillPath": "skills/hsdd-intake/SKILL.md",
+      "computedHash": "39d188ba1505170d4580b656ce3e8ef735365fd5f95dff8d5c325b63b4025b87"
+    },
+    "hsdd-milestone": {
+      "source": "mpurbo/hsdd",
+      "sourceType": "github",
+      "skillPath": "skills/hsdd-milestone/SKILL.md",
+      "computedHash": "49c17e699dfe81d278b011ee71297ac0ee3a6ad91ad985fffe30d16ac6b957a3"
+    },
+    "hsdd-phase-plan": {
+      "source": "mpurbo/hsdd",
+      "sourceType": "github",
+      "skillPath": "skills/hsdd-phase-plan/SKILL.md",
+      "computedHash": "98593da5ce2ee7bb06516fecaf9f3ad20aba9b23c7c31eaf53dde84357f883fe"
+    },
+    "hsdd-reconcile": {
+      "source": "mpurbo/hsdd",
+      "sourceType": "github",
+      "skillPath": "skills/hsdd-reconcile/SKILL.md",
+      "computedHash": "a1871819795ca523a5dd7c5a477b5a2cd54f9f5d9c6dc113465bebd06cdcb0f5"
+    },
+    "hsdd-spec": {
+      "source": "mpurbo/hsdd",
+      "sourceType": "github",
+      "skillPath": "skills/hsdd-spec/SKILL.md",
+      "computedHash": "4aa87c4cac43aa302b36d6b881120307b78f5afba8fefe77dd804d603501edba"
+    },
+    "hsdd-summary": {
+      "source": "mpurbo/hsdd",
+      "sourceType": "github",
+      "skillPath": "skills/hsdd-summary/SKILL.md",
+      "computedHash": "bd89481909ad8ac142f763245dae34991e3439b13cbe64c9afed3668e963dd89"
+    }
+  }
+}
