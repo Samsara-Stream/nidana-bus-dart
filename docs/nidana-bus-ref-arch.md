@@ -1,1 +1,0 @@
-nidana-bus-ref-arch-v0_10.md
