@@ -158,8 +158,8 @@ tree. Done when `node docs/auto-run/tools/gate.mjs --final` passes.
 | S01 | 1 | none (orchestrator) | this plan | done | this file's first commit |
 | S02 | 2 | hsdd-spec | nidana (root) | done | f127e15 |
 | S03 | 3 | hsdd-adr | ADR-001 executable validation for Dart API contracts | done | 1fc3a48 |
-| S04 | 3 | hsdd-adr | ADR-002 package and workspace layout | running | |
-| S05 | 3 | hsdd-adr | ADR-003 time source and virtual scheduler | planned | |
+| S04 | 3 | hsdd-adr | ADR-002 package and workspace layout | done | 8c90ba5 |
+| S05 | 3 | hsdd-adr | ADR-003 time source and virtual scheduler | running | |
 | S06..S14 | 4 | hsdd-contract | topic-model, topology-dsl, topology-ir, bus-api, bus-testing, navigation-api, flutter-binding, topic-codegen, nidana-checks (all @v1), producer-first | planned | |
 | next | 5 | hsdd-spec | nidana.runtime, then nidana.tooling (each followed by its ADRs and internal contracts) | planned | |
 
@@ -180,3 +180,9 @@ tree. Done when `node docs/auto-run/tools/gate.mjs --final` passes.
   writes `hsdd/contract/fixture/analysis_options.yaml`; bus-api@v1 carries the binding of topology-dsl@v1's
   suite and flutter-binding@v1 the binding of navigation-api@v1's executor suite (producer-first order
   already writes each suite first).
+- 2026-10-17, after S04: ADR-002 moves the workspace scan (every check over more than one library or the
+  IR) into `nidana_dart_codegen` as a command entry, so nidana-checks@v1 covers two hosts; the plugin
+  depends on no nidana package. nidana.model's first phase must create the workspace root (root
+  `pubspec.yaml`, `analysis_options.yaml`, `pubspec.lock`), and every phase that adds a member edits the
+  root workspace list: phase plans must carry Collides-with entries for that. Passed on to the
+  model and tooling steps.
