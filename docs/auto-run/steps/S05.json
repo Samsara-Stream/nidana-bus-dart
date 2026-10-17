@@ -1,0 +1,425 @@
+{
+  "step_ref": "S05",
+  "skill": "hsdd-adr",
+  "target": "ADR-003 Time source and virtual scheduler on Dart (proposed by hsdd/spec/nidana.md)",
+  "status": "completed",
+  "stop": null,
+  "artifacts": [
+    "hsdd/adr/003-time-source-virtual-scheduler.md",
+    "hsdd/adr/INDEX.md",
+    "hsdd/spec/nidana.md",
+    "hsdd/spec/nidana.model.md",
+    "hsdd/spec/nidana.runtime.md",
+    "hsdd/spec/nidana.flutter.md",
+    "docs/auto-run/experiments/virtual-scheduler/",
+    "docs/auto-run/experiments/time-source-widget/",
+    "docs/auto-run/steps/S05.json"
+  ],
+  "decisions": [
+    {
+      "at": "2026-10-17T14:04:32Z",
+      "artifact": "hsdd/adr/003-time-source-virtual-scheduler.md",
+      "question": "What slug does the ADR file take?",
+      "options": [
+        { "label": "003-time-source-virtual-scheduler", "consequence": "Four words naming both halves of the decision, the production time source and the test scheduler; within hsdd-adr's 2 to 4 words." },
+        { "label": "003-time-source-scheduler", "consequence": "Three words, but drops 'virtual', which is what TestBus readers search for." },
+        { "label": "003-virtual-scheduler", "consequence": "Shorter, but hides that the ADR also fixes the production provider and every timestamp." }
+      ],
+      "chosen": "003-time-source-virtual-scheduler",
+      "why": "hsdd-adr asks for a 2 to 4 word kebab slug of the decision topic; this one mirrors the title without 'on Dart', which every ADR in this tree implies. Naming only, no evidence needed.",
+      "evidence": [".agents/skills/hsdd-adr/SKILL.md (Numbering and Filename)"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T13:58:28Z",
+      "artifact": "hsdd/adr/003-time-source-virtual-scheduler.md",
+      "question": "Should the production provider fork Zone.current at bus construction, as the root proposed, or capture Zone.current as it is?",
+      "options": [
+        { "label": "Capture Zone.current without forking", "consequence": "Zero added cost when the bus runs in its construction zone (root-zone fast paths); same behavior under fakeAsync, withClock and testWidgets; no zone identity of the bus's own." },
+        { "label": "Pass-through fork of Zone.current", "consequence": "Gives bus callbacks a distinguishable zone, at about 1.3 times the per-event delivery cost in the root zone; no behavior the captured zone lacks." }
+      ],
+      "chosen": "Capture Zone.current without forking",
+      "why": "The fork intercepts nothing, so it buys only a zone identity no decision uses, and costs about 4 ns per delivered event (28 ms against 37 ms for 2,000,000 events, Q8). The captured zone is driven by fakeAsync when built inside it (Q6) and by tester.pump inside a testWidgets body (W1), exactly as the fork was in time-source-flutter. Signal that would change it: a need to tell bus callbacks apart by zone, such as zone-local diagnostics.",
+      "evidence": ["docs/auto-run/experiments/virtual-scheduler/ (Q6, Q8)", "docs/auto-run/experiments/time-source-widget/ (W1)", "docs/auto-run/experiments/time-source-flutter/", "Spec §3.6"],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T13:58:28Z",
+      "artifact": "hsdd/adr/003-time-source-virtual-scheduler.md",
+      "question": "Does the production provider read package:clock's clock at each call, or capture it when the bus is constructed?",
+      "options": [
+        { "label": "Capture clock at bus construction", "consequence": "Timestamps always follow the same clock as the bus's timers, whatever zone a publish comes from; a withClock or fakeAsync around construction governs the bus for its life." },
+        { "label": "Read clock at each call", "consequence": "A publish made under a different withClock stamps a clock other than the one the bus's timers follow." },
+        { "label": "Capture at BusConfig construction", "consequence": "A config built in main and a bus built later inside a fake zone would disagree with the bus's zone." }
+      ],
+      "chosen": "Capture clock at bus construction",
+      "why": "package:clock's clock is a zone value read at the call site, so per-call reads split the bus's time between its zone and its callers' zones. Q6 shows a captured clock keeps the withClock it was built under and follows fakeAsync when built inside it; W2 shows the captured clock equals clock.now() inside a testWidgets body and advances exactly with tester.pump. Capturing with the zone keeps the pair consistent.",
+      "evidence": ["docs/auto-run/experiments/virtual-scheduler/ (Q6)", "docs/auto-run/experiments/time-source-widget/ (W2)", "~/.pub-cache/hosted/pub.dev/clock-1.1.2/lib/src/default.dart"],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T13:58:28Z",
+      "artifact": "hsdd/adr/003-time-source-virtual-scheduler.md",
+      "question": "Does bus.observe(topic) subscribe inside the provider zone, or return the subject's stream so subscribers keep their own zone (the proposal's item 6: a test's own subscription gets its replay only after a real turn)?",
+      "options": [
+        { "label": "listen re-enters the provider zone", "consequence": "A TestBus subscriber gets the replayed first value under triggerActions with no await, and timers its chained operators create during delivery are virtual; its callbacks run in the provider zone, so its own zone values and error zone are not visible there." },
+        { "label": "Return the subject stream unchanged", "consequence": "Subscribers keep their own zone, but on a TestBus their first replayed value needs a real turn and their delivery-time timers run on real time." }
+      ],
+      "chosen": "listen re-enters the provider zone",
+      "why": "Q2 shows the re-entering stream delivers the replay microtask under triggerActions and runs the consumer's callbacks in the virtual zone, while the raw subject stream needs a real turn. Spec §3.3 has bus.observe subscribe on the topic's dispatcher on Combine, and on Dart the dispatcher is the provider zone, so this is the Spec's own shape. It also makes TestBus synchronous whichever first-delivery timing OQ-R1 picks. Signal that would change it: a consumer that needs its own zone values inside callbacks, such as a zone-scoped logging context.",
+      "evidence": ["docs/auto-run/experiments/virtual-scheduler/ (Q2)", "Spec §3.3", "Spec §3.6", "Spec §11.1", "Rationale §3.2"],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T13:58:28Z",
+      "artifact": "hsdd/adr/003-time-source-virtual-scheduler.md",
+      "question": "In which zone does the bus invoke observers (Spec §3.7) and create its own timers and microtasks (reentrancy deferral, dev-mode window, grace timer)?",
+      "options": [
+        { "label": "Explicitly in the provider zone", "consequence": "Deferrals, timers and observer side work are virtual on a TestBus whatever zone the publish or release call arrives from; one zone.run per call, a fast path when already in the zone." },
+        { "label": "Zone.current at the call site", "consequence": "A publish or scope release made from a test's own zone would put the deferral or the grace timer outside virtual time." }
+      ],
+      "chosen": "Explicitly in the provider zone",
+      "why": "Q3 shows zone.scheduleMicrotask and zone.run(() => Timer(...)) reach the virtual queue from a call made in another zone, while the global scheduleMicrotask lands in the caller's zone, and the reentrant deferral then restores per-topic order under triggerActions. Spec §3.7 runs observers on the per-topic delivery dispatcher, which on Dart is the provider zone. Observers in the provider zone has no experiment of its own; it follows from the same zone mechanics.",
+      "evidence": ["docs/auto-run/experiments/virtual-scheduler/ (Q3)", "Spec §3.4", "Spec §3.7", "Spec §3.13", "Spec §7.3"],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T14:02:07Z",
+      "artifact": "hsdd/adr/003-time-source-virtual-scheduler.md",
+      "question": "RxDart 0.28's switchMap, switching while the previous inner is live, chains on the previous inner's cancel() future, which is the SDK's root-zone null future, so its resubscription escapes the virtual scheduler, fakeAsync and testWidgets. How does the tree keep topology pipelines inside virtual time?",
+      "options": [
+        { "label": "Live switchMap that does not wait, synchronous operations", "consequence": "nidana.runtime owns one combinator's live implementation (cancel the previous inner, listen the next at once, as RxJS and RxJava do); every topology pipeline then completes inside the provider zone under the virtual scheduler, fakeAsync and testWidgets alike, and Spec §3.6's operations stay synchronous. Deviates from Spec §2.3's 'the bus does not implement stream combinators'." },
+        { "label": "Asynchronous scheduler operations", "consequence": "advanceTimeBy, advanceTimeTo and triggerActions return futures and yield a real event-loop turn at every virtual instant: tolerant of any root-zone hop, but every test awaits every operation, each instant costs a real timer, and fakeAsync and testWidgets stay broken." },
+        { "label": "RxDart switchMap plus an async settle after every publish", "consequence": "No owned combinator, but the resubscription still misses every virtual instant advanceTimeBy reaches before the next real turn, and never runs inside a testWidgets body." },
+        { "label": "Wrap inner subscriptions so cancel returns a provider-zone future", "consequence": "Keeps RxDart's switchMap, but needs to recognize the SDK's private null future by identity and wraps every inner stream; fragile against SDK changes." }
+      ],
+      "chosen": "Live switchMap that does not wait, synchronous operations",
+      "why": "Q1 shows RxDart's switchMap listens to the next inner only after a real turn, at whatever virtual time has been reached by then; Q9 and W4 show the next inner is never listened within a fakeAsync block or a testWidgets body, even 300 ms of fake time later. A no-wait switchMap keeps exact virtual timing in all three (Q1, Q9, W4b). The SDK defines the null future with Zone.root.run in dart:_internal, so no zone can capture the hop. Only switchMap among the Spec §6.3 combinators chains on a cancel future in RxDart 0.28. Root D6 already wraps every combinator in the DSL, so owning one live implementation adds little; Spec §6.3 asks switchMap only to cancel the previous async work. Close call against asynchronous operations; the signal that would have changed my mind: a second live combinator whose work cannot be kept inside the provider zone. Marked for upstreaming because of Spec §2.3.",
+      "evidence": ["docs/auto-run/experiments/virtual-scheduler/ (Q1, Q9)", "docs/auto-run/experiments/time-source-widget/ (W4, W4b)", "~/.pub-cache/hosted/pub.dev/rxdart-0.28.0/lib/src/transformers/switch_map.dart", "fvm Flutter 3.47.7 dart-sdk/lib/internal/internal.dart:160", "Spec §2.3", "Spec §6.3", "Rationale §3.2"],
+      "blast_radius": "contract",
+      "confidence": "medium",
+      "would_have_asked": true,
+      "stop_class": "upstream",
+      "would_upstream": true
+    },
+    {
+      "at": "2026-10-17T13:58:28Z",
+      "artifact": "hsdd/adr/003-time-source-virtual-scheduler.md",
+      "question": "Do the topology DSL's time-dependent combinators stay RxDart's operators (proposal item 4), now that periodic operators and cancellation are tested?",
+      "options": [
+        { "label": "RxDart operators inside the pipeline, no scheduler argument", "consequence": "No reimplementation; every timer they create, periodic included, is a provider-zone timer, and cancelling the pipeline cancels it." },
+        { "label": "Reimplement against an abstract scheduler", "consequence": "Contradicts Spec §2.3 and duplicates RxDart, for no behavior the zone does not already give." }
+      ],
+      "chosen": "RxDart operators inside the pipeline, no scheduler argument",
+      "why": "Q1 drives debounceTime, throttleTime, delay, sampleTime and bufferTime (both on Stream.periodic), Stream.timeout, interval and Rx.retryWhen with a timed retry by virtual time alone, with no real-time emission, and cancelling each leaves no timer. W6 shows a debounce subscription cancelled in dispose leaves nothing pending under testWidgets. The proposal's choice stands with broader evidence.",
+      "evidence": ["docs/auto-run/experiments/virtual-scheduler/ (Q1)", "docs/auto-run/experiments/time-source-widget/ (W6)", "Spec §2.3", "Spec §3.6", "Spec §6.3"],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T14:04:32Z",
+      "artifact": "hsdd/adr/003-time-source-virtual-scheduler.md",
+      "question": "Is VirtualScheduler nidana's own implementation, or a wrapper over package:fake_async, and does any nidana package depend on fake_async?",
+      "options": [
+        { "label": "Own implementation, no fake_async dependency", "consequence": "About 200 lines in testing.dart (the prototype is in the experiment); Spec §3.6 names, a fixed start instant, a runaway bound and pending-timer inspection under nidana's control; ADR-002's dependency table holds." },
+        { "label": "Wrap fake_async", "consequence": "Mature and already in every Flutter resolution, but adds a dependency to a published package, starts at the wall clock by default, never returns from elapse on a zero-period periodic timer, and has the same root-zone hop." }
+      ],
+      "chosen": "Own implementation, no fake_async dependency",
+      "why": "ADR-002 item 3 lists the runtime's dependencies without fake_async; the prototype implements every operation and passes the drain, periodic, bound and error cases (Q4); fake_async's elapse spun 817 million times on a zero-period periodic timer without returning (output-fake-async.txt). Signal that would change it: nidana's scheduler failing a timer case fake_async already handles.",
+      "evidence": ["docs/auto-run/experiments/virtual-scheduler/ (Q4, output-fake-async.txt)", "hsdd/adr/002-package-workspace-layout.md (Decision item 3)", "~/.pub-cache/hosted/pub.dev/fake_async-1.3.3/lib/fake_async.dart"],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T13:58:28Z",
+      "artifact": "hsdd/adr/003-time-source-virtual-scheduler.md",
+      "question": "What do triggerActions, advanceTimeBy and advanceTimeTo do with microtasks (replay, Spec §3.4 deferral) and periodic timers, and how does a test observe quiescence?",
+      "options": [
+        { "label": "Event-loop order, monotonic time, bounded, quiescent on return", "consequence": "Microtasks FIFO before each timer, timers by due time then creation; periodic timers fire once per period crossed; negative or backward moves throw ArgumentError; reentrant calls and runaway drains throw StateError; every operation returns quiescent, with pending timers inspectable; errors go to the scheduler's construction error zone." },
+        { "label": "fake_async semantics", "consequence": "Similar ordering, but wall-clock start, no runaway bound, no notion of returning quiescent beyond flushTimers." },
+        { "label": "RxJava TestScheduler semantics", "consequence": "advanceTimeTo may move time backward; microtasks have no counterpart." }
+      ],
+      "chosen": "Event-loop order, monotonic time, bounded, quiescent on return",
+      "why": "Q4 shows the prototype reproduces the real event loop's order (m1, m3, t1, m2, t3, t2), fires equal-due timers in creation order and a timer created mid-advance within the advance, fires a 300 ms periodic timer three times over one second, rejects backward and negative moves, and turns a microtask loop and a zero-period timer into StateError. Errors reach the error zone the scheduler was built in, not the caller's (Q4), which the ADR states because tests construct the TestBus in the test body. The fixed default start instant and the bound's value are left to bus-testing@v1.",
+      "evidence": ["docs/auto-run/experiments/virtual-scheduler/ (Q4)", "Spec §3.4", "Spec §3.6", "Guide §10.1", "Rationale §3.2"],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T13:58:28Z",
+      "artifact": "hsdd/adr/003-time-source-virtual-scheduler.md",
+      "question": "Is the virtual clock also package:clock's clock inside the virtual zone?",
+      "options": [
+        { "label": "Yes, fork the zone under withClock(virtualClock)", "consequence": "Shell code a bus callback runs that reads clock.now() sees virtual time, consistent with the bus's stamps; costs nothing." },
+        { "label": "No, only the provider clock is virtual", "consequence": "Code in bus callbacks that reads package:clock sees the wall clock while the bus stamps virtual time." }
+      ],
+      "chosen": "Yes, fork the zone under withClock(virtualClock)",
+      "why": "Q5 shows clock.now() inside the zone reads virtual time and outside it the system clock; fake_async does the same in its run, so apps already expect it. No option has a cost beyond one zone value.",
+      "evidence": ["docs/auto-run/experiments/virtual-scheduler/ (Q5)", "~/.pub-cache/hosted/pub.dev/fake_async-1.3.3/lib/fake_async.dart"],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T13:58:28Z",
+      "artifact": "hsdd/adr/003-time-source-virtual-scheduler.md",
+      "question": "How does a TestBus test handle work that starts outside the provider zone (a stub future the test completes, RxDart operators an app chains), and what is the settle() of an ADR-001 harness over a TestBus?",
+      "options": [
+        { "label": "bus-testing@v1 adds an asynchronous settle", "consequence": "Alternates triggerActions with real event-loop turns until quiescent across a turn, bounded; ADR-001 harnesses use it; it needs a real event loop, so never inside fakeAsync or testWidgets." },
+        { "label": "Tests yield by hand", "consequence": "No new operation, but every test author must know to await once before triggerActions, and harnesses reimplement it." }
+      ],
+      "chosen": "bus-testing@v1 adds an asynchronous settle",
+      "why": "Q7 shows a stub completed from the test zone is not delivered by triggerActions alone, and is delivered by one awaited turn followed by triggerActions or by the prototype settle. ADR-001 already requires a Future<void> settle() on every harness, so the operation has a consumer from day one.",
+      "evidence": ["docs/auto-run/experiments/virtual-scheduler/ (Q7)", "hsdd/adr/001-executable-contract-validation.md (Decision item 4)"],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T14:02:07Z",
+      "artifact": "hsdd/adr/003-time-source-virtual-scheduler.md",
+      "question": "Which provider may a TestBus have, and can widget tests record envelopes?",
+      "options": [
+        { "label": "TestBus is always virtual; the recorder attaches to any bus", "consequence": "TestBus(config) takes config's VirtualSchedulerProvider or a fresh one and rejects a production provider with ArgumentError; widget tests attach the recorder to a production-provider bus, as the root's runtime-to-flutter edge requires." },
+        { "label": "TestBus accepts any provider", "consequence": "A TestBus could then be non-deterministic, against Spec Appendix A.7's definition." },
+        { "label": "Recorder only on TestBus", "consequence": "Widget tests, which run the production provider, could not record envelopes." }
+      ],
+      "chosen": "TestBus is always virtual; the recorder attaches to any bus",
+      "why": "Spec Appendix A.7 defines TestBus by its VirtualSchedulerProvider; the root DAG says widget tests record envelopes on a real bus (runtime to flutter, bus-testing@v1 hard), and W1 shows widget tests need the production provider for tester.pump to drive time. The recorder is an observer, so attaching it to any bus costs nothing.",
+      "evidence": ["Spec Appendix A.7", "Spec §3.6", "hsdd/spec/nidana.md (Dependency DAG table)", "docs/auto-run/experiments/time-source-widget/ (W1)"],
+      "blast_radius": "contract",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T14:02:07Z",
+      "artifact": "hsdd/adr/003-time-source-virtual-scheduler.md",
+      "question": "How do Flutter widget tests construct and shut down the bus, given that flutter_test fails a test whose fake timers are still pending after it unmounts the tree?",
+      "options": [
+        { "label": "Build in the body, shut down from an ancestor's dispose", "consequence": "The helpers construct the bus inside the test body and shut it down from the dispose of a widget above every scope binding, after the bindings released their references; a test with its own bus shuts it down before the body ends." },
+        { "label": "Shut down in tearDown, as Spec §11.2 says", "consequence": "Fails every widget test that leaves a grace or dev-mode timer pending, because the pending-timer check runs before tear-downs." },
+        { "label": "Build in setUp", "consequence": "setUp runs outside the body's fake zone, so tester.pump never drives the bus." }
+      ],
+      "chosen": "Build in the body, shut down from an ancestor's dispose",
+      "why": "pending_timer_test.dart fails with 'A Timer is still pending even after the widget tree was disposed' although an addTearDown would cancel the timer; W5 shows the unmount disposes descendants first, so a grace timer a module binding starts in its dispose is cancelled by an ancestor's shutdown and nothing stays pending; W3 shows a bus built in setUp is not driven by tester.pump. The helpers cannot take a WidgetTester (ADR-002 item 4) and need none for this. Marked for upstreaming: Spec §11.2's test row says tearDown.",
+      "evidence": ["docs/auto-run/experiments/time-source-widget/ (W3, W5, pending_timer_test.dart)", "Spec §11.2", "Spec §7.3", "hsdd/adr/002-package-workspace-layout.md (Decision item 4)"],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": true
+    },
+    {
+      "at": "2026-10-17T14:02:07Z",
+      "artifact": "hsdd/adr/003-time-source-virtual-scheduler.md",
+      "question": "What does a zero grace period do, and what does shutdown do with timers?",
+      "options": [
+        { "label": "Zero grace tears down synchronously; shutdown cancels every timer", "consequence": "No zero-duration timer to drain; after shutdown no bus or pipeline timer is pending, which flutter_test requires and TestBus inspection can assert." },
+        { "label": "Zero grace as a zero-duration timer", "consequence": "Teardown waits for the next drain or event-loop turn, which Spec §7.3's 'immediately' does not describe." }
+      ],
+      "chosen": "Zero grace tears down synchronously; shutdown cancels every timer",
+      "why": "Spec §7.3 says a grace period of 0 tears down immediately on the last release. Shutdown cancelling timers follows from the flutter_test invariant (pending_timer_test.dart, W5); pipeline timers go with their subscriptions (Q1 cancellation counts, W6).",
+      "evidence": ["Spec §7.3", "Spec §11.2", "docs/auto-run/experiments/virtual-scheduler/ (Q1)", "docs/auto-run/experiments/time-source-widget/ (W5, W6, pending_timer_test.dart)"],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T14:04:32Z",
+      "artifact": "hsdd/adr/003-time-source-virtual-scheduler.md",
+      "question": "Is the set of scheduler providers closed (production and virtual), or may applications implement SchedulerProvider?",
+      "options": [
+        { "label": "Closed set of two", "consequence": "The bus can rely on quiescence and cancellation rules; an application that wants its own timers and clock constructs the bus inside its own zone." },
+        { "label": "Open interface", "consequence": "Applications can plug in other fake-time systems, and can break the rules the bus and TestBus rely on." }
+      ],
+      "chosen": "Closed set of two",
+      "why": "Spec §3.6 names only the real-time default and the virtual provider. Because the production provider captures the construction zone and clock, a custom zone already reaches the bus without a custom provider (Q6). Judgement beyond that; signal that would change it: an adopter integrating a time system that cannot be expressed as a zone.",
+      "evidence": ["Spec §3.6", "Spec Appendix A.5", "docs/auto-run/experiments/virtual-scheduler/ (Q6)"],
+      "blast_radius": "contract",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T14:04:32Z",
+      "artifact": "hsdd/adr/003-time-source-virtual-scheduler.md",
+      "question": "How does shell code outside the runtime (navigation executors stamping RouteTransition, the telemetry observer) get the bus's time without DateTime.now()?",
+      "options": [
+        { "label": "bus-api@v1 exposes the provider clock read-only", "consequence": "Executors and services stamp from the same clock as envelopes, virtual on a TestBus and fake under testWidgets; the contract fixes the accessor's shape." },
+        { "label": "Shell code reads package:clock itself", "consequence": "Correct only when the call happens to run inside the provider zone or the right withClock." }
+      ],
+      "chosen": "bus-api@v1 exposes the provider clock read-only",
+      "why": "Guide §3.4 has the executor write RouteTransition with a timestamp, Spec Appendix A.6 makes it part of the confirmed transition, and Q6 shows a call-site clock read can diverge from the captured one. No experiment compares accessor shapes; that is the bus-api@v1 author's choice.",
+      "evidence": ["Guide §3.4", "Spec Appendix A.6", "Spec §2.4", "docs/auto-run/experiments/virtual-scheduler/ (Q6)"],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T14:04:32Z",
+      "artifact": "hsdd/adr/003-time-source-virtual-scheduler.md",
+      "question": "Does ADR-003 settle the Dart topic model's dispatcher hint (nidana.model's OQ-M3), or only the dispatcher's meaning?",
+      "options": [
+        { "label": "State the dispatcher, leave OQ-M3 to the model", "consequence": "The ADR fixes one dispatcher per bus, the provider zone, and no hop in bus.observe; whether topic-model@v1 omits the hint or accepts and ignores it stays with its contract step." },
+        { "label": "Resolve OQ-M3 here by omitting the field", "consequence": "Settles a topic-model@v1 surface question in an ADR that does not govern topic-model@v1, and pre-empts the model's compile-compatibility option." }
+      ],
+      "chosen": "State the dispatcher, leave OQ-M3 to the model",
+      "why": "Spec §3.6's table already gives Dart's dispatcher as the isolate event loop, and OQ-M3 asks a surface question (omit, or accept and ignore) whose cost lands on topic-model@v1's consumers. Keeping topic-model@v1 out of affects keeps ADR-003 out of tooling phase contexts. Judgement; no experiment applies.",
+      "evidence": ["Spec §3.6", "Spec §11.1", "hsdd/spec/nidana.model.md (OQ-M3)"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T14:04:32Z",
+      "artifact": "hsdd/adr/003-time-source-virtual-scheduler.md",
+      "question": "Which nodes and contracts does ADR-003 affect (the proposal listed nidana.runtime, nidana.navigation, nidana.flutter, nidana.integration, bus-api@v1, bus-testing@v1)?",
+      "options": [
+        { "label": "Proposal's set plus nidana.model, navigation-api@v1, flutter-binding@v1", "consequence": "Model phases get the rule that the contracts package reads no clock and takes timestamps and ids as arguments; the executor protocol and the widget-test helpers carry their ADR-003 obligations; navigation-api@v1 and flutter-binding@v1 consumers are already governed, so no extra phase context grows except the model's." },
+        { "label": "Proposal's set", "consequence": "The model's lineage functions and the two downstream contracts would follow ADR-003 without being governed by it." },
+        { "label": "Also topic-model@v1 and topology-dsl@v1", "consequence": "Injects ADR-003 into every phase that consumes them, nidana.tooling's included, where it says nothing relevant." }
+      ],
+      "chosen": "Proposal's set plus nidana.model, navigation-api@v1, flutter-binding@v1",
+      "why": "Spec §3.5's own pseudo-code stamps timestamp = now() inside a combinator, the likeliest place for a DateTime.now() default in the model's lineage functions, so the model is bound by item 8. Item 7 binds flutter-binding@v1's widget-test helpers, item 8 binds navigation-api@v1's executor protocol. The live switchMap rule sits in bus-api@v1, which declares the live builder (ADR-001 item 4), so topology-dsl@v1 stays out. Signal that would change it: topic-model@v1 making timestamp a required argument with no default, which would let nidana.model drop out.",
+      "evidence": ["Spec §3.5", "Guide §3.4", "hsdd/adr/001-executable-contract-validation.md (Decision item 4)", ".agents/skills/hsdd-config/SKILL.md (Decisions selection)"],
+      "blast_radius": "tree",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T14:07:16Z",
+      "artifact": "hsdd/spec/nidana.runtime.md",
+      "question": "Which spec lines does accepting ADR-003 change, beyond the proposal pointer and Governed by?",
+      "options": [
+        { "label": "Update the lines the ADR changes", "consequence": "nidana.runtime's Owns names the live switchMap and its Inherited line states the zone rules; nidana.flutter's widget-test library bullet states construction in the body and shutdown at unmount; root OQ7's detail summarizes the accepted decision; nidana.model gains Governed by ADR-003 in its file and in the root's block." },
+        { "label": "Pointer and Governed by only", "consequence": "nidana.runtime's Owns list, which its own decomposition divides, would not show that the runtime owns a live switchMap." }
+      ],
+      "chosen": "Update the lines the ADR changes",
+      "why": "The runtime's hsdd-spec step divides its Owns list, so an ownership the ADR creates must appear there; the flutter line now carries an obligation the phase plan must schedule. OQ2's detail already pointed at ADR-003 for clock control and stays PARTIAL on OQ-R2; OQ7's row was already RESOLVED pointing at ADR-003.",
+      "evidence": [".agents/skills/hsdd-adr/SKILL.md (Bidirectional Linking)", "hsdd/spec/nidana.md (OQ2, OQ7)"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    }
+  ],
+  "experiments": [
+    {
+      "path": "docs/auto-run/experiments/virtual-scheduler/",
+      "question": "With a prototype virtual scheduler (timers, periodic timers, microtasks, virtual clock), a capturing production provider and a zone-re-entering observe stream on the pinned SDK: which RxDart operators stay in virtual time and clean up on cancel; what bus.observe re-entry gives a consumer; whether work can be put into the zone from another zone; the drain order, bounds and error routing; package:clock inside the zone; the production provider under fakeAsync and withClock; stubs completed outside the zone; the cost of a fork; RxDart switchMap under fakeAsync; fake_async with a zero-period timer.",
+      "finding": "debounceTime, throttleTime, delay, sampleTime, bufferTime, Stream.timeout, interval, Rx.retryWhen and a mapper-made Stream.periodic run on virtual time only and leave no timer after cancel. RxDart 0.28's switchMap, switching while an inner is live, chains on cancel()'s root-zone null future, so its next inner is listened only after a real turn, and never inside fakeAsync; a no-wait switchMap keeps exact timing. A listen that re-enters the zone delivers the replay under triggerActions and runs consumer callbacks in the zone; consumer-chained operators are virtual when RxDart makes their timers during delivery, real when at listen. zone.scheduleMicrotask and zone.run(Timer) reach the virtual queue from outside. Drain order matches the event loop; periodic, monotonic, bound and reentrancy checks work; errors go to the scheduler's construction error zone. clock.now() is virtual inside the zone. A captured provider follows fakeAsync and withClock as built. A stub completed outside needs a real turn; settle handles it. A pass-through fork costs 1.3x per delivery. fake_async's elapse spins forever on a zero-period periodic timer."
+    },
+    {
+      "path": "docs/auto-run/experiments/time-source-widget/",
+      "question": "Under testWidgets on Flutter 3.47.7: does a captured provider follow tester.pump; how do clock and DateTime behave; what happens to a provider captured in setUp; does RxDart switchMap resubscribe after a switch; what does flutter_test do with timers pending at the end of the body; do an ancestor's shutdown and a cancelled debounce leave nothing pending?",
+      "finding": "A provider captured in the body is driven by tester.pump; clock.now() starts at the wall-clock time and advances exactly with pump, DateTime.now() does not. A provider captured in setUp is outside the fake zone and not driven. RxDart switchMap never listens to the next inner within the body after a switch; the no-wait switchMap delivers at the right fake time. A pending timer fails the test after the tree unmounts and before tear-downs; descendants dispose first, so an ancestor's shutdown cancels a grace timer a descendant started; a cancelled debounce leaves nothing pending."
+    }
+  ],
+  "self_check": [
+    {
+      "gate": "Frontmatter has `id`, `status`, `affects`, `date`.",
+      "status": "pass",
+      "note": "id ADR-003, status accepted, affects five nodes and four contracts, date 2026-10-17; the generator projected it into hsdd/adr/INDEX.md."
+    },
+    {
+      "gate": "The decision is genuinely cross-cutting; a node-local one stayed a `D{n}`.",
+      "status": "pass",
+      "note": "It binds the runtime's two contracts, the model's purity, the navigation executor protocol, the Flutter widget-test helpers and integration's tests. The runtime-internal choices (where the live switchMap lives, how shutdown drains, bound values) stay with the runtime and bus-testing@v1."
+    },
+    {
+      "gate": "`## Decision` and `## Consequences` are self-contained (no reliance on Context).",
+      "status": "pass",
+      "note": "Both state rules and effects in full, explain the root-zone cancel future inline, cite other decisions and questions by id (ADR-001, OQ7, OQ2, OQ-R1, OQ-M3) and never refer to experiment case numbers, which live in Context."
+    },
+    {
+      "gate": "Every id in `affects` carries a matching `Governed by: [ADR-NNN]`.",
+      "status": "pass",
+      "note": "nidana.runtime, nidana.navigation, nidana.flutter and nidana.integration already listed ADR-003 in their files and in the root's blocks; nidana.model now lists it in hsdd/spec/nidana.model.md and in the root's block. bus-api@v1, bus-testing@v1, navigation-api@v1 and flutter-binding@v1 are forward references; their files do not exist yet."
+    },
+    {
+      "gate": "A superseding ADR set both `supersedes` and the old ADR's `superseded_by`.",
+      "status": "n/a",
+      "note": "Supersedes nothing."
+    },
+    {
+      "gate": "No invented decision was written as `accepted`; an unknown decision is `proposed` with a TODO.",
+      "status": "pass",
+      "note": "The root proposed it and the owner's decision policy accepts every proposed ADR. Every change from the proposal is recorded above with evidence."
+    },
+    {
+      "gate": "The registry was regenerated.",
+      "status": "pass",
+      "note": "node hsdd/scripts/gen-registry.mjs from the repository root (contract: none; adr: 3); the generator itself is untouched."
+    },
+    {
+      "gate": "Open questions are cited by ID only; an ADR that resolves one names the ID in its Decision, and the owning spec's OQ row is updated to point at this ADR (RESOLVED (date)).",
+      "status": "pass",
+      "note": "The Decision opens with 'Resolves OQ7 and the clock-control part of OQ2.' Root OQ7's row already read RESOLVED (2026-10-17): ADR-003; its detail now summarizes the accepted decision. OQ2 stays PARTIAL, waiting on OQ-R2, and its detail already points at ADR-003 for clock control."
+    },
+    {
+      "gate": "Orchestrator gate: node docs/auto-run/tools/gate.mjs --skill hsdd-adr --contracts-pending",
+      "status": "pass",
+      "note": "0 errors, 258 warnings, all forward references to the unwritten contracts. A separate scan of every changed file found no em-dash and no banned phrase."
+    }
+  ],
+  "notes_for_orchestrator": [
+    "ADR-003 accepted as hsdd/adr/003-time-source-virtual-scheduler.md. It keeps the proposal's zone-plus-clock provider, nidana's own VirtualScheduler and RxDart's time operators. Five changes, each from the new experiments: (1) the production provider captures Zone.current and clock at bus construction without forking; (2) bus.observe's listen and observer calls run inside the provider zone, so a TestBus subscriber needs no real turn (the proposal's item 6 caveat is gone); (3) no nidana code chains on a future from outside the zone, and the live switchMap does not wait for the previous inner's cancel, because RxDart 0.28's switchMap chains on the SDK's root-zone null future and its resubscription escapes the virtual scheduler, fakeAsync and testWidgets alike; (4) bus-testing@v1 gains an asynchronous settle for work that starts outside the zone; (5) widget tests build the bus in the body and shut it down before the body ends. affects grows by nidana.model, navigation-api@v1 and flutter-binding@v1.",
+    "Spec edits beyond the pointer: nidana.md OQ7 detail and nidana.model's Governed by in the root block; nidana.model.md Governed by; nidana.runtime.md Owns (a live switchMap of its own) and the Inherited time line; nidana.flutter.md widget-test library bullet (construct in body, shut down at unmount).",
+    "bus-api@v1 contract step: state as guarantees the two providers (closed set; production captures zone and clock at bus construction, not at BusConfig construction); bus.observe subscribing in the provider zone; observers invoked there; the bus's own timers and microtasks in the zone whatever the calling zone; shutdown cancelling every bus and pipeline timer; grace zero as synchronous teardown; the dev-mode window timer created by the first queued publish and cancelled by start(); the live switchMap listening to the next inner before the previous cancel completes; a read-only clock accessor (shape is the author's: a package:clock Clock in the public API couples bus-api@v1 to clock's major version, a DateTime now() method does not). The no-chaining rule means deactivate() and shutdown() should not return futures that chain on cancel futures; synchronous is simplest. Add a behavior case that runs a switch while an inner is live under TestBus with no await.",
+    "bus-testing@v1 contract step: name the scheduler's default start instant (the prototype used 2000-01-01T00:00:00Z), the per-operation action bound (prototype 100000) and the settle turn bound (prototype 20); pending-timer count and next-due accessors; TestBus(config) rejecting a production provider with ArgumentError; the recorder attachable to any bus; settle as the ADR-001 harness settle() for TestBus bindings. Settle must never be awaited from inside the virtual zone or a fake zone; the contract may make that a StateError. The prototype in docs/auto-run/experiments/virtual-scheduler/lib/scheduler.dart is a starting point for fixtures, not the implementation.",
+    "topology-dsl@v1 contract step: time-dependent combinators take a Duration and no scheduler argument; switchMap's semantics are 'cancel the previous inner, listen the next at once'. Its behavior suite, bound by the runtime from bus-api@v1's fixture directory, can now include virtual-time cases that run without await.",
+    "topic-model@v1 contract step: MessageEnvelope's timestamp and id are required arguments with no DateTime.now() default (ADR-003 item 8 binds nidana.model). OQ-M3 stays open: ADR-003 item 9 says a dispatcher hint can have no effect on Dart.",
+    "navigation-api@v1 contract step: RouteTransition timestamps come from the bus's clock accessor; executor-protocol conformance cases on TestBus get deterministic timestamps from the fixed start instant.",
+    "flutter-binding@v1 contract step: the widget-test helpers construct the bus in the test body and shut it down from the dispose of a widget above every scope binding (BusProvider owning the bus is the natural fit); they need no WidgetTester, so ADR-002 item 4 holds. The settle() of a testWidgets binding is tester.pump() in the binding file, which may import flutter_test. Under testWidgets the clock starts at the wall-clock time of the test start, so cases compare differences.",
+    "nidana.runtime decomposition: the provider, VirtualScheduler, TestBus, settle and recorder form one coherent cluster; the live switchMap belongs with the live DSL. Open for the runtime, not decided here: whether shutdown runs the virtual queue before tearing down (Spec §11.2 'drains pending dispatches'), and whether TestBus generates deterministic envelope ids (useful for OQ-R2's recorder assertions; ADR-003 covers time only).",
+    "Flutter phase plan: every widget test, the adapter's own included, must leave no bus timer pending at the end of the body; the module grace timer (100 ms default) and the 5 s dev-mode window are the timers that bite.",
+    "Upstream findings (would_upstream) for REPORT.md: Spec §3.6 and Guide §6.5 do not say how scheduler injection works on Dart, and Guide §6.5 names an EventLoopScheduler RxDart lacks; Guide §10.1 clock control answered for Dart; Spec §2.3 says the bus implements no schedulers or combinators, while on Dart the test scheduler and the live switchMap are nidana's; Spec §11.2's 'in tearDown' for tests does not hold under flutter_test.",
+    "Side effects, all outside the repository or ignored: packages in ~/.pub-cache; the experiment lockfiles and .dart_tool are covered by .gitignore. The fake_async zero-period probe needed a watchdog; the leftover dartvm process was killed by hand and nothing is left running.",
+    "Decision timestamps were taken in batches as experiments settled facts: 13:58:28Z after the VM experiment, 14:02:07Z after the Flutter experiment, 14:04:32Z after the fake_async probe, 14:07:16Z for the spec-edit decision."
+  ]
+}

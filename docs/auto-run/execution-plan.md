@@ -159,8 +159,9 @@ tree. Done when `node docs/auto-run/tools/gate.mjs --final` passes.
 | S02 | 2 | hsdd-spec | nidana (root) | done | f127e15 |
 | S03 | 3 | hsdd-adr | ADR-001 executable validation for Dart API contracts | done | 1fc3a48 |
 | S04 | 3 | hsdd-adr | ADR-002 package and workspace layout | done | 8c90ba5 |
-| S05 | 3 | hsdd-adr | ADR-003 time source and virtual scheduler | running | |
-| S06..S14 | 4 | hsdd-contract | topic-model, topology-dsl, topology-ir, bus-api, bus-testing, navigation-api, flutter-binding, topic-codegen, nidana-checks (all @v1), producer-first | planned | |
+| S05 | 3 | hsdd-adr | ADR-003 time source and virtual scheduler | done | 435a18b |
+| S06 | 4 | hsdd-contract | topic-model@v1 | running | |
+| S07..S14 | 4 | hsdd-contract | topology-dsl, topology-ir, bus-api, bus-testing, navigation-api, flutter-binding, topic-codegen, nidana-checks (all @v1), in that order | planned | |
 | next | 5 | hsdd-spec | nidana.runtime, then nidana.tooling (each followed by its ADRs and internal contracts) | planned | |
 
 ## Change log
@@ -186,3 +187,9 @@ tree. Done when `node docs/auto-run/tools/gate.mjs --final` passes.
   `pubspec.yaml`, `analysis_options.yaml`, `pubspec.lock`), and every phase that adds a member edits the
   root workspace list: phase plans must carry Collides-with entries for that. Passed on to the
   model and tooling steps.
+- 2026-10-17, after S05: ADR-003 settles the Dart time source (provider = zone + clock; nidana's own
+  VirtualScheduler; the runtime owns a live `switchMap` that does not wait on cancel futures, marked for
+  upstreaming against Spec §2.3). Its notes for the contract steps (provider set, observe zone rule,
+  settle operation, start instant and bounds, required timestamp and id arguments) are passed into
+  S06..S11. Two runtime questions stay for the runtime decomposition: whether shutdown drains the virtual
+  queue first, and whether TestBus generates deterministic envelope ids.
