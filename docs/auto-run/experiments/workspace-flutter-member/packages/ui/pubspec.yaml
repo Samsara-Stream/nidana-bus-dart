@@ -1,0 +1,13 @@
+name: ws_ui
+publish_to: none
+environment:
+  sdk: ^3.13.0
+resolution: workspace
+dependencies:
+  flutter:
+    sdk: flutter
+  ws_pure:
+    path: ../pure
+dev_dependencies:
+  flutter_test:
+    sdk: flutter

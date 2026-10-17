@@ -1,0 +1,15 @@
+### dart pub get at the root of a workspace with a Flutter member
+Changed 61 dependencies!
+7 packages have newer versions incompatible with dependency constraints.
+Try `dart pub outdated` for more information.
+exit: 0
+### flutter pub get at the root
+7 packages have newer versions incompatible with dependency constraints.
+Try `flutter pub outdated` for more information.
+### dart test in the pure member
+00:00 +1: All tests passed!
+### flutter test in the Flutter member
+00:00 +1: All tests passed!
+### dart analyze at the root
+Analyzing workspace-flutter-member...
+No issues found!

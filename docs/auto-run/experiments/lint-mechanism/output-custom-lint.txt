@@ -1,0 +1,8 @@
+8 packages have newer versions incompatible with dependency constraints.
+Try `dart pub outdated` for more information.
+### dart run custom_lint
+Analyzing...
+
+  lib/app.dart:5:20 • A global Bus accessor breaks Spec §3.1. • no_global_bus • INFO
+
+1 issue found.

@@ -1,0 +1,15 @@
+Changed 49 dependencies!
+### dart analyze fixture/surface (file under the workspace root, outside every member)
+Analyzing surface...
+No issues found!
+### dart analyze --format=machine fixture/reject
+ERROR|COMPILE_TIME_ERROR|UNDEFINED_METHOD|/Users/mohamad.purbo/gitx/nidana-bus-dart/docs/auto-run/experiments/sdk-workspace/fixture/reject/event_has_no_current_value.dart|7|5|12|The method 'currentValue' isn't defined for the type 'EventTopicX'.
+### exit code: 3
+### dart test fixture/behavior, run from the workspace root
+00:00 +0: loading fixture/behavior/state_topic_test.dart
+00:00 +0: fixture/behavior/state_topic_test.dart: a state topic starts at its declared initial value
+00:00 +1: All tests passed!
+### dart test from inside member a, pointing at the root fixture by path
+00:00 +0: loading ../../fixture/behavior/state_topic_test.dart
+00:00 +0: a state topic starts at its declared initial value
+00:00 +1: All tests passed!

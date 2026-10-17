@@ -1,0 +1,32 @@
+== a: replay timing relative to a microtask scheduled right after listen
+  after listen (sync)
+  sub got 0
+  microtask scheduled after listen ran
+  -- now add(1) after the first turn
+  sub got 1
+  after add(1) (sync)
+== b: two subscribers, second subscribes while first is established
+  s1 got 0
+  s1 got 1
+  after add(1) (sync): s1 delivered synchronously, s2 not yet established
+  s2 got 0
+  s2 got 1
+  after turn
+== c: Stream.multi with addSync of the current value inside onListen
+  after listen (sync)
+  after publish(1) (sync)
+  sub got 0
+  sub got 1
+  after turn
+== d: Stream.multi reentrant addSync to the same stream during delivery
+  s1 got 1
+  s2 got 2
+  reentrant publish(2) returned
+  s2 got 1
+  after publish(1)
+  s1 got 2
+== e: ValueStream (BehaviorSubject.stream) transformed by map, listen then add
+  after listen
+  after add(1)
+  mapped got 0
+  mapped got 10

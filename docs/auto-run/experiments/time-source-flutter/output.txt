@@ -1,0 +1,8 @@
+00:00 +0: loading /Users/mohamad.purbo/gitx/nidana-bus-dart/docs/auto-run/experiments/time-source-flutter/test/zone_test.dart
+00:00 +0: pass-through bus zone: tester.pump drives debounceTime
+pass-through at 299ms: []
+pass-through at 300ms: [2]
+00:00 +1: virtual bus zone: independent of tester.pump
+virtual after tester.pump(1s): []
+virtual after advanceTimeBy(300ms): [2]
+00:00 +2: All tests passed!

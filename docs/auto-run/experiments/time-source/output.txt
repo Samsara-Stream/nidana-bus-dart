@@ -1,0 +1,21 @@
+== 1: subscription created inside fakeAsync, debounceTime(300ms)
+  at 299ms: []
+  at 300ms: [2]
+  after 1s more: [2, 3]
+== 2: subscription created OUTSIDE fakeAsync, events published inside it
+  inside fakeAsync after elapse(1s): [] (timer lives in the root zone)
+  after 350ms of real time: [2]
+== 3: scheduleMicrotask normalization under fakeAsync
+  before flushMicrotasks: [x:a]
+  after flushMicrotasks: [x:a, y:y-from-a]
+== 4: clock.now() and DateTime.now() under fakeAsync
+  clock.now advanced by 0:05:00.000000; initialTime given: 2026-01-01 00:00:00.000Z
+  DateTime.now advanced by 0:00:00.000004 (not virtualized: real clock)
+== 5: own zone-based virtual scheduler controls RxDart debounceTime/throttleTime/delay
+  t=99ms   debounce=[] throttle=[1] delay=[]
+  t=100ms  debounce=[] throttle=[1] delay=[1, 2]
+  t=300ms  debounce=[2] throttle=[1] delay=[1, 2]
+  after 400ms of real time, unchanged: debounce=[2] throttle=[1] delay=[1, 2]
+== 6: nested fakeAsync (stand-in for a TestBus fakeAsync inside an outer fake zone)
+  after OUTER elapse(1s): []
+  after INNER elapse(1s): [1]

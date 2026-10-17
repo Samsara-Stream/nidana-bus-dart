@@ -1,0 +1,41 @@
+== case 1: BehaviorSubject.seeded(0, sync: true), listen then add(1)
+  after listen (sync)
+  after add(1) (sync)
+  sub got 0
+  sub got 1
+  after event-loop turn
+== case 2: PublishSubject(sync: true), listen then add(1)
+  sub got 1
+  after add(1) (sync)
+== case 3: ReplaySubject(maxSize: 2, sync: true), add 1,2,3 then listen then add 4
+  after listen (sync)
+  after add(4) (sync)
+  sub got 2
+  sub got 3
+  sub got 4
+  after event-loop turn; values=[3, 4]
+== case 4: BehaviorSubject.seeded(0) default sync: false, listen then add(1)
+  after add(1) (sync)
+  sub got 0
+  sub got 1
+  after event-loop turn
+== case 5: reentrant publish to another sync subject, no normalization
+  x.sub1 got a
+  y.sub got y-from-a
+  x.sub2 got a
+  after x.add(a)
+== case 6: reentrant add to the same sync subject during its own delivery
+  sub got 1
+  reentrant add(2) threw StateError: Bad state: Cannot fire new event. Controller is already firing an event
+== case 7: reentrant publish deferred with scheduleMicrotask (Spec §3.4)
+  x.sub1 got a
+  x.sub2 got a
+  after x.add(a)
+  y.sub got y-from-a
+== case 8: BehaviorSubject sync: publish 1 right after listen, before replay
+  subscriber saw [0, 1, 1, 2] (no dedup in BehaviorSubject itself)
+== case 9: BehaviorSubject.value is synchronous
+  value right after add(5) = 5
+== case 10: plain StreamController.broadcast(sync: true) reentrant add to itself
+  sub got 1
+  reentrant add(2) threw StateError: Bad state: Cannot fire new event. Controller is already firing an event

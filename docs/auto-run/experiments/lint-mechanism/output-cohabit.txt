@@ -1,0 +1,20 @@
+### one resolution holding custom_lint + source_gen + build_runner + analysis_server_plugin
++ yaml_edit 2.2.4
+Changed 63 dependencies!
+13 packages have newer versions incompatible with dependency constraints.
+Try `dart pub outdated` for more information.
+- analysis_server_plugin 0.3.3 [analyzer analyzer_plugin meta yaml yaml_edit]
+- build 4.0.7 [analyzer crypto glob logging package_config path]
+- source_gen 4.2.4 [analyzer async build dart_style glob path pub_semver source_span yaml]
+- build_runner 2.15.1 [analyzer args async build build_config build_daemon built_collection built_value collection convert crypto dart_style glob graphs http_multi_server io json_annotation logging meta mime package_config path pool pub_semver shelf shelf_web_socket stream_transform watcher web_socket_channel yaml]
+- custom_lint 0.8.1 [analyzer analyzer_plugin args async ci cli_util collection custom_lint_core freezed_annotation json_annotation meta package_config path pub_semver pubspec_parse rxdart uuid yaml]
+- analyzer 8.4.0 [_fe_analyzer_shared collection convert crypto glob meta package_config path pub_semver source_span watcher yaml]
+
+### the same without custom_lint
++ yaml_edit 2.2.4
+Changed 49 dependencies!
+- analysis_server_plugin 0.3.24 [analyzer analyzer_plugin collection meta yaml yaml_edit]
+- build 5.0.0 [analyzer crypto glob logging package_config path]
+- source_gen 4.3.1 [analyzer async build dart_style glob path pub_semver source_span yaml]
+- build_runner 2.17.1 [analyzer args async build build_config build_daemon built_collection built_value collection convert crypto dart_style glob graphs http_multi_server io json_annotation logging meta mime package_config path pool pub_semver shelf shelf_web_socket stream_transform watcher web_socket_channel yaml]
+- analyzer 14.5.0 [_fe_analyzer_shared collection convert crypto glob meta package_config path pub_semver source_span watcher yaml]

@@ -1,0 +1,38 @@
+### custom_lint resolution on Dart 3.13.5
++ source_span 1.10.2
++ stack_trace 1.12.2
++ stream_channel 2.1.4
++ stream_transform 2.1.2
++ string_scanner 1.4.1
++ term_glyph 1.2.2
++ test_api 0.7.15
++ typed_data 1.4.0
++ uuid 4.6.0
++ vm_service 15.4.0
++ watcher 1.2.1
++ yaml 3.1.4
+Changed 43 dependencies!
+8 packages have newer versions incompatible with dependency constraints.
+Try `dart pub outdated` for more information.
+- custom_lint_builder 0.8.1 [analyzer analyzer_plugin collection custom_lint custom_lint_core custom_lint_visitor glob hotreloader meta package_config path pubspec_parse rxdart]
+- custom_lint 0.8.1 [analyzer analyzer_plugin args async ci cli_util collection custom_lint_core freezed_annotation json_annotation meta package_config path pub_semver pubspec_parse rxdart uuid yaml]
+- analyzer 8.4.0 [_fe_analyzer_shared collection convert crypto glob meta package_config path pub_semver source_span watcher yaml]
+
+### analysis_server_plugin resolution
++ dart_style 3.1.14
++ file 7.0.1
++ glob 2.2.0
++ meta 1.19.0
++ package_config 3.0.0
++ path 1.9.1
++ pub_semver 2.2.1
++ source_span 1.10.2
++ string_scanner 1.4.1
++ term_glyph 1.2.2
++ typed_data 1.4.0
++ watcher 1.2.1
++ yaml 3.1.4
++ yaml_edit 2.2.4
+Changed 23 dependencies!
+- analysis_server_plugin 0.3.24 [analyzer analyzer_plugin collection meta yaml yaml_edit]
+- analyzer 14.5.0 [_fe_analyzer_shared collection convert crypto glob meta package_config path pub_semver source_span watcher yaml]

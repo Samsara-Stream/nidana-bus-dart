@@ -1,0 +1,8 @@
+name: custom_lint_sample
+publish_to: none
+environment:
+  sdk: ^3.13.0
+dev_dependencies:
+  custom_lint: any
+  custom_lint_probe:
+    path: ../custom_lint_probe

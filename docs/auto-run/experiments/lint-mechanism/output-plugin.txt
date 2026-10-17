@@ -1,0 +1,8 @@
+Analyzing lib...
+No issues found!
+### dart analyze on sample_app with the plugin enabled
+Analyzing sample_app...
+
+   info - lib/app.dart:5:20 - A global Bus accessor breaks Spec §3.1. Pass a Bus reference explicitly. - no_global_bus
+
+1 issue found.

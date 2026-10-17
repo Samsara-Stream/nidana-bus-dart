@@ -1,0 +1,11 @@
+name: time_source_flutter
+publish_to: none
+environment:
+  sdk: ^3.13.0
+dependencies:
+  flutter:
+    sdk: flutter
+  rxdart: ^0.28.0
+dev_dependencies:
+  flutter_test:
+    sdk: flutter

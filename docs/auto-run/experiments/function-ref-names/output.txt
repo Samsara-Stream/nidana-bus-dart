@@ -1,0 +1,10 @@
+### JIT (dart run)
+top-level tear-off : Closure: (int, int) => int from Function 'buildTotal': static.
+static tear-off    : Closure: (int, String) => int from Function 'reduceCount': static.
+inline closure     : Closure: (int) => int
+identical tear-offs: true equal: true
+### AOT (dart compile exe, without --obfuscate; Flutter release builds built with --obfuscate rename these)
+top-level tear-off : Closure: (int, int) => int from Function 'buildTotal': static.
+static tear-off    : Closure: (int, String) => int from Function 'reduceCount': static.
+inline closure     : Closure: (int) => int
+identical tear-offs: true equal: true

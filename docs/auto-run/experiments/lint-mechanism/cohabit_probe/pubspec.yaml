@@ -1,0 +1,12 @@
+name: cohabit_probe
+publish_to: none
+environment:
+  sdk: ^3.13.0
+dependencies:
+  source_gen: any
+  build: any
+  analysis_server_plugin: any
+dev_dependencies:
+  build_runner: any
+  custom_lint: any
+  custom_lint_builder: any

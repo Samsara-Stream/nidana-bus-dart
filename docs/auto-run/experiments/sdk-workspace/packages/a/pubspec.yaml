@@ -1,0 +1,9 @@
+name: exp_a
+publish_to: none
+environment:
+  sdk: ^3.13.0
+resolution: workspace
+dependencies:
+  rxdart: ^0.28.0
+dev_dependencies:
+  test: ^1.25.0

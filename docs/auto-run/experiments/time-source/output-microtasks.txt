@@ -1,0 +1,7 @@
+after listen inside zone, before triggerActions: []
+after triggerActions: [state:0]
+after events.add, before triggerActions: [state:0, event:tap]
+after triggerActions: [state:0, event:tap, state:1]
+debounce after advanceTimeBy(300ms): [10]
+outside listener after triggerActions only: []
+outside listener after a real event-loop turn: [10]

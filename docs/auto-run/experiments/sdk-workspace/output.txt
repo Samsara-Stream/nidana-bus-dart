@@ -1,0 +1,29 @@
+Resolving dependencies...
+Downloading packages...
++ rxdart 0.28.0
+Changed 1 dependency!
+--- run
+workspace member b resolved exp_a and rxdart through the workspace root
+b sees 0
+b sees 1
+--- files
+.
+..
+.dart_tool
+output.txt
+packages
+pubspec.lock
+pubspec.yaml
+packages/a:
+.
+..
+.dart_tool
+lib
+pubspec.yaml
+
+packages/b:
+.
+..
+.dart_tool
+bin
+pubspec.yaml

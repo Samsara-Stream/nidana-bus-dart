@@ -1,0 +1,5 @@
+# Question: does RxDart 0.28.0 (the version the pinned SDK resolves) define a scheduler type,
+# such as the EventLoopScheduler Guide §6.5 names for Dart/RxDart?
+$ grep -rn 'Scheduler' rxdart-0.28.0/lib
+rxdart-0.28.0/lib/src/rx.dart:72:/// synchronous by default, unless you schedule work on a different Scheduler.
+# Finding: one doc-comment mention, no scheduler class or parameter; time operators create dart:async Timers directly.
