@@ -10,6 +10,7 @@ const StateTopic<int> count = StateTopic<int>(name: 'surface.count', initial: 0)
 const EventTopic<String> taps = EventTopic<String>(name: 'surface.taps');
 const ReplayTopic<String> log =
     ReplayTopic<String>(name: 'surface.log', bufferSize: 3);
+const EventTopic<num> readings = EventTopic<num>(name: 'surface.readings');
 
 void configure(DiagnosticSink sink, ObserveContext context) {
   const BusConfig defaults = BusConfig();
@@ -69,7 +70,8 @@ void lifecycle(Bus bus) {
 
 void topics(Bus bus) {
   bus.publish(taps, 'tap');
-  bus.publish<String>(log, 'entry');
+  bus.publish<String, String>(log, 'entry');
+  bus.publish(readings, 1);
   final Stream<int> counts = bus.observe(count);
   final Stream<String> tapStream = bus.observe(taps);
   final StreamSubscription<String> sub = bus.observe(log).listen(print);
@@ -93,11 +95,20 @@ void publishers(Bus bus) {
   final Set<StateTopic<Object?>> writes = owner.writes;
   final bool disposed = owner.isDisposed;
   events.publish(taps, 'tap');
-  events.publish<String>(log, 'entry');
+  events.publish<String, String>(log, 'entry');
+  events.publish(readings, 2.5);
   final StateWriter<int> writer = owner.writer(count);
   final StateTopic<int> topic = writer.topic;
   writer.publish(1);
   owner.dispose();
   events.dispose();
   print(<Object?>[source, scope, writes, disposed, topic]);
+}
+
+/// A generic caller that holds a topic and a value of its type publishes
+/// without type arguments (G40); `readings` above shows that a value of a
+/// subtype of the topic's value type compiles too.
+void forward<T>(Bus bus, Publisher publisher, MultiWriterTopic<T> topic, T value) {
+  bus.publish(topic, value);
+  publisher.publish(topic, value);
 }

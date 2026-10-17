@@ -73,6 +73,15 @@ Topology _t(String id, void Function(TopologyBuilder b) body,
         [Scope scope = Scope.module]) =>
     topology(id, scope, body);
 
+/// A withLatestFrom gate over a state read. It drops every value of [_e]
+/// that arrives before the read's first value, so what it writes to [_out]
+/// shows whether an activation's connection came first (G22, G34).
+Topology _gate([Scope scope = Scope.module]) => _t(
+    'gate',
+    (TopologyBuilder b) => b.write(_out,
+        b.read(_e).withLatestFrom(b.read(_s), (int v, int w) => v * 10 + w)),
+    scope);
+
 /// Subscribes to [topic] and returns the list each delivered payload is
 /// appended to.
 List<T> _listen<T>(Bus bus, Topic<T> topic) {
@@ -1089,6 +1098,44 @@ final List<ConformanceCase<BusApiHarness>> busApiConformance =
     },
   ),
   (
+    name: 'G22 an activation is connected when activate returns, so a value published right after it meets the first value of every read',
+    body: (BusApiHarness h) async {
+      final Bus bus = h.bus();
+      bus.start();
+      final Publisher p = bus.publisher(_svc);
+      p.publish(_r, 2);
+      p.publish(_r, 3);
+      final List<int> got = _listen(bus, _out);
+      bus.activate(_t(
+          'gate-two',
+          (TopologyBuilder b) => b.write(
+              _out,
+              b.read(_e).withLatestFrom2(b.read(_s), b.read(_r),
+                  (int v, int s, int r) => v * 100 + s * 10 + r))));
+      p.publish(_e, 4);
+      h.flush(bus);
+      expect(got, <int>[413]);
+    },
+  ),
+  (
+    name: 'G22 the publishes a connection causes wait for a bus microtask: none is delivered before activate returns, and a topology activated right after receives them',
+    body: (BusApiHarness h) async {
+      final Bus bus = h.bus();
+      bus.start();
+      bus.publisher(_svc, writes: <StateTopic<Object?>>{_s}).writer(_s).publish(4);
+      final List<int> first = _listen(bus, _out);
+      final List<int> second = _listen(bus, _outB);
+      bus.activate(_t('connects',
+          (TopologyBuilder b) => b.write(_out, b.read(_s).map((int v) => v + 1))));
+      expect(first, isEmpty);
+      bus.activate(_t('follows',
+          (TopologyBuilder b) => b.write(_outB, b.read(_out).map(_double))));
+      h.flush(bus);
+      expect(first, <int>[5]);
+      expect(second, <int>[10]);
+    },
+  ),
+  (
     name: 'G22 an APPLICATION topology activated after start is reported in dev mode; one activated before start is not',
     body: (BusApiHarness h) async {
       final List<BusDiagnostic> d = <BusDiagnostic>[];
@@ -1633,6 +1680,21 @@ final List<ConformanceCase<BusApiHarness>> busApiConformance =
 
       expect(run(true), run(false));
       expect(run(true), contains('bus.out:70'));
+    },
+  ),
+  (
+    name: 'G34 start delivers the queue to the topologies activated before it, already connected, so a publish queued before an activation, such as a deep link, meets its reads with nothing run between activate and start',
+    body: (BusApiHarness h) async {
+      final Bus bus = h.bus();
+      final List<int> got = _listen(bus, _out);
+      final Publisher p = bus.publisher(_svc, writes: <StateTopic<Object?>>{_s});
+      p.publish(_e, 4);
+      bus.activate(_gate(Scope.application));
+      p.writer(_s).publish(7);
+      p.publish(_e, 5);
+      bus.start();
+      h.flush(bus);
+      expect(got, <int>[41, 57]);
     },
   ),
   (

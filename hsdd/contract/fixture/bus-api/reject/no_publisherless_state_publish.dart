@@ -10,5 +10,5 @@ void publish(Bus bus) {
   // expect-diagnostic: argument_type_not_assignable
   bus.publish(state, 1);
   // expect-diagnostic: argument_type_not_assignable
-  bus.publish<int>(state, 1);
+  bus.publish<int, int>(state, 1);
 }

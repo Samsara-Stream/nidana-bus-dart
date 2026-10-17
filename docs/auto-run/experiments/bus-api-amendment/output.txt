@@ -1,0 +1,240 @@
+
+### setup: copy the contracts and the fixtures from the repository, resolve
+pub get exit: 0
+Dart SDK version: 3.13.5 (stable) (Tue Sep 29 01:00:52 2026 -0700) on "macos_arm64"
+-- the patches in the stand-in runtime
+packages/nidana_dart_runtime/lib/src/bus.dart:92:  // bus-api-amendment patch: topology reads listen here, synchronously and
+packages/nidana_dart_runtime/lib/src/bus.dart:211:  // navigation-api-fixtures patch: >0 while a connection reaches its reads.
+packages/nidana_dart_runtime/lib/src/bus.dart:298:  // bus-api-amendment patch: the value's type is bounded by the topic's
+packages/nidana_dart_runtime/lib/src/bus.dart:316:      // navigation-api-fixtures patch: a publish a connection causes waits
+packages/nidana_dart_runtime/lib/src/bus.dart:684:  // bus-api-amendment patch: as Bus.publish (bus-api@v1 G40).
+packages/nidana_dart_runtime/lib/src/interpreter.dart:137:      // navigation-api-fixtures patch: the connection reaches the read
+packages/nidana_dart_runtime/lib/src/interpreter.dart:142:      // bus-api-amendment patch: the read listens to the cell's synchronous
+301:  void publish<T extends Object?, V extends T>(MultiWriterTopic<T> topic, V value) {
+685:  void publish<T extends Object?, V extends T>(MultiWriterTopic<T> topic, V value) {
+
+### T0 the stand-in packages are clean under the root lint set and --fatal-infos
+Analyzing packages...
+No issues found!
+exit: 0
+
+### T1 structure: headers, markers, guarantee coverage, listed bindings, no src/ imports
+-- bus-api
+guarantees: 40; cases: 89; bindings: 2; fixture files: 15
+exit: 0
+-- bus-testing
+guarantees: 20; cases: 45; bindings: 1; fixture files: 7
+exit: 0
+-- navigation-api
+guarantees: 27; cases: 66; bindings: 2; fixture files: 13
+exit: 0
+-- bus-api, every guarantee
+PASS G1 2 fixture(s) PASS G2 1 fixture(s) PASS G3 3 fixture(s) PASS G4 4 fixture(s) PASS G5 5 fixture(s) PASS G6 2 fixture(s) PASS G7 2 fixture(s) PASS G8 4 fixture(s) PASS G9 5 fixture(s) PASS G10 3 fixture(s) PASS G11 2 fixture(s) PASS G12 1 fixture(s) PASS G13 2 fixture(s) PASS G14 3 fixture(s) PASS G15 1 fixture(s) PASS G16 3 fixture(s) PASS G17 2 fixture(s) PASS G18 3 fixture(s) PASS G19 3 fixture(s) PASS G20 4 fixture(s) PASS G21 3 fixture(s) PASS G22 5 fixture(s) PASS G23 4 fixture(s) PASS G24 4 fixture(s) PASS G25 1 fixture(s) PASS G26 1 fixture(s) PASS G27 1 fixture(s) PASS G28 6 fixture(s) PASS G29 2 fixture(s) PASS G30 2 fixture(s) PASS G31 1 fixture(s) PASS G32 1 fixture(s) PASS G33 3 fixture(s) PASS G34 4 fixture(s) PASS G35 1 fixture(s) PASS G36 3 fixture(s) PASS G37 1 fixture(s) PASS G38 not executable PASS G39 not executable PASS G40 1 fixture(s) 
+
+### T2 surface: every surface library analyzes with no diagnostic under --fatal-infos
+Analyzing surface, surface, surface...
+No issues found!
+exit: 0
+
+### T3 reject: the (line, code) pairs reported in each file equal the pairs its markers name
+-- bus-api
+PASS config_is_immutable.dart [7:assignment_to_final 9:assignment_to_final 11:assignment_to_final 13:assignment_to_final]
+PASS current_value_is_state_only.dart [14:argument_type_not_assignable 16:argument_type_not_assignable 18:argument_type_not_assignable 20:argument_type_not_assignable]
+PASS diagnostics_are_closed.dart [7:invalid_use_of_type_outside_library 10:invalid_use_of_type_outside_library]
+PASS no_global_accessor.dart [8:undefined_getter 10:undefined_getter 12:undefined_method]
+PASS no_publisherless_state_publish.dart [11:argument_type_not_assignable 13:argument_type_not_assignable]
+PASS publish_value_matches_topic.dart [16:could_not_infer 18:could_not_infer 21:could_not_infer 23:could_not_infer 26:could_not_infer 29:could_not_infer 32:type_argument_not_matching_bounds]
+PASS publisher_reaches_state_through_writer.dart [15:argument_type_not_assignable 17:set_element_type_not_assignable 19:set_element_type_not_assignable 21:argument_type_not_assignable 24:argument_type_not_assignable]
+PASS runtime_types_are_closed.dart [8:invalid_use_of_type_outside_library 11:invalid_use_of_type_outside_library 14:invalid_use_of_type_outside_library 17:invalid_use_of_type_outside_library 20:invalid_use_of_type_outside_library 23:invalid_use_of_type_outside_library 26:invalid_use_of_type_outside_library 29:invalid_use_of_type_outside_library 32:invalid_use_of_type_outside_library 35:invalid_use_of_type_outside_library 39:new_with_undefined_constructor_default 41:new_with_undefined_constructor_default 43:new_with_undefined_constructor_default 45:new_with_undefined_constructor_default 47:new_with_undefined_constructor_default]
+PASS scheduler_providers_are_closed.dart [7:invalid_use_of_type_outside_library 10:invalid_use_of_type_outside_library 13:invalid_use_of_type_outside_library]
+exit: 0
+-- bus-testing
+PASS testing_exports_only_its_own.dart [10:undefined_class 13:undefined_class 16:undefined_class]
+PASS testing_types_are_closed.dart [8:invalid_use_of_type_outside_library 11:invalid_use_of_type_outside_library 14:invalid_use_of_type_outside_library 17:invalid_use_of_type_outside_library 20:invalid_use_of_type_outside_library 23:invalid_use_of_type_outside_library 26:invalid_use_of_type_outside_library 30:new_with_undefined_constructor_default 32:new_with_undefined_constructor_default 34:new_with_undefined_constructor_default]
+exit: 0
+-- navigation-api
+PASS current_route_is_claimed_by_the_executor.dart [10:argument_type_not_assignable 12:argument_type_not_assignable 14:undefined_getter 16:undefined_getter]
+PASS intents_are_closed.dart [8:invalid_use_of_type_outside_library 11:invalid_use_of_type_outside_library 14:invalid_use_of_type_outside_library 17:invalid_use_of_type_outside_library 20:non_exhaustive_switch_expression 29:non_exhaustive_switch_expression]
+PASS navigation_types_are_closed.dart [8:invalid_use_of_type_outside_library 11:invalid_use_of_type_outside_library 14:invalid_use_of_type_outside_library 17:invalid_use_of_type_outside_library 20:invalid_use_of_type_outside_library 23:invalid_use_of_type_outside_library 28:invalid_use_of_type_outside_library 31:invalid_use_of_type_outside_library 34:non_exhaustive_switch_expression 41:non_exhaustive_switch_expression 47:non_exhaustive_switch_expression 54:non_exhaustive_switch_expression]
+PASS navigation_values_are_immutable.dart [8:assignment_to_final 10:assignment_to_final 12:assignment_to_final 14:assignment_to_final 16:assignment_to_final 18:assignment_to_final]
+PASS resolved_intent_is_never_a_deep_link.dart [9:invalid_assignment 11:argument_type_not_assignable 16:argument_type_not_assignable 19:return_of_invalid_type_from_closure 21:argument_type_not_assignable 27:pattern_never_matches_value_type]
+PASS route_arguments_are_typed.dart [11:argument_type_not_assignable 13:argument_type_not_assignable 15:argument_type_not_assignable 17:new_with_undefined_constructor_default 19:new_with_undefined_constructor_default 21:new_with_undefined_constructor_default 23:invalid_assignment]
+exit: 0
+
+### T4 reject: the raw diagnostics behind T3 for bus-api@v1's publish files (line severity code)
+-- publish_value_matches_topic.dart
+16 ERROR could_not_infer
+18 ERROR could_not_infer
+21 ERROR could_not_infer
+23 ERROR could_not_infer
+26 ERROR could_not_infer
+29 ERROR could_not_infer
+32 ERROR type_argument_not_matching_bounds
+-- no_publisherless_state_publish.dart
+11 ERROR argument_type_not_assignable
+13 ERROR argument_type_not_assignable
+-- publisher_reaches_state_through_writer.dart
+15 ERROR argument_type_not_assignable
+17 ERROR set_element_type_not_assignable
+19 ERROR set_element_type_not_assignable
+21 ERROR argument_type_not_assignable
+24 ERROR argument_type_not_assignable
+-- current_route_is_claimed_by_the_executor.dart
+10 ERROR argument_type_not_assignable
+12 ERROR argument_type_not_assignable
+14 ERROR undefined_getter
+16 ERROR undefined_getter
+
+### T5 probes: what the typed publish accepts and rejects (P1), and which signature form keeps a state topic at one diagnostic (P2)
+-- probe/publish_typing.dart: (line severity code); a tagged line with no pair compiles
+24 ERROR could_not_infer
+25 ERROR could_not_infer
+26 ERROR could_not_infer
+27 ERROR could_not_infer
+28 ERROR could_not_infer
+29 ERROR argument_type_not_assignable
+30 ERROR argument_type_not_assignable
+31 ERROR argument_type_not_assignable
+32 ERROR wrong_number_of_type_arguments_element
+35 ERROR argument_type_not_assignable
+36 ERROR argument_type_not_assignable
+37 ERROR could_not_infer
+42 ERROR wrong_number_of_type_arguments_element
+43 ERROR type_argument_not_matching_bounds
+44 ERROR could_not_infer
+17:    bus.publish(topic, value); // P01 generic forwarding
+20:  bus.publish(ints, 1); // P02 well typed
+21:  bus.publish(log, 'entry'); // P03 well typed
+22:  bus.publish(nums, 1); // P04 a subtype value
+23:  bus.publish(maybe, null); // P05 null on a nullable topic
+24:  bus.publish(ints, 'one'); // P06 wrong value type
+25:  p.publish(ints, 'one'); // P07 wrong value type, publisher
+26:  bus.publish(ints, 1.5); // P08 a wider value
+27:  bus.publish(ints, null); // P09 null on a non-nullable topic
+28:  bus.publish(ints, o); // P10 an Object value
+29:  bus.publish(state, 1); // P11 a state topic
+30:  bus.publish<int, int>(state, 1); // P12 a state topic, explicit arguments
+31:  p.publish(state, 1); // P13 a state topic, publisher
+32:  bus.publish<int>(log, 'x'); // P14 one explicit type argument
+33:  bus.publish<String, String>(log, 'entry'); // P15 two explicit, well typed
+34:  bus.publish<num, double>(ints, 1.5); // P16 explicit widening of the topic type
+35:  bus.publish(NavigationTopics.currentRoute, s); // P17 navigation-api reject line
+36:  p.publish(NavigationTopics.currentRoute, s); // P18 navigation-api reject line
+37:  p.publish(NavigationTopics.resolvedIntent, DeepLink(uri)); // P19 S12 W1
+38:  bus.publish(NavigationTopics.intent, DeepLink(uri)); // P20 well typed intent
+39:  final void Function(EventTopic<int>, int) tearOff = bus.publish; // P21 tear-off
+41:  p.publish<String, String>(log, 'entry'); // P22 two explicit, publisher
+42:  p.publish<int>(log, 'x'); // P23 one explicit, publisher
+43:  bus.publish<int, String>(ints, 'one'); // P24 explicit arguments that disagree
+44:  p.publish(ints, n); // P25 a supertype value
+45:  p.publish<num, num>(ints, n); // P26 explicit widening, publisher
+-- probe/signature_forms.dart: (line severity code); a tagged line with no pair compiles
+25 ERROR argument_type_not_assignable
+26 ERROR could_not_infer
+27 ERROR argument_type_not_assignable
+27 WARNING inference_failure_on_function_invocation
+28 ERROR could_not_infer
+29 ERROR argument_type_not_assignable
+30 ERROR argument_type_not_assignable
+32 ERROR could_not_infer
+33 ERROR could_not_infer
+34 ERROR could_not_infer
+36 ERROR wrong_number_of_type_arguments_element
+20:  f2(topic, value); // L01 F2 generic forwarding
+24:  f0(ints, 'one'); // L02 F0 wrong value type
+25:  f0(state, 1); // L03 F0 state topic
+26:  f1(ints, 'one'); // L04 F1 wrong value type
+27:  f1(state, 1); // L05 F1 state topic
+28:  f2(ints, 'one'); // L06 F2 wrong value type
+29:  f2(state, 1); // L07 F2 state topic
+30:  f2<int, int>(state, 1); // L08 F2 state topic, explicit
+31:  f2(ints, 1); // L09 F2 well typed
+32:  f2(ints, 1.5); // L10 F2 wider value
+33:  f2(ints, null); // L11 F2 null
+34:  f2(ints, o); // L12 F2 an Object value
+35:  f2<num, double>(ints, 1.5); // L13 F2 explicit widening
+36:  f2<int>(ints, 1); // L14 F2 one explicit type argument
+
+### T6 the conformance libraries and the bindings analyze clean (warnings included)
+Analyzing behavior, behavior, behavior, behavior...
+No issues found!
+exit: 0
+
+### T7 behavior: every suite that touches bus-api@v1, on the amended stand-in
+-- hsdd/contract/fixture/bus-api/behavior/nidana_dart_runtime_test.dart
+00:00 +89: All tests passed!
+exit: 0
+-- hsdd/contract/fixture/bus-api/behavior/bus_activation_test.dart
+00:00 +43: All tests passed!
+exit: 0
+-- hsdd/contract/fixture/bus-testing/behavior/nidana_dart_runtime_test.dart
+00:00 +45: All tests passed!
+exit: 0
+-- hsdd/contract/fixture/navigation-api/behavior/nidana_dart_navigation_test.dart
+00:00 +40: All tests passed!
+exit: 0
+-- hsdd/contract/fixture/navigation-api/behavior/in_memory_router_test.dart
+00:00 +52: All tests passed!
+exit: 0
+-- hsdd/contract/fixture/flutter-binding/behavior/flutter_navigation_standin_test.dart (fvm flutter test, testWidgets, production-provider bus)
+00:00 +26: All tests passed!
+exit: 0
+
+### T8 behavior: the G22 and G34 cases of bus-api@v1, by name prefix (--guarantee bus-api/G22,G34)
+G22 activation interprets the topology, and its sinks publish on the bus with the topology source, observed like any publish
+G22 the outputs of an activation connection are delivered once the bus microtasks queued by activate have run
+G22 an activation is connected when activate returns, so a value published right after it meets the first value of every read
+G22 the publishes a connection causes wait for a bus microtask: none is delivered before activate returns, and a topology activated right after receives them
+G22 an APPLICATION topology activated after start is reported in dev mode; one activated before start is not
+G34 before start every publish is queued, unseen by subscribers, observers and current values, and start delivers the queue in publication order
+G34 topology publishes before start are queued too, so the order of the activations before start does not change what is delivered
+G34 start delivers the queue to the topologies activated before it, already connected, so a publish queued before an activation, such as a deep link, meets its reads with nothing run between activate and start
+G34 start is idempotent, and after it a publish is delivered at once
+All tests passed!
+exit: 0
+
+### T9 the S11 runtime, before both patches: the new cases fail, and the typed-publish rejects fail
+287:  void publish<T>(MultiWriterTopic<T> topic, T value) {
+663:  void publish<T>(MultiWriterTopic<T> topic, T value) {
+-- bus-api suite
+G22 an activation is connected when activate returns, so a value published right after it meets the first value of every read [E]
+G34 start delivers the queue to the topologies activated before it, already connected, so a publish queued before an activation, such as a deep link, meets its reads with nothing run between activate and start [E]
+Some tests failed.
+-- topology-dsl live suite through bus_activation_test.dart
+00:00 +43: All tests passed!
+-- bus-api reject
+FAIL no_publisherless_state_publish.dart [11:argument_type_not_assignable 13:argument_type_not_assignable] reported={(code: argument_type_not_assignable, line: 11), (code: wrong_number_of_type_arguments_element, line: 13), (code: argument_type_not_assignable, line: 13)}
+FAIL publish_value_matches_topic.dart [16:could_not_infer 18:could_not_infer 21:could_not_infer 23:could_not_infer 26:could_not_infer 29:could_not_infer 32:type_argument_not_matching_bounds] reported={(code: wrong_number_of_type_arguments_element, line: 32)}
+PASS publisher_reaches_state_through_writer.dart [15:argument_type_not_assignable 17:set_element_type_not_assignable 19:set_element_type_not_assignable 21:argument_type_not_assignable 24:argument_type_not_assignable]
+-- bus-api surface
+  error - bus.dart:73:14 - The method 'publish' is declared with 1 type parameters, but 2 type arguments are given. Try adjusting the number of type arguments. - wrong_number_of_type_arguments_element
+  error - bus.dart:98:17 - The method 'publish' is declared with 1 type parameters, but 2 type arguments are given. Try adjusting the number of type arguments. - wrong_number_of_type_arguments_element
+restored the amended runtime
+
+### T10 seeded defects in the amended stand-in fail the fixtures of the guarantee they break
+-- the publishes a connection causes are made within activate (G22)
+G22 the publishes a connection causes wait for a bus microtask: none is delivered before activate returns, and a topology activated right after receives them [E]
+G34 topology publishes before start are queued too, so the order of the activations before start does not change what is delivered [E]
+Some tests failed.
+-- a read the connection reached receives the deliveries made before the first microtask only after it, the navigation-api-fixtures runtime (G22, G34)
+G34 start delivers the queue to the topologies activated before it, already connected, so a publish queued before an activation, such as a deep link, meets its reads with nothing run between activate and start [E]
+Some tests failed.
+   what the G34 deep-link case receives there: the queued state publish reaches the gate after the event queued after it
+  Expected: [41, 57]
+    Actual: [41, 51]
+-- the connection reaches the reads one microtask after activate, the S11 runtime's interpreter (G22, G34)
+G22 an activation is connected when activate returns, so a value published right after it meets the first value of every read [E]
+G34 start delivers the queue to the topologies activated before it, already connected, so a publish queued before an activation, such as a deep link, meets its reads with nothing run between activate and start [E]
+Some tests failed.
+-- Bus.publish leaves T unbounded, the form publish<T, V extends T>; Publisher.publish keeps the amended form (Refinement 3)
+FAIL current_route_is_claimed_by_the_executor.dart [10:argument_type_not_assignable 12:argument_type_not_assignable 14:undefined_getter 16:undefined_getter] reported={(code: argument_type_not_assignable, line: 10), (code: argument_type_not_assignable, line: 12), (code: undefined_getter, line: 14), (code: undefined_getter, line: 16), (code: inference_failure_on_function_invocation, line: 10)}
+FAIL no_publisherless_state_publish.dart [11:argument_type_not_assignable 13:argument_type_not_assignable] reported={(code: argument_type_not_assignable, line: 11), (code: argument_type_not_assignable, line: 13), (code: inference_failure_on_function_invocation, line: 11)}
+PASS publish_value_matches_topic.dart [16:could_not_infer 18:could_not_infer 21:could_not_infer 23:could_not_infer 26:could_not_infer 29:could_not_infer 32:type_argument_not_matching_bounds]
+PASS publisher_reaches_state_through_writer.dart [15:argument_type_not_assignable 17:set_element_type_not_assignable 19:set_element_type_not_assignable 21:argument_type_not_assignable 24:argument_type_not_assignable]
+-- Bus.publish infers T from the value too, the form before the amendment; Publisher.publish keeps the amended form (G40)
+FAIL no_publisherless_state_publish.dart [11:argument_type_not_assignable 13:argument_type_not_assignable] reported={(code: argument_type_not_assignable, line: 11), (code: wrong_number_of_type_arguments_element, line: 13), (code: argument_type_not_assignable, line: 13)}
+FAIL publish_value_matches_topic.dart [16:could_not_infer 18:could_not_infer 21:could_not_infer 23:could_not_infer 26:could_not_infer 29:could_not_infer 32:type_argument_not_matching_bounds] reported={(code: could_not_infer, line: 18), (code: could_not_infer, line: 23), (code: could_not_infer, line: 26), (code: wrong_number_of_type_arguments_element, line: 32)}
+PASS publisher_reaches_state_through_writer.dart [15:argument_type_not_assignable 17:set_element_type_not_assignable 19:set_element_type_not_assignable 21:argument_type_not_assignable 24:argument_type_not_assignable]
+
+### cleanup: remove the copied tree and the Flutter build output; the repository's hsdd/contract/ stays the only copy
+removed

@@ -1,0 +1,18 @@
+# bus-api-amendment: replays the fixtures of bus-api@v1, as amended within
+# v1 in step S13, and of every contract whose fixtures touch it
+# (topology-dsl@v1's live suite, bus-testing@v1, navigation-api@v1), against
+# a stand-in runtime amended for the connection rule and the typed publish
+# (see run.sh). Its own pub workspace, never a member of the repository's
+# workspace.
+name: baa_root
+publish_to: none
+environment:
+  sdk: ^3.13.0
+workspace:
+  - packages/nidana_dart_contracts
+  - packages/nidana_contract_check
+  - packages/nidana_dart_runtime
+  - packages/nidana_dart_navigation
+  - packages/flutter_navigation_standin
+dev_dependencies:
+  lints: ^6.1.0
