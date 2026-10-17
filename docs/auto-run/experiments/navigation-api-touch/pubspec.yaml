@@ -1,0 +1,18 @@
+# navigation-api-touch: replays navigation-api@v1's fixtures before and after
+# the S19 touch within v1, and flutter-binding@v1's binding of the executor
+# suite, against the stand-in packages of ../flutter-binding-fixtures/ (whose
+# runtime and navigation packages are those of ../bus-api-amendment/,
+# unchanged). Its own pub workspace, never a member of the repository's
+# workspace.
+name: nat_root
+publish_to: none
+environment:
+  sdk: ^3.13.0
+workspace:
+  - packages/nidana_dart_contracts
+  - packages/nidana_contract_check
+  - packages/nidana_dart_runtime
+  - packages/nidana_dart_navigation
+  - packages/nidana_dart_runtime_flutter
+dev_dependencies:
+  lints: ^6.1.0

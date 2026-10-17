@@ -1,0 +1,7 @@
+# The probes analyze under the fixtures' options (ADR-001 item 2): no lint
+# set, the strict language modes on.
+analyzer:
+  language:
+    strict-casts: true
+    strict-inference: true
+    strict-raw-types: true

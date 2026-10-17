@@ -1,0 +1,196 @@
+
+### setup: the before tree from git, resolve
+before: hsdd/contract at 6843dc2
+pub get exit: 0
+Flutter 3.47.7 • channel stable • https://github.com/flutter/flutter.git
+Dart SDK version: 3.13.5 (stable) (Tue Sep 29 01:00:52 2026 -0700) on "macos_arm64"
+
+### T0 the stand-in packages are those of ../flutter-binding-fixtures/, unchanged; their publish signatures
+nidana_dart_contracts: identical
+nidana_contract_check: identical
+nidana_dart_runtime: identical
+nidana_dart_navigation: identical
+nidana_dart_runtime_flutter: identical
+301:  void publish<T extends Object?, V extends T>(MultiWriterTopic<T> topic, V value) {
+685:  void publish<T extends Object?, V extends T>(MultiWriterTopic<T> topic, V value) {
+
+### T1 probe: what a publish to nav.resolved-intent accepts (line severity code); a tagged line with no triple compiles
+17 ERROR could_not_infer
+18 ERROR could_not_infer
+19 ERROR could_not_infer
+17:  pages.publish(NavigationTopics.resolvedIntent, DeepLink(uri)); // Q01 the new G1 line, publisher
+18:  bus.publish(NavigationTopics.resolvedIntent, DeepLink(uri)); // Q02 the new G1 line, publisher-less
+19:  pages.publish(NavigationTopics.resolvedIntent, anyIntent); // Q03 a value typed NavIntent
+20:  pages.publish(NavigationTopics.resolvedIntent, const Back()); // Q04 a resolved intent compiles
+21:  pages.publish(NavigationTopics.resolvedIntent, home.go()); // Q05 a route-built intent compiles
+22:  pages.publish(NavigationTopics.intent, DeepLink(uri)); // Q06 a deep link on nav.intent compiles
+23:  bus.publish(NavigationTopics.intent, home.go()); // Q07 a resolved intent on nav.intent compiles
+24:  pages.publish<NavIntent, DeepLink>(NavigationTopics.resolvedIntent, DeepLink(uri)); // Q08 explicit type arguments widen T, outside G40
+25:  oldPublish(NavigationTopics.resolvedIntent, DeepLink(uri)); // Q09 the pre-amendment form compiles
+
+### T2 what the touch changed: the fixture trees and the contracts, before against after
+diff -ru hsdd-before/contract/fixture/navigation-api/reject/resolved_intent_is_never_a_deep_link.dart hsdd/contract/fixture/navigation-api/reject/resolved_intent_is_never_a_deep_link.dart
+--- hsdd-before/contract/fixture/navigation-api/reject/resolved_intent_is_never_a_deep_link.dart	2026-10-18 06:01:21
++++ hsdd/contract/fixture/navigation-api/reject/resolved_intent_is_never_a_deep_link.dart	2026-10-18 06:01:21
+@@ -1,10 +1,12 @@
+ // covers: G1
+ // A deep link is impossible by construction after resolution (Spec Appendix
+ // A.6; Guide §3.4): no declaration that takes or yields a resolved intent
+-// accepts a DeepLink.
++// accepts a DeepLink, and neither does a publish to nav.resolved-intent with
++// its type arguments inferred (bus-api@v1 G40; Refinement 9).
+ import 'package:nidana_dart_navigation/nidana_dart_navigation.dart';
++import 'package:nidana_dart_runtime/nidana_dart_runtime.dart';
+ 
+-void misuse(Uri uri, NavigationRouter router, DateTime now) {
++void misuse(Uri uri, NavigationRouter router, DateTime now, Bus bus, Publisher pages) {
+   // expect-diagnostic: invalid_assignment
+   final ResolvedNavIntent r = DeepLink(uri);
+   // expect-diagnostic: argument_type_not_assignable
+@@ -19,6 +21,10 @@
+   final DeepLinkResolver resolver = (Uri u) => DeepLink(u);
+   // expect-diagnostic: argument_type_not_assignable
+   planNavigation(const <NavigationEntry>[], DeepLink(uri), supportsPopUntil: true);
++  // expect-diagnostic: could_not_infer
++  pages.publish(NavigationTopics.resolvedIntent, DeepLink(uri));
++  // expect-diagnostic: could_not_infer
++  bus.publish(NavigationTopics.resolvedIntent, DeepLink(uri));
+   print(<Object?>[r, resolver]);
+ }
+ 
+fixture diff exit: 1
+Common subdirectories: hsdd-before/contract/fixture and hsdd/contract/fixture
+changed: hsdd-before/contract/navigation-api.md
+
+### B (before the touch).1 structure: headers, markers, guarantee coverage, listed bindings, no src/ imports
+-- navigation-api
+guarantees: 27; cases: 66; bindings: 2; fixture files: 13
+exit: 0
+-- flutter-binding
+guarantees: 19; cases: 52; bindings: 2; fixture files: 13
+exit: 0
+
+### B (before the touch).2 surface: navigation-api@v1's surface libraries analyze with no diagnostic under --fatal-infos
+Analyzing surface...
+No issues found!
+exit: 0
+
+### B (before the touch).3 reject: the (line, code) pairs reported in each file equal the pairs its markers name
+PASS current_route_is_claimed_by_the_executor.dart [10:argument_type_not_assignable 12:argument_type_not_assignable 14:undefined_getter 16:undefined_getter]
+PASS intents_are_closed.dart [8:invalid_use_of_type_outside_library 11:invalid_use_of_type_outside_library 14:invalid_use_of_type_outside_library 17:invalid_use_of_type_outside_library 20:non_exhaustive_switch_expression 29:non_exhaustive_switch_expression]
+PASS navigation_types_are_closed.dart [8:invalid_use_of_type_outside_library 11:invalid_use_of_type_outside_library 14:invalid_use_of_type_outside_library 17:invalid_use_of_type_outside_library 20:invalid_use_of_type_outside_library 23:invalid_use_of_type_outside_library 28:invalid_use_of_type_outside_library 31:invalid_use_of_type_outside_library 34:non_exhaustive_switch_expression 41:non_exhaustive_switch_expression 47:non_exhaustive_switch_expression 54:non_exhaustive_switch_expression]
+PASS navigation_values_are_immutable.dart [8:assignment_to_final 10:assignment_to_final 12:assignment_to_final 14:assignment_to_final 16:assignment_to_final 18:assignment_to_final]
+PASS resolved_intent_is_never_a_deep_link.dart [9:invalid_assignment 11:argument_type_not_assignable 16:argument_type_not_assignable 19:return_of_invalid_type_from_closure 21:argument_type_not_assignable 27:pattern_never_matches_value_type]
+PASS route_arguments_are_typed.dart [11:argument_type_not_assignable 13:argument_type_not_assignable 15:argument_type_not_assignable 17:new_with_undefined_constructor_default 19:new_with_undefined_constructor_default 21:new_with_undefined_constructor_default 23:invalid_assignment]
+exit: 0
+-- the raw diagnostics of resolved_intent_is_never_a_deep_link.dart (line severity code)
+9 ERROR invalid_assignment
+11 ERROR argument_type_not_assignable
+16 ERROR argument_type_not_assignable
+19 ERROR return_of_invalid_type_from_closure
+21 ERROR argument_type_not_assignable
+27 WARNING pattern_never_matches_value_type
+
+### B (before the touch).4 the conformance libraries and the bindings of both contracts analyze clean (warnings included)
+Analyzing behavior, behavior...
+No issues found!
+exit: 0
+
+### B (before the touch).5 behavior: navigation-api@v1's two bindings under fvm dart test, flutter-binding@v1's executor binding under fvm flutter test --no-pub
+-- hsdd/contract/fixture/navigation-api/behavior/nidana_dart_navigation_test.dart
+00:00 +40: All tests passed!
+exit: 0
+-- hsdd/contract/fixture/navigation-api/behavior/in_memory_router_test.dart
+00:00 +52: All tests passed!
+exit: 0
+-- hsdd/contract/fixture/flutter-binding/behavior/flutter_navigation_executor_test.dart
+00:00 +26: All tests passed!
+exit: 0
+
+### A (after the touch).1 structure: headers, markers, guarantee coverage, listed bindings, no src/ imports
+-- navigation-api
+guarantees: 27; cases: 66; bindings: 2; fixture files: 13
+exit: 0
+-- flutter-binding
+guarantees: 19; cases: 52; bindings: 2; fixture files: 13
+exit: 0
+
+### A (after the touch).2 surface: navigation-api@v1's surface libraries analyze with no diagnostic under --fatal-infos
+Analyzing surface...
+No issues found!
+exit: 0
+
+### A (after the touch).3 reject: the (line, code) pairs reported in each file equal the pairs its markers name
+PASS current_route_is_claimed_by_the_executor.dart [10:argument_type_not_assignable 12:argument_type_not_assignable 14:undefined_getter 16:undefined_getter]
+PASS intents_are_closed.dart [8:invalid_use_of_type_outside_library 11:invalid_use_of_type_outside_library 14:invalid_use_of_type_outside_library 17:invalid_use_of_type_outside_library 20:non_exhaustive_switch_expression 29:non_exhaustive_switch_expression]
+PASS navigation_types_are_closed.dart [8:invalid_use_of_type_outside_library 11:invalid_use_of_type_outside_library 14:invalid_use_of_type_outside_library 17:invalid_use_of_type_outside_library 20:invalid_use_of_type_outside_library 23:invalid_use_of_type_outside_library 28:invalid_use_of_type_outside_library 31:invalid_use_of_type_outside_library 34:non_exhaustive_switch_expression 41:non_exhaustive_switch_expression 47:non_exhaustive_switch_expression 54:non_exhaustive_switch_expression]
+PASS navigation_values_are_immutable.dart [8:assignment_to_final 10:assignment_to_final 12:assignment_to_final 14:assignment_to_final 16:assignment_to_final 18:assignment_to_final]
+PASS resolved_intent_is_never_a_deep_link.dart [11:invalid_assignment 13:argument_type_not_assignable 18:argument_type_not_assignable 21:return_of_invalid_type_from_closure 23:argument_type_not_assignable 25:could_not_infer 27:could_not_infer 33:pattern_never_matches_value_type]
+PASS route_arguments_are_typed.dart [11:argument_type_not_assignable 13:argument_type_not_assignable 15:argument_type_not_assignable 17:new_with_undefined_constructor_default 19:new_with_undefined_constructor_default 21:new_with_undefined_constructor_default 23:invalid_assignment]
+exit: 0
+-- the raw diagnostics of resolved_intent_is_never_a_deep_link.dart (line severity code)
+11 ERROR invalid_assignment
+13 ERROR argument_type_not_assignable
+18 ERROR argument_type_not_assignable
+21 ERROR return_of_invalid_type_from_closure
+23 ERROR argument_type_not_assignable
+25 ERROR could_not_infer
+27 ERROR could_not_infer
+33 WARNING pattern_never_matches_value_type
+
+### A (after the touch).4 the conformance libraries and the bindings of both contracts analyze clean (warnings included)
+Analyzing behavior, behavior...
+No issues found!
+exit: 0
+
+### A (after the touch).5 behavior: navigation-api@v1's two bindings under fvm dart test, flutter-binding@v1's executor binding under fvm flutter test --no-pub
+-- hsdd/contract/fixture/navigation-api/behavior/nidana_dart_navigation_test.dart
+00:00 +40: All tests passed!
+exit: 0
+-- hsdd/contract/fixture/navigation-api/behavior/in_memory_router_test.dart
+00:00 +52: All tests passed!
+exit: 0
+-- hsdd/contract/fixture/flutter-binding/behavior/flutter_navigation_executor_test.dart
+00:00 +26: All tests passed!
+exit: 0
+
+### T3 the amended ADR-001 structure prototype over the repository's nine contracts (item 3 coverage, item 9 layout)
+bus-api (api): 40 guarantees; covered by reject 10, behavior 36; not executable 2; in part 0; data directories none
+bus-testing (api): 20 guarantees; covered by reject 2, behavior 17; not executable 1; in part 0; data directories none
+flutter-binding (api): 19 guarantees; covered by reject 7, behavior 15; not executable 2; in part 0; data directories none
+navigation-api (api): 27 guarantees; covered by reject 5, behavior 23; not executable 2; in part 0; data directories none
+nidana-checks (cli): 18 guarantees; covered by cli 17; not executable 1; in part 2; data directories none
+topic-codegen (file): 21 guarantees; covered by schema 1, file 12; not executable 8; in part 0; data directories rejected
+topic-model (shared-model): 27 guarantees; covered by reject 10, behavior 18; not executable 2; in part 0; data directories none
+topology-dsl (api): 29 guarantees; covered by reject 8, behavior 21; not executable 0; in part 0; data directories none
+topology-ir (api): 22 guarantees; covered by reject 3, behavior 21; not executable 0; in part 0; data directories render
+9 contracts, 0 problem(s)
+exit: 0
+
+### T4 seeded defect: both publish paths with the signature before bus-api@v1's amendment, publish<T>(MultiWriterTopic<T> topic, T value)
+-- after the touch: the new lines lose their diagnostic, only their file fails
+-- Bus.publish and Publisher.publish infer T from the value too (bus-api@v1 G40 broken)
+301:  void publish<T>(MultiWriterTopic<T> topic, T value) {
+685:  void publish<T>(MultiWriterTopic<T> topic, T value) {
+PASS current_route_is_claimed_by_the_executor.dart [10:argument_type_not_assignable 12:argument_type_not_assignable 14:undefined_getter 16:undefined_getter]
+PASS intents_are_closed.dart [8:invalid_use_of_type_outside_library 11:invalid_use_of_type_outside_library 14:invalid_use_of_type_outside_library 17:invalid_use_of_type_outside_library 20:non_exhaustive_switch_expression 29:non_exhaustive_switch_expression]
+PASS navigation_types_are_closed.dart [8:invalid_use_of_type_outside_library 11:invalid_use_of_type_outside_library 14:invalid_use_of_type_outside_library 17:invalid_use_of_type_outside_library 20:invalid_use_of_type_outside_library 23:invalid_use_of_type_outside_library 28:invalid_use_of_type_outside_library 31:invalid_use_of_type_outside_library 34:non_exhaustive_switch_expression 41:non_exhaustive_switch_expression 47:non_exhaustive_switch_expression 54:non_exhaustive_switch_expression]
+PASS navigation_values_are_immutable.dart [8:assignment_to_final 10:assignment_to_final 12:assignment_to_final 14:assignment_to_final 16:assignment_to_final 18:assignment_to_final]
+FAIL resolved_intent_is_never_a_deep_link.dart [11:invalid_assignment 13:argument_type_not_assignable 18:argument_type_not_assignable 21:return_of_invalid_type_from_closure 23:argument_type_not_assignable 25:could_not_infer 27:could_not_infer 33:pattern_never_matches_value_type] reported={(code: invalid_assignment, line: 11), (code: argument_type_not_assignable, line: 13), (code: argument_type_not_assignable, line: 18), (code: return_of_invalid_type_from_closure, line: 21), (code: argument_type_not_assignable, line: 23), (code: pattern_never_matches_value_type, line: 33)}
+PASS route_arguments_are_typed.dart [11:argument_type_not_assignable 13:argument_type_not_assignable 15:argument_type_not_assignable 17:new_with_undefined_constructor_default 19:new_with_undefined_constructor_default 21:new_with_undefined_constructor_default 23:invalid_assignment]
+-- before the touch: the same defect passes navigation-api@v1's reject set, which did not pin G40
+-- Bus.publish and Publisher.publish infer T from the value too (bus-api@v1 G40 broken)
+301:  void publish<T>(MultiWriterTopic<T> topic, T value) {
+685:  void publish<T>(MultiWriterTopic<T> topic, T value) {
+PASS current_route_is_claimed_by_the_executor.dart [10:argument_type_not_assignable 12:argument_type_not_assignable 14:undefined_getter 16:undefined_getter]
+PASS intents_are_closed.dart [8:invalid_use_of_type_outside_library 11:invalid_use_of_type_outside_library 14:invalid_use_of_type_outside_library 17:invalid_use_of_type_outside_library 20:non_exhaustive_switch_expression 29:non_exhaustive_switch_expression]
+PASS navigation_types_are_closed.dart [8:invalid_use_of_type_outside_library 11:invalid_use_of_type_outside_library 14:invalid_use_of_type_outside_library 17:invalid_use_of_type_outside_library 20:invalid_use_of_type_outside_library 23:invalid_use_of_type_outside_library 28:invalid_use_of_type_outside_library 31:invalid_use_of_type_outside_library 34:non_exhaustive_switch_expression 41:non_exhaustive_switch_expression 47:non_exhaustive_switch_expression 54:non_exhaustive_switch_expression]
+PASS navigation_values_are_immutable.dart [8:assignment_to_final 10:assignment_to_final 12:assignment_to_final 14:assignment_to_final 16:assignment_to_final 18:assignment_to_final]
+PASS resolved_intent_is_never_a_deep_link.dart [9:invalid_assignment 11:argument_type_not_assignable 16:argument_type_not_assignable 19:return_of_invalid_type_from_closure 21:argument_type_not_assignable 27:pattern_never_matches_value_type]
+PASS route_arguments_are_typed.dart [11:argument_type_not_assignable 13:argument_type_not_assignable 15:argument_type_not_assignable 17:new_with_undefined_constructor_default 19:new_with_undefined_constructor_default 21:new_with_undefined_constructor_default 23:invalid_assignment]
+301:  void publish<T extends Object?, V extends T>(MultiWriterTopic<T> topic, V value) {
+685:  void publish<T extends Object?, V extends T>(MultiWriterTopic<T> topic, V value) {
+restored the stand-in
+
+### cleanup: remove the copied trees and the Flutter build output; the repository's hsdd/contract/ stays the only copy
+removed
