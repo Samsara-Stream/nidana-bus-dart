@@ -1,0 +1,1 @@
+{ "topologyId": "demo.counter", "edges": [{ "kind": "map", "inputs": ["a.b"], "fn": "x" }] }

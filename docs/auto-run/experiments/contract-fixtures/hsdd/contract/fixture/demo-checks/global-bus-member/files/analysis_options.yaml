@@ -1,0 +1,4 @@
+# Same case, the plugin being a workspace member (resolution: workspace).
+plugins:
+  demo_lint:
+    path: ../../../../../../packages/demo_lint

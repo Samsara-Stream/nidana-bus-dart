@@ -1,0 +1,12 @@
+name: demo_flutter
+publish_to: none
+environment:
+  sdk: ^3.13.0
+resolution: workspace
+dependencies:
+  flutter:
+    sdk: flutter
+  demo_contracts: any
+dev_dependencies:
+  flutter_test:
+    sdk: flutter

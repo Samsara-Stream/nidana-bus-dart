@@ -1,0 +1,5 @@
+# A recorded cli invocation whose input tree enables the analyzer plugin,
+# referenced by a path relative to this file.
+plugins:
+  plugin_probe:
+    path: ../../../../../../../lint-mechanism/plugin_probe

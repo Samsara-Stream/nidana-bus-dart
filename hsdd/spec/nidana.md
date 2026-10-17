@@ -315,26 +315,11 @@ Dart code compiles only against real declarations, so between packages of this t
 
 ## Proposed ADRs
 
-Each entry is a proposal for a later hsdd-adr step to materialize and accept; the binding text is the file that step writes under `hsdd/adr/`. The affected nodes already carry `Governed by` links.
+Each entry is a proposal until a later hsdd-adr step materializes and accepts it; from then on the binding text is the file under `hsdd/adr/`, and the entry here is a pointer to it. The affected nodes already carry `Governed by` links.
 
-### ADR-001 (proposed): Executable validation for Dart API contracts
+### ADR-001 (accepted): Executable validation for Dart API contracts
 
-- **Recommended decision:**
-  1. Contract kinds used in this tree: `api` for a Dart library surface consumers import and call, `shared-model` for Dart value types consumers construct and match on, `schema` for a serialized data format, `file` for a generated file layout, `cli` for commands, diagnostics and exit codes.
-  2. `api` and `shared-model` contracts carry three fixture sets under `hsdd/contract/fixture/{slug}/`, and no schema file (the Interface's Dart declarations are the schema, made executable by `surface/`):
-     - `surface/`: positive compile fixtures, Dart libraries that use every declaration the Interface lists with the types it states; `fvm dart analyze --fatal-infos` reports no issue on them.
-     - `reject/`: negative compile fixtures, one Dart file per type-level guarantee (for example: an event topic has no current value, Spec §2.5; an observer has no publish path, Spec §3.7; a read handle has no synchronous value, Spec §6.1), each opening with `// expect-diagnostic: {code}`; analysis reports that code and no other error.
-     - `behavior/`: behavior fixtures, `package:test` conformance libraries that exercise the Guarantees through public libraries only, each exporting a function that takes the implementation as factories, plus one `*_test.dart` binding per implementation the contract names; `fvm dart test` on the binding passes.
-     - An `api` contract that also defines a serialized form (topology-ir@v1 and its JSON graph) carries that form's schema and edge cases as item 3 describes, in addition to the three sets above.
-  3. `schema` contracts carry a JSON Schema (draft 2020-12) at `hsdd/contract/schema/{slug}.schema.json` and edge cases under `hsdd/contract/fixture/{slug}/valid/` and `invalid/`. The producer's gate validates its real output against the schema and round-trips every `valid/` file; consumers parse `valid/` files.
-  4. `file` contracts carry `input/` and `expected/` sample trees; the gate runs the generator on `input/` and compares with `expected/` after `fvm dart format`.
-  5. `cli` contracts carry one directory per recorded invocation (arguments, input files, expected stdout, stderr and exit code); the gate replays each.
-  6. Fixtures import public libraries only (`package:{name}/{library}.dart`, never `src/`) and resolve through the workspace root's package configuration (ADR-002).
-  7. One replay tool runs these checks for a slug: `packages/nidana_contract_check` (not published), owned by nidana.model and written in its first phase. Every producing phase's gate calls it; a phase that implements an interface another node's contract defines (nidana.runtime for topology-dsl@v1, nidana.flutter for navigation-api@v1) binds and runs that contract's `behavior/` suite in its gate.
-  8. Consumers of an in-process `api` contract build against the producer's real package once its first phase has merged (D10). A consumer that needs a stand-in for a producer runs the contract's `behavior/` suite against the stand-in; a hand-rolled mock that has not passed the suite is not a fixture.
-- **Affects:** nidana, nidana.model, nidana.runtime, nidana.navigation, nidana.flutter, nidana.tooling, nidana.integration; topic-model@v1, topology-dsl@v1, topology-ir@v1, bus-api@v1, bus-testing@v1, navigation-api@v1, flutter-binding@v1, topic-codegen@v1, nidana-checks@v1
-- **Rationale:** HSDD makes `stable` mean machine-checkable and asks for schemas and payloads, which fit wire formats. Most of this tree's contracts are Dart surfaces instead, whose guarantees are either type-level (Spec §2.5, §3.7 and §6.1 make the misuse a compile error) or behavioral (Spec §3). Compile fixtures pin signatures and type-level guarantees; conformance libraries pin behavior and also validate the implementing side of interface contracts. The experiment `docs/auto-run/experiments/sdk-workspace/` (`output-fixtures.txt`) shows Dart files under the workspace root but outside every member analyze and test against member packages, and that `dart analyze --format=machine` reports the diagnostic code a reject fixture expects.
-- **Alternatives considered:** language-neutral scenario fixtures (JSON scenarios run by an interpreter), which would also answer Guide §10.1's cross-platform parity question but need a scenario vocabulary and interpreter before any gate can run and cannot express type-level guarantees; public API snapshots diffed by a tool, which pin signatures but no behavior. The signal that would favor scenario fixtures: a second platform port starting within v1.
+Accepted 2026-10-17 as `hsdd/adr/001-executable-contract-validation.md`, which holds the binding text; it resolves OQ8. The accepted decision sharpens the proposal: reject fixtures anchor each expected diagnostic to a line, conformance cases are values bound per implementation and per test runner, contract guarantees carry `G{n}` ids that fixtures cover, and the workspace root's analysis options exclude `hsdd/**`.
 
 ### ADR-002 (proposed): Package and workspace layout
 

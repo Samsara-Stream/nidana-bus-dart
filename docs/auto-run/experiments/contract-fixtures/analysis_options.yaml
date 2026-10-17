@@ -1,0 +1,6 @@
+# Stand-in for the workspace root's options (ADR-002): a lint set, and the
+# governance tree excluded from workspace-wide analysis.
+include: package:lints/recommended.yaml
+analyzer:
+  exclude:
+    - hsdd/**

@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://nidana.invalid/schema/demo-ir.schema.json",
+  "title": "demo-ir",
+  "type": "object",
+  "required": ["topologyId", "edges"],
+  "properties": {
+    "topologyId": { "type": "string", "pattern": "^[a-z]+(\\.[a-z-]+)+$" },
+    "edges": { "type": "array", "items": { "$ref": "#/$defs/edge" } },
+    "position": { "type": "array", "prefixItems": [{ "type": "integer" }, { "type": "integer" }], "items": false }
+  },
+  "unevaluatedProperties": false,
+  "$defs": {
+    "edge": {
+      "type": "object",
+      "required": ["kind", "inputs"],
+      "properties": {
+        "kind": { "enum": ["map", "combineLatest", "switchMap"] },
+        "inputs": { "type": "array", "items": { "type": "string" }, "minItems": 1 }
+      },
+      "unevaluatedProperties": false
+    }
+  }
+}

@@ -1,0 +1,11 @@
+name: cf_root
+publish_to: none
+environment:
+  sdk: ^3.13.0
+workspace:
+  - packages/demo_contracts
+  - packages/demo_flutter
+  - packages/demo_check
+  - packages/demo_lint
+dev_dependencies:
+  lints: ^6.0.0

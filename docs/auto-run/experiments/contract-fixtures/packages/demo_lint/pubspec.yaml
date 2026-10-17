@@ -1,0 +1,8 @@
+name: demo_lint
+publish_to: none
+environment:
+  sdk: ^3.13.0
+resolution: workspace
+dependencies:
+  analysis_server_plugin: any
+  analyzer: any
