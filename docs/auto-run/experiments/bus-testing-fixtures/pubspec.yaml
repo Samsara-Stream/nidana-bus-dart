@@ -1,0 +1,14 @@
+# bus-testing-fixtures: replays the bus-testing@v1 fixtures, and bus-api@v1's
+# two bindings, against a stand-in of nidana_dart_runtime whose testing.dart
+# implements bus-testing@v1's Interface (see run.sh). Its own pub workspace,
+# never a member of the repository's workspace.
+name: btf_root
+publish_to: none
+environment:
+  sdk: ^3.13.0
+workspace:
+  - packages/nidana_dart_contracts
+  - packages/nidana_contract_check
+  - packages/nidana_dart_runtime
+dev_dependencies:
+  lints: ^6.1.0

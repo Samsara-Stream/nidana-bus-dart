@@ -1,0 +1,11 @@
+S1 after complete + triggerActions: [] (pending microtasks 0)
+S1 after one real turn: [then 1 in virtual: true] (pending microtasks 0)
+S1 after settle: [then 1 in virtual: true] (pending microtasks 0)
+S2 sync completer, right after complete: [2] (pending microtasks 0)
+S2 after triggerActions: [2]
+S3 before the real timer: []
+S3 after the real timer fired: [3] (pending microtasks 0)
+S3 after settle: [3]
+S4 StateError after 3 injections: the VirtualScheduler did not settle in 3 real turns
+S4 after cancelling the injector, settle completes
+S5 StateError at the call: settle was called inside the VirtualScheduler zone
