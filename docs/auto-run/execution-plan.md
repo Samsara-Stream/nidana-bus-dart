@@ -164,7 +164,8 @@ tree. Done when `node docs/auto-run/tools/gate.mjs --final` passes.
 | S07 | 4 | hsdd-contract | topology-dsl@v1 | done | b14b2e9 |
 | S08 | 4 | hsdd-contract | topology-ir@v1 | done | 03fe7c9 |
 | S09 | 4 | hsdd-contract | bus-api@v1 | done | f5ad95c |
-| S10 | 4 | hsdd-contract | topic-model@v1 amendment: sealed MultiWriterTopic (for bus-api@v1 G11, G19) | running | |
+| S10 | 4 | hsdd-contract | topic-model@v1 amendment: sealed MultiWriterTopic (for bus-api@v1 G11, G19) | done | ef0dead |
+| S11 | 4 | hsdd-contract | bus-testing@v1 | running | |
 | S10..S14 | 4 | hsdd-contract | bus-api, bus-testing, navigation-api, flutter-binding, topic-codegen, nidana-checks (all @v1), in that order | planned | |
 | after S15 | 4 | hsdd-adr, then hsdd-spec (root touch) | governance touch-up: ADR affects and Governed-by links the root contracts exposed; root prose fixes | planned | |
 | next | 5 | hsdd-spec | nidana.runtime, then nidana.tooling (each followed by its ADRs and internal contracts) | planned | |

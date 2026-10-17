@@ -1,0 +1,25 @@
+{
+  "step_ref": "S10",
+  "skill": "none",
+  "target": "judgement on the topic-model@v1 amendment",
+  "status": "completed",
+  "decisions": [
+    {
+      "at": "2026-10-18T00:43:20Z",
+      "artifact": "hsdd/contract/topic-model.md",
+      "question": "S10 found that the MultiWriterTopic amendment changes type inference: the inferred common type of an event topic and a replay topic moves from Topic<T> to MultiWriterTopic<T>, so `final mixed = [event, replay]; mixed.add(state);` compiles before the amendment and fails after it. Does that make the amendment breaking, so the run stops?",
+      "options": [
+        { "label": "Compatible; proceed", "consequence": "The amendment stands within v1 with the inference edge recorded in Versioning; topic-codegen@v1 is told to write collection element types out." },
+        { "label": "Breaking; stop the run", "consequence": "The owner decides; bus-api@v1 waits, although no code anywhere could be affected." },
+        { "label": "Revert to bus-api's ArgumentError fallback", "consequence": "No inference edge, and the StateTopic rule moves from compile time to run time." }
+      ],
+      "chosen": "Compatible; proceed",
+      "why": "The stop condition is an amendment that would break an existing consumer, and no consumer exists: no package, no app, every contract draft. On the merits the edge is of the kind the contract's own Compatible list already accepts (a new top-level name colliding with an import, a new getter shadowing an extension member): it changes no type the Interface states and only bites code that relied on an inferred least upper bound. Keeping compile-time rejection of a publish to a StateTopic is worth more than avoiding an inference change no one depends on. The signal that would change this: any consumer code written against v1 before the amendment.",
+      "evidence": ["docs/auto-run/experiments/topic-model-multi-writer/ (probe/lub.dart, output.txt)", "hsdd/contract/topic-model.md (Versioning)"],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "would_upstream": false
+    }
+  ]
+}

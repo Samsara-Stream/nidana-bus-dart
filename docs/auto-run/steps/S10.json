@@ -1,0 +1,145 @@
+{
+  "step_ref": "S10",
+  "skill": "hsdd-contract",
+  "target": "topic-model@v1 (amend: MultiWriterTopic, requested by bus-api@v1)",
+  "status": "completed",
+  "stop": null,
+  "artifacts": [
+    "hsdd/contract/topic-model.md",
+    "hsdd/contract/fixture/topic-model/reject/topic_family_is_closed.dart",
+    "hsdd/contract/fixture/topic-model/reject/state_topic_is_not_multi_writer.dart",
+    "hsdd/contract/fixture/topic-model/surface/topics.dart",
+    "hsdd/contract/fixture/topic-model/behavior/topic_model_conformance.dart",
+    "hsdd/contract/INDEX.md",
+    "docs/auto-run/experiments/topic-model-multi-writer/"
+  ],
+  "decisions": [
+    {
+      "at": "2026-10-17T17:49:15Z",
+      "artifact": "hsdd/contract/topic-model.md",
+      "question": "Is adding sealed MultiWriterTopic<T> between Topic<T> and EventTopic<T>/ReplayTopic<T> a compatible amendment of topic-model@v1, or a breaking one that needs v2 (and so a run stop)?",
+      "options": [
+        { "label": "amend v1 compatibly", "consequence": "Keeps topic-model@v1; bus-api@v1's Interface and fixtures compile as written. Accepts one changed inference result (the least upper bound of an event and a replay topic) as outside the declared surface." },
+        { "label": "draft topic-model@v2", "consequence": "Treats the inference change as breaking: a v2 with a migration note for a draft contract with no producer or consumer code, and every consumer contract re-pointed at v2." },
+        { "label": "report a breaking-amend run stop", "consequence": "Ends the run until the owner rules on whether an inference-only change counts as breaking." }
+      ],
+      "chosen": "amend v1 compatibly",
+      "why": "The experiment replays every topic-model@v1 fixture as it stood at df5e8f8 against a stand-in carrying the amendment: structure, surface, reject and all 40 behavior cases pass (A1 to A4), exactly as against the stand-in without it (D1). topology-dsl@v1's and topology-ir@v1's surface and reject sets, and topology-dsl@v1's recorder suite, give identical results against both stand-ins (C1, C2, D3). No leaf variant is added, so the three-variant exhaustive switch in the existing surface and G1's non-exhaustive reject keep their results; seeded defect M1 shows that this holds only because the intermediate is sealed (an abstract one makes the existing three-variant switch non-exhaustive). One source-level effect exists and is recorded in the contract's Versioning: the least upper bound of EventTopic<int> and ReplayTopic<int> moves from Topic<int> to MultiWriterTopic<int>, so `final mixed = [event, replay]; mixed.add(state);` compiles before and fails after (probe/lub.dart, C3 against D4). That is the same class of edge the Versioning section already accepts as compatible (a new top-level function can collide with a consumer's import; a new getter can shadow a consumer's extension member), it touches no type the Interface states, no consumer code exists (every contract is draft, no package exists), and no existing fixture hits it. Signal that would have changed my mind: a consumer fixture or contract text that relies on the inferred type of such a mix, or the contract being stable with code already built against it.",
+      "evidence": [
+        "docs/auto-run/experiments/topic-model-multi-writer/output.txt (A1-A4, C1-C3, D1-D4, M1)",
+        "docs/auto-run/experiments/topic-model-multi-writer/probe/lub.dart",
+        "hsdd/contract/topic-model.md ## Versioning (pre-existing Breaking and Compatible lists)",
+        "Spec §2.1",
+        "Spec §3.11"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T17:37:49Z",
+      "artifact": "hsdd/contract/topic-model.md",
+      "question": "Which guarantee carries which part of the MultiWriterTopic rule?",
+      "options": [
+        { "label": "extend G1, add G27 for assignability", "consequence": "G1 keeps describing the closed family exactly (MultiWriterTopic sealed, its subtypes exactly EventTopic and ReplayTopic, switches over it exhaustive); G27 holds the new rule bus-api@v1 depends on: a StateTopic, or a Topic of statically unknown variant, is not a MultiWriterTopic, and `is MultiWriterTopic` holds exactly for event and replay topics." },
+        { "label": "leave G1, put everything in G27", "consequence": "G1 would no longer describe the family exactly: a sealed member of it would go unmentioned, and closedness would be split across two ids." },
+        { "label": "fold the rule into G2", "consequence": "G2 is about members only a state topic has; mixing in the converse assignability rule blurs what a G2 reject failure means." }
+      ],
+      "chosen": "extend G1, add G27 for assignability",
+      "why": "G1's subject is closedness, which now includes MultiWriterTopic; extending its statement keeps the id (ADR-001 item 3) and every pre-existing G1 fixture still passes (A3). The assignability rule is new behavior that bus-api@v1 G11 and G19 cite, so it gets its own id for --guarantee restrictions. No evidence beyond the brief and ADR-001 item 3 was needed; the choice is about where a reader looks.",
+      "evidence": ["hsdd/adr/001-executable-contract-validation.md item 3", "hsdd/contract/bus-api.md Refinement 3, G11, G19"],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T17:37:18Z",
+      "artifact": "hsdd/contract/fixture/topic-model/reject/state_topic_is_not_multi_writer.dart",
+      "question": "How is G27 covered, and where do G1's new cases go?",
+      "options": [
+        { "label": "reject file plus behavior case and surface uses, G1 cases appended to its file", "consequence": "A new reject library for G27 (state topic by explicit and by inferred type argument, an unnarrowed Topic, an assignment, a set element), one behavior case for the run-time `is` and pattern result, surface uses of every MultiWriterTopic form; G1's two new cases appended to topic_family_is_closed.dart so its existing markers keep their lines." },
+        { "label": "reject file only, new file for G1's cases", "consequence": "Leaves the run-time hierarchy unpinned, although bus-api@v1's live binding matches `case MultiWriterTopic<T>()` at run time, and splits one guarantee across two reject libraries against ADR-001 item 4." }
+      ],
+      "chosen": "reject file plus behavior case and surface uses, G1 cases appended to its file",
+      "why": "ADR-001 item 4 wants one reject library per type-level guarantee and surface libraries that use every declaration. The behavior case is cheap and pins what a pattern-matching consumer relies on (hsdd/contract/fixture/bus-api/behavior/bus_activation_test.dart matches on MultiWriterTopic). Every code was confirmed in the probe before the fixtures were written (P1), and seeded defects M1 and M2 show the new cases fail when the rule breaks.",
+      "evidence": ["hsdd/adr/001-executable-contract-validation.md item 4", "docs/auto-run/experiments/topic-model-multi-writer/probe/codes.dart", "docs/auto-run/experiments/topic-model-multi-writer/output.txt (P1, B3, B4, M1, M2)"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T17:37:49Z",
+      "artifact": "hsdd/contract/topic-model.md",
+      "question": "Fold in S07's note: state the lineage a state topic's initial value carries when it is first observed or read? If so, which lineage?",
+      "options": [
+        { "label": "add it now as Lineage.root() with defaults", "consequence": "Matches topology-dsl@v1's read row word for word; the initial value starts a new flow when it leads to a publish and is not sensitive in its lineage, while the published envelope still carries its topic's flag (G14)." },
+        { "label": "add it as Lineage.root(sensitive: topic.sensitive)", "consequence": "Propagates a sensitive topic's flag into the lineage of its initial value, but contradicts topology-dsl@v1's read row, which would need its own amendment, and diverges from how the contract already treats a Tracing.disabled read." },
+        { "label": "leave it for a later touch", "consequence": "topic-model@v1's 'How the lineage functions are applied' paragraph keeps omitting a case its consumer states, so the two contracts read differently." }
+      ],
+      "chosen": "add it now as Lineage.root() with defaults",
+      "why": "The Specification is silent on the lineage of an initial value (Spec §2.5 seeds the subject, Spec §3.5 speaks of envelopes, and an initial value has none). topology-dsl@v1's read row already applies Lineage.root() to it, so stating it here fills a gap without changing any function, default or rule. The sensitive variant buys nothing observable: G14 makes every published envelope carry its topic's flag, and the lineage flag reaches only a raw operator's PipelineValue. Correction to the brief: bus-api@v1 does not state this lineage itself; it inherits it through topology-dsl@v1's live semantics. Signal that would have changed my mind: a consumer that reads Lineage.sensitive, for example a diagnostic that redacts by lineage, which would favor root(sensitive: topic.sensitive) here and for Tracing.disabled reads alike.",
+      "evidence": ["hsdd/contract/topology-dsl.md combinator table, b.read row", "Spec §2.5", "Spec §3.5", "hsdd/contract/topic-model.md G14"],
+      "blast_radius": "contract",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T17:49:15Z",
+      "artifact": "hsdd/contract/topic-model.md",
+      "question": "How does ## Versioning record the amendment?",
+      "options": [
+        { "label": "amendment line plus a new Compatible class", "consequence": "Records this amendment, its evidence and the inference change, and adds 'a new sealed type between Topic and existing variants that adds no variant' to the Compatible list, with the abstract-intermediate caveat, so the next such change need not be re-derived." },
+        { "label": "amendment line only", "consequence": "Records this amendment, but leaves the general rule implicit in one history line." }
+      ],
+      "chosen": "amendment line plus a new Compatible class",
+      "why": "The Breaking list names 'retyping any declaration' and 'adding a variant'; a reader could take a variant's new supertype as a retype. Naming the class, with M1's finding that only a sealed intermediate qualifies, settles that for future edits.",
+      "evidence": ["docs/auto-run/experiments/topic-model-multi-writer/output.txt (M1)"],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    }
+  ],
+  "experiments": [
+    {
+      "path": "docs/auto-run/experiments/topic-model-multi-writer/",
+      "question": "Is the MultiWriterTopic amendment compatible within topic-model@v1: do the fixtures written before it, and the consumers' fixtures, keep their results against an implementation carrying it; which codes do the new reject cases report; do the new fixtures actually depend on the amendment; what changes for inference?",
+      "finding": "Against the amended stand-in, the topic-model@v1 fixtures at df5e8f8 pass every set (structure 26/26, surface clean, 9 reject files, 40 behavior cases), the amended fixtures pass every set (27/27, 10 reject files, 41 cases), topology-dsl@v1 and topology-ir@v1 surface and reject sets pass as they do without the amendment, bus-api@v1's surface and reject sets pass, and the bus-api suite (86) and topology-dsl@v1's live suite (43) pass. Without the amendment the new topic-model surface and the two changed reject files fail, and bus-api@v1's two publish reject files fail. Seeded defects: MultiWriterTopic abstract instead of sealed fails G1's reject and surface, including the pre-existing three-variant switch; StateTopic as a MultiWriterTopic fails G27's reject and behavior case. Inference: the least upper bound of an event and a replay topic changes from Topic<T> to MultiWriterTopic<T>, so a variable or list inferred from those two alone rejects a later state topic (probe/lub.dart: no diagnostic before, two errors after)."
+    }
+  ],
+  "self_check": [
+    { "gate": "Frontmatter has id, version, status, kind, owner, compatibility, produced_by, consumers; external_consumers when any exist.", "status": "pass", "note": "Frontmatter unchanged by the amendment." },
+    { "gate": "`consumers` lists phase ids that actually consume this contract.", "status": "pass", "note": "Node ids under phase_ids: provisional, unchanged; hsdd-reconcile finalizes them." },
+    { "gate": "The Interface section is concrete enough to mock against.", "status": "pass", "note": "MultiWriterTopic is declared with its place in the family; the stand-in implements it from the text and passes every set." },
+    { "gate": "At least one guarantee/invariant is stated.", "status": "pass", "note": "G1 to G27." },
+    { "gate": "A breaking change bumped the version and added a migration note.", "status": "n/a", "note": "Compatible amendment, evidence in the experiment; recorded under ## Versioning." },
+    { "gate": "The registry was regenerated.", "status": "pass", "note": "node hsdd/scripts/gen-registry.mjs run; INDEX.md unchanged byte for byte because no frontmatter changed." },
+    { "gate": "`phase_ids` is present (`provisional` until `hsdd-reconcile` finalizes it).", "status": "pass", "note": "provisional." },
+    { "gate": "Every code-level artifact both sides consume (types file, fixtures, shared package) names its canonical path and its owner in the Interface or Validation section: the owning phase for code, `hsdd-contract` for validation artifacts.", "status": "pass", "note": "Interface header names the library, code owner and validation owner; the new reject file is listed under ## Validation." },
+    { "gate": "A contract or version created by this run has its schema and its kind's fixtures written at the canonical paths.", "status": "n/a", "note": "No contract or version created; the amended fixtures are at the canonical path hsdd/contract/fixture/topic-model/." },
+    { "gate": "Open questions are cited by ID only and never defined here; prose justifying behavior as \"pending OQ-x\" is swept when the OQ resolves (hsdd-reconcile). (Skill gate reworded only to remove an em-dash.)", "status": "pass", "note": "No OQ introduced or cited by the amendment." },
+    { "gate": "A `stable` contract names a schema or a fixtures directory at the canonical paths and the artifact exists, or it carries `validation: grandfathered` (never on a contract authored after the upgrade).", "status": "n/a", "note": "Draft; the fixtures directory exists regardless." },
+    { "gate": "No version is `retired` while a consumer or an external consumer still names it.", "status": "pass", "note": "No retired version." },
+    { "gate": "A `v0` contract carries `## Observed completeness`, and the block changed in any commit that added fixtures to it.", "status": "n/a", "note": "v1, not adopted." },
+    { "gate": "ADR-001 item 12 minimum, by reading (item 3 coverage, item 4 sets for shared-model)", "status": "pass", "note": "Every guarantee is covered (G1 and G27 by reject, G27 also by a behavior case; G25, G26 not executable); ids unchanged and none reused; the surface uses MultiWriterTopic in every form; the new reject library has a covers header and markers; the new case name begins with G27. The structure prototype confirms (B1: 27 guarantees, 41 cases, 15 files)." },
+    { "gate": "node docs/auto-run/tools/gate.mjs --skill hsdd-contract --contracts-pending", "status": "pass", "note": "0 errors, 141 warnings, all forward references to contracts not yet written." }
+  ],
+  "notes_for_orchestrator": [
+    "No ADR proposed, no OQ minted, no contract id or version changed. New guarantee: topic-model@v1 G27. G1's statement extended in place.",
+    "Judgement to weigh: the amendment changes one inference result (least upper bound of an event and a replay topic becomes MultiWriterTopic<T>). I classified it compatible and recorded it in ## Versioning; it is the only finding beyond the orchestrator's prior judgement. No existing fixture is affected.",
+    "Brief correction: bus-api@v1 does not itself state Lineage.root() for a state topic's initial value; only topology-dsl@v1's b.read row does. topic-model@v1 now states it too, consistently.",
+    "bus-api@v1 ## Validation says its fixtures 'assume topic-model@v1 declares MultiWriterTopic (Refinement 3)'; that assumption now holds. At bus-api@v1's next touch it can cite docs/auto-run/experiments/topic-model-multi-writer/ (C1, C2) instead of the assumption.",
+    "hsdd/spec/nidana.model.md's scope line names StateTopic, EventTopic and ReplayTopic but not MultiWriterTopic. Not a defect (the contract is the interface); an optional hsdd-spec touch.",
+    "For topic-codegen@v1 when authored: because of the inference change, generated registries that build collections of topics should write element types out.",
+    "The experiment pins its 'before' tree to commit df5e8f854c885563488168e7a9ca2b34772e4570 with git archive, so rerunning run.sh after this step is committed still compares against the pre-amendment fixtures."
+  ]
+}
