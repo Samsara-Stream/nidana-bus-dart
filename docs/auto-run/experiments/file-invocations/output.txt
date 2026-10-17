@@ -1,0 +1,53 @@
+
+### setup: copy the stand-in workspace and the fixtures, resolve
+pub get exit: 0
+hsdd/contract/fixture/topic-codegen/invocation/generate-graph-undecodable
+hsdd/contract/fixture/topic-codegen/invocation/generate-no-graph
+hsdd/contract/fixture/topic-codegen/invocation/generate-rejected-class-collision
+hsdd/contract/fixture/topic-codegen/invocation/generate-rejected-duplicate-domain-key
+hsdd/contract/fixture/topic-codegen/invocation/generate-rejected-duplicate-field-key
+hsdd/contract/fixture/topic-codegen/invocation/generate-rejected-duplicate-topic-key
+hsdd/contract/fixture/topic-codegen/invocation/generate-rejected-initial-not-finite
+hsdd/contract/fixture/topic-codegen/invocation/generate-rejected-member-collision
+hsdd/contract/fixture/topic-codegen/invocation/generate-rejected-member-object-name
+hsdd/contract/fixture/topic-codegen/invocation/generate-rejected-member-reserved-word
+hsdd/contract/fixture/topic-codegen/invocation/generate-rejected-syntax-error
+hsdd/contract/fixture/topic-codegen/invocation/generate-rejected-two-documents
+hsdd/contract/fixture/topic-codegen/invocation/generate-usage-missing-topics
+hsdd/contract/fixture/topic-codegen/invocation/generate-usage-no-arguments
+hsdd/contract/fixture/topic-codegen/invocation/generate-usage-output-is-a-file
+hsdd/contract/fixture/topic-codegen/invocation/generate-usage-unknown-option
+cases: 16
+
+### E1 every candidate case passes against the stand-in generator; a case without files/ runs from the workspace root
+PASS generate-graph-undecodable
+PASS generate-no-graph
+PASS generate-rejected-class-collision
+PASS generate-rejected-duplicate-domain-key
+PASS generate-rejected-duplicate-field-key
+PASS generate-rejected-duplicate-topic-key
+PASS generate-rejected-initial-not-finite
+PASS generate-rejected-member-collision
+PASS generate-rejected-member-object-name
+PASS generate-rejected-member-reserved-word
+PASS generate-rejected-syntax-error
+PASS generate-rejected-two-documents
+PASS generate-usage-missing-topics
+PASS generate-usage-no-arguments
+PASS generate-usage-output-is-a-file
+PASS generate-usage-unknown-option
+16 of 16 invocations pass
+replay exit: 0
+
+### E2 G14's 'same bytes': the no-graph case's expected/topics.g.dart is the file replay's expected/topics.g.dart; its topics.md has no graph rows or sections
+topics.g.dart IDENTICAL to the file replay's
+files in expected/: topics.g.dart topics.md 
+rows 'Written by' or 'Read by': 0; graph sections: 0
+
+### E3 seeded defects fail the case they break
+FAIL accepts-a-rejected-document: exit 0, expected 1; {output} exists after the run, expected nothing: topics.g.dart topics.md
+FAIL no-graph-catalog-changed: {output}/topics.md differs from expected/topics.md
+FAIL no-graph-writes-the-page: file set at {output} is topics.g.dart topics.md topology-graph.html, expected topics.g.dart topics.md; {output}/topics.md differs from expected/topics.md
+FAIL usage-exit-code-wrong: exit 2, expected 1
+0 of 4 invocations pass
+replay exit: 1

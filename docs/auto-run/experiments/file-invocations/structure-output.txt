@@ -1,0 +1,33 @@
+
+### S1 the nine contracts as they stand
+bus-api (api): 40 guarantees; covered by reject 10, behavior 36; not executable 2; in part 0; data directories none
+bus-testing (api): 20 guarantees; covered by reject 2, behavior 17; not executable 1; in part 0; data directories none
+flutter-binding (api): 19 guarantees; covered by reject 7, behavior 15; not executable 2; in part 0; data directories none
+navigation-api (api): 27 guarantees; covered by reject 5, behavior 23; not executable 2; in part 0; data directories none
+nidana-checks (cli): 18 guarantees; covered by cli 17; not executable 1; in part 2; data directories none
+topic-codegen (file): 21 guarantees; covered by schema 1, file 12; not executable 8; in part 0; data directories rejected
+topic-model (shared-model): 27 guarantees; covered by reject 10, behavior 18; not executable 2; in part 0; data directories none
+topology-dsl (api): 29 guarantees; covered by reject 8, behavior 21; not executable 0; in part 0; data directories none
+topology-ir (api): 22 guarantees; covered by reject 3, behavior 21; not executable 0; in part 0; data directories render
+9 contracts, 0 problem(s)
+exit: 0
+
+### S2 seeded defects: a misspelt set directory, an unlisted data directory, a case with no table row, a file bullet without its covers clause, a reject header naming no id
+bus-api (api): 40 guarantees; covered by reject 10, behavior 36; not executable 2; in part 0; data directories none
+bus-testing (api): 20 guarantees; covered by reject 2, behavior 17; not executable 1; in part 0; data directories none
+flutter-binding (api): 19 guarantees; covered by reject 7, behavior 15; not executable 2; in part 0; data directories none
+navigation-api (api): 27 guarantees; covered by reject 5, behavior 23; not executable 2; in part 0; data directories none
+  PROBLEM nidana-checks: invocation/scan-extra has no row in the invocation table
+nidana-checks (cli): 18 guarantees; covered by cli 17; not executable 1; in part 2; data directories none
+topic-codegen (file): 21 guarantees; covered by schema 1; not executable 8; in part 0; data directories rejected
+  PROBLEM topic-codegen: uncovered G3, G4, G5, G6, G7, G8, G12, G13, G15, G16, G17, G18
+  PROBLEM topic-model: rejcet is neither a set directory of kind shared-model nor a data directory listed in Validation
+topic-model (shared-model): 27 guarantees; covered by behavior 18; not executable 2; in part 0; data directories none
+  PROBLEM topic-model: uncovered G1, G2, G3, G5, G12, G16, G22
+  PROBLEM topology-dsl: goldens is neither a set directory of kind api nor a data directory listed in Validation
+topology-dsl (api): 29 guarantees; covered by reject 8, behavior 21; not executable 0; in part 0; data directories none
+  PROBLEM topology-ir: hsdd/contract/fixture/topology-ir/reject/ir_families_are_closed.dart has no parsable // covers: header
+topology-ir (api): 22 guarantees; covered by reject 2, behavior 21; not executable 0; in part 0; data directories render
+  PROBLEM topology-ir: uncovered G1
+9 contracts, 7 problem(s)
+exit: 1
