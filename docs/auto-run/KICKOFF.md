@@ -4,8 +4,8 @@ How to start the run:
 
 1. Open a **fresh** Claude Code session at this repository root. Not a session that has read any description of the manual run.
 2. Read the "Facts from the owner" block in the prompt below and edit anything that is wrong.
-3. Paste the whole prompt (everything between the `PROMPT BEGIN` and `PROMPT END` lines, without those lines).
-4. Run the `/goal` line from the "Goal" section.
+3. Paste the whole prompt (everything between the `PROMPT BEGIN` and `PROMPT END` lines, without those lines) as an ordinary message. The session starts working.
+4. Type the `/goal` line from the "Goal" section right after, while the session works. It is a separate input, never part of the prompt, and never before it: in an empty session the goal's condition would be the only instruction the model has. The terminal shows `Goal set:`. If the first turn has already ended by the time you set the goal, send `continue`; the evaluator checks at the end of that turn and keeps the session going.
 5. The run ends with `docs/auto-run/REPORT.md` or with `hsdd/judgement/STOP.md`.
 
 ---
