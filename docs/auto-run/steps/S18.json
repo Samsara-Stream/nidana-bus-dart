@@ -1,0 +1,160 @@
+{
+  "step_ref": "S18",
+  "skill": "hsdd-adr",
+  "target": "ADR-003 (hsdd/adr/003-time-source-virtual-scheduler.md), link update",
+  "status": "completed",
+  "stop": null,
+  "artifacts": [
+    "hsdd/adr/003-time-source-virtual-scheduler.md",
+    "hsdd/contract/topology-dsl.md",
+    "hsdd/adr/INDEX.md"
+  ],
+  "decisions": [
+    {
+      "at": "2026-10-17T22:45:37Z",
+      "artifact": "hsdd/adr/003-time-source-virtual-scheduler.md",
+      "question": "Does topology-dsl@v1 belong in ADR-003's affects, with the matching Governed by on the contract?",
+      "options": [
+        { "label": "Add topology-dsl@v1", "consequence": "ADR-003 affects gains topology-dsl@v1 and the contract header reads Governed by: [ADR-001, ADR-002, ADR-003]. hsdd-config then injects ADR-003's Decision and Consequences into every phase that consumes topology-dsl@v1, nidana.tooling phases included." },
+        { "label": "Leave affects as it is", "consequence": "The contract cites ADR-003 items 3 and 4 in G6, G22, G23 and its Live interpretation, but a phase that consumes topology-dsl@v1 without bus-api@v1 never receives the decision those guarantees depend on, and the bidirectional linking rule is broken in spirit." }
+      ],
+      "chosen": "Add topology-dsl@v1",
+      "why": "Applying the S06 test: ADR-003 constrains guarantees consumers of topology-dsl@v1 rely on. G6 (no scheduler argument, item 4), G22 (live switchMap listens to the next inner without waiting on the cancel future, item 3) and G23 (time combinators timed exactly by the implementation's clock, item 4) are what app topology tests and nidana.runtime's live implementation build against, and Live interpretation steps 5 and 6 cite items 2 to 4. S05 left the contract out because the live builder was then to be bus-api@v1's; S07 moved the live semantics of every combinator into topology-dsl@v1 and left bus-api@v1 the activation entry point, so S05's premise no longer holds. The injection cost to nidana.tooling is small: that node also consumes bus-api@v1, which already carries ADR-003, so only a tooling phase naming topology-dsl@v1 without bus-api@v1 gains the ADR. Inserted before bus-api@v1 to follow the root contract matrix order that ADR-001's affects uses.",
+      "evidence": [
+        "hsdd/contract/topology-dsl.md (G6, G22, G23; Live interpretation 5 and 6; Boundary)",
+        "hsdd/contract/bus-api.md (opening paragraph: Bus.activate interprets a TopologyPlan as topology-dsl@v1's Live interpretation states)",
+        "docs/auto-run/steps/S05.json (why topology-dsl@v1 was left out)",
+        "docs/auto-run/steps/S06.orchestrator.json (the test)",
+        ".agents/skills/hsdd-config/SKILL.md (Decisions: ADRs a contract's Governed by names, and ADRs whose affects names it)"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T22:45:49Z",
+      "artifact": "hsdd/adr/003-time-source-virtual-scheduler.md",
+      "question": "Does topic-model@v1 belong in ADR-003's affects, re-testing the S06 orchestrator decision against the contract as it now stands?",
+      "options": [
+        { "label": "Add topic-model@v1", "consequence": "hsdd-config injects ADR-003 into every phase that consumes topic-model@v1, which is nearly every phase of the tree, for obligations that bind only the producer." },
+        { "label": "Leave topic-model@v1 out", "consequence": "ADR-003 keeps reaching the producer through nidana.model; the contract keeps citing item 8 in G12 and G25 and item 9 in prose." }
+      ],
+      "chosen": "Leave topic-model@v1 out",
+      "why": "Same outcome as S06. G12 (envelope fields, none defaulted) and G25 (no clock, no timer, no id, no I/O) cite item 8 but bind only nidana_dart_contracts, whose producer nidana.model ADR-003 already governs; the consumer side of item 8 (stamp from the provider clock) lands on nidana.runtime and navigation-api@v1, both governed. G5 (no dispatcher hint) cites Spec §3.6 and §11.1 only; item 9 motivates it in prose, and ADR-003's Consequences leave the question to topic-model@v1 as OQ-M3 rather than constrain it. The S06 signal, a consumer-side obligation from ADR-003 on topic-model values, has not appeared.",
+      "evidence": [
+        "hsdd/contract/topic-model.md (G5, G12, G25, and the prose before G5 and in the observer section)",
+        "docs/auto-run/steps/S06.orchestrator.json"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T22:45:49Z",
+      "artifact": "hsdd/adr/003-time-source-virtual-scheduler.md",
+      "question": "Does topology-ir@v1 belong in ADR-003's affects?",
+      "options": [
+        { "label": "Add topology-ir@v1", "consequence": "ADR-003 is injected into topology-ir@v1 consumers' phases, which run pure analyses and renderers with no time semantics." },
+        { "label": "Leave topology-ir@v1 out", "consequence": "No change." }
+      ],
+      "chosen": "Leave topology-ir@v1 out",
+      "why": "No guarantee of topology-ir@v1 cites ADR-003. The IR carries each time stage's duration as data (state-bearing rule, G10) and its purity (G22, the opening paragraph's reference to topic-model@v1 G25) is a producer property, not a constraint ADR-003 places on what consumers rely on. The signal that would change it: an IR guarantee about timing or about where an analysis runs.",
+      "evidence": ["hsdd/contract/topology-ir.md (opening paragraph, G10, G22)"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T22:45:49Z",
+      "artifact": "hsdd/adr/003-time-source-virtual-scheduler.md",
+      "question": "Does topic-codegen@v1 belong in ADR-003's affects?",
+      "options": [
+        { "label": "Add topic-codegen@v1", "consequence": "ADR-003 is injected into codegen consumers' phases; it would also imply nidana.tooling, its producer, is governed, which affects does not name." },
+        { "label": "Leave topic-codegen@v1 out", "consequence": "No change." }
+      ],
+      "chosen": "Leave topic-codegen@v1 out",
+      "why": "No guarantee cites ADR-003. G17 (outputs hold no timestamp, path or environment value) is a byte-reproducibility rule of the file contract, not a time-source rule, and the generated registry library declares topics and schedules nothing. Item 8's wording \"No nidana package\" could be read to cover nidana_dart_codegen; that is a node-level question about nidana.tooling, outside this step's write set, reported in notes_for_orchestrator.",
+      "evidence": ["hsdd/contract/topic-codegen.md (G17)", "hsdd/adr/003-time-source-virtual-scheduler.md (item 8)"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T22:45:49Z",
+      "artifact": "hsdd/adr/003-time-source-virtual-scheduler.md",
+      "question": "Does nidana-checks@v1 belong in ADR-003's affects?",
+      "options": [
+        { "label": "Add nidana-checks@v1", "consequence": "ADR-003 is injected into the checks' consumers' phases with nothing in the contract it constrains." },
+        { "label": "Leave nidana-checks@v1 out", "consequence": "No change." }
+      ],
+      "chosen": "Leave nidana-checks@v1 out",
+      "why": "The contract names no time, clock, zone or scheduler rule, and ADR-003's Consequences state that no v1 lint enforces item 8. The signal that would change it: a v1 check for DateTime.now(, Stopwatch( or timers outside the provider, which would make item 8 a guarantee of this contract.",
+      "evidence": ["hsdd/contract/nidana-checks.md", "hsdd/adr/003-time-source-virtual-scheduler.md (Consequences: no v1 lint enforces item 8)"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T22:45:56Z",
+      "artifact": "hsdd/adr/003-time-source-virtual-scheduler.md",
+      "question": "How is the in-place change to an accepted ADR's affects recorded?",
+      "options": [
+        { "label": "Dated Amendments line", "consequence": "A new ## Amendments section at the end, in S17's form for ADR-001, says what changed, why the accepted text left it out, and the outcome for every other contract. hsdd-config never injects it, so phase contexts are unchanged." },
+        { "label": "Frontmatter change only", "consequence": "The file stays as accepted apart from affects; the reason lives only in git history and this report." }
+      ],
+      "chosen": "Dated Amendments line",
+      "why": "An accepted ADR changed after acceptance should say so in the file, as ADR-001 does since S17, and the step asked for an amendment line when anything changes. The Amendments section is outside Decision and Consequences, so no phase context grows. status stays accepted and date stays 2026-10-17; the amendment carries 2026-10-17, the UTC date of this step's decision timestamps. Not a supersession: the decision did not change.",
+      "evidence": ["hsdd/adr/001-executable-contract-validation.md (## Amendments)", ".agents/skills/hsdd-config/SKILL.md (only Decision and Consequences are injected)"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T22:45:56Z",
+      "artifact": "hsdd/adr/003-time-source-virtual-scheduler.md",
+      "question": "Does the new link need a sentence in ADR-003's Decision or Consequences?",
+      "options": [
+        { "label": "No sentence", "consequence": "Decision and Consequences stay byte for byte as accepted; item 4 already names topology-dsl@v1 and item 3 the topology DSL's live switchMap." },
+        { "label": "Add a Consequences bullet", "consequence": "A bullet parallel to the bus-api@v1 and bus-testing@v1 one would say topology-dsl@v1 states the live switchMap and the time combinators as guarantees; it changes injected text in every governed phase for no binding effect." }
+      ],
+      "chosen": "No sentence",
+      "why": "The linking rule needs affects and Governed by, both now present; the Decision already names the contract, so it stays self-contained without help. The signal that would change it: a Consequence that only topology-dsl@v1's consumers bear and the Decision does not already state.",
+      "evidence": ["hsdd/adr/003-time-source-virtual-scheduler.md (items 3 and 4)", ".agents/skills/hsdd-adr/SKILL.md (Bidirectional Linking)"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    }
+  ],
+  "experiments": [],
+  "self_check": [
+    { "gate": "Frontmatter has `id`, `status`, `affects`, `date`.", "status": "pass", "note": "id ADR-003, status accepted, date 2026-10-17 unchanged; affects now five nodes and five contracts." },
+    { "gate": "The decision is genuinely cross-cutting; a node-local one stayed a `D{n}`.", "status": "pass", "note": "Decision unchanged; it spans five nodes and five contracts." },
+    { "gate": "`## Decision` and `## Consequences` are self-contained (no reliance on Context).", "status": "pass", "note": "Neither section was edited; the new text is in ## Amendments, which hsdd-config does not inject." },
+    { "gate": "Every id in `affects` carries a matching `Governed by: [ADR-NNN]`.", "status": "pass", "note": "nidana.model, nidana.runtime, nidana.navigation, nidana.flutter, nidana.integration (node specs and their root entries), topology-dsl@v1, bus-api@v1, bus-testing@v1, navigation-api@v1, flutter-binding@v1 all list ADR-003. Reverse direction also holds: no contract or node carries Governed by ADR-003 without being in affects. `node docs/auto-run/tools/gate.mjs --skill hsdd-adr`: 0 errors, 0 warnings." },
+    { "gate": "A superseding ADR set both `supersedes` and the old ADR's `superseded_by`.", "status": "n/a", "note": "Amended in place, not superseded." },
+    { "gate": "No invented decision was written as `accepted`; an unknown decision is `proposed` with a TODO.", "status": "pass", "note": "The accepted decision is unchanged; only links and the amendment record changed." },
+    { "gate": "The registry was regenerated.", "status": "pass", "note": "`node hsdd/scripts/gen-registry.mjs`; hsdd/adr/INDEX.md ADR-003 row gains topology-dsl@v1; hsdd/contract/INDEX.md regenerated with no diff." },
+    { "gate": "Open questions are cited by ID only; an ADR that resolves one names the ID in its Decision, and the owning spec's OQ row is updated to point at this ADR (RESOLVED (date)).", "status": "pass", "note": "The amendment cites no OQ. Decision still names OQ7 (root row RESOLVED (2026-10-17): ADR-003) and the clock-control part of OQ2 (root row PARTIAL, waiting on OQ-R2)." }
+  ],
+  "notes_for_orchestrator": [
+    "Outcome per contract: topology-dsl@v1 added (affects and Governed by); topic-model@v1, topology-ir@v1, topic-codegen@v1, nidana-checks@v1 left out; bus-api@v1, bus-testing@v1, navigation-api@v1, flutter-binding@v1 already linked both ways, no change.",
+    "Only the Governed by line of hsdd/contract/topology-dsl.md changed. Its body already cites ADR-003 items 2 to 4 and needs no edit.",
+    "Node-level finding, outside this step's write set and not acted on: ADR-003 item 8 says \"No nidana package calls `DateTime.now()`, constructs a `Stopwatch` directly, or creates a timer or microtask outside a provider zone\". Read literally that covers nidana_dart_codegen and nidana_dart_lint (nidana.tooling), which affects omits and whose spec and root entry carry Governed by: [ADR-001, ADR-002]. Options: (a) read item 8 as scoped to the packages of the governed nodes and leave the links; (b) add nidana.tooling to affects and Governed by in hsdd/spec/nidana.tooling.md and the root's nidana.tooling entry; (c) a later in-place amendment narrowing item 8's wording to the runtime-side packages. Recommendation: (a) now, (c) if a tooling phase needs a timer or a clock. Note that nidana.tooling phases naming bus-api@v1 or, from now on, topology-dsl@v1 receive ADR-003 by contract injection, so they will read item 8.",
+    "Stale but not a link: ADR-003 Consequences say whether topic-model@v1 carries a dispatcher hint \"stays OQ-M3\"; topic-model@v1 G5 has since decided it, while nidana.model's OQ-M3 row still reads OPEN with \"this node's phase planning records the outcome here\". Left unchanged per the step's instruction to keep Decision and Consequences; the OQ-M3 row is for nidana.model's phase planning or reconcile.",
+    "Cost of the new link: hsdd-config injects ADR-003 into every phase consuming topology-dsl@v1, including nidana.tooling phases that only record topologies (catalog). Small marginal cost, since nidana.tooling also consumes bus-api@v1."
+  ]
+}

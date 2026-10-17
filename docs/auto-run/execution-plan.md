@@ -172,8 +172,8 @@ tree. Done when `node docs/auto-run/tools/gate.mjs --final` passes.
 | S15 | 4 | hsdd-contract | topic-codegen@v1 | done | 4e8031f |
 | S10..S14 | 4 | hsdd-contract | bus-api, bus-testing, navigation-api, flutter-binding, topic-codegen, nidana-checks (all @v1), in that order | planned | |
 | S17 | 4 | hsdd-adr | ADR-001 update: plan-interpretation wording, data directories in the structure set, coverage wording for file and cli contracts, cases without files/ | done | 5385a5f |
-| S18 | 4 | hsdd-adr | ADR-003 update: affects gains topology-dsl@v1 (and its Governed by) | running | |
-| S19 | 4 | hsdd-contract | navigation-api@v1 touch: G1 reject line, citations of bus-api@v1 G22, G34, G40, the Flutter executor binding name | planned | |
+| S18 | 4 | hsdd-adr | ADR-003 update: affects gains topology-dsl@v1 (and its Governed by) | done | 376ccc4 |
+| S19 | 4 | hsdd-contract | navigation-api@v1 touch (running): G1 reject line, citations of bus-api@v1 G22, G34, G40, the Flutter executor binding name | planned | |
 | S20 | 4 | hsdd-contract | bus-api@v1 touch: widened Topic<Object?> reference case, cite nidana-checks@v1 G5 | planned | |
 | S21 | 4 | hsdd-contract | topic-codegen@v1 touch: catalog's claim rule aligned with nidana-checks@v1's recognizer; recorded invocations for G2, G14, G19 under amended ADR-001 item 7 | planned | |
 | next | 5 | hsdd-spec | nidana.runtime, then nidana.tooling (each followed by its ADRs and internal contracts) | planned | |
@@ -264,3 +264,6 @@ tree. Done when `node docs/auto-run/tools/gate.mjs --final` passes.
   `docs/auto-run/timestamp-corrections.md`, and `ledger.mjs` now rejects future times. Dates in this
   change log before this entry that read 2026-10-18 are local dates. S21 gains topic-codegen@v1's
   recorded invocations.
+- 2026-10-17 (UTC), after S18: ADR-003 now affects topology-dsl@v1. The reconcile sweep must fix
+  ADR-003's Consequences, which still call the dispatcher hint OQ-M3 although topic-model@v1 G5
+  decided it.
