@@ -165,9 +165,10 @@ tree. Done when `node docs/auto-run/tools/gate.mjs --final` passes.
 | S08 | 4 | hsdd-contract | topology-ir@v1 | done | 03fe7c9 |
 | S09 | 4 | hsdd-contract | bus-api@v1 | done | f5ad95c |
 | S10 | 4 | hsdd-contract | topic-model@v1 amendment: sealed MultiWriterTopic (for bus-api@v1 G11, G19) | done | ef0dead |
-| S11 | 4 | hsdd-contract | bus-testing@v1 | running | |
+| S11 | 4 | hsdd-contract | bus-testing@v1 | done | 9f64d62 |
+| S12 | 4 | hsdd-contract | navigation-api@v1 | running | |
 | S10..S14 | 4 | hsdd-contract | bus-api, bus-testing, navigation-api, flutter-binding, topic-codegen, nidana-checks (all @v1), in that order | planned | |
-| after S15 | 4 | hsdd-adr, then hsdd-spec (root touch) | governance touch-up: ADR affects and Governed-by links the root contracts exposed; root prose fixes | planned | |
+| after S15 | 4 | hsdd-contract (bus-api@v1 wording), hsdd-adr, then hsdd-spec (root touch) | governance touch-up: compatible contract wording the later contracts exposed; ADR affects and Governed-by links; root prose fixes | planned | |
 | next | 5 | hsdd-spec | nidana.runtime, then nidana.tooling (each followed by its ADRs and internal contracts) | planned | |
 
 ## Change log
@@ -216,3 +217,9 @@ tree. Done when `node docs/auto-run/tools/gate.mjs --final` passes.
   (keep microtask-delayed first delivery) and OQ-R3 (dedup per read) are decided by bus-api@v1; the
   runtime decomposition marks the rows. S09 recommends one runtime child own the main library and the
   `lib/src/` library it shares with bus-testing@v1, with behavior split by guarantee across phases.
+- 2026-10-18, after S11: bus-testing@v1 decided OQ-R2 (typed value queries; a TestBus activates
+  nothing, tests stand in with `input` and `stub`), which leaves root OQ2 with nothing open. The
+  touch-up batch gains a compatible bus-api@v1 wording amendment: G38 must allow `settle`'s real
+  event-loop turns (bus-testing@v1 G12), and its delivery rule should name recorders attached to the
+  bus rather than "the recorder of a TestBus". The runtime decomposition should give one child both the
+  main library and `testing.dart` (they share the `lib/src/` library that declares `Bus`).

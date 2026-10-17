@@ -1,0 +1,646 @@
+{
+  "step_ref": "S11",
+  "skill": "hsdd-contract",
+  "target": "bus-testing@v1",
+  "status": "completed",
+  "stop": null,
+  "artifacts": [
+    "hsdd/contract/bus-testing.md",
+    "hsdd/contract/fixture/bus-testing/surface/test_bus.dart",
+    "hsdd/contract/fixture/bus-testing/surface/scheduler.dart",
+    "hsdd/contract/fixture/bus-testing/surface/recording.dart",
+    "hsdd/contract/fixture/bus-testing/reject/testing_exports_only_its_own.dart",
+    "hsdd/contract/fixture/bus-testing/reject/testing_types_are_closed.dart",
+    "hsdd/contract/fixture/bus-testing/behavior/bus_testing_conformance.dart",
+    "hsdd/contract/fixture/bus-testing/behavior/nidana_dart_runtime_test.dart",
+    "hsdd/contract/INDEX.md",
+    "docs/auto-run/experiments/bus-testing-fixtures/",
+    "docs/auto-run/steps/S11.json"
+  ],
+  "decisions": [
+    {
+      "at": "2026-10-17T18:01:18Z",
+      "artifact": "hsdd/contract/bus-testing.md",
+      "question": "OQ-R2, first half (Guide §10.1 'Envelope recording'): what is the envelope recorder's assertion API: pattern matching, equality, custom predicates?",
+      "options": [
+        {
+          "label": "typed queries returning plain values",
+          "consequence": "envelopes, envelopesOf(topic) and payloadsOf(topic) return unmodifiable lists typed by the topic; tests use ==, Dart 3 patterns and Iterable.where with their runner's expect; no new dependency; failure messages are whatever expect prints"
+        },
+        {
+          "label": "package:matcher matchers over envelopes",
+          "consequence": "richer failure messages (isEnvelope(payload: ..., source: ...)), but nidana_dart_runtime gains a dependency that ADR-002 item 3's table and bus-api@v1 G39 do not list, so a bus-api amendment and a runtime D{n} would follow"
+        },
+        {
+          "label": "a predicate DSL of its own",
+          "consequence": "a vocabulary to learn and maintain that Dart patterns already cover"
+        }
+      ],
+      "chosen": "typed queries returning plain values",
+      "why": "Dart 3 already gives equality, destructuring patterns and predicates over values, so the recorder only has to hand out typed values; the cast from MessageEnvelope<Object?> to the topic's type is the one thing tests cannot write conveniently, and envelopesOf/payloadsOf do it. Deterministic ids and the fixed initial time (G13) make whole-envelope equality usable. The owner's preference for values and composition over DSLs points the same way, and the runtime's dependency set stays as ADR-002 and bus-api@v1 G39 fix it. Signal that would change it: app teams writing the same envelope matchers in several test suites; matchers can then ship as a compatible addition in a separate library.",
+      "evidence": [
+        "Guide §10.1",
+        "Spec §3.5 (Where Envelopes Are Visible)",
+        "hsdd/adr/002-package-workspace-layout.md (items 3, 4)",
+        "hsdd/contract/bus-api.md (G39)"
+      ],
+      "blast_radius": "contract",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T18:01:18Z",
+      "artifact": "hsdd/contract/bus-testing.md",
+      "question": "OQ-R2, second half (Guide §10.1 'Topology test isolation'): how does a test activate only the topologies under test without the APPLICATION set?",
+      "options": [
+        {
+          "label": "TestBus activates nothing; input and stub helpers stand in for absent producers",
+          "consequence": "isolation is the default; TestBus.input (a publisher of ServiceSource('test')) and TestBus.stub(topic) (a writer claiming one state topic at application scope) replace the boilerplate every test would write; two more members and one guarantee"
+        },
+        {
+          "label": "documented pattern only, no helpers",
+          "consequence": "smallest surface; every test constructs its own publishers and claims, as bus-api@v1's live binding does by hand"
+        },
+        {
+          "label": "a selective activation API over an app bootstrap",
+          "consequence": "a TestBus that runs the app's bootstrap and ignores activations not listed; couples tests to the bootstrap and hides which topologies are active"
+        }
+      ],
+      "chosen": "TestBus activates nothing; input and stub helpers stand in for absent producers",
+      "why": "On this tree activation is always explicit (bus-api@v1 G22, G34): a fresh TestBus has nothing active, so the Guide's question reduces to standing in for the producers that are absent, as hsdd/spec/nidana.runtime.md's OQ-R2 detail already observes. The stand-in for a state topic must claim it (Spec §2.4, §3.11), which is the boilerplate bus-api@v1's bus_activation_test.dart writes by hand; stub makes it one call, claims at Scope.application so it never trips the scope check, and claims one topic per publisher so stubs never conflict with each other. Close to the no-helper option; the signal that would change it is a consumer for whom a fixed ServiceSource('test') source is wrong.",
+      "evidence": [
+        "Guide §10.1",
+        "Spec §2.4",
+        "Spec §3.11",
+        "hsdd/spec/nidana.runtime.md (OQ-R2)",
+        "hsdd/contract/fixture/bus-api/behavior/bus_activation_test.dart"
+      ],
+      "blast_radius": "contract",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T18:01:18Z",
+      "artifact": "hsdd/contract/bus-testing.md",
+      "question": "Spec §9.2 item 2: the TestBus envelope recorder defaults to redacting sensitive payloads, raw view by explicit opt-in. Where does the opt-in live, given that bus-api@v1's bindings read recorder.envelopes and RecordedEnvelope.envelope?",
+      "options": [
+        {
+          "label": "per read: RecordedEnvelope.unredacted and an unredacted: true argument on the typed queries",
+          "consequence": "envelope is unredacted.redacted(), so non-sensitive envelopes are the delivered objects and bus-api@v1's bindings work unchanged; typed queries on a sensitive topic throw ArgumentError without the argument; every raw read is visible at its call site"
+        },
+        {
+          "label": "per recorder, a flag at TestBus construction",
+          "consequence": "not expressible as a named parameter, because TestBus([BusConfig config]) already has an optional positional parameter and Dart cannot mix the two; would need a BusConfig field that bus-api@v1 owns"
+        },
+        {
+          "label": "a separate raw view object (recorder.unredacted)",
+          "consequence": "two parallel query surfaces to keep in step"
+        }
+      ],
+      "chosen": "per read: RecordedEnvelope.unredacted and an unredacted: true argument on the typed queries",
+      "why": "The Spec asks for an explicit opt-in; a per-read opt-in is the most explicit form and keeps the default view redacted everywhere, including toString(), which is what a failing expect prints. topic-model@v1's redacted() returns the envelope itself when not sensitive (G15 there), so bus-api@v1's live binding, which casts non-sensitive envelopes to MessageEnvelope<T>, runs unchanged (T9 in the experiment). A construction flag is blocked by the TestBus signature the orchestrator fixed.",
+      "evidence": [
+        "Spec §9.2",
+        "hsdd/contract/topic-model.md (G15, RedactedPayload)",
+        "hsdd/contract/fixture/bus-api/behavior/bus_activation_test.dart",
+        "docs/auto-run/experiments/bus-testing-fixtures/"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T18:01:18Z",
+      "artifact": "hsdd/contract/bus-testing.md",
+      "question": "Does a TestBus generate deterministic envelope ids (bus-api@v1 says only that ids are opaque and pairwise distinct)?",
+      "options": [
+        {
+          "label": "deterministic with a fixed format: e1, e2, ... and c1, c2, ... per TestBus",
+          "consequence": "whole envelopes are predictable with the fixed initial time, so a test can write an expected MessageEnvelope literally and compare two runs or two buses with ==; tests that hard-code ids break when an unrelated publish is added"
+        },
+        {
+          "label": "deterministic, format unspecified",
+          "consequence": "golden comparisons between runs work, literal expected envelopes do not"
+        },
+        {
+          "label": "opaque, as on a production bus",
+          "consequence": "nothing to state, but envelope equality is unusable in tests"
+        }
+      ],
+      "chosen": "deterministic with a fixed format: e1, e2, ... and c1, c2, ... per TestBus",
+      "why": "Rationale §3.2 makes determinism the TestBus's point, and equality is one of the three assertion styles Guide §10.1 names; a fixed format is what makes equality on whole envelopes available. Distinctness within a bus, all bus-api@v1 G12 asks, still holds. Signal that would change it: a consumer relying on ids being unique across buses, which bus-api@v1 does not promise.",
+      "evidence": [
+        "Rationale §3.2",
+        "Guide §10.1",
+        "hsdd/contract/bus-api.md (G12)",
+        "docs/auto-run/steps/S09.json (deterministic ids left to bus-testing@v1)"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T18:01:18Z",
+      "artifact": "hsdd/contract/bus-testing.md",
+      "question": "ADR-003 item 5 leaves the default start instant of the virtual clock to this contract. Which instant?",
+      "options": [
+        {
+          "label": "2000-01-01T00:00:00.000Z, overridable by initialTime",
+          "consequence": "fixed, UTC, far from today so an accidental wall-clock read stands out; the ADR-003 prototype's value"
+        },
+        {
+          "label": "the Unix epoch 1970-01-01T00:00:00Z",
+          "consequence": "millisecondsSinceEpoch 0 is a common 'unset' sentinel in app code, so a timestamp at the epoch can be mistaken for a missing one"
+        },
+        {
+          "label": "the wall clock at construction, as fake_async does",
+          "consequence": "not deterministic across runs, against G13 and Rationale §3.2"
+        }
+      ],
+      "chosen": "2000-01-01T00:00:00.000Z, overridable by initialTime",
+      "why": "Fixed and UTC is what determinism needs; 2000 avoids the epoch sentinel and was already exercised by docs/auto-run/experiments/virtual-scheduler/. No evidence distinguishes 2000 from other fixed instants; the choice is conventional.",
+      "evidence": [
+        "hsdd/adr/003-time-source-virtual-scheduler.md (item 5)",
+        "docs/auto-run/experiments/virtual-scheduler/lib/scheduler.dart"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T18:01:18Z",
+      "artifact": "hsdd/contract/bus-testing.md",
+      "question": "ADR-003 items 5 and 6 leave the action bound and the settle bound to this contract. Which defaults, and where are they set?",
+      "options": [
+        {
+          "label": "constructor parameters maxActions = 100000 per operation and maxSettleTurns = 20 per settle",
+          "consequence": "one place to configure a scheduler, shown by getters; bus-api@v1's harness calls settle() with no argument; a test with a long legitimate periodic timer raises maxActions on its scheduler"
+        },
+        {
+          "label": "per-call arguments on each operation and on settle",
+          "consequence": "more flexible per call, but the bounds become a parameter of every call site and the bus-api@v1 bindings could not pass them"
+        },
+        {
+          "label": "no bounds",
+          "consequence": "a microtask loop or a zero-period periodic timer hangs the test instead of failing it, against ADR-003 item 5"
+        }
+      ],
+      "chosen": "constructor parameters maxActions = 100000 per operation and maxSettleTurns = 20 per settle",
+      "why": "The prototype values were exercised in docs/auto-run/experiments/virtual-scheduler/ and bus-api-fixtures; 100000 actions allows, for example, a 16 ms periodic timer over 26 minutes of virtual time in one advance, more than a topology test needs, and still fails a runaway loop within milliseconds. The signal that would change the default: a consumer's realistic test hitting the bound.",
+      "evidence": [
+        "hsdd/adr/003-time-source-virtual-scheduler.md (items 5, 6)",
+        "docs/auto-run/experiments/virtual-scheduler/output.txt",
+        "docs/auto-run/experiments/bus-testing-fixtures/"
+      ],
+      "blast_radius": "contract",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T18:01:18Z",
+      "artifact": "hsdd/contract/bus-testing.md",
+      "question": "ADR-003 item 5: the scheduler 'reports how many are pending and when the next one is due'. What introspection does VirtualScheduler expose?",
+      "options": [
+        {
+          "label": "pendingTimerCount, nextTimerDue and pendingMicrotaskCount",
+          "consequence": "a test asserts a cancellation by count and the next deadline by instant; quiescence (G9) becomes observable"
+        },
+        {
+          "label": "pendingTimerCount only",
+          "consequence": "what bus-api@v1's harness uses; the 'when the next one is due' half of ADR-003 item 5 would be missing"
+        }
+      ],
+      "chosen": "pendingTimerCount, nextTimerDue and pendingMicrotaskCount",
+      "why": "ADR-003 item 5 names both the count and the next due instant; the microtask count costs nothing and makes G9's quiescence checkable by a case.",
+      "evidence": [
+        "hsdd/adr/003-time-source-virtual-scheduler.md (item 5)"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T18:01:18Z",
+      "artifact": "hsdd/contract/bus-testing.md",
+      "question": "ADR-003 item 6: the envelope recorder attaches to a bus with either provider. How does it attach to a production-provider bus, given that Bus is bus-api@v1's final class?",
+      "options": [
+        {
+          "label": "EnvelopeRecorder.attach(bus): a delivery seam of every bus, called before the observers",
+          "consequence": "records Tracing.disabled and sensitive topics like TestBus.recorder, counts against no limit, adds no timer; needs a recorder seam inside Bus, which shares the src library anyway (bus-api@v1 Refinement 1)"
+        },
+        {
+          "label": "a BusObserver with both capabilities, registered with addObserver",
+          "consequence": "no seam in Bus, but it misses Tracing.disabled topics (bus-api@v1 G30), counts against maxObservers and sees deliveries after earlier observers, so a widget test's recording differs from a TestBus's"
+        }
+      ],
+      "chosen": "EnvelopeRecorder.attach(bus): a delivery seam of every bus, called before the observers",
+      "why": "One recorder behavior on every bus keeps VM tests and widget tests comparable, and bus-api@v1's delivery rule already places the TestBus recorder before observers. The seam is internal to the shared src library. bus-api@v1's delivery-rule wording names 'the recorder of a TestBus'; an editorial alignment is listed in the notes.",
+      "evidence": [
+        "hsdd/adr/003-time-source-virtual-scheduler.md (item 6)",
+        "hsdd/contract/bus-api.md (Delivery rules, G10, G30, Refinement 1)",
+        "docs/auto-run/experiments/bus-testing-fixtures/"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T18:01:18Z",
+      "artifact": "hsdd/contract/bus-testing.md",
+      "question": "Guide §6.5: the per-topic ordering regression test is mandatory and 'the test harness in nidana-test-utils provides it'. Does this contract expose a reusable harness, and where does the test run?",
+      "options": [
+        {
+          "label": "OrderingProbe in testing.dart, plus the runtime's own cases",
+          "consequence": "an application runs the regression test on its own buses, under any provider (widget tests included); the runtime's gate runs bus-api@v1 G13 and this contract's G19 cases; one small type"
+        },
+        {
+          "label": "no harness; bus-api@v1's G13 cases are the regression test",
+          "consequence": "nothing new, but Guide §6.5 and Guide C.5 place the test in the test utilities that adopting teams use"
+        },
+        {
+          "label": "a function that runs a whole regression test on a TestBus",
+          "consequence": "self-contained, but tied to virtual time, so it cannot run in a widget test"
+        }
+      ],
+      "chosen": "OrderingProbe in testing.dart, plus the runtime's own cases",
+      "why": "Guide §6.5 says the test utilities provide the harness and Guide C.5 lists it as v1 tooling teams verify their stack with; ADR-002 item 6 makes testing.dart those utilities. A probe that only subscribes and compares, leaving the publishing and time driving to the test, works under every provider.",
+      "evidence": [
+        "Guide §6.5",
+        "Guide C.5",
+        "hsdd/adr/002-package-workspace-layout.md (item 6)",
+        "hsdd/contract/bus-api.md (G13, Validation)"
+      ],
+      "blast_radius": "contract",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T18:05:55Z",
+      "artifact": "hsdd/contract/bus-testing.md",
+      "question": "How does the settle operation behave at its edges: where does it live, when does it fail, and what happens when it is called inside the scheduler's zone?",
+      "options": [
+        {
+          "label": "on VirtualScheduler; StateError at the call inside the zone; the future fails after maxSettleTurns real turns",
+          "consequence": "buses sharing a provider settle once; a misplaced call fails loudly instead of hanging"
+        },
+        {
+          "label": "on TestBus, failing asynchronously in every case",
+          "consequence": "an async failure raised inside the scheduler's zone completes through a virtual microtask, so awaiting it from the test would never return unless something drains the queue"
+        }
+      ],
+      "chosen": "on VirtualScheduler; StateError at the call inside the zone; the future fails after maxSettleTurns real turns",
+      "why": "The experiment's settle probe (output-settle.txt) shows that a then-callback on a future the test completes runs on a real microtask turn, not through the virtual queue (S1), that continuous outside injection exhausts the turn bound (S4), and that the synchronous refusal inside the zone works (S5). That an async failure from inside the zone would hang is reasoning from Dart's zone rules, not something the experiment ran.",
+      "evidence": [
+        "hsdd/adr/003-time-source-virtual-scheduler.md (item 6, Q7)",
+        "docs/auto-run/experiments/bus-testing-fixtures/output-settle.txt",
+        "docs/auto-run/experiments/bus-testing-fixtures/"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T18:01:18Z",
+      "artifact": "hsdd/contract/bus-testing.md",
+      "question": "Guide C.4 lists 'capture, replay, and assertion APIs' for the TestBus envelope recorder, planned v1. Is a replay API in bus-testing@v1?",
+      "options": [
+        {
+          "label": "not in v1; listed under Versioning as a candidate",
+          "consequence": "capture and assertion ship; replaying payloads is a loop over payloadsOf and input that tests write themselves"
+        },
+        {
+          "label": "replay payloads into a bus",
+          "consequence": "a thin helper over input and stub; little value"
+        },
+        {
+          "label": "replay envelopes with their lineage",
+          "consequence": "needs a publish path that sets ids, causation and source, which bus-api@v1 does not have and which would bypass Spec §3.11's single-writer rule and bus-api@v1 G12"
+        }
+      ],
+      "chosen": "not in v1; listed under Versioning as a candidate",
+      "why": "The useful form of replay, envelopes with their lineage, conflicts with bus-api@v1's publish path; the trivial form needs no API. Root D1 cites Guide C.4 for the recorder, so a careful engineer would confirm the narrowing with the owner. Signal that would change it: a devtools or bug-reproduction need, which root D1 puts in v2.",
+      "evidence": [
+        "Guide C.4",
+        "hsdd/spec/nidana.md (D1)",
+        "Spec §3.11",
+        "hsdd/contract/bus-api.md (G12)"
+      ],
+      "blast_radius": "contract",
+      "confidence": "medium",
+      "would_have_asked": true,
+      "stop_class": "axis",
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T18:01:18Z",
+      "artifact": "hsdd/contract/bus-testing.md",
+      "question": "Does VirtualScheduler expose its zone, given that bus-api@v1 lists 'access to the provider zone' as not in v1 for Bus?",
+      "options": [
+        {
+          "label": "run(body): runs a body inside the zone and returns its result",
+          "consequence": "a test constructs a stub service inside virtual time so its timers are virtual and no settle is needed; the fixtures test the scheduler with no bus; narrower than handing out the Zone"
+        },
+        {
+          "label": "expose the Zone itself",
+          "consequence": "everything Zone offers, fork and handlers included, becomes part of the contract"
+        },
+        {
+          "label": "nothing",
+          "consequence": "scheduler cases need a bus to create timers, and shell stubs stay on real time"
+        }
+      ],
+      "chosen": "run(body): runs a body inside the zone and returns its result",
+      "why": "bus-api@v1's exclusion is about production code reaching the bus's zone; a test scheduler is test-only. run keeps the surface to one method while covering the stub case ADR-003's Consequences describe (a shell service's own timers run on real time).",
+      "evidence": [
+        "hsdd/adr/003-time-source-virtual-scheduler.md (Consequences)",
+        "hsdd/contract/bus-api.md (Versioning, not in v1)"
+      ],
+      "blast_radius": "contract",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T18:01:18Z",
+      "artifact": "hsdd/contract/bus-testing.md",
+      "question": "Does testing.dart re-export the main library or nidana_dart_contracts?",
+      "options": [
+        {
+          "label": "no re-export: testing.dart exports its six declarations only",
+          "consequence": "one import path per declaration; tests import the main library and the contracts package, as shell code does; pinned by a reject fixture"
+        },
+        {
+          "label": "re-export the main library",
+          "consequence": "one import less in tests, two paths to Bus and BusConfig"
+        }
+      ],
+      "chosen": "no re-export: testing.dart exports its six declarations only",
+      "why": "bus-api@v1 decided that the main library does not re-export nidana_dart_contracts; the same rule here keeps every declaration reachable by exactly one library. Close call with no evidence either way; the signal would be consumer feedback on import noise.",
+      "evidence": [
+        "hsdd/contract/bus-api.md (Interface: does not re-export)",
+        "hsdd/adr/002-package-workspace-layout.md (item 3)"
+      ],
+      "blast_radius": "contract",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T18:01:18Z",
+      "artifact": "hsdd/contract/bus-testing.md",
+      "question": "Are the recorder's lists live views or snapshots?",
+      "options": [
+        {
+          "label": "unmodifiable snapshots taken at the call",
+          "consequence": "values that never change under the test's feet; O(n) per call"
+        },
+        {
+          "label": "unmodifiable live views",
+          "consequence": "no copying, but a list read earlier grows later, and iterating it while a delivery records throws a concurrent modification error"
+        }
+      ],
+      "chosen": "unmodifiable snapshots taken at the call",
+      "why": "The owner's preference for immutability, and assertion code reasons about values. bus-api@v1's live binding reads envelopes repeatedly and passes on snapshots (T9). The cost is irrelevant at test sizes.",
+      "evidence": [
+        "hsdd/contract/fixture/bus-api/behavior/bus_activation_test.dart",
+        "docs/auto-run/experiments/bus-testing-fixtures/"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T18:01:18Z",
+      "artifact": "hsdd/contract/bus-testing.md",
+      "question": "What does a plain Bus do with a VirtualSchedulerProvider, which bus-api@v1's constructor text does not mention?",
+      "options": [
+        {
+          "label": "it runs on that scheduler, TestBus or not; only a TestBus adds the recorder, input, stub and deterministic ids",
+          "consequence": "consistent with bus-api@v1 G5 (every bus works in its provider zone); several buses, test or not, can share one virtual clock"
+        },
+        {
+          "label": "ArgumentError: a virtual provider only through TestBus",
+          "consequence": "one way in, but a rule bus-api@v1's Bus constructor would have to state, and a VirtualSchedulerProvider value that is useless outside TestBus"
+        }
+      ],
+      "chosen": "it runs on that scheduler, TestBus or not; only a TestBus adds the recorder, input, stub and deterministic ids",
+      "why": "bus-api@v1 G5 already implies it, and rejecting it would need a bus-api@v1 amendment for no gain.",
+      "evidence": [
+        "hsdd/contract/bus-api.md (G5, Interface)",
+        "Spec §3.6"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T18:13:42Z",
+      "artifact": "hsdd/contract/bus-testing.md",
+      "question": "bus-api@v1 G38 says nidana_dart_runtime creates no timer or microtask outside a provider zone, while ADR-003 item 6 requires the settle operation to alternate with real event-loop turns. How is the conflict handled?",
+      "options": [
+        {
+          "label": "state the exception here (G12, G20) and ask for a compatible clarification of bus-api@v1 G38",
+          "consequence": "no consumer is affected: G38 is a source property checked by the runtime's gates, and the clarification narrows it to what ADR-003 already requires"
+        },
+        {
+          "label": "a settle without a timer",
+          "consequence": "impossible: any await schedules a microtask in the awaiting zone, which is outside the provider zone"
+        },
+        {
+          "label": "treat it as a breaking amendment and stop",
+          "consequence": "the run stops over a guarantee no consumer depends on"
+        }
+      ],
+      "chosen": "state the exception here (G12, G20) and ask for a compatible clarification of bus-api@v1 G38",
+      "why": "ADR-003 item 6 is accepted and explicitly requires real turns; G38 restates ADR-003 item 8 without the item 6 exception. No consumer code exists and G38 binds only the producer's own sources, so this is not the breaking-amendment stop.",
+      "evidence": [
+        "hsdd/adr/003-time-source-virtual-scheduler.md (items 6, 8)",
+        "hsdd/contract/bus-api.md (G38)"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T18:13:42Z",
+      "artifact": "hsdd/contract/bus-testing.md",
+      "question": "What does the bus-testing conformance harness supply, and under which runner is the suite bound?",
+      "options": [
+        {
+          "label": "settle only, as topic-model@v1's harness; bound under dart test only",
+          "consequence": "the cases construct testing.dart's final declarations directly; cases that settle or let real time pass need a real event loop, so no testWidgets binding"
+        },
+        {
+          "label": "factories for TestBus, scheduler and recorder",
+          "consequence": "suggests a second implementation that final classes rule out"
+        }
+      ],
+      "chosen": "settle only, as topic-model@v1's harness; bound under dart test only",
+      "why": "ADR-001 item 4 requires a harness with settle; testing.dart has no second implementation to stand in, as with topic-model@v1's value types. ADR-003 item 6 says settle is never awaited inside testWidgets.",
+      "evidence": [
+        "hsdd/adr/001-executable-contract-validation.md (item 4)",
+        "hsdd/contract/fixture/topic-model/behavior/topic_model_conformance.dart",
+        "hsdd/adr/003-time-source-virtual-scheduler.md (item 6)"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T18:01:18Z",
+      "artifact": "hsdd/contract/bus-testing.md",
+      "question": "Does VirtualSchedulerProvider take its scheduler as a required argument or create one when none is given?",
+      "options": [
+        {
+          "label": "required positional argument, as Spec §3.6 writes VirtualSchedulerProvider(virtualScheduler)",
+          "consequence": "the scheduler's zone is forked where the test constructs the scheduler, never at an implicit moment"
+        },
+        {
+          "label": "optional, creating a fresh scheduler",
+          "consequence": "the fork point becomes wherever the provider happens to be built"
+        }
+      ],
+      "chosen": "required positional argument, as Spec §3.6 writes VirtualSchedulerProvider(virtualScheduler)",
+      "why": "ADR-003 item 5 ties the scheduler's zone to its construction point; a required argument keeps that point explicit. TestBus(config) still creates a fresh one when the config names no provider.",
+      "evidence": [
+        "Spec §3.6",
+        "hsdd/adr/003-time-source-virtual-scheduler.md (item 5)"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    }
+  ],
+  "experiments": [
+    {
+      "path": "docs/auto-run/experiments/bus-testing-fixtures/",
+      "question": "Do bus-testing@v1's fixtures hold together before the producer exists: does every reject fixture report exactly its marked codes, does the surface set analyze clean, does the suite pass against an implementation of the Interface, do bus-api@v1's two bindings run unchanged against that testing.dart, and do the cases fail when the implementation is broken?",
+      "finding": "With the stand-in topic model of bus-api-fixtures and a stand-in runtime whose testing.dart implements the Interface: structure PASS for all 20 guarantees (45 cases, 1 binding, 7 fixture files) and bus-api@v1's structure still PASS; surface clean under --fatal-infos; both reject files PASS with their (line, code) pairs (undefined_class for G1, invalid_use_of_type_outside_library and new_with_undefined_constructor_default for G2), so no code is unconfirmed; the bus-testing suite passes 45 of 45 under dart test and a --name '^G12 ' restriction selects its 3 G12 cases; bus-api@v1's surface, reject and behavior files analyze and pass against this testing.dart, and its two bindings pass unchanged, 86 and 43 cases, with the names adopted and deterministic ids (T8, T9); each of 34 seeded defects in the stand-in fails the cases of the guarantee it breaks (T10), no run timed out. One first-draft defect was vacuous and was replaced: swapping runGuarded for run in the scheduler's microtask handler changes nothing, because the SDK's scheduleMicrotask and Timer already bind their callbacks guarded; a zone that swallows errors is the defect that breaks G11. Two first-draft cases could hang a broken implementation (an unbounded microtask loop escaping the zone; a feeder timer left running when settle misbehaves); the loop is now capped at 1000 iterations and the feeder cancelled in a finally block, so a defect fails those cases instead of hanging the gate."
+    },
+    {
+      "path": "docs/auto-run/experiments/bus-testing-fixtures/output-settle.txt",
+      "question": "What reaches the virtual zone from a future the test completes in its own zone, with triggerActions alone and with settle; does outside injection exhaust settle's turn bound; does settle refuse a call inside the zone?",
+      "finding": "A then-callback registered inside the scheduler's zone on a future the test completes runs on the next real microtask turn, in the virtual zone but not through the virtual queue, so triggerActions alone does not run it (S1); a sync completer runs it at once (S2); a future completed by a real timer is delivered after that timer (S3); a real zero-period timer that injects a virtual microtask on every turn makes settle fail with StateError after maxSettleTurns turns, and settle completes once it is cancelled (S4); settle called inside the zone throws StateError at the call (S5). Work a then-callback causes inside the bus (a reentrant topology publish) lands in the virtual queue, which is why settle alternates triggerActions with real turns."
+    }
+  ],
+  "self_check": [
+    {
+      "gate": "Frontmatter has id, version, status, kind, owner, compatibility, produced_by, consumers; external_consumers when any exist.",
+      "status": "pass",
+      "note": "id bus-testing, v1, draft, api, owner nidana.runtime, versioned, produced_by [nidana.runtime], consumers [nidana.navigation, nidana.flutter, nidana.integration], external_consumers [app topology and service tests, app widget tests]."
+    },
+    {
+      "gate": "`consumers` lists phase ids that actually consume this contract.",
+      "status": "pass",
+      "note": "Node ids with phase_ids: provisional, as every earlier contract before phase plans exist; the consumers are the three nodes whose specs list bus-testing@v1 under Consumes. hsdd-reconcile finalizes them."
+    },
+    {
+      "gate": "The Interface section is concrete enough to mock against.",
+      "status": "pass",
+      "note": "Full Dart declarations of the six types with every member, defined terms (operation, action, quiescent, real turn, inside the zone), and a usage section; a stand-in implementing them passed all 45 cases and bus-api@v1's 129."
+    },
+    {
+      "gate": "At least one guarantee/invariant is stated.",
+      "status": "pass",
+      "note": "G1 to G20."
+    },
+    {
+      "gate": "A breaking change bumped the version and added a migration note.",
+      "status": "n/a",
+      "note": "New contract at v1."
+    },
+    {
+      "gate": "The registry was regenerated.",
+      "status": "pass",
+      "note": "node hsdd/scripts/gen-registry.mjs; hsdd/contract/INDEX.md gains the bus-testing row; hsdd/adr/INDEX.md unchanged."
+    },
+    {
+      "gate": "`phase_ids` is present (`provisional` until `hsdd-reconcile` finalizes it).",
+      "status": "pass",
+      "note": "phase_ids: provisional."
+    },
+    {
+      "gate": "Every code-level artifact both sides consume (types file, fixtures, shared package) names its canonical path and its owner in the Interface or Validation section: the owning phase for code, `hsdd-contract` for validation artifacts.",
+      "status": "pass",
+      "note": "Interface names package:nidana_dart_runtime/testing.dart at packages/nidana_dart_runtime/, code owner nidana.runtime, landed with bus-api@v1's declarations by the phase that lands that shared src library; fixtures under hsdd/contract/fixture/bus-testing/ owned by hsdd-contract (ADR-001 item 8)."
+    },
+    {
+      "gate": "A contract or version created by this run has its schema and its kind's fixtures written at the canonical paths.",
+      "status": "pass",
+      "note": "surface/ (3 files), reject/ (2 files), behavior/ conformance library and one binding under hsdd/contract/fixture/bus-testing/; no schema, as ADR-001 item 4 has for an api contract with no serialized form."
+    },
+    {
+      "gate": "Open questions are cited by ID only and never defined here; prose justifying behavior as \"pending OQ-x\" is swept when the OQ resolves (hsdd-reconcile).",
+      "status": "pass",
+      "note": "OQ-R2 is cited as decided (G18, the usage section); it is not restated. Gate quoted with its em-dash rewritten, per the run's prose rule."
+    },
+    {
+      "gate": "A `stable` contract names a schema or a fixtures directory at the canonical paths and the artifact exists, or it carries `validation: grandfathered` (never on a contract authored after the upgrade).",
+      "status": "n/a",
+      "note": "draft; the fixtures directory exists and meets ADR-001 item 12 by reading and by the experiment's structure prototype."
+    },
+    {
+      "gate": "No version is `retired` while a consumer or an external consumer still names it.",
+      "status": "n/a",
+      "note": "Nothing retired."
+    },
+    {
+      "gate": "A `v0` contract carries `## Observed completeness`, and the block changed in any commit that added fixtures to it.",
+      "status": "n/a",
+      "note": "v1, not adopted."
+    },
+    {
+      "gate": "ADR-001 item 12: the fixtures directory meets item 3 and the items for its kind (checked by reading until the replay tool exists).",
+      "status": "pass",
+      "note": "Every guarantee begins with G{n}; G1 and G2 are covered by reject files with // covers: headers and line-anchored markers, G3 to G19 by cases whose names start with their id, G20 by a not-executable line naming nidana.runtime's gates; the conformance library imports neither test nor flutter_test, asserts with package:matcher/expect.dart and exports List<ConformanceCase<BusTestingHarness>>; the one binding is listed in Validation with the implementation it binds; no src/ import. The experiment's structure prototype reports PASS for all 20 guarantees (45 cases, 1 binding, 7 fixture files)."
+    },
+    {
+      "gate": "node docs/auto-run/tools/gate.mjs --skill hsdd-contract --contracts-pending",
+      "status": "pass",
+      "note": "0 errors; the warnings are the pre-existing forward references to contracts not written yet (navigation-api@v1, flutter-binding@v1, topic-codegen@v1, nidana-checks@v1)."
+    }
+  ],
+  "notes_for_orchestrator": [
+    "OQ-R2 is decided by bus-testing@v1. Assertion API: the recorder returns typed, unmodifiable value lists (envelopes, envelopesOf, payloadsOf), asserted with ==, Dart patterns and Iterable.where through the runner's own expect (G14 to G16 and the Interface's 'How a test uses it'). Isolation: a TestBus activates nothing, the test activates what it tests and stands in for absent producers with TestBus.input and TestBus.stub (G18). nidana.runtime's decomposition marks the OQ-R2 row RESOLVED pointing at bus-testing@v1 G16 and G18. With ADR-003 (clock control) and root D1 (cross-platform parity out of v1), root OQ2 has no residual left; its PARTIAL row can be swept to RESOLVED by the runtime decomposition or hsdd-reconcile.",
+    "Names: bus-testing@v1 adopts every name bus-api@v1's bindings call (TestBus([BusConfig config]); scheduler with triggerActions, advanceTimeBy, pendingTimerCount, settle; recorder.envelopes; RecordedEnvelope.topic and .envelope). No bus-api fixture change is needed: both bindings pass unchanged against the new stand-in (experiment T9: 86 and 43 cases), deterministic ids included. bus-api@v1's Validation sentence 'where it chooses others, its authoring step rewrites the bindings' calls' is now moot.",
+    "Compatible, editorial clarifications bus-api@v1 needs (no fixture or consumer change; schedule when convenient, for example at the next bus-api touch or in reconcile): (1) G38 forbids any timer outside a provider zone in nidana_dart_runtime, but the settle operation's real turns are exactly that, as ADR-003 item 6 requires; G38 should except them, citing bus-testing@v1 G12. Until then bus-testing@v1 G12 and G20 state the exception. (2) The Delivery rules say 'the recorder of a TestBus first'; since a recorder attaches to any bus (bus-testing@v1 G14, G17), it could read 'the recorders attached to the bus first, in attachment order (bus-testing@v1)'.",
+    "Runtime decomposition: TestBus extends the final Bus, VirtualSchedulerProvider extends the sealed SchedulerProvider, EnvelopeRecorder.attach needs a recorder seam in Bus's delivery path, and TestBus overrides the bus's id generation, so all of testing.dart's declarations live in, or are reachable only from, the src library that declares Bus. The child that owns bus-api@v1's main library should own testing.dart too, landing both contracts' declarations in its first phase. Behavior can then split by --guarantee, for example: the scheduler alone, G5 to G12 (needs no bus); bus on a virtual provider and TestBus, G3, G4, G13; recorder, G14 to G17; isolation and probe, G18, G19. The bus-api@v1 bindings need TestBus and the recorder before any bus-api behavior replay can run.",
+    "S12 (navigation-api@v1): resolver wiring tests run on a TestBus with only the resolver topology activated; the auth and policy state topics the resolver reads are stood in for with bus.stub(topic), intents published with bus.input (or an ExecutorSource/PageSource publisher where the source matters), and assertions read bus.recorder.payloadsOf(resolvedIntent). On a TestBus the executor's RouteTransition timestamps (bus.clock.now()) start at 2000-01-01T00:00:00Z and ids are e1, e2, and so on, so expected values can be written literally. The executor-protocol conformance suite is bound twice (in-memory router on the VM, FlutterNavigationExecutor under testWidgets): its harness must not name TestBus or settle, and should abstract time as bus-api@v1's harness does (flush, advance, settle supplied by the binding), because a testWidgets binding runs a production-provider bus driven by tester.pump and never awaits settle (ADR-003 items 6 and 7).",
+    "S13 (flutter-binding@v1): the widget-test helpers construct a production-provider Bus inside the testWidgets body, call EnvelopeRecorder.attach(bus) before start() and hand the recorder to the test, and shut the bus down from the dispose of a widget above every scope binding (ADR-003 item 7). They never use TestBus, VirtualScheduler or settle under testWidgets. They import testing.dart (allowed: it imports neither test nor flutter_test) and neither test package. A recorder adds no timer and holds no subscription, so it never leaves anything pending at unmount (G17); OrderingProbe also works there. Widget tests compare timestamps as differences, since the provider clock starts at the test's wall-clock start under testWidgets.",
+    "Upstream candidates (decisions above carry the detail; none is marked would_upstream because each resolves a question the Guide leaves open rather than changing the Specification): Guide §10.1's assertion and isolation questions have a Dart answer here; Guide C.4's 'replay' is deferred; Spec Appendix A.7 says only a TestBus records envelopes, while on Dart any bus can carry a recorder.",
+    "Timestamps: design decisions carry 2026-10-17T18:01:18Z, the first timestamp taken after they were made, before the experiment was built; the settle decision carries 2026-10-17T18:05:55Z, taken when the settle probe's output was captured; the two decisions made while writing the contract carry 2026-10-17T18:13:42Z.",
+    "The replay API (Guide C.4) is recorded as not in v1 with would_have_asked: true (axis); the owner may want it."
+  ]
+}
