@@ -1,0 +1,779 @@
+{
+  "step_ref": "S07",
+  "skill": "hsdd-contract",
+  "target": "topology-dsl@v1",
+  "status": "completed",
+  "stop": null,
+  "artifacts": [
+    "hsdd/contract/topology-dsl.md",
+    "hsdd/contract/fixture/topology-dsl/surface/topologies.dart",
+    "hsdd/contract/fixture/topology-dsl/surface/plan.dart",
+    "hsdd/contract/fixture/topology-dsl/reject/handle_is_opaque.dart",
+    "hsdd/contract/fixture/topology-dsl/reject/dsl_types_are_closed.dart",
+    "hsdd/contract/fixture/topology-dsl/reject/plan_is_a_separate_library.dart",
+    "hsdd/contract/fixture/topology-dsl/reject/write_type_checks.dart",
+    "hsdd/contract/fixture/topology-dsl/reject/reduce_into_targets_state.dart",
+    "hsdd/contract/fixture/topology-dsl/reject/transformers_see_payloads.dart",
+    "hsdd/contract/fixture/topology-dsl/reject/time_takes_duration.dart",
+    "hsdd/contract/fixture/topology-dsl/reject/topology_declares_id_and_scope.dart",
+    "hsdd/contract/fixture/topology-dsl/reject/topology_is_a_base_class.dart",
+    "hsdd/contract/fixture/topology-dsl/behavior/recording_conformance.dart",
+    "hsdd/contract/fixture/topology-dsl/behavior/topology_builder_test.dart",
+    "hsdd/contract/fixture/topology-dsl/behavior/live_conformance.dart",
+    "hsdd/contract/INDEX.md",
+    "docs/auto-run/experiments/topology-dsl-typing/",
+    "docs/auto-run/experiments/topology-dsl-fixtures/",
+    "docs/auto-run/steps/S07.json"
+  ],
+  "decisions": [
+    {
+      "at": "2026-10-17T15:11:46Z",
+      "artifact": "hsdd/contract/topology-dsl.md",
+      "question": "Which signature makes writing a handle of the wrong value type to a topic a compile error (Spec §4.2), given that Dart generics are covariant and inference solves a type argument two arguments constrain to their least upper bound?",
+      "options": [
+        {
+          "label": "write<T>(Topic<T>, TopicStream<T>)",
+          "consequence": "the Guide B.3 shape, but an unrelated or a wider stream compiles as write<Object>; Spec §4.2's guarantee does not hold"
+        },
+        {
+          "label": "write<T, S extends T>(Topic<T>, TopicStream<S>)",
+          "consequence": "keeps the b.write(topic, stream) shape; an unrelated or wider stream is one could_not_infer error, a subtype stream into a supertype topic compiles"
+        },
+        {
+          "label": "stream.writeTo(topic)",
+          "consequence": "rejects unrelated types, but rejects the sound subtype case and admits the unsound wider case"
+        },
+        {
+          "label": "b.write(topic).from(stream)",
+          "consequence": "sound and permissive, but a new call shape and a dangling write target when .from is forgotten"
+        },
+        {
+          "label": "invariant handle via a function-type typedef",
+          "consequence": "sound but rejects sound subtype writes, reports two diagnostics per misuse and exposes an obscure typedef"
+        }
+      ],
+      "chosen": "write<T, S extends T>(Topic<T>, TopicStream<S>)",
+      "why": "The probe shows it is the only form that keeps the Spec and Guide call shape while rejecting both unsound cases with a single diagnostic and accepting the sound subtype write. Explicit type arguments that widen T still bypass it; the live publish then fails at run time, which no form avoids.",
+      "evidence": [
+        "Spec §4.2",
+        "Guide B.3",
+        "docs/auto-run/experiments/topology-dsl-typing/"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T15:15:31Z",
+      "artifact": "hsdd/contract/topology-dsl.md",
+      "question": "How do the recording and the live implementations of the DSL relate: two implementations of a builder interface, or one recording builder whose plan a live implementation interprets?",
+      "options": [
+        {
+          "label": "two builder implementations",
+          "consequence": "matches the 'live builder' wording of ADR-001 item 4; declare() runs twice per activation (record for checks, then wire live); handles must be an implementable interface, so a handle from one builder passed to the other fails only at run time and apps can implement handles"
+        },
+        {
+          "label": "one recording builder, plan interpreted live",
+          "consequence": "declare() runs once; the IR and the live wiring come from one plan by construction; handles, builder and stages are closed types; the runtime implements a StageVisitor over a public plan library; bus-api@v1 declares an activation path, no live builder type"
+        }
+      ],
+      "chosen": "one recording builder, plan interpreted live",
+      "why": "The Specification says the bus interprets the recorded declaration (Spec §2.2 'inert data', §2.5 'the bus interprets this metadata on activation', §6.5 'the bus interprets the same IR for live activation, ensuring the graph and the running system are structurally identical', A.1, A.4). Dart has no higher-kinded types, so a builder interface with two implementations cannot type its handles per implementation. The owner's functional-first practice (an immutable ADT and its interpreters, pure core and imperative shell) points the same way. ADR-001 item 4's binding rule still holds: the live binding lives with bus-api@v1, which declares the live implementation. The signal that would have favored two builders: a live behavior the plan cannot express, which no Spec §6.3 combinator needs.",
+      "evidence": [
+        "Spec §2.2",
+        "Spec §2.5",
+        "Spec §6.5",
+        "Spec Appendix A.1",
+        "Spec Appendix A.4",
+        "ADR-001 item 4",
+        "docs/auto-run/experiments/topology-dsl-fixtures/"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T15:15:31Z",
+      "artifact": "hsdd/contract/topology-dsl.md",
+      "question": "OQ-M2: How does live activation obtain the transformers a pure-data IR names?",
+      "options": [
+        {
+          "label": "executable beside FunctionRef in the IR",
+          "consequence": "matches the Spec wording, but the IR holds functions excluded from equality and JSON, so it is no longer pure data"
+        },
+        {
+          "label": "record, then run declare() again live",
+          "consequence": "the IR stays pure, but every activation runs declare twice and relies on its determinism for the checked IR to equal what is wired"
+        },
+        {
+          "label": "one plan, IR projected from it",
+          "consequence": "declare runs once into a TopologyPlan holding the functions; activation checks plan.definition and interprets the same plan; the IR stays pure data"
+        }
+      ],
+      "chosen": "one plan, IR projected from it",
+      "why": "It keeps both properties the two original options trade against each other: a pure-data IR and a single declare run, so the checked definition and the live wiring cannot disagree. Recorded as Refinement 3 and G18. nidana.model's phase planning marks the OQ-M2 row.",
+      "evidence": [
+        "Spec §6.5",
+        "hsdd/spec/nidana.model.md OQ-M2",
+        "docs/auto-run/experiments/topology-dsl-fixtures/"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T15:15:31Z",
+      "artifact": "hsdd/contract/topology-dsl.md",
+      "question": "OQ-M1, DSL side: does every combinator take an explicit transformer name?",
+      "options": [
+        {
+          "label": "explicit name parameter",
+          "consequence": "stable names under --obfuscate and for closures, at the cost of a parameter on every combinator"
+        },
+        {
+          "label": "no name parameter; the plan keeps the function",
+          "consequence": "the plan holds each function identical to what was passed, and topology-ir@v1 derives FunctionRef from it; closures and obfuscated builds need its fallback"
+        }
+      ],
+      "chosen": "no name parameter; the plan keeps the function",
+      "why": "Spec §6.2 asks for named standalone functions, whose tear-off toString() carries the name in JIT and AOT without obfuscation, and the build-time catalog runs on the VM. TopologyBuilder and TopicStream are final, so adding an optional name parameter later is compatible. The signal that would favor the parameter: an owner need for transformer names in an obfuscated release build's runtime graph. The derivation rule and its fallback remain for topology-ir@v1.",
+      "evidence": [
+        "Spec §6.2",
+        "Spec §6.5",
+        "docs/auto-run/experiments/function-ref-names/"
+      ],
+      "blast_radius": "contract",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T15:15:31Z",
+      "artifact": "hsdd/contract/topology-dsl.md",
+      "question": "What is the Dart surface of a topology and its combinators: builder functions only, or methods on the handle, and how closed are the types?",
+      "options": [
+        {
+          "label": "builder functions only",
+          "consequence": "the Kotlin form combine(a, b, f), map(s, f); no chaining"
+        },
+        {
+          "label": "Spec and Guide split",
+          "consequence": "read, write, reduceInto, combineN, combineAll and merge on the builder; single-input combinators and withLatestFrom on the handle (Spec §6.1 .map, Guide B.3 a.withLatestFrom, a.switchMap); Topology an @immutable abstract base class with a @nonVirtual buildDefinition(); TopologyBuilder final; TopicStream sealed"
+        }
+      ],
+      "chosen": "Spec and Guide split",
+      "why": "It follows Spec §6.1 and Guide B.3's Dart rows, wrapped per root D6. Topology is a base class so no type can implement it with a definition unrelated to its declaration (Spec §6.5); the cost is that a subclass is declared final class, where Guide §6.3's Dart example writes class. Arities: combine2 to combine4 with combineAll, withLatestFrom to withLatestFrom3, which covers the Guide §3.4 resolver; nesting or combineAll covers more.",
+      "evidence": [
+        "Spec §6.1",
+        "Spec §6.5",
+        "Guide §3.4",
+        "Guide §6.3",
+        "Guide B.3",
+        "root D6"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": true
+    },
+    {
+      "at": "2026-10-17T15:15:31Z",
+      "artifact": "hsdd/contract/topology-dsl.md",
+      "question": "Which combinators does the v1 DSL provide beyond the Spec §6.3 table, and how are the Spec's error operators (retryWhen, catchError, onErrorResumeNext) realized on Dart?",
+      "options": [
+        {
+          "label": "Spec §6.3 table plus the three named error operators",
+          "consequence": "a pipeline-level retryWhen must re-subscribe a shared upstream, which is ill-defined for event topics and for shared stages; onErrorResumeNext duplicates catchError for the Guide §4 use"
+        },
+        {
+          "label": "curated: table, merge, timeout, catchError, retry on switchMap",
+          "consequence": "merge lets a reducer fold several event topics; timeout is a Spec §3.6 time operator; catchError turns a shell failure into a value; retry belongs to the switchMap inner stream, where the effect is, as a pure policy timed on the provider clock"
+        }
+      ],
+      "chosen": "curated: table, merge, timeout, catchError, retry on switchMap",
+      "why": "Errors in a DSL pipeline originate in shell streams (Spec §6.3 'effectful stream sources'), so retrying means calling the stream factory again, which is what the switchMap retry does; ADR-003 item 4 anticipates a timed retry. onErrorResumeNext's documented use, fallback state (Guide §4), is catchError. merge is not in Spec §6.3's table but is needed for reducers over several event sources and has trivial lineage; recorded for upstreaming with the error-operator mapping.",
+      "evidence": [
+        "Spec §3.6",
+        "Spec §6.3",
+        "Spec §10.2",
+        "Guide §4",
+        "Guide §4.2",
+        "ADR-003 item 4"
+      ],
+      "blast_radius": "contract",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": true
+    },
+    {
+      "at": "2026-10-17T15:27:52Z",
+      "artifact": "hsdd/contract/topology-dsl.md",
+      "question": "Does the DSL provide a switch that selects among topic pipelines (Spec §6.1 and §7.1 'switchMap ... to select between pipelines'), beside switchMap over a shell stream factory?",
+      "options": [
+        {
+          "label": "switchAmong(candidates, select)",
+          "consequence": "expresses the Spec's wording directly, but a selected candidate either is re-subscribed cold, which breaks stage sharing (G27) and runs shared effects twice, or stays shared and hot, which loses a state candidate's current value on selection or replays a past event"
+        },
+        {
+          "label": "no selecting switch",
+          "consequence": "selection between state-like pipelines is a combine over the configuration topic; between event pipelines, a withLatestFrom gate per pipeline joined by merge; both pipelines stay subscribed"
+        }
+      ],
+      "chosen": "no selecting switch",
+      "why": "The stand-in live implementation showed the conflict between a switch among shared stages and the replay semantics of reads; existing combinators express both selection cases exactly. This reverses the inclusion I had first drafted. The signal that would bring it back: a pipeline whose inactive branch is expensive to keep subscribed. Spec §6.1, §7.1 and Guide §10.4 describe the selection as switchMap; recorded for upstreaming.",
+      "evidence": [
+        "Spec §6.1",
+        "Spec §7.1",
+        "Guide §10.4",
+        "docs/auto-run/experiments/topology-dsl-fixtures/"
+      ],
+      "blast_radius": "contract",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": true
+    },
+    {
+      "at": "2026-10-17T15:15:31Z",
+      "artifact": "hsdd/contract/topology-dsl.md",
+      "question": "What does an unhandled error in a live pipeline do on Dart, where a stream error does not end the stream?",
+      "options": [
+        {
+          "label": "the sink it reaches ends",
+          "consequence": "matches Spec §10.2's model (an error terminates the pipeline, the bus logs it in dev mode and does not restart it) and Rx engines on other platforms; the topology's other sinks go on"
+        },
+        {
+          "label": "the error is reported and the pipeline goes on",
+          "consequence": "more resilient, but a topology would behave differently on Dart than the Specification describes"
+        }
+      ],
+      "chosen": "the sink it reaches ends",
+      "why": "Spec §10.2 items 2 and 4 describe termination, and nidana.runtime already owns 'dev-mode logging of terminated pipelines'. The error is never rethrown; reporting goes to the D8 sink. The signal that would favor going on: an owner preference for Dart-native resilience over parity with the Specification.",
+      "evidence": [
+        "Spec §10.2",
+        "root D8",
+        "hsdd/spec/nidana.runtime.md"
+      ],
+      "blast_radius": "contract",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T15:15:31Z",
+      "artifact": "hsdd/contract/topology-dsl.md",
+      "question": "Is a stage evaluated once for all its consumers, or once per consumer, in a live activation?",
+      "options": [
+        {
+          "label": "shared within an activation",
+          "consequence": "a function runs once per input value and a switchMap's shell factory once per outer value; fan-out order is defined; the runtime must connect reads after wiring every consumer"
+        },
+        {
+          "label": "one chain per consumer",
+          "consequence": "the Rx default for cold streams; a stage used twice runs its function twice and its shell effect twice"
+        }
+      ],
+      "chosen": "shared within an activation",
+      "why": "A switchMap into a service's stream factory consumed by two sinks would otherwise call the service twice, an effect the topology author cannot see; Spec §3.3's fan-out guarantee presupposes one emission feeding several outputs. Connection after wiring makes activation-time replays reach every consumer, whichever first-delivery timing OQ-R1 picks.",
+      "evidence": [
+        "Spec §3.3",
+        "Spec §6.3",
+        "docs/auto-run/experiments/rxdart-sync-subjects/",
+        "docs/auto-run/experiments/topology-dsl-fixtures/"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T15:34:48Z",
+      "artifact": "hsdd/contract/topology-dsl.md",
+      "question": "Which sinks does Spec §3.3's fan-out order cover?",
+      "options": [
+        {
+          "label": "every sink one emission reaches",
+          "consequence": "the order would depend on how many stages lie between the emission and each sink, which an implementation cannot keep in declaration order without global scheduling"
+        },
+        {
+          "label": "sinks that take the same handle",
+          "consequence": "the Spec's 'single transformer produces emissions to multiple output topics'; deliverable by subscribing sinks in declaration order"
+        }
+      ],
+      "chosen": "sinks that take the same handle",
+      "why": "Spec §3.3 states the guarantee for one transformer's emissions; a sink behind another stage receives a different transformer's output.",
+      "evidence": [
+        "Spec §3.3"
+      ],
+      "blast_radius": "contract",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T15:15:31Z",
+      "artifact": "hsdd/contract/topology-dsl.md",
+      "question": "What does recording do with a stage that reaches no sink?",
+      "options": [
+        {
+          "label": "record it",
+          "consequence": "Spec §6.5's 'captures all calls'; the definition then shows a read that nothing live performs"
+        },
+        {
+          "label": "prune it",
+          "consequence": "the definition matches the live wiring, but a forgotten write passes silently"
+        },
+        {
+          "label": "reject the declaration",
+          "consequence": "planOf throws StateError; a forgotten write fails at activation and in the catalog; conditional wiring on a build-time flag must keep its read inside the condition"
+        }
+      ],
+      "chosen": "reject the declaration",
+      "why": "A handle that feeds nothing is almost always a forgotten write, and rejecting it keeps the definition and the live wiring identical. The signal that would favor pruning: topology modules that routinely build handles under build-time flags.",
+      "evidence": [
+        "Spec §6.1",
+        "Spec §6.5"
+      ],
+      "blast_radius": "contract",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T15:34:48Z",
+      "artifact": "hsdd/contract/topology-dsl.md",
+      "question": "Where does the plan library live?",
+      "options": [
+        {
+          "label": "in the main library",
+          "consequence": "every topology module sees stages, visitors and planOf"
+        },
+        {
+          "label": "a second public library, topology_plan.dart",
+          "consequence": "a topology module, importing the main library alone, cannot name a stage or obtain a plan (G2); the runtime, tooling and tests import both"
+        }
+      ],
+      "chosen": "a second public library, topology_plan.dart",
+      "why": "Only interpreters, the catalog and tests read plans; ADR-002 item 3 lets a contract name a further public library of its package.",
+      "evidence": [
+        "ADR-002 item 3",
+        "docs/auto-run/experiments/topology-dsl-fixtures/"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T15:15:31Z",
+      "artifact": "hsdd/contract/topology-dsl.md",
+      "question": "Is ADR-003 item 3's live switchMap property (cancel the previous inner without waiting, listen to the next at once) a guarantee of topology-dsl@v1 or of bus-api@v1?",
+      "options": [
+        {
+          "label": "topology-dsl@v1",
+          "consequence": "the property sits with the combinator it constrains, is observable through the live harness without bus types, and is bound by the live binding bus-api@v1 writes"
+        },
+        {
+          "label": "bus-api@v1",
+          "consequence": "bus-api@v1 would restate switchMap's semantics in its own suite"
+        }
+      ],
+      "chosen": "topology-dsl@v1",
+      "why": "It is a property of a combinator this contract defines; the live binding of this suite runs it anyway (G22). The case checks synchronously after a virtual advance with a cancel future that never completes, so both RxDart 0.28's wait and its root-zone hop fail it (run.sh T11).",
+      "evidence": [
+        "ADR-003 item 3",
+        "docs/auto-run/experiments/virtual-scheduler/",
+        "docs/auto-run/experiments/topology-dsl-fixtures/"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T15:34:48Z",
+      "artifact": "hsdd/contract/topology-dsl.md",
+      "question": "What do the time-dependent combinators emit, given that ADR-003 item 4 makes them RxDart 0.28's operators or Stream.timeout?",
+      "options": [
+        {
+          "label": "RxDart and SDK semantics as they are",
+          "consequence": "sample and buffer periods count from the first value; throttle is leading only; timeout raises one error per silence; buffer emits empty lists after its first window"
+        },
+        {
+          "label": "those semantics, with buffer never emitting an empty batch",
+          "consequence": "the runtime drops RxDart's empty windows; every batch has a value whose lineage it carries"
+        }
+      ],
+      "chosen": "those semantics, with buffer never emitting an empty batch",
+      "why": "Read from the sources: RxDart 0.28 BufferStreamTransformer passes ignoreEmptyWindows: false and sample and buffer use WindowStrategy.firstEventOnly; throttleTime defaults to leading: true, trailing: false; the SDK's Stream.timeout arms a one-shot timer re-armed only by an input event and captures Zone.current when timeout() is called. An empty batch has no lineage and is noise for batching analytics (Spec §6.3).",
+      "evidence": [
+        "Spec §6.3",
+        "ADR-003 item 4",
+        "~/.pub-cache/hosted/pub.dev/rxdart-0.28.0/lib/src/transformers/backpressure/buffer.dart",
+        "~/.pub-cache/hosted/pub.dev/rxdart-0.28.0/lib/src/transformers/backpressure/backpressure.dart",
+        "dart-sdk lib/async/stream.dart Stream.timeout",
+        "docs/auto-run/experiments/topology-dsl-fixtures/"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T15:34:48Z",
+      "artifact": "hsdd/contract/topology-dsl.md",
+      "question": "What lineage does a value carry that catchError produces from an error, and that a read delivers for a state topic's declared initial value?",
+      "options": [
+        {
+          "label": "always Lineage.root()",
+          "consequence": "simple, but a recovered failure no longer points at the value that caused it"
+        },
+        {
+          "label": "the most recent value through the stage",
+          "consequence": "trivial to implement, but a switchMap failure would point at the previous query"
+        },
+        {
+          "label": "the lineage the raising stage would have passed",
+          "consequence": "a recovered value's cause is the input that failed; errors without such a value (timeout, raw operator) recover as a new flow; the runtime carries lineage with each error internally and unwraps it for recover and for raw operators"
+        }
+      ],
+      "chosen": "the lineage the raising stage would have passed",
+      "why": "Causation exists to answer 'why did this happen' (Spec §2.4); for a failure the answer is the value whose processing failed. A state topic's initial value was caused by no message, so a read delivers it with Lineage.root(), which topic-model@v1 leaves unstated.",
+      "evidence": [
+        "Spec §2.4",
+        "Spec §3.5",
+        "hsdd/contract/topic-model.md"
+      ],
+      "blast_radius": "contract",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T15:34:48Z",
+      "artifact": "hsdd/contract/topology-dsl.md",
+      "question": "Which stages mediate an intra-topology self-reference (Spec §3.8) for topology-ir@v1's analysis?",
+      "options": [
+        {
+          "label": "scan and reduceInto only",
+          "consequence": "the Spec's explicit example; time-shifting chains that cannot loop in zero time are rejected"
+        },
+        {
+          "label": "scan, reduceInto, and debounce, delay, sample and buffer with a positive duration",
+          "consequence": "follows the Spec's second clause, 'a stateful operator chain that cannot loop back to the read in zero time'; the IR must carry those durations"
+        }
+      ],
+      "chosen": "scan, reduceInto, and debounce, delay, sample and buffer with a positive duration",
+      "why": "Those stages emit only on a timer, so a write fed back to their read cannot re-enter them within one instant; throttle emits its leading value synchronously and does not qualify. The signal that would narrow it: topology-ir@v1 choosing not to carry durations, in which case it treats them as not mediating.",
+      "evidence": [
+        "Spec §3.8",
+        "Guide C.1"
+      ],
+      "blast_radius": "contract",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T15:34:48Z",
+      "artifact": "hsdd/contract/topology-dsl.md",
+      "question": "What does the raw-engine escape hatch hand the author: envelopes or pipeline values?",
+      "options": [
+        {
+          "label": "Stream<MessageEnvelope<T>>",
+          "consequence": "the Spec §3.5 wording, but the author would mint ids and timestamps the contracts package cannot provide, and intermediate envelopes are invisible by topic-model@v1's per-published-message rule"
+        },
+        {
+          "label": "Stream<PipelineValue<T>> with a fresh-correlation source",
+          "consequence": "the author applies topic-model@v1's Lineage functions; errors arrive as the objects stages raised"
+        }
+      ],
+      "chosen": "Stream<PipelineValue<T>> with a fresh-correlation source",
+      "why": "topic-model@v1 computes lineage per published message, and nidana_dart_contracts mints no id and reads no clock (topic-model@v1 G25); a Lineage.combine in a raw operator needs a correlation source, which the live implementation provides. Recorded for upstreaming: Spec §3.5's escape hatch on Dart applies lineage functions rather than constructing envelopes.",
+      "evidence": [
+        "Spec §3.5",
+        "hsdd/contract/topic-model.md G25",
+        "ADR-003 item 8"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": true
+    },
+    {
+      "at": "2026-10-17T15:34:48Z",
+      "artifact": "hsdd/contract/topology-dsl.md",
+      "question": "OQ-R3 (nidana.runtime), DSL side: what does a read deliver under the per-read dedup opt-out, and does this contract fix where dedup sits?",
+      "options": [
+        {
+          "label": "read semantics only",
+          "consequence": "this contract fixes what each read delivers (G19, Dedup.none delivering an equal publish); where suppression sits and what observers see stay with bus-api@v1"
+        },
+        {
+          "label": "also fix the placement",
+          "consequence": "this contract would decide observer and recorder visibility, which are bus-api@v1's guarantees"
+        }
+      ],
+      "chosen": "read semantics only",
+      "why": "What a read delivers is DSL semantics; what an observer sees is the publish path's. Either placement OQ-R3 lists satisfies G19.",
+      "evidence": [
+        "Spec §3.12",
+        "hsdd/spec/nidana.runtime.md OQ-R3"
+      ],
+      "blast_radius": "contract",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T15:15:31Z",
+      "artifact": "hsdd/contract/fixture/topology-dsl/behavior/",
+      "question": "How are the conformance cases organized so that both the recording and the live implementation can be bound, without this contract naming bus types?",
+      "options": [
+        {
+          "label": "one library, one harness",
+          "consequence": "the harness would need both recording and live capabilities, and the recording binding could not supply the live ones"
+        },
+        {
+          "label": "two libraries, two harnesses",
+          "consequence": "recording_conformance.dart (RecordingHarness, settle only) bound here; live_conformance.dart (LiveTopologyHarness with LiveRun: start, publish, watch, deliveries, current, advance, activate, deactivate, settle) bound by bus-api@v1's step"
+        }
+      ],
+      "chosen": "two libraries, two harnesses",
+      "why": "Recording and live guarantees need different capabilities; ADR-001 item 4 allows several conformance libraries per contract, and its binding rule puts the live binding with bus-api@v1. The live harness is stated in topic-model and topology-dsl types and Duration only; a stand-in binding on a virtual scheduler passed all 43 live cases.",
+      "evidence": [
+        "ADR-001 item 4",
+        "ADR-001 item 11",
+        "ADR-003 items 5 and 6",
+        "docs/auto-run/experiments/topology-dsl-fixtures/"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T15:15:31Z",
+      "artifact": "hsdd/contract/fixture/topology-dsl/behavior/topology_builder_test.dart",
+      "question": "What is the recording binding named?",
+      "options": [
+        {
+          "label": "nidana_dart_contracts_test.dart",
+          "consequence": "S06's name, after the package"
+        },
+        {
+          "label": "topology_builder_test.dart",
+          "consequence": "named after the implementation it binds, as ADR-001 item 4 asks; S06's implementation was the package's declarations themselves"
+        }
+      ],
+      "chosen": "topology_builder_test.dart",
+      "why": "The implementation here is the recording builder, TopologyBuilder; ADR-001 item 4 names a binding after its implementation. No evidence beyond that rule.",
+      "evidence": [
+        "ADR-001 item 4"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T15:15:31Z",
+      "artifact": "hsdd/contract/topology-dsl.md",
+      "question": "Does topology-dsl@v1's Governed by list ADR-003, whose affects omits this contract while its items 3 and 4 constrain it?",
+      "options": [
+        {
+          "label": "[ADR-001, ADR-002]",
+          "consequence": "agrees with every ADR's affects; G22 and G23 cite ADR-003 items in their text"
+        },
+        {
+          "label": "[ADR-001, ADR-002, ADR-003]",
+          "consequence": "names the ADR that constrains the switchMap and time guarantees, but disagrees with ADR-003's affects until an hsdd-adr touch adds the contract"
+        }
+      ],
+      "chosen": "[ADR-001, ADR-002]",
+      "why": "As S06 did, Governed by mirrors the ADRs' affects; the fix is an ADR-003 touch through hsdd-adr, after which this line gains ADR-003. The signal that would change it: an orchestrator convention that Governed by lists every ADR the text cites.",
+      "evidence": [
+        "hsdd/adr/003-time-source-virtual-scheduler.md",
+        "hsdd/contract/topic-model.md"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T15:15:31Z",
+      "artifact": "hsdd/contract/topology-dsl.md",
+      "question": "What do produced_by, consumers and external_consumers name?",
+      "options": [
+        {
+          "label": "node ids, provisional",
+          "consequence": "S06's rule; phase planning confirms phase ids through hsdd-reconcile"
+        },
+        {
+          "label": "guessed first phase ids",
+          "consequence": "phase plans do not exist yet; every id would be a guess"
+        }
+      ],
+      "chosen": "node ids, provisional",
+      "why": "Same reason as S06: no phase plan exists. consumers lists nidana.runtime (which also implements the live side), navigation, flutter, tooling and integration, as the root contract matrix does; external consumers are app topology modules and app topology tests.",
+      "evidence": [
+        "hsdd/spec/nidana.md contract matrix",
+        "hsdd/contract/topic-model.md"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T15:34:48Z",
+      "artifact": "hsdd/contract/topology-dsl.md",
+      "question": "Does this contract declare a typed topology identifier?",
+      "options": [
+        {
+          "label": "declare TopologyRef",
+          "consequence": "the Spec §4.6 example and Guide C.5's v2 lint have a type to name; modules keep their references private"
+        },
+        {
+          "label": "leave typed ids to modules",
+          "consequence": "each module invents its own wrapper"
+        }
+      ],
+      "chosen": "declare TopologyRef",
+      "why": "Spec §4.6 names TopologyRef in its Dart example and Guide C.5 lints exported TopologyRef values; a one-field value costs nothing.",
+      "evidence": [
+        "Spec §4.6",
+        "Guide C.5"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    }
+  ],
+  "experiments": [
+    {
+      "path": "docs/auto-run/experiments/topology-dsl-typing/",
+      "question": "Which declaration form of the write path makes a handle of the wrong value type written to a topic a compile error, given covariant generics and least-upper-bound inference?",
+      "finding": "write<T>(Topic<T>, TopicStream<T>) compiles an unrelated and a wider stream (T inferred as Object). write<T, S extends T>(Topic<T>, TopicStream<S>) reports one could_not_infer for both and accepts a subtype stream into a supertype topic. A handle-receiver writeTo rejects the sound case and admits the unsound one; a curried form is sound; an invariant typedef rejects sound writes with two diagnostics; horizontal inference through a function literal does not help. reduceInto(StateTopic<S>, TopicStream<E>, S Function(S, E)) rejects mismatches but reports two diagnostics unless type arguments are explicit."
+    },
+    {
+      "path": "docs/auto-run/experiments/topology-dsl-fixtures/",
+      "question": "Do the topology-dsl@v1 fixtures hold against a stand-in that implements the Interface: reject codes, a clean surface set, structure coverage, the recording suite, the live suite against a stand-in live implementation, and are the suites non-vacuous?",
+      "finding": "All 9 reject files pass with one diagnostic per marker (codes confirmed: undefined_getter, undefined_method, invalid_assignment, argument_type_not_assignable, invalid_use_of_type_outside_library, new_with_undefined_constructor_default, undefined_class, undefined_function, could_not_infer, undefined_named_parameter, extra_positional_arguments, not_enough_positional_arguments, non_abstract_class_inherits_abstract_member, invalid_override_of_non_virtual_member, subtype_of_base_or_final_is_not_base_final_or_sealed, must_be_immutable). Both surface files analyze clean under --fatal-infos. The structure prototype covers all 29 guarantees with 66 cases. The recording suite (23 cases) passes against the stand-in recorder; the live suite (43 cases) passes against a stand-in live implementation on RxDart 0.28 and a virtual scheduler. Every seeded defect in either stand-in fails the cases of the guarantee it breaks, including a switchMap that waits for the previous cancel future and one that resumes through a root-zone microtask as RxDart 0.28 does. Adding a stage kind to StageVisitor fails the surface set. probe/ records the single-diagnostic forms."
+    }
+  ],
+  "self_check": [
+    {
+      "gate": "Frontmatter has id, version, status, kind, owner, compatibility, produced_by, consumers; external_consumers when any exist.",
+      "status": "pass",
+      "note": "id topology-dsl, v1, draft, api, owner nidana.model, versioned, produced_by [nidana.model], five consumers, external_consumers [app topology modules, app topology tests]."
+    },
+    {
+      "gate": "`consumers` lists phase ids that actually consume this contract.",
+      "status": "pass",
+      "note": "Node ids with phase_ids: provisional, as S06 did: no phase plan exists yet; hsdd-reconcile finalizes them."
+    },
+    {
+      "gate": "The Interface section is concrete enough to mock against.",
+      "status": "pass",
+      "note": "A stand-in implementing the Interface compiled clean under the root lint set and passed both suites (docs/auto-run/experiments/topology-dsl-fixtures/ T0, T6, T8)."
+    },
+    {
+      "gate": "At least one guarantee/invariant is stated.",
+      "status": "pass",
+      "note": "G1 to G29."
+    },
+    {
+      "gate": "A breaking change bumped the version and added a migration note.",
+      "status": "n/a",
+      "note": "A new contract at v1."
+    },
+    {
+      "gate": "The registry was regenerated.",
+      "status": "pass",
+      "note": "node hsdd/scripts/gen-registry.mjs; hsdd/contract/INDEX.md gains the topology-dsl row; hsdd/adr/INDEX.md came out unchanged."
+    },
+    {
+      "gate": "`phase_ids` is present (`provisional` until `hsdd-reconcile` finalizes it).",
+      "status": "pass",
+      "note": "phase_ids: provisional."
+    },
+    {
+      "gate": "Every code-level artifact both sides consume (types file, fixtures, shared package) names its canonical path and its owner in the Interface or Validation section: the owning phase for code, `hsdd-contract` for validation artifacts.",
+      "status": "pass",
+      "note": "Interface: package nidana_dart_contracts at packages/nidana_dart_contracts/, its two libraries, code owner nidana.model's first phase; fixtures at hsdd/contract/fixture/topology-dsl/ owned by hsdd-contract; Validation names the live binding's home (bus-api@v1's fixture directory, written by the bus-api@v1 hsdd-contract step)."
+    },
+    {
+      "gate": "A contract or version created by this run has its schema and its kind's fixtures written at the canonical paths.",
+      "status": "pass",
+      "note": "surface/, reject/ and behavior/ under hsdd/contract/fixture/topology-dsl/; no schema, as ADR-001 item 4 prescribes for an api contract without a serialized form."
+    },
+    {
+      "gate": "Open questions are cited by ID only and never defined here; prose justifying behavior as \"pending OQ-x\" is swept when the OQ resolves (hsdd-reconcile).",
+      "status": "pass",
+      "note": "The skill's gate, with its em-dash rewritten per the prose rules. OQ-M1, OQ-M2 and OQ-T1 are cited by ID; no behavior is justified as pending."
+    },
+    {
+      "gate": "A `stable` contract names a schema or a fixtures directory at the canonical paths and the artifact exists, or it carries `validation: grandfathered` (never on a contract authored after the upgrade).",
+      "status": "n/a",
+      "note": "Status draft; the fixtures directory exists and is named in Validation."
+    },
+    {
+      "gate": "No version is `retired` while a consumer or an external consumer still names it.",
+      "status": "n/a",
+      "note": "Nothing retired."
+    },
+    {
+      "gate": "A `v0` contract carries `## Observed completeness`, and the block changed in any commit that added fixtures to it.",
+      "status": "n/a",
+      "note": "v1, not adopted."
+    },
+    {
+      "gate": "ADR-001 item 12: the fixtures directory meets item 3 and the items for its kind (checked by reading until the replay tool exists).",
+      "status": "pass",
+      "note": "Every guarantee has a G id and a reject fixture or behavior case (structure prototype: 29 guarantees, 66 cases); reject files carry // covers: headers and line markers; two conformance libraries declare harness interfaces with settle(), export List<ConformanceCase<H>> with G-prefixed literal names, import neither test package and assert with package:matcher; the recording binding is named after its implementation and listed in Validation; fixtures import public libraries only."
+    },
+    {
+      "gate": "node docs/auto-run/tools/gate.mjs --skill hsdd-contract --contracts-pending",
+      "status": "pass",
+      "note": "0 errors; the warnings are forward references to contracts not yet written. A first run flagged a Validation path to bus-api@v1's not-yet-existing fixture directory; Validation now names it by contract instead of by path."
+    }
+  ],
+  "notes_for_orchestrator": [
+    "Boundary as drawn: topology-dsl@v1 holds Topology, topology(), TopologyRef, TopologyBuilder, TopicStream with every combinator, PipelineValue, RetryPolicy, RawOperator (main library), and a second public library package:nidana_dart_contracts/topology_plan.dart with TopologyPlan, planOf, the 18 stage classes, PlanSink, WriteSink, ReduceIntoSink, StageVisitor, SinkVisitor, visitStage, visitSink. buildDefinition() and TopologyPlan.definition are declared here with topology-ir@v1's TopologyDefinition as return type; this contract fixes the definition's topologyId, scope, reads and writes (G12) and names each stage's CombinatorKind; everything else about the IR stays with topology-ir@v1.",
+    "OQ-M2 is decided here (Refinement 3, G18): declare runs once into a TopologyPlan that holds the functions; the IR is the plan's pure projection; live activation checks plan.definition and interprets the same plan. nidana.model's phase planning marks the OQ-M2 row. OQ-M1 is decided on the DSL side only: no name parameter on combinators, the plan keeps each function identical to what was passed (CombineStage.combiner and WithLatestFromStage.combiner hold the user's function); the derivation rule and fallback remain for topology-ir@v1. OQ-R3 (nidana.runtime) is decided on the read side only (G19); where suppression sits and what observers and the recorder see remain with bus-api@v1.",
+    "For S08 (topology-ir@v1): declare TopologyDefinition with topologyId (String), scope (Scope), reads (Set<TopicRef>), writes (Set<TopicRef>) and value equality, which this contract's fixtures use; declare CombinatorKind with exactly map, filter, combine, withLatestFrom, merge, switchMap, scan, pairwise, distinctUntilChanged, debounce, throttle, delay, sample, buffer, timeout, catchError, rawEngine, reduceInto (read and write stages have none); state how plan stages and sinks map onto TransformEdge, as a stage graph the self-reference analysis can walk: a read of a self-written topic may reach its write only through a stage marked yes in this contract's Self-reference column (scan, reduceInto, and debounce, delay, sample, buffer with a positive duration), so either the IR carries those durations or S08 records that it treats them as not mediating; derive FunctionRef from the Function values the plan holds (OQ-M1). The projection lives behind TopologyPlan.definition; S08 states its rules in its own Interface. S08's fixtures can build definitions through this DSL.",
+    "For S09 (bus-api@v1): the live implementation is the activation path, not a builder type: activate calls planOf once, checks plan.definition, and interprets the plan by implementing StageVisitor and SinkVisitor (through visitStage and visitSink; reading function-typed stage members through a pattern fails at run time). Write the live binding in hsdd/contract/fixture/bus-api/behavior/{implementation}_test.dart importing ../../topology-dsl/behavior/live_conformance.dart, adapting a TestBus to LiveTopologyHarness and LiveRun as the Validation section maps it (start, publish through a claiming writer, watch through an envelope-level subscription or the recorder, current, advance on VirtualScheduler, activate, deactivate, settle); it must pass all 43 cases. Runtime facts the stand-in surfaced: interpret every stage once and share it; connect reads only after every stage and sink of the activation is subscribed; publish sink values through MessageEnvelope.publishedTo with TopologySource; a state topic's initial value has no envelope and is read with Lineage.root(); carry each error's lineage internally and unwrap it for catchError's recover and for raw operators; end a sink on an unconverted error and report it to the D8 sink, never rethrow; use a switchMap of the runtime's own (RxDart 0.28's fails G22 by waiting for the cancel future or resuming through a root-zone microtask); RxDart 0.28's bufferTime emits empty lists after its first window, which the live buffer drops; sampleTime and bufferTime count periods from the first value; Stream.timeout captures Zone.current when timeout() is called, so build pipelines inside the provider zone. ADR-001 item 4's phrase 'the live topology builder that bus-api@v1 declares' reads, under this contract, as bus-api@v1's activation path; the binding location it prescribes is unchanged.",
+    "topic-model@v1 needs no change. Optional on its next touch: its 'How the lineage functions are applied' paragraph could add that a state topic's declared initial value enters a pipeline with Lineage.root(), and list merge, distinctUntilChanged and catchError, which this contract states per combinator.",
+    "Follow-ups: (1) an hsdd-adr touch adding topology-dsl@v1 to ADR-003's affects, since its items 3 and 4 constrain G22 and G23; this contract's Governed by then gains ADR-003. (2) Root OQ5's resolution says the rewiring case is covered by topology-dsl@v1's switchMap; under Refinement 4 it is switchMap over shell streams plus combine or withLatestFrom gating over topic pipelines; a root touch or reconcile sweep can correct the sentence. (3) nidana.model's phase plan lands both public libraries, the recording builder and planOf in its first phase (fp-progression), with the binding topology_builder_test.dart in its gate's behavior set (G9 to G17); its gates do not run the live suite. (4) nidana.tooling: the single-writer scan recognizes TopologyBuilder.write and TopologyBuilder.reduceInto calls (Spec §3.11 layer 2) and the catalog calls buildDefinition() (OQ-T1). (5) nidana.navigation's resolver template is read, withLatestFrom2, map and write.",
+    "Marked for upstreaming (would_upstream: true): Spec §6.3's table lacks merge, and the Dart mapping of its error operators is catchError plus a timed retry on switchMap, without onErrorResumeNext; Spec §6.1, §7.1 and Guide §10.4 describe selection between pipelines as switchMap, which on Dart is combine or withLatestFrom gating over topic pipelines; Spec §3.5's escape hatch on Dart applies Lineage functions to pipeline values instead of constructing envelopes; Guide §6.3's Dart example declares a plain class, which a base Topology requires to be final class.",
+    "Not a stop: no reconcile collision, no amendment to an existing contract, nothing outside the repository, and no tree-shape choice (the plan-versus-two-builders decision changes contract contents, not which nodes or contracts exist)."
+  ]
+}

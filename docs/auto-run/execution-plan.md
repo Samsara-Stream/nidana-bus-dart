@@ -161,8 +161,10 @@ tree. Done when `node docs/auto-run/tools/gate.mjs --final` passes.
 | S04 | 3 | hsdd-adr | ADR-002 package and workspace layout | done | 8c90ba5 |
 | S05 | 3 | hsdd-adr | ADR-003 time source and virtual scheduler | done | 435a18b |
 | S06 | 4 | hsdd-contract | topic-model@v1 | done | ba86d16 |
-| S07 | 4 | hsdd-contract | topology-dsl@v1 | running | |
-| S08..S14 | 4 | hsdd-contract | topology-ir, bus-api, bus-testing, navigation-api, flutter-binding, topic-codegen, nidana-checks (all @v1), in that order | planned | |
+| S07 | 4 | hsdd-contract | topology-dsl@v1 | done | b14b2e9 |
+| S08 | 4 | hsdd-contract | topology-ir@v1 | running | |
+| S09..S14 | 4 | hsdd-contract | bus-api, bus-testing, navigation-api, flutter-binding, topic-codegen, nidana-checks (all @v1), in that order | planned | |
+| after S14 | 4 | hsdd-adr, then hsdd-spec (root touch) | governance touch-up: ADR affects and Governed-by links the root contracts exposed; root prose fixes | planned | |
 | next | 5 | hsdd-spec | nidana.runtime, then nidana.tooling (each followed by its ADRs and internal contracts) | planned | |
 
 ## Change log
@@ -194,3 +196,9 @@ tree. Done when `node docs/auto-run/tools/gate.mjs --final` passes.
   settle operation, start instant and bounds, required timestamp and id arguments) are passed into
   S06..S11. Two runtime questions stay for the runtime decomposition: whether shutdown drains the virtual
   queue first, and whether TestBus generates deterministic envelope ids.
+- 2026-10-17, after S07: added a governance touch-up after the last root contract (one hsdd-adr step,
+  one root hsdd-spec touch), collecting: ADR-003 `affects` gains topology-dsl@v1 (its items 3 and 4
+  constrain G22, G23) and the contract's Governed by gains ADR-003; ADR-001 item 4's "live topology
+  builder" wording follows S07's plan interpretation; the root OQ5 detail stops saying switchMap covers
+  server rewiring (S07 dropped a selecting switch). topology-dsl@v1 decided OQ-M2 (one plan, IR projected
+  from it, interpreted live) and the DSL side of OQ-M1 and OQ-R3.
