@@ -1,0 +1,5 @@
+dart
+analyze
+--fatal-infos
+--format=machine
+.

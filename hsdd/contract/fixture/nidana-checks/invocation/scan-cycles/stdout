@@ -1,0 +1,2 @@
+error|topology_cycle||Topologies ping, pong form a cycle through loop.ping, loop.pong.
+error|self_reference||Topology 'echo' reads 'echo.value', which it writes, through no state-bearing edge (edges 0, 1).

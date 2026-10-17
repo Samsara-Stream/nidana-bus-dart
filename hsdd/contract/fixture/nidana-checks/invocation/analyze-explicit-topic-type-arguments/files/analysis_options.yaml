@@ -1,0 +1,6 @@
+# Enables the plugin under test by a relative path to the workspace member
+# (ADR-001 item 7, ADR-002 item 7). No lint set and no strict modes, so the
+# plugin's diagnostics are the only ones reported.
+plugins:
+  nidana_dart_lint:
+    path: ../../../../../../../packages/nidana_dart_lint

@@ -1,0 +1,6 @@
+WARNING|STATIC_WARNING|GLOBAL_BUS_ACCESSOR|{files}/lib/app.dart|5|11|6|'appBus' makes a bus reachable without an explicit reference.
+WARNING|STATIC_WARNING|GLOBAL_BUS_ACCESSOR|{files}/lib/app.dart|8|11|7|'lateBus' makes a bus reachable without an explicit reference.
+WARNING|STATIC_WARNING|GLOBAL_BUS_ACCESSOR|{files}/lib/app.dart|11|15|13|'sharedTestBus' makes a bus reachable without an explicit reference.
+WARNING|STATIC_WARNING|GLOBAL_BUS_ACCESSOR|{files}/lib/app.dart|14|9|10|'currentBus' makes a bus reachable without an explicit reference.
+WARNING|STATIC_WARNING|GLOBAL_BUS_ACCESSOR|{files}/lib/app.dart|18|15|3|'bus' makes a bus reachable without an explicit reference.
+WARNING|STATIC_WARNING|GLOBAL_BUS_ACCESSOR|{files}/lib/app.dart|21|18|8|'instance' makes a bus reachable without an explicit reference.

@@ -1,0 +1,16 @@
+# Stand-in for the workspace root's options (ADR-002 items 2 and 7): the lint
+# set, the strict modes, the governance tree excluded, and the plugin enabled
+# so that its rules run over every stand-in member.
+include: package:lints/recommended.yaml
+analyzer:
+  exclude:
+    - hsdd/**
+    - probe/**
+    - tool/**
+  language:
+    strict-casts: true
+    strict-inference: true
+    strict-raw-types: true
+plugins:
+  nidana_dart_lint:
+    path: packages/nidana_dart_lint

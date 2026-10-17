@@ -1,0 +1,3 @@
+error|topic_name_collision|app/lib/legacy.dart:5:35|Topic name 'auth.state' is declared 2 times: app/lib/legacy.dart:5:35 (EventTopic<String>), shared/lib/auth_topics.dart:6:38 (StateTopic<AuthState>).
+error|topic_name_collision|app/lib/legacy.dart:9:24|Topic name 'cart.items' is declared 2 times: app/lib/legacy.dart:9:24 (ReplayTopic<int>), app/lib/topics.g.dart:8:32 (StateTopic<int>).
+warning|unresolved_topic_name|app/lib/legacy.dart:15:35|This topic's name is not a string literal; the runtime check covers it.

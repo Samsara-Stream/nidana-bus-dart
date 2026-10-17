@@ -1,0 +1,7 @@
+warning|unresolved_claim|app/lib/claims.dart:13:7|This claim's write set is not statically resolvable; the runtime check covers it.
+warning|unresolved_claim|app/lib/claims.dart:14:7|This claim's write set is not statically resolvable; the runtime check covers it.
+warning|unresolved_claim|app/lib/claims.dart:15:7|This claim's write set is not statically resolvable; the runtime check covers it.
+warning|unresolved_claim|app/lib/claims.dart:16:7|This claim's write set is not statically resolvable; the runtime check covers it.
+warning|unresolved_claim|app/lib/claims.dart:18:7|This claim's write set is not statically resolvable; the runtime check covers it.
+warning|unresolved_claim|app/lib/claims.dart:20:7|This claim's scope is not statically resolvable; the runtime check covers it.
+warning|unresolved_claim|app/lib/claims.dart:26:18|This claim's write set is not statically resolvable; the runtime check covers it.

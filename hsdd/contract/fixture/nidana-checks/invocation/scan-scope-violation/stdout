@@ -1,0 +1,3 @@
+error|scope_violation||State topic 'checkout.draft' is owned by page:checkout at app/lib/shell.dart:9:26 with scope page and read by topology:checkout-flow with scope module; an owner's scope must be at least as long as its readers'.
+error|scope_violation||State topic 'checkout.total' is owned by topology:draft-form with scope page and read by topology:checkout-flow with scope module; an owner's scope must be at least as long as its readers'.
+error|scope_violation||State topic 'session.state' is owned by service:session at app/lib/shell.dart:14:9 with scope module and read by topology:session-banner with scope application; an owner's scope must be at least as long as its readers'.

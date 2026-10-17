@@ -1,0 +1,206 @@
+{
+  "format": "topology-ir@v1",
+  "topologies": [
+    {
+      "topologyId": "checkout-flow",
+      "scope": "module",
+      "reads": [
+        {
+          "name": "checkout.draft",
+          "variant": "state",
+          "typeName": "CheckoutDraft"
+        },
+        {
+          "name": "checkout.total",
+          "variant": "state",
+          "typeName": "int"
+        }
+      ],
+      "writes": [
+        {
+          "name": "checkout.summary",
+          "variant": "state",
+          "typeName": "int"
+        }
+      ],
+      "transforms": [
+        {
+          "combinator": "combine",
+          "inputs": [
+            {
+              "topic": {
+                "name": "checkout.draft",
+                "variant": "state",
+                "typeName": "CheckoutDraft"
+              }
+            },
+            {
+              "topic": {
+                "name": "checkout.total",
+                "variant": "state",
+                "typeName": "int"
+              }
+            }
+          ],
+          "transformer": {
+            "name": "summarize"
+          }
+        },
+        {
+          "inputs": [
+            {
+              "edge": 0
+            }
+          ],
+          "output": {
+            "name": "checkout.summary",
+            "variant": "state",
+            "typeName": "int"
+          }
+        }
+      ]
+    },
+    {
+      "topologyId": "draft-form",
+      "scope": "page",
+      "reads": [
+        {
+          "name": "checkout.edits",
+          "variant": "event",
+          "typeName": "int"
+        }
+      ],
+      "writes": [
+        {
+          "name": "checkout.total",
+          "variant": "state",
+          "typeName": "int"
+        }
+      ],
+      "transforms": [
+        {
+          "combinator": "map",
+          "inputs": [
+            {
+              "topic": {
+                "name": "checkout.edits",
+                "variant": "event",
+                "typeName": "int"
+              }
+            }
+          ],
+          "transformer": {
+            "name": "sumEdits"
+          }
+        },
+        {
+          "inputs": [
+            {
+              "edge": 0
+            }
+          ],
+          "output": {
+            "name": "checkout.total",
+            "variant": "state",
+            "typeName": "int"
+          }
+        }
+      ]
+    },
+    {
+      "topologyId": "session-banner",
+      "scope": "application",
+      "reads": [
+        {
+          "name": "session.state",
+          "variant": "state",
+          "typeName": "SessionState"
+        }
+      ],
+      "writes": [
+        {
+          "name": "banner.text",
+          "variant": "state",
+          "typeName": "String"
+        }
+      ],
+      "transforms": [
+        {
+          "combinator": "map",
+          "inputs": [
+            {
+              "topic": {
+                "name": "session.state",
+                "variant": "state",
+                "typeName": "SessionState"
+              }
+            }
+          ],
+          "transformer": {
+            "name": "bannerOf"
+          }
+        },
+        {
+          "inputs": [
+            {
+              "edge": 0
+            }
+          ],
+          "output": {
+            "name": "banner.text",
+            "variant": "state",
+            "typeName": "String"
+          }
+        }
+      ]
+    },
+    {
+      "topologyId": "summary-page",
+      "scope": "page",
+      "reads": [
+        {
+          "name": "checkout.summary",
+          "variant": "state",
+          "typeName": "int"
+        }
+      ],
+      "writes": [
+        {
+          "name": "checkout.label",
+          "variant": "state",
+          "typeName": "String"
+        }
+      ],
+      "transforms": [
+        {
+          "combinator": "map",
+          "inputs": [
+            {
+              "topic": {
+                "name": "checkout.summary",
+                "variant": "state",
+                "typeName": "int"
+              }
+            }
+          ],
+          "transformer": {
+            "name": "labelOf"
+          }
+        },
+        {
+          "inputs": [
+            {
+              "edge": 0
+            }
+          ],
+          "output": {
+            "name": "checkout.label",
+            "variant": "state",
+            "typeName": "String"
+          }
+        }
+      ]
+    }
+  ],
+  "claims": []
+}

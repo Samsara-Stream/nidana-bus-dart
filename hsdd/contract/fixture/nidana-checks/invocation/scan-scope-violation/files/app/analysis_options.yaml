@@ -1,0 +1,5 @@
+# The scan's input package: no plugin and no exclude, so the scan reads
+# every library outside the test directories.
+analyzer:
+  language:
+    strict-casts: true

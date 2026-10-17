@@ -1,0 +1,4 @@
+WARNING|STATIC_WARNING|EXPLICIT_TOPIC_TYPE_ARGUMENTS|{files}/lib/app.dart|13|14|10|Explicit type arguments on 'publish' can widen the topic's value type.
+WARNING|STATIC_WARNING|EXPLICIT_TOPIC_TYPE_ARGUMENTS|{files}/lib/app.dart|14|20|14|Explicit type arguments on 'publish' can widen the topic's value type.
+WARNING|STATIC_WARNING|EXPLICIT_TOPIC_TYPE_ARGUMENTS|{files}/lib/app.dart|34|12|10|Explicit type arguments on 'write' can widen the topic's value type.
+WARNING|STATIC_WARNING|EXPLICIT_TOPIC_TYPE_ARGUMENTS|{files}/lib/app.dart|35|17|10|Explicit type arguments on 'reduceInto' can widen the topic's value type.

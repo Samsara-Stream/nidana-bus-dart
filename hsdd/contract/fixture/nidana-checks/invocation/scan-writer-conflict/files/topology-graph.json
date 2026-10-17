@@ -1,0 +1,93 @@
+{
+  "format": "topology-ir@v1",
+  "topologies": [
+    {
+      "topologyId": "cart-reducer",
+      "scope": "application",
+      "reads": [
+        {
+          "name": "cart.added",
+          "variant": "event",
+          "typeName": "CartItem"
+        }
+      ],
+      "writes": [
+        {
+          "name": "cart.items",
+          "variant": "state",
+          "typeName": "CartItems"
+        }
+      ],
+      "transforms": [
+        {
+          "combinator": "reduceInto",
+          "inputs": [
+            {
+              "topic": {
+                "name": "cart.added",
+                "variant": "event",
+                "typeName": "CartItem"
+              }
+            }
+          ],
+          "output": {
+            "name": "cart.items",
+            "variant": "state",
+            "typeName": "CartItems"
+          },
+          "transformer": {
+            "name": "addItem"
+          }
+        }
+      ]
+    },
+    {
+      "topologyId": "route-mirror",
+      "scope": "application",
+      "reads": [
+        {
+          "name": "nav.restored",
+          "variant": "event",
+          "typeName": "RouteState"
+        }
+      ],
+      "writes": [
+        {
+          "name": "nav.current-route",
+          "variant": "state",
+          "typeName": "RouteState"
+        }
+      ],
+      "transforms": [
+        {
+          "combinator": "map",
+          "inputs": [
+            {
+              "topic": {
+                "name": "nav.restored",
+                "variant": "event",
+                "typeName": "RouteState"
+              }
+            }
+          ],
+          "transformer": {
+            "name": "same"
+          }
+        },
+        {
+          "inputs": [
+            {
+              "edge": 0
+            }
+          ],
+          "output": {
+            "name": "nav.current-route",
+            "variant": "state",
+            "typeName": "RouteState"
+          }
+        }
+      ]
+    }
+  ],
+  "claims": []
+}

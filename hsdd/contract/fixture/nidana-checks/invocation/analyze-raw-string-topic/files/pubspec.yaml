@@ -1,0 +1,7 @@
+# A package root for the analyzer, so that test/ is a test directory
+# (nidana-checks@v1 G3, G9). Never resolved by pub: imports resolve through the
+# workspace's package configuration.
+name: example_app
+publish_to: none
+environment:
+  sdk: ^3.13.0

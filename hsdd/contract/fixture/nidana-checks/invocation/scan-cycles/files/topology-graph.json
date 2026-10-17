@@ -1,0 +1,194 @@
+{
+  "format": "topology-ir@v1",
+  "topologies": [
+    {
+      "topologyId": "counter",
+      "scope": "application",
+      "reads": [
+        {
+          "name": "count.value",
+          "variant": "state",
+          "typeName": "int"
+        }
+      ],
+      "writes": [
+        {
+          "name": "count.value",
+          "variant": "state",
+          "typeName": "int"
+        }
+      ],
+      "transforms": [
+        {
+          "combinator": "scan",
+          "inputs": [
+            {
+              "topic": {
+                "name": "count.value",
+                "variant": "state",
+                "typeName": "int"
+              }
+            }
+          ],
+          "transformer": {
+            "name": "add"
+          }
+        },
+        {
+          "inputs": [
+            {
+              "edge": 0
+            }
+          ],
+          "output": {
+            "name": "count.value",
+            "variant": "state",
+            "typeName": "int"
+          }
+        }
+      ]
+    },
+    {
+      "topologyId": "echo",
+      "scope": "application",
+      "reads": [
+        {
+          "name": "echo.value",
+          "variant": "state",
+          "typeName": "int"
+        }
+      ],
+      "writes": [
+        {
+          "name": "echo.value",
+          "variant": "state",
+          "typeName": "int"
+        }
+      ],
+      "transforms": [
+        {
+          "combinator": "map",
+          "inputs": [
+            {
+              "topic": {
+                "name": "echo.value",
+                "variant": "state",
+                "typeName": "int"
+              }
+            }
+          ],
+          "transformer": {
+            "name": "next"
+          }
+        },
+        {
+          "inputs": [
+            {
+              "edge": 0
+            }
+          ],
+          "output": {
+            "name": "echo.value",
+            "variant": "state",
+            "typeName": "int"
+          }
+        }
+      ]
+    },
+    {
+      "topologyId": "ping",
+      "scope": "application",
+      "reads": [
+        {
+          "name": "loop.pong",
+          "variant": "state",
+          "typeName": "int"
+        }
+      ],
+      "writes": [
+        {
+          "name": "loop.ping",
+          "variant": "state",
+          "typeName": "int"
+        }
+      ],
+      "transforms": [
+        {
+          "combinator": "map",
+          "inputs": [
+            {
+              "topic": {
+                "name": "loop.pong",
+                "variant": "state",
+                "typeName": "int"
+              }
+            }
+          ],
+          "transformer": {
+            "name": "next"
+          }
+        },
+        {
+          "inputs": [
+            {
+              "edge": 0
+            }
+          ],
+          "output": {
+            "name": "loop.ping",
+            "variant": "state",
+            "typeName": "int"
+          }
+        }
+      ]
+    },
+    {
+      "topologyId": "pong",
+      "scope": "application",
+      "reads": [
+        {
+          "name": "loop.ping",
+          "variant": "state",
+          "typeName": "int"
+        }
+      ],
+      "writes": [
+        {
+          "name": "loop.pong",
+          "variant": "state",
+          "typeName": "int"
+        }
+      ],
+      "transforms": [
+        {
+          "combinator": "map",
+          "inputs": [
+            {
+              "topic": {
+                "name": "loop.ping",
+                "variant": "state",
+                "typeName": "int"
+              }
+            }
+          ],
+          "transformer": {
+            "name": "next"
+          }
+        },
+        {
+          "inputs": [
+            {
+              "edge": 0
+            }
+          ],
+          "output": {
+            "name": "loop.pong",
+            "variant": "state",
+            "typeName": "int"
+          }
+        }
+      ]
+    }
+  ],
+  "claims": []
+}

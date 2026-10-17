@@ -1,0 +1,7 @@
+INFO|STATIC_WARNING|UNFLAGGED_SENSITIVE_TOPIC|{files}/lib/topics.dart|8|7|24|The topic type 'RefreshToken' contains the known-sensitive type 'RefreshToken', but the topic is not flagged sensitive.
+INFO|STATIC_WARNING|UNFLAGGED_SENSITIVE_TOPIC|{files}/lib/topics.dart|9|53|28|The topic type 'LoginCredentials' contains the known-sensitive type 'LoginCredentials', but the topic is not flagged sensitive.
+INFO|STATIC_WARNING|UNFLAGGED_SENSITIVE_TOPIC|{files}/lib/topics.dart|10|53|28|The topic type 'CardPaymentInfo' contains the known-sensitive type 'CardPaymentInfo', but the topic is not flagged sensitive.
+INFO|STATIC_WARNING|UNFLAGGED_SENSITIVE_TOPIC|{files}/lib/topics.dart|12|7|23|The topic type 'UserProfile' contains the known-sensitive type 'UserProfile', but the topic is not flagged sensitive.
+INFO|STATIC_WARNING|UNFLAGGED_SENSITIVE_TOPIC|{files}/lib/topics.dart|13|51|25|The topic type 'ThirdPartyUser' contains the known-sensitive type 'AccountHolder', but the topic is not flagged sensitive.
+INFO|STATIC_WARNING|UNFLAGGED_SENSITIVE_TOPIC|{files}/lib/topics.dart|15|55|31|The topic type 'List<ApiCredential>' contains the known-sensitive type 'ApiCredential', but the topic is not flagged sensitive.
+INFO|STATIC_WARNING|UNFLAGGED_SENSITIVE_TOPIC|{files}/lib/topics.dart|16|59|35|The topic type '(String, RefreshToken?)' contains the known-sensitive type 'RefreshToken', but the topic is not flagged sensitive.

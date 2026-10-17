@@ -1,0 +1,6 @@
+WARNING|STATIC_WARNING|RAW_STRING_TOPIC|{files}/lib/topics.dart|11|42|17|Topic name 'cart.removed-v1' is a string literal outside a registry.
+WARNING|STATIC_WARNING|RAW_STRING_TOPIC|{files}/lib/topics.dart|11|88|14|Topic name 'cart.removed' is a string literal outside a registry.
+WARNING|STATIC_WARNING|RAW_STRING_TOPIC|{files}/lib/topics.dart|17|62|13|Topic name 'cart.recent' is a string literal outside a registry.
+WARNING|STATIC_WARNING|RAW_STRING_TOPIC|{files}/lib/topics.dart|21|40|12|Topic name 'cart.added' is a string literal outside a registry.
+WARNING|STATIC_WARNING|RAW_STRING_TOPIC|{files}/lib/topics.dart|23|64|15|Topic name 'cart' '.count' is a string literal outside a registry.
+WARNING|STATIC_WARNING|RAW_STRING_TOPIC|{files}/lib/topics.dart|26|40|12|Topic name 'cart.$user' is a string literal outside a registry.

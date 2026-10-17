@@ -1,0 +1,186 @@
+{
+  "format": "topology-ir@v1",
+  "topologies": [
+    {
+      "topologyId": "cart-badge",
+      "scope": "module",
+      "reads": [
+        {
+          "name": "cart.items",
+          "variant": "state",
+          "typeName": "CartItems"
+        },
+        {
+          "name": "network.connectivity",
+          "variant": "state",
+          "typeName": "Connectivity"
+        }
+      ],
+      "writes": [
+        {
+          "name": "cart.badge",
+          "variant": "state",
+          "typeName": "int"
+        }
+      ],
+      "transforms": [
+        {
+          "combinator": "combine",
+          "inputs": [
+            {
+              "topic": {
+                "name": "cart.items",
+                "variant": "state",
+                "typeName": "CartItems"
+              }
+            },
+            {
+              "topic": {
+                "name": "network.connectivity",
+                "variant": "state",
+                "typeName": "Connectivity"
+              }
+            }
+          ],
+          "transformer": {
+            "name": "badgeOf"
+          }
+        },
+        {
+          "inputs": [
+            {
+              "edge": 0
+            }
+          ],
+          "output": {
+            "name": "cart.badge",
+            "variant": "state",
+            "typeName": "int"
+          }
+        }
+      ]
+    },
+    {
+      "topologyId": "cart-reducer",
+      "scope": "application",
+      "reads": [
+        {
+          "name": "cart.added",
+          "variant": "event",
+          "typeName": "CartItem"
+        }
+      ],
+      "writes": [
+        {
+          "name": "cart.items",
+          "variant": "state",
+          "typeName": "CartItems"
+        }
+      ],
+      "transforms": [
+        {
+          "combinator": "reduceInto",
+          "inputs": [
+            {
+              "topic": {
+                "name": "cart.added",
+                "variant": "event",
+                "typeName": "CartItem"
+              }
+            }
+          ],
+          "output": {
+            "name": "cart.items",
+            "variant": "state",
+            "typeName": "CartItems"
+          },
+          "transformer": {
+            "name": "addItem"
+          }
+        }
+      ]
+    },
+    {
+      "topologyId": "checkout-form",
+      "scope": "page",
+      "reads": [
+        {
+          "name": "checkout.draft",
+          "variant": "state",
+          "typeName": "CheckoutDraft"
+        }
+      ],
+      "writes": [
+        {
+          "name": "checkout.total",
+          "variant": "state",
+          "typeName": "int"
+        }
+      ],
+      "transforms": [
+        {
+          "combinator": "map",
+          "inputs": [
+            {
+              "topic": {
+                "name": "checkout.draft",
+                "variant": "state",
+                "typeName": "CheckoutDraft"
+              }
+            }
+          ],
+          "transformer": {
+            "name": "totalOf"
+          }
+        },
+        {
+          "inputs": [
+            {
+              "edge": 0
+            }
+          ],
+          "output": {
+            "name": "checkout.total",
+            "variant": "state",
+            "typeName": "int"
+          }
+        }
+      ]
+    }
+  ],
+  "claims": [
+    {
+      "source": "executor:navigation",
+      "scope": "application",
+      "writes": [
+        {
+          "name": "nav.current-route",
+          "variant": "state",
+          "typeName": "RouteState"
+        }
+      ]
+    },
+    {
+      "source": "page:checkout",
+      "scope": "page",
+      "writes": [
+        {
+          "name": "checkout.draft",
+          "variant": "state",
+          "typeName": "CheckoutDraft"
+        }
+      ]
+    },
+    {
+      "source": "service:connectivity",
+      "scope": "application",
+      "writes": [
+        {
+          "name": "network.connectivity",
+          "variant": "state",
+          "typeName": "Connectivity"
+        }
+      ]
+    }
+  ]
+}

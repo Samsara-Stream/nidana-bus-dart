@@ -1,0 +1,8 @@
+Analyzing ....
+
+warning - lib/app.dart:8:11 - 'appBus' makes a bus reachable without an explicit reference. Pass the Bus explicitly: as a constructor or function argument, or through BusProvider.of(context). - global_bus_accessor
+warning - lib/app.dart:11:14 - Explicit type arguments on 'publish' can widen the topic's value type. Remove the type arguments, so that the topic's type decides the value's type. - explicit_topic_type_arguments
+warning - lib/app.dart:11:67 - Topic name 'device.token' is a string literal outside a registry. Declare the topic once as a static field of a registry class, and refer to that field. - raw_string_topic
+   info - lib/app.dart:11:37 - The topic type 'DeviceToken' contains the known-sensitive type 'DeviceToken', but the topic is not flagged sensitive. Add 'sensitive: true' to the topic's declaration, or to its entry in topics.yaml. - unflagged_sensitive_topic
+
+4 issues found.

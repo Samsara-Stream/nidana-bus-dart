@@ -1,0 +1,11 @@
+# Enables the plugin under test by a relative path to the workspace member
+# (ADR-001 item 7, ADR-002 item 7), and configures it per diagnostic code:
+# one rule disabled, one lowered to info, one raised to error (Guide C.1's
+# configurable error), one left at its default.
+plugins:
+  nidana_dart_lint:
+    path: ../../../../../../../packages/nidana_dart_lint
+    diagnostics:
+      raw_string_topic: false
+      global_bus_accessor: info
+      unflagged_sensitive_topic: error

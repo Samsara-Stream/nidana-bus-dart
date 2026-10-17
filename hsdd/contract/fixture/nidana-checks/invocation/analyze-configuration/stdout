@@ -1,0 +1,3 @@
+ERROR|STATIC_WARNING|UNFLAGGED_SENSITIVE_TOPIC|{files}/lib/app.dart|11|7|24|The topic type 'SessionToken' contains the known-sensitive type 'SessionToken', but the topic is not flagged sensitive.
+WARNING|STATIC_WARNING|EXPLICIT_TOPIC_TYPE_ARGUMENTS|{files}/lib/app.dart|26|14|10|Explicit type arguments on 'publish' can widen the topic's value type.
+INFO|STATIC_WARNING|GLOBAL_BUS_ACCESSOR|{files}/lib/app.dart|16|11|6|'appBus' makes a bus reachable without an explicit reference.

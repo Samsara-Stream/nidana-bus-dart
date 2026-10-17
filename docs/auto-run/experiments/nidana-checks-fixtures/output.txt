@@ -1,0 +1,117 @@
+
+### setup: copy the fixtures from the repository, resolve
+analyze-clean analyze-configuration analyze-explicit-topic-type-arguments analyze-global-bus-accessor analyze-human analyze-raw-string-topic analyze-sensitive-fatal-infos analyze-unflagged-sensitive-topic scan-clean scan-cycles scan-graph-undecodable scan-not-a-package scan-scope-violation scan-topic-name-collision scan-unresolved-claim scan-usage-no-package scan-writer-conflict 
+pub get exit: 0
+resolved analysis_server_plugin: "0.3.18"
+resolved analyzer: "13.3.0"
+resolved json_schema: "5.2.2"
+resolved path: "1.9.1"
+resolved test: "1.31.1"
+Dart SDK version: 3.13.5 (stable) (Tue Sep 29 01:00:52 2026 -0700) on "macos_arm64"
+
+### T0 the stand-in members, the plugin's own sources included, are clean under the root lint set, the strict modes and the plugin, with --fatal-infos
+exit: 0
+
+### T1 replay every recorded invocation from the workspace root (ADR-001 item 7)
+PASS analyze-clean
+PASS analyze-configuration
+PASS analyze-explicit-topic-type-arguments
+PASS analyze-global-bus-accessor
+PASS analyze-human
+PASS analyze-raw-string-topic
+PASS analyze-sensitive-fatal-infos
+PASS analyze-unflagged-sensitive-topic
+PASS scan-clean
+PASS scan-cycles
+PASS scan-graph-undecodable
+PASS scan-not-a-package
+PASS scan-scope-violation
+PASS scan-topic-name-collision
+PASS scan-unresolved-claim
+PASS scan-usage-no-package
+PASS scan-writer-conflict
+17 of 17 invocations pass
+exit: 0
+
+### T2 the graph documents: schema-valid and decodable, except the one the scan must reject
+scan-clean/files/topology-graph.json: schema-valid, decodes (3 topologies, 3 claims)
+scan-cycles/files/topology-graph.json: schema-valid, decodes (4 topologies, 0 claims)
+scan-graph-undecodable/files/topology-graph.json: schema-invalid, FormatException: /format: expected "topology-ir@v1"
+scan-scope-violation/files/topology-graph.json: schema-valid, decodes (4 topologies, 0 claims)
+scan-writer-conflict/files/topology-graph.json: schema-valid, decodes (2 topologies, 0 claims)
+
+### T3 without the replacement, a machine-format recording holds this machine's absolute path
+lines naming the absolute files/ path: 6
+lines naming {files} in the recording: 6
+
+### T4 machine independence: the whole workspace moved to another absolute path replays unchanged
+PASS analyze-clean
+PASS analyze-configuration
+PASS analyze-explicit-topic-type-arguments
+PASS analyze-global-bus-accessor
+PASS analyze-human
+PASS analyze-raw-string-topic
+PASS analyze-sensitive-fatal-infos
+PASS analyze-unflagged-sensitive-topic
+PASS scan-clean
+PASS scan-cycles
+PASS scan-graph-undecodable
+PASS scan-not-a-package
+PASS scan-scope-violation
+PASS scan-topic-name-collision
+PASS scan-unresolved-claim
+PASS scan-usage-no-package
+PASS scan-writer-conflict
+17 of 17 invocations pass
+exit: 0
+
+### T5 seeded defects in the stand-ins: each fails the invocations of the guarantee it breaks
+-- D1 plugin rules also report in test directories (G3)
+FAIL analyze-clean
+PASS analyze-human
+1 of 2 invocations pass
+-- D2 unflagged_sensitive_topic reports at WARNING instead of INFO (G1)
+PASS analyze-clean
+FAIL analyze-human
+FAIL analyze-sensitive-fatal-infos
+FAIL analyze-unflagged-sensitive-topic
+1 of 4 invocations pass
+-- D3 the scan also reads the graph document's claims (G9)
+FAIL scan-clean
+PASS scan-writer-conflict
+1 of 2 invocations pass
+-- D4 the scan also reads test directories (G9)
+FAIL scan-clean
+PASS scan-cycles
+FAIL scan-topic-name-collision
+1 of 3 invocations pass
+-- D5 the scan does not recognize PageScope claims (G11)
+PASS scan-cycles
+FAIL scan-scope-violation
+FAIL scan-unresolved-claim
+FAIL scan-writer-conflict
+1 of 4 invocations pass
+
+### P1 static type names against the VM's rendering (TopicRef.typeName, '$T'), which the graph document holds
+interface    vm: CartItems              static: CartItems              EQUAL
+generic      vm: List<CartItems>        static: List<CartItems>        EQUAL
+nullable     vm: CartItems?             static: CartItems?             EQUAL
+enumeration  vm: Mode                   static: Mode                   EQUAL
+record       vm: (int, String)          static: (int, String)          EQUAL
+namedRecord  vm: ({int a})              static: ({int a})              EQUAL
+alias        vm: CartItems              static: CartItems              EQUAL
+map          vm: Map<String, int?>      static: Map<String, int?>      EQUAL
+function     vm: (String) => int        static: int Function(String)   DIFFERENT
+
+### P2 a plugin enabled in a package root's options reports when dart analyze runs on that root or on a file, and not when it runs on a directory below it
+dart analyze .: WARNING|GLOBAL_BUS_ACCESSOR
+dart analyze .: WARNING|EXPLICIT_TOPIC_TYPE_ARGUMENTS
+dart analyze .: WARNING|RAW_STRING_TOPIC
+dart analyze .: INFO|UNFLAGGED_SENSITIVE_TOPIC
+dart analyze . exit: 2
+dart analyze lib exit: 0
+dart analyze lib/app.dart: WARNING|GLOBAL_BUS_ACCESSOR
+dart analyze lib/app.dart: WARNING|EXPLICIT_TOPIC_TYPE_ARGUMENTS
+dart analyze lib/app.dart: WARNING|RAW_STRING_TOPIC
+dart analyze lib/app.dart: INFO|UNFLAGGED_SENSITIVE_TOPIC
+dart analyze lib/app.dart exit: 2

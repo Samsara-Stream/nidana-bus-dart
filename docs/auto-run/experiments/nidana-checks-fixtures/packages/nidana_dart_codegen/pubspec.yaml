@@ -1,0 +1,11 @@
+name: nidana_dart_codegen
+description: Stand-in for the scan command of nidana_dart_codegen (nidana-checks@v1, experiment only).
+version: 0.1.0
+publish_to: none
+environment:
+  sdk: ^3.13.0
+resolution: workspace
+dependencies:
+  analyzer: ^13.3.0
+  nidana_dart_contracts: ^0.1.0
+  path: ^1.9.1

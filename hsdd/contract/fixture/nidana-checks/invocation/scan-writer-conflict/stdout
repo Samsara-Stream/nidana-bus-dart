@@ -1,0 +1,4 @@
+error|writer_conflict||State topic 'cart.items' has 2 writers: service:cart-sync at app/lib/services.dart:7:36, topology:cart-reducer.
+error|writer_conflict||State topic 'checkout.draft' has 2 writers: page:checkout at app/lib/shell.dart:9:26, service:draft-restore at app/lib/services.dart:11:9.
+error|writer_conflict||State topic 'nav.current-route' has 3 writers: executor:flutter-navigation at app/lib/shell.dart:16:5, executor:navigation at app/lib/shell.dart:13:68, topology:route-mirror.
+error|writer_conflict||State topic 'profile.current' has 2 writers: service:app/lib/services.dart:15:61, service:app/lib/services.dart:18:9.

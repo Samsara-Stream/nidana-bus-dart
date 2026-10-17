@@ -1,0 +1,22 @@
+# nidana-checks-fixtures: replays the nidana-checks@v1 recorded invocations,
+# as written under the repository's hsdd/contract/, against a stand-in
+# nidana_dart_lint (the four plugin rules) and a stand-in nidana_dart_codegen
+# (the scan command), over the stand-in nidana packages of
+# ../flutter-binding-fixtures/ (see run.sh). Its own pub workspace, never a
+# member of the repository's workspace.
+name: ncf_root
+publish_to: none
+environment:
+  sdk: ^3.13.0
+workspace:
+  - packages/nidana_dart_contracts
+  - packages/nidana_dart_runtime
+  - packages/nidana_dart_navigation
+  - packages/nidana_dart_runtime_flutter
+  - packages/nidana_dart_lint
+  - packages/nidana_dart_codegen
+dev_dependencies:
+  lints: 6.1.0
+  json_schema: 5.2.2
+  analyzer: 13.3.0
+  path: 1.9.1
