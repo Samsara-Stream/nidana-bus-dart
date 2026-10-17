@@ -173,8 +173,8 @@ tree. Done when `node docs/auto-run/tools/gate.mjs --final` passes.
 | S10..S14 | 4 | hsdd-contract | bus-api, bus-testing, navigation-api, flutter-binding, topic-codegen, nidana-checks (all @v1), in that order | planned | |
 | S17 | 4 | hsdd-adr | ADR-001 update: plan-interpretation wording, data directories in the structure set, coverage wording for file and cli contracts, cases without files/ | done | 5385a5f |
 | S18 | 4 | hsdd-adr | ADR-003 update: affects gains topology-dsl@v1 (and its Governed by) | done | 376ccc4 |
-| S19 | 4 | hsdd-contract | navigation-api@v1 touch (running): G1 reject line, citations of bus-api@v1 G22, G34, G40, the Flutter executor binding name | planned | |
-| S20 | 4 | hsdd-contract | bus-api@v1 touch: widened Topic<Object?> reference case, cite nidana-checks@v1 G5 | planned | |
+| S19 | 4 | hsdd-contract | navigation-api@v1 touch: G1 reject line, citations of bus-api@v1 G22, G34, G40, the Flutter executor binding name | done | 31fc505 |
+| S20 | 4 | hsdd-contract | bus-api@v1 touch: widened Topic<Object?> reference case, cite nidana-checks@v1 G5 | running | |
 | S21 | 4 | hsdd-contract | topic-codegen@v1 touch: catalog's claim rule aligned with nidana-checks@v1's recognizer; recorded invocations for G2, G14, G19 under amended ADR-001 item 7 | planned | |
 | next | 5 | hsdd-spec | nidana.runtime, then nidana.tooling (each followed by its ADRs and internal contracts) | planned | |
 | end of 5 | 5 | hsdd-spec (root refresh) | root D1 check table (adds explicit_topic_type_arguments), OQ2 and OQ5, embedded child summaries | planned | |

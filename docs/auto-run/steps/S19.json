@@ -1,0 +1,150 @@
+{
+  "step_ref": "S19",
+  "skill": "hsdd-contract",
+  "target": "navigation-api@v1 (compatible touch within v1)",
+  "status": "completed",
+  "stop": null,
+  "artifacts": [
+    "hsdd/contract/navigation-api.md",
+    "hsdd/contract/fixture/navigation-api/reject/resolved_intent_is_never_a_deep_link.dart",
+    "hsdd/contract/INDEX.md",
+    "docs/auto-run/experiments/navigation-api-touch/"
+  ],
+  "decisions": [
+    {
+      "at": "2026-10-17T22:53:36Z",
+      "artifact": "hsdd/contract/navigation-api.md",
+      "question": "How does the contract state the rejection of a DeepLink published to nav.resolved-intent that bus-api@v1 G40 now gives: as a clause of G1, as a new guarantee, or as reject lines alone?",
+      "options": [
+        { "label": "extend G1 with a publish clause", "consequence": "No new id; the existing G1 reject library already covers G1, so the new lines are covered by its header; G1 reads as one invariant, no DeepLink after resolution, over this contract's declarations and the publish paths onto its resolved-intent topic." },
+        { "label": "new guarantee G28 with its own reject library", "consequence": "A separately restrictable id, but one invariant split across two ids, and a second reject library for the same misuse." },
+        { "label": "reject lines only, G1 text unchanged", "consequence": "The fixture would pin a rejection no guarantee states, and Refinement 9's old text scoping G1 to this contract's own declarations would contradict the fixture." }
+      ],
+      "chosen": "extend G1 with a publish clause",
+      "why": "The step names it a G1 reject line, and G1 already states the invariant. Refinement 9 scoped G1 to this contract's own declarations only because bus-api@v1's publish then let the call compile; with G40 that reason is gone, so the scope widens to what G1 always meant. A separate id buys nothing here because reject sets run unrestricted at every producing gate (ADR-001 item 10). Signal that would have changed my mind: a phase needing to deliver or restrict the publish clause separately from the rest of G1.",
+      "evidence": ["hsdd/contract/bus-api.md G40, Refinement 3", "docs/auto-run/steps/S13.json notes_for_orchestrator (1)", "ADR-001 items 3, 4, 10", "docs/auto-run/experiments/navigation-api-touch/output.txt (T1 Q01, Q02)"],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T22:53:36Z",
+      "artifact": "hsdd/contract/fixture/navigation-api/reject/resolved_intent_is_never_a_deep_link.dart",
+      "question": "Which publish paths does the new reject coverage exercise: the Publisher call S13 probed (P19), or both publish paths G40 types?",
+      "options": [
+        { "label": "Publisher.publish only", "consequence": "One line, exactly S13's probe P19; Bus.publish's rejection would be stated in G1 but unpinned." },
+        { "label": "both Bus.publish and Publisher.publish", "consequence": "Two lines; every path G1's clause names is pinned; the Bus.publish line needed its own confirmation (probe Q02)." }
+      ],
+      "chosen": "both Bus.publish and Publisher.publish",
+      "why": "G40 types both and G1's clause names both, so a fixture for one leaves half the clause unpinned. Q02 shows Bus.publish reports could_not_infer alone, like the Publisher line. They live in the existing G1 library rather than a new one, because ADR-001 item 4 groups reject fixtures per guarantee or per misuse, and this is the same misuse (a DeepLink where a resolved intent is required).",
+      "evidence": ["hsdd/contract/bus-api.md G40", "docs/auto-run/experiments/navigation-api-touch/probe/resolved_intent_publish.dart", "docs/auto-run/experiments/navigation-api-touch/output.txt (T1, A.3)", "docs/auto-run/experiments/bus-api-amendment/output.txt (T5, P19)"],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T23:00:24Z",
+      "artifact": "hsdd/contract/navigation-api.md",
+      "question": "Refinement 8: keep this contract's own reading of bus-api@v1 G22 and G34 and add citations, or replace the reading with what G22 and G34 now state?",
+      "options": [
+        { "label": "keep the reading, add citations", "consequence": "Two texts of the same rule, this contract's reading and bus-api@v1's guarantees, which can drift; the note that bus-api@v1's fixtures do not pin it would be false and would have to go anyway." },
+        { "label": "cite G22 and G34 as stated, history to Versioning", "consequence": "One definition, owned by bus-api@v1; Refinement 8 keeps why G14 and G24 depend on it and the evidence that a runtime without it drops a deep link; the history moves to the Versioning touch line." }
+      ],
+      "chosen": "cite G22 and G34 as stated, history to Versioning",
+      "why": "Read side by side, bus-api@v1 G22 (connection before activate returns; connection-caused publishes from a provider-zone microtask) and G34 (every topology activated before start() connected when start() delivers the queue, even with nothing run between; the queue reaching those reads in its order) state the reading clause for clause. A second definition is the fork the skill warns against. G14 and G24 now cite G22 and G34 directly, and G24's 'as Refinement 8 reads them' became '(Refinement 8)'. Signal that would have changed my mind: any clause of the old reading that G22 or G34 did not state.",
+      "evidence": ["hsdd/contract/bus-api.md G22, G34, Versioning (a)", "docs/auto-run/steps/S13.json notes_for_orchestrator (2)", "docs/auto-run/experiments/bus-api-amendment/output.txt (T9)"],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T23:00:24Z",
+      "artifact": "hsdd/contract/navigation-api.md",
+      "question": "Refinement 9: does the contract say that explicit type arguments still let a DeepLink onto nav.resolved-intent, or leave it implicit in 'with its type arguments inferred'?",
+      "options": [
+        { "label": "state the residual", "consequence": "One sentence and a probe line (Q08); G1's 'impossible by construction' is not over-read; matches G40's own residual sentence." },
+        { "label": "leave it implicit", "consequence": "Shorter, but a reader of G1 could take the publish clause to cover publish<NavIntent, DeepLink>, which compiles." }
+      ],
+      "chosen": "state the residual",
+      "why": "G40 states the same residual for its own guarantee, and Q08 confirms publish<NavIntent, DeepLink>(NavigationTopics.resolvedIntent, DeepLink(uri)) compiles on the stand-in. Refinement 9 keeps the earlier TypeError history, which bus-api@v1's Versioning cites as 'navigation-api@v1 Refinement 9', so that cross-reference stays true.",
+      "evidence": ["hsdd/contract/bus-api.md G40", "docs/auto-run/experiments/navigation-api-touch/output.txt (T1 Q08, Q09)", "docs/auto-run/steps/S13.json notes_for_orchestrator (Residual recorded in G40)"],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T23:00:24Z",
+      "artifact": "hsdd/contract/navigation-api.md",
+      "question": "The Validation bullet on the Flutter binding of the executor suite: name the file flutter-binding@v1 wrote only, or also the order in which its executor constructs and pumps?",
+      "options": [
+        { "label": "path only", "consequence": "Least duplication with flutter-binding@v1's Validation; the harness description here stays silent on an order the real binding fixes." },
+        { "label": "path and construct-before-pump order", "consequence": "One more clause repeated from flutter-binding@v1's Validation (drift risk if that binding changes), but this contract's description of what the binding supplies matches the file it names." }
+      ],
+      "chosen": "path and construct-before-pump order",
+      "why": "S14 records that flutter-binding@v1's binding constructs the executor before pumping its WidgetsApp, where the stand-in binding of S12 pumped first, and that both orders pass. The bullet already repeated the binding's settle and elapse; adding the order keeps it accurate to the named file at the cost of one clause. The stand-in sentence in the last Validation bullet now says the named binding replaces it. Close call: if flutter-binding@v1's binding were expected to change its order, path only would be the better choice.",
+      "evidence": ["hsdd/contract/flutter-binding.md ## Validation, G12", "docs/auto-run/steps/S14.json notes_for_orchestrator (optional follow-up 1)", "docs/auto-run/experiments/navigation-api-touch/output.txt (B.5, A.5)"],
+      "blast_radius": "contract",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T23:00:24Z",
+      "artifact": "hsdd/contract/navigation-api.md",
+      "question": "Is the touch compatible within v1, or does G1's new clause make it breaking?",
+      "options": [
+        { "label": "compatible within v1", "consequence": "Version kept; a Versioning line records the touch; consumers change nothing." },
+        { "label": "breaking, draft v2", "consequence": "A migration note and a second version for a clause that rejects nothing bus-api@v1 does not already reject." },
+        { "label": "run-stop-candidate", "consequence": "Only if an existing fixture or consumer fixture failed against the amended stand-in." }
+      ],
+      "chosen": "compatible within v1",
+      "why": "No declaration changed, no guarantee was removed or weakened, no id moved. The clause adds no rejection of its own: bus-api@v1 G40 already rejects the call, so no code that compiled after S13 stops compiling, which is this contract's Versioning rule for a compatible change (a new guarantee that existing fixtures still pass). The fixtures at 6843dc2, the amended fixtures, and flutter-binding@v1's executor binding all pass against the stand-in (B.1 to B.5, A.1 to A.5); the fixture diff is the one reject file (T2). Taken after the first full run of the experiment.",
+      "evidence": ["hsdd/contract/navigation-api.md ## Versioning", "ADR-001 item 3", "docs/auto-run/experiments/navigation-api-touch/output.txt (T2, B, A, T3, T4)"],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    }
+  ],
+  "experiments": [
+    {
+      "path": "docs/auto-run/experiments/navigation-api-touch/",
+      "question": "Does the new G1 reject coverage report the expected codes against a stand-in that meets bus-api@v1 as amended, do navigation-api@v1's fixtures as they stood before the touch still pass against it, and is flutter-binding@v1's binding of the executor suite unaffected?",
+      "finding": "On the stand-in packages of flutter-binding-fixtures, unchanged (T0; runtime and navigation those of bus-api-amendment, typed publish on both paths): pages.publish and bus.publish of DeepLink(uri) to nav.resolved-intent each report could_not_infer alone, as does a NavIntent-typed value; resolved intents, nav.intent publishes, explicit type arguments publish<NavIntent, DeepLink> and the pre-amendment form compile (T1 Q01 to Q09). The fixtures differ only in reject/resolved_intent_is_never_a_deep_link.dart (T2). Before (6843dc2) and after alike: structure for navigation-api (27 guarantees, 66 cases, 2 bindings) and flutter-binding (19, 52, 2) passes, surface clean, every reject code confirmed, the navigation suite 40/40, the executor suite 52/52 on InMemoryRouter, flutter_navigation_executor_test.dart 26/26 under fvm flutter test --no-pub. The amended ADR-001 structure prototype passes all nine contracts (T3). With both publish signatures reverted to publish<T>(MultiWriterTopic<T>, T), the amended reject set fails on that file alone (the two could_not_infer lines vanish) while the before-touch reject set passes, so the new lines are what pins G40 for this topic (T4)."
+    }
+  ],
+  "self_check": [
+    { "gate": "Frontmatter has id, version, status, kind, owner, compatibility, produced_by, consumers; external_consumers when any exist.", "status": "pass", "note": "Frontmatter unchanged." },
+    { "gate": "`consumers` lists phase ids that actually consume this contract.", "status": "pass", "note": "Node ids under phase_ids: provisional, unchanged; hsdd-reconcile finalizes them." },
+    { "gate": "The Interface section is concrete enough to mock against.", "status": "pass", "note": "Interface unchanged; the stand-in implements it and passes every suite." },
+    { "gate": "At least one guarantee/invariant is stated.", "status": "pass", "note": "27 guarantees; G1 gains a clause, G14 and G24 cite bus-api@v1 G22 and G34; no id renumbered or reused." },
+    { "gate": "A breaking change bumped the version and added a migration note.", "status": "pass", "note": "Not breaking: no declaration changed, the clause rejects nothing bus-api@v1 G40 does not already reject, and every fixture from before the touch passes (experiment B, T2). ## Versioning records the touch within v1." },
+    { "gate": "The registry was regenerated.", "status": "pass", "note": "node hsdd/scripts/gen-registry.mjs run; hsdd/contract/INDEX.md unchanged because no frontmatter changed." },
+    { "gate": "`phase_ids` is present (`provisional` until `hsdd-reconcile` finalizes it).", "status": "pass", "note": "provisional" },
+    { "gate": "Every code-level artifact both sides consume (types file, fixtures, shared package) names its canonical path and its owner in the Interface or Validation section: the owning phase for code, `hsdd-contract` for validation artifacts.", "status": "pass", "note": "Unchanged library paths and code owner; Validation now also names flutter-binding@v1's binding of the executor suite by path." },
+    { "gate": "A contract or version created by this run has its schema and its kind's fixtures written at the canonical paths.", "status": "n/a", "note": "A touch within v1, not a new contract or version; the reject fixture was updated in the same edit." },
+    { "gate": "Open questions are cited by ID only. They are never defined here; prose justifying behavior as \"pending OQ-x\" is swept when the OQ resolves (hsdd-reconcile).", "status": "pass", "note": "Quoted with the gate's em-dash rewritten as a sentence break, per the prose rule. No OQ added or defined." },
+    { "gate": "A `stable` contract names a schema or a fixtures directory at the canonical paths and the artifact exists, or it carries `validation: grandfathered` (never on a contract authored after the upgrade).", "status": "n/a", "note": "draft; the fixtures directory exists and Validation names it." },
+    { "gate": "No version is `retired` while a consumer or an external consumer still names it.", "status": "n/a", "note": "Nothing retired." },
+    { "gate": "A `v0` contract carries `## Observed completeness`, and the block changed in any commit that added fixtures to it.", "status": "n/a", "note": "v1." },
+    { "gate": "ADR-001 item 12: the fixtures directory meets item 3 and the items for its kind, checked by reading until the replay tool exists.", "status": "pass", "note": "The changed reject library keeps its // covers: G1 header and every marker on its own line before its line; the stand-in structure check and the amended ADR-001 prototype both pass (experiment A.1, T3)." },
+    { "gate": "node docs/auto-run/tools/gate.mjs --skill hsdd-contract", "status": "pass", "note": "0 errors, 0 warnings, exit 0." }
+  ],
+  "notes_for_orchestrator": [
+    "Sweeps S13's navigation-api@v1 follow-ups (1) to (4) and S14's optional follow-up (1). No frontmatter change; INDEX.md byte-identical after regeneration.",
+    "The only fixture change is reject/resolved_intent_is_never_a_deep_link.dart: an import of nidana_dart_runtime, two parameters (Bus bus, Publisher pages) and two could_not_infer lines. Like current_route_is_claimed_by_the_executor.dart, the file now depends on nidana_dart_runtime's publish signature, so nidana.navigation's gate also fails if a nidana.runtime phase loosens publish (T4 shows the failure).",
+    "Residual unchanged from S13: explicit type arguments (publish<NavIntent, DeepLink>) still put a DeepLink on nav.resolved-intent (probe Q08). Refinement 9 states it; the nidana-checks@v1 check against explicit type arguments on publish that S13 proposed would close it.",
+    "bus-api@v1's Versioning cites 'navigation-api@v1 Refinement 9' for the TypeError under the old signature; Refinement 9 keeps that history, so the citation stays true. No other contract or spec cites the reworded text; hsdd/spec/nidana.navigation.md needs nothing.",
+    "Timestamps: 22:53:36Z was taken when the G1 clause and the reject-line decisions settled, before the probe ran; 23:00:24Z right after the contract edits and the first full experiment run, and carries the Refinement 8, Refinement 9, Validation wording and compatibility decisions taken in that pass."
+  ]
+}
