@@ -8,7 +8,7 @@
   - the per-bus topic registry: lazy subject creation on first runtime access, the runtime name-and-type collision check, `removeTopic` with its atomicity and `force` rules (Spec §3.2, §4.3, §7.5, §3.10)
   - the publish path: StateTopic dedup (Spec §3.12), per-topic ordering (Spec §3.3), reentrancy normalization and dev-mode recursion detection (Spec §3.4), observers in registration order before subscribers with sensitive gating and exception swallowing (Spec §3.7, §9), the startup barrier and its dev-mode window (Spec §3.13), the publisher-less path for event and replay topics only (Spec §2.4)
   - publishers, `StateWriter` handles and the per-bus ownership table: first-claim at activation and at publisher construction, release on deactivation or disposal (Spec §2.4, §3.11 layer 1)
-  - the live interpretation of topology-dsl@v1 with envelope threading through every combinator, applying the model's lineage functions (Spec §3.5, §6.3); time-dependent combinators on RxDart inside the provider zone (ADR-003)
+  - the live interpretation of topology-dsl@v1 with envelope threading through every combinator, applying the model's lineage functions (Spec §3.5, §6.3); time-dependent combinators on RxDart inside the provider zone, and a live `switchMap` of its own that does not wait on the previous inner's cancel future (ADR-003)
   - activation: idempotency on `topologyId` (Spec §3.9), cycle rejection (Spec §3.8), scope compatibility (Spec §7.2), `TopologyHandle` deactivation, retention across activations with `reduceInto` seeding (Spec §7.2)
   - scopes and module reference counting with the grace timer, as an adapter-facing API that UI adapters bind to route events (Spec §7.1 to §7.3)
   - `bus.toGraph()` over the active topologies (Spec §6.5)
@@ -38,7 +38,7 @@ This node is internal because it spans several mechanisms that do not fit one ph
 ## Inherited from the root
 
 - RxDart is the engine (root D9), resolved at 0.28.0 on the pinned SDK. Subject construction and the delivery timing that follows are this node's decision (OQ-R1).
-- Time goes through the scheduler provider and its zone (ADR-003); no `DateTime.now()` and no `Timer` outside it.
+- Time goes through the scheduler provider, a zone and a clock (ADR-003): the bus's subscriptions, `bus.observe` subscriptions, observer calls, timers and microtasks are all in the provider zone; no code chains on a future from outside it; no `DateTime.now()` and no `Timer` outside it.
 - Dev mode defaults to "assertions enabled"; diagnostics are typed values sent to a sink in `BusConfig` (root D8).
 - `TestBus` and the recorder live here, in `testing.dart`, with no dependency on `package:test` (root D4, ADR-002).
 - Findings from `docs/auto-run/experiments/rxdart-sync-subjects/` that this node's design has to account for (root D9): synchronous delivery of `sync: true` publish subjects; first delivery of `sync: true` behavior and replay subjects in a microtask; `StateError` on a reentrant add to the same subject; depth-first delivery on a reentrant add to another subject; order restored by deferring the reentrant add with `scheduleMicrotask`.

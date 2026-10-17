@@ -1,0 +1,66 @@
+== Q1 time operators listened inside the provider zone, fed from outside
+  debounceTime(300ms): [|299, 2@300ms] | real-time extra emissions: 0 | timers pending before cancel: 1, after cancel: 0
+  throttleTime(300ms): [1@0ms, 3@300ms] | real-time extra emissions: 0 | timers pending before cancel: 1, after cancel: 0
+  delay(100ms): [|99, 1@100ms, 2@100ms] | real-time extra emissions: 0 | timers pending before cancel: 0, after cancel: 0
+  sampleTime(300ms) (Stream.periodic): [2@300ms, 3@600ms] | real-time extra emissions: 0 | timers pending before cancel: 1, after cancel: 0
+  bufferTime(300ms) (Stream.periodic): [[1, 2]@300ms, []@600ms] | real-time extra emissions: 0 | timers pending before cancel: 1, after cancel: 0
+  Stream.timeout(500ms) (dart:async): [|499, -1@500ms] | real-time extra emissions: 0 | timers pending before cancel: 0, after cancel: 0
+  interval(100ms) (Future.delayed): [1@100ms, 2@200ms] | real-time extra emissions: 0 | timers pending before cancel: 0, after cancel: 0
+  RxDart switchMap(Rx.timer 200ms), no await: [|after add(2): virtual timers 0, microtasks 0, |after advance to 400ms] | real-time extra emissions: 0 | timers pending before cancel: 1, after cancel: 0
+  RxDart switchMap(Rx.timer 200ms), await one real turn after add(2): [|after a real turn: virtual timers 1, 2@300ms] | timers after cancel: 0
+  debounceTime(300ms) then RxDart switchMap(Rx.timer 200ms), no await: [1@500ms, 2@1100ms, |after advance to 1600ms] | real-time extra emissions: 0 | timers pending before cancel: 0, after cancel: 0
+  switchMapNoWait(Rx.timer 200ms), no await: [2@300ms] | real-time extra emissions: 0 | timers pending before cancel: 0, after cancel: 0
+  debounceTime(300ms) then switchMapNoWait(Rx.timer 200ms), no await: [1@500ms, 2@1100ms] | real-time extra emissions: 0 | timers pending before cancel: 0, after cancel: 0
+  Rx.retryWhen(retry after Rx.timer 1s): [|999, ok#2@1000ms] | real-time extra emissions: 0 | timers pending before cancel: 0, after cancel: 0
+  switchMap(Stream.periodic 100ms made in the mapper): [0@100ms, 1@200ms, 2@300ms] | real-time extra emissions: 0 | timers pending before cancel: 1, after cancel: 0
+  switchMap(service BehaviorSubject created outside the zone): [|listened:[], svc-0@0ms, svc-1@0ms] | real-time extra emissions: 0 | timers pending before cancel: 0, after cancel: 0
+  switchMap(service stream fed by a Timer the service made outside): [|after virtual 1s, 0@1000ms, 1@1000ms, 2@1000ms, 3@1000ms, 4@1000ms, 5@1000ms, 6@1000ms] | real-time extra emissions: 7 | timers pending before cancel: 0, after cancel: 0
+== Q2 bus.observe re-entering the provider zone, consumer listening from its own zone
+  raw subject stream: after triggerActions [] (needs a real turn)
+  raw subject stream: after a real turn [0]
+  ZonedStream: right after listen [], pending microtasks 1
+  ZonedStream: after triggerActions [0 inZone=true]
+  ZonedStream: after add(1) from outside [0 inZone=true, 1 inZone=true]
+  consumer-chained debounceTime: timers in the virtual queue after listen 0
+  consumer-chained debounceTime: timers in the virtual queue after add 1
+  consumer-chained debounceTime: after advanceTimeBy(300ms) [5@300ms]
+  consumer-chained Stream.timeout(200ms): virtual timers after listen 0
+  consumer-chained Stream.timeout: after virtual 1s []
+  consumer-chained Stream.timeout: after real 250ms [-1]
+  consumer-chained sampleTime(100ms): virtual timers after listen+add 1
+  consumer-chained sampleTime: after virtual 1s [7]
+  consumer-chained sampleTime: after real 150ms [7]
+== Q3 scheduling into the provider zone from a call made in another zone
+  virtual queue: microtasks 1, timers 2
+  after advanceTimeBy(10ms), no await: [zone.scheduleMicrotask, Timer inside zone.run, zone.createTimer]
+  after a real turn: [zone.scheduleMicrotask, Timer inside zone.run, zone.createTimer, global scheduleMicrotask from outside]
+  reentrant deferral: after x.add(a) [x1:a, x2:a]
+  reentrant deferral: after triggerActions [x1:a, x2:a, y:y<-a]
+== Q4 drain semantics
+  order under triggerActions: [m1, m3, t1, m2, t3, t2], idle=true
+  equal due times by creation; a timer made at 100 due at 100 runs in the same advance: [b(50), a(100), c(100), d(100), e(d+0)], pending=1
+  periodic 300ms over advanceTimeBy(1s): [tick1@300ms, tick2@600ms, tick3@900ms], now=1000ms, still active=true
+  advanceTimeTo(epoch+2s): now=2000-01-01T00:00:02.000Z
+  advanceTimeTo(epoch+1s): ArgumentError
+  advanceTimeBy(-1ms): ArgumentError
+  scheduler built inside runZonedGuarded: errors reached it: [Bad state: VirtualScheduler operation called from inside an action it is running, Bad state: callback threw]; [later timer ran]
+  built in zone A, driven from zone B: A got [Bad state: thrown at fire time], B got []
+  runaway (self-rescheduling microtask): StateError: Bad state: VirtualScheduler ran more than 1000 actions in one operation (a microtask loop or a zero-period timer?)
+  runaway (zero-period periodic timer): StateError: Bad state: VirtualScheduler ran more than 1000 actions in one operation (a microtask loop or a zero-period timer?)
+== Q5 package:clock inside and outside the virtual zone
+  inside the zone: 2000-01-01T00:00:00.000Z then 2000-01-01T00:05:00.000Z (provider clock 2000-01-01T00:05:00.000Z)
+  outside the zone: clock.now() is the system clock: true
+== Q6 production provider (captures Zone.current and clock at construction)
+  built inside fakeAsync: debounce after elapse(300ms) [2]; captured clock advanced 300ms
+  built outside fakeAsync, used inside: debounce after elapse(300ms) []; captured clock advanced 0ms
+  built inside withClock(fixed), read outside it: true
+  built outside, read inside withClock(fixed): equals the call-site clock? false
+== Q7 a stub completed from the test zone
+  triggerActions only: []
+  await one microtask, then triggerActions: [result]
+  settle(): [result]
+== Q8 delivery cost: 2,000,000 sync events, best of 5 runs
+  captured root zone: 28ms; pass-through fork: 37ms; ratio 1.30
+== Q9 the same root-zone hop under plain fakeAsync (production provider built inside it)
+  RxDart switchMap under fakeAsync after elapse to 400ms: [], fake timers pending 0
+  switchMapNoWait under fakeAsync after elapse to 400ms: [2@300ms]

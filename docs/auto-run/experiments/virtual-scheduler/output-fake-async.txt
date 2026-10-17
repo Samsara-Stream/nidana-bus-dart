@@ -1,0 +1,7 @@
+$ fvm dart run bin/fake_async_zero_period.dart  (10 s watchdog; the VM was then killed by hand)
+fires so far: 1000000
+... (817 progress lines in total)
+fires so far: 817000000
+watchdog: killed after 10 s, elapse had not returned
+exit: 143
+finding: fa.elapse(1ms) never returned; the zero-period periodic timer fired 817 million times at the same fake instant

@@ -18,7 +18,7 @@
 - **Does not own:** subjects, subscriptions, timers, zones and the live interpretation of the DSL (nidana.runtime); source scanning and catalog runs (nidana.tooling); navigation types (nidana.navigation); any dependency beyond the SDK and `meta` in `nidana_dart_contracts`
 - **Consumes:** none
 - **Produces:** [topic-model@v1, topology-dsl@v1, topology-ir@v1]
-- **Governed by:** [ADR-001, ADR-002]
+- **Governed by:** [ADR-001, ADR-002, ADR-003]
 - **Sources:**
   - `ref/nidana-docs/arch/nidana-bus-ref-arch-spec-v0_15_0.md` §1, §2.1 to §2.5, §3.5, §3.8, §3.12, §4.1, §4.2, §4.4, §4.6, §6.1 to §6.5, §7.1, §7.2, §8, §9.2, Appendix A.1 to A.4
   - `ref/nidana-docs/arch/nidana-bus-ref-arch-guide-v0_15_0.md` §1.1, §1.4, §6.3, §8.1, Appendix B.1 to B.3

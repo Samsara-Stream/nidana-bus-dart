@@ -1,0 +1,12 @@
+name: time_source_widget
+publish_to: none
+environment:
+  sdk: ^3.13.0
+dependencies:
+  flutter:
+    sdk: flutter
+  rxdart: ^0.28.0
+  clock: ^1.1.2
+dev_dependencies:
+  flutter_test:
+    sdk: flutter

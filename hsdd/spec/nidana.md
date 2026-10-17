@@ -67,7 +67,7 @@ Nidana Bus is a typed, lifecycle-managed reactive substrate for application data
 - **Does not own:** subjects, subscriptions, timers, zones or the live interpretation of the DSL (nidana.runtime); source scanning and catalog runs (nidana.tooling); navigation types (nidana.navigation)
 - **Consumes:** none
 - **Produces:** [topic-model@v1, topology-dsl@v1, topology-ir@v1]
-- **Governed by:** [ADR-001, ADR-002]
+- **Governed by:** [ADR-001, ADR-002, ADR-003]
 - **Sources:** Spec §1, §2.1 to §2.5, §3.5, §3.8, §3.12, §4.1, §4.2, §4.4, §4.6, §6.1 to §6.5, §7.1, §7.2, §8, §9.2, Appendix A.1 to A.4; Guide §1.1, §1.4, §6.3, §8.1, Appendix B.1 to B.3; Rationale §3.1 to §3.3, §4.1
 - **Decomposes into:** phases (see hsdd-phase-plan)
 - **Isolation strategy:** depends on nothing beyond the SDK and `meta`; functions are tested by direct calls and property tests; topologies are tested by recording them and asserting on the IR; the node replays its contracts' surface, reject and schema fixtures
@@ -325,19 +325,9 @@ Accepted 2026-10-17 as `hsdd/adr/001-executable-contract-validation.md`, which h
 
 Accepted 2026-10-17 as `hsdd/adr/002-package-workspace-layout.md`, which holds the binding text; it resolves OQ9 and, with D7, OQ12, and partially resolves nidana.tooling's OQ-T2. The package set and names are the proposal's. Four changes follow from `docs/auto-run/experiments/workspace-layout/`: `nidana_dart_lint` depends on no nidana package and pins its analyzer, because the analysis server resolves a plugin outside the workspace; the workspace scan and every check over the aggregated IR run as a command of `nidana_dart_codegen`; the plugin is enabled in the workspace root's analysis options, the only place the analyzer accepts it in a workspace; and a member's `example/` folder has no pubspec of its own. The accepted decision also fixes the root lint set and strict modes, the `hsdd/**` exclude, hosted constraints between members, and the replay tool's dependency set.
 
-### ADR-003 (proposed): Time source and virtual scheduler on Dart
+### ADR-003 (accepted): Time source and virtual scheduler on Dart
 
-- **Recommended decision:**
-  1. On Dart, the `SchedulerProvider` of Spec §3.6 is a zone plus a clock. The bus makes every subscription it owns (topology activation, internal wiring, deferred delivery) inside the provider's zone, and reads time only from the provider's clock.
-  2. The production provider forks `Zone.current` at bus construction without intercepting anything, and its clock is `clock.now()` from `package:clock`, so apps that fake time with `fake_async` or `withClock` fake the bus's timestamps too.
-  3. `VirtualSchedulerProvider` wraps a `VirtualScheduler` that nidana implements, not `fake_async`: a zone intercepting `createTimer`, `createPeriodicTimer` and `scheduleMicrotask`, plus a virtual clock, with the Spec §3.6 operations `advanceTimeBy`, `advanceTimeTo` and `triggerActions`. `triggerActions` drains due microtasks and timers at the current virtual time; the advance operations drain in due order up to the target.
-  4. Time-dependent combinators (`debounce`, `throttle`, `delay`, `sample`, `buffer`, `timeout`, `retryWhen`) use RxDart's own operators. They honor the injected scheduler because their timers are created in the zone of the subscription, which the bus owns.
-  5. No nidana package calls `DateTime.now()` or creates a `Timer` outside the provider: envelope timestamps, the startup barrier's dev-mode window (Spec §3.13), the module grace timer (Spec §7.3) and route transition timestamps all go through it.
-  6. `TestBus(config)` is a bus whose provider is virtual. A test that reads through `TestBus`'s recording API, or subscribes through `TestBus`, runs synchronously with `triggerActions` and `advanceTimeBy` and no `await`. A subscription a test makes in its own zone receives a replayed first value only after a real event-loop turn (D9).
-  7. Flutter widget tests use the production provider, so `tester.pump` drives the bus; they never nest a virtual scheduler, which would be a second, independent clock.
-- **Affects:** nidana.runtime, nidana.navigation, nidana.flutter, nidana.integration; bus-api@v1, bus-testing@v1
-- **Rationale:** RxDart's time operators take no scheduler, and Spec §3.6 requires every time-dependent operator to use the injected one. RxDart 0.28.0 defines no scheduler type at all, although Guide §6.5 names an `EventLoopScheduler` for Dart (`docs/auto-run/experiments/time-source/output-rxdart-schedulers.txt`); marked for upstreaming: Spec §3.6 and Guide §6.5 should say how injection works on Dart. The experiments in `docs/auto-run/experiments/time-source/` show `fake_async` controls RxDart's timers only when the subscription was made inside its zone, `DateTime.now()` is not virtualized while `clock.now()` is, nested fake zones keep separate clocks, and a zone-based scheduler the bus owns controls `debounceTime`, `throttleTime` and `delay` and captures the replay microtask and the Spec §3.4 deferral (`output-microtasks.txt`). `docs/auto-run/experiments/time-source-flutter/` shows that under `testWidgets` a pass-through zone lets `tester.pump` drive the bus while a virtual zone stays independent of it. Rationale §3.2 makes full determinism under `TestBus` a stated property, which rules out relying on the real event loop in tests.
-- **Alternatives considered:** reimplementing every time-shifting combinator against an abstract scheduler interface, which contradicts Spec §2.3 ("the bus does not implement ... stream combinators") and duplicates RxDart; relying on `fake_async` alone, which fails whenever the bus is constructed or activated outside the fake zone and leaves Spec §3.6's `SchedulerProvider` without a Dart meaning.
+Accepted 2026-10-17 as `hsdd/adr/003-time-source-virtual-scheduler.md`, which holds the binding text; it resolves OQ7 and the clock-control part of OQ2. The accepted decision keeps the proposal's provider as a zone plus a clock, nidana's own virtual scheduler and RxDart's time operators. Five changes follow from `docs/auto-run/experiments/virtual-scheduler/` and `time-source-widget/`: the production provider captures the construction zone without forking it; `bus.observe` subscribes, and observers run, inside the provider zone, so a TestBus subscriber needs no real event-loop turn; no nidana code chains on a future from outside the zone, and the live `switchMap` does not wait for the previous inner's cancel, because RxDart 0.28's `switchMap` does and its continuation escapes the virtual scheduler, `fakeAsync` and `testWidgets` alike; bus-testing@v1 adds an asynchronous settle for work that starts outside the zone; widget tests construct the bus in the test body and shut it down before the body ends. The accepted decision also fixes the scheduler's drain order, bounds and fixed start instant, and governs nidana.model (time enters the contracts package only as an argument), navigation-api@v1 and flutter-binding@v1.
 
 ## Open questions
 
@@ -382,7 +372,7 @@ Guide §10.5 lists persistence as in design. Resolved by D1: deferred. v1 suppor
 
 ### OQ7: Time source on Dart
 
-Spec §3.6 assumes an engine that takes an injected scheduler; RxDart's time operators create `Timer`s directly. Resolved by ADR-003: the scheduler provider is a zone plus a clock, and the bus subscribes inside the zone.
+Spec §3.6 assumes an engine that takes an injected scheduler; RxDart's time operators create `Timer`s directly. Resolved by ADR-003: the scheduler provider is a zone plus a clock; the bus subscribes, serves `bus.observe`, invokes observers and creates its timers and microtasks inside the zone, and never chains on a future from outside it; the virtual scheduler is nidana's own, with synchronous Spec §3.6 operations and an asynchronous settle for work that starts outside the zone; widget tests run the production provider under `tester.pump`.
 
 ### OQ8: Executable validation for Dart API contracts
 
