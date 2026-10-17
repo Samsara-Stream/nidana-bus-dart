@@ -1,0 +1,367 @@
+
+### setup: copy the fixtures and the contract from the repository, resolve
+hsdd/contract/fixture/analysis_options.yaml
+hsdd/contract/fixture/topology-dsl/behavior/live_conformance.dart
+hsdd/contract/fixture/topology-dsl/behavior/recording_conformance.dart
+hsdd/contract/fixture/topology-dsl/behavior/topology_builder_test.dart
+hsdd/contract/fixture/topology-dsl/reject/dsl_types_are_closed.dart
+hsdd/contract/fixture/topology-dsl/reject/handle_is_opaque.dart
+hsdd/contract/fixture/topology-dsl/reject/plan_is_a_separate_library.dart
+hsdd/contract/fixture/topology-dsl/reject/reduce_into_targets_state.dart
+hsdd/contract/fixture/topology-dsl/reject/time_takes_duration.dart
+hsdd/contract/fixture/topology-dsl/reject/topology_declares_id_and_scope.dart
+hsdd/contract/fixture/topology-dsl/reject/topology_is_a_base_class.dart
+hsdd/contract/fixture/topology-dsl/reject/transformers_see_payloads.dart
+hsdd/contract/fixture/topology-dsl/reject/write_type_checks.dart
+hsdd/contract/fixture/topology-dsl/surface/plan.dart
+hsdd/contract/fixture/topology-dsl/surface/topologies.dart
+hsdd/contract/topology-dsl.md
+pub get exit: 0
+resolved clock: "1.1.3"
+resolved lints: "6.1.0"
+resolved matcher: "0.12.20"
+resolved meta: "1.19.0"
+resolved rxdart: "0.28.0"
+resolved test: "1.33.0"
+
+### T0 the stand-in packages are clean under the root lint set and --fatal-infos
+Analyzing packages...
+No issues found!
+exit: 0
+
+### T1 workspace-wide analyze at the root skips hsdd/** (reject fixtures hold deliberate errors)
+Analyzing topology-dsl-fixtures...
+No issues found!
+exit: 0
+
+### T2 structure: headers, markers, guarantee coverage, listed bindings, no src/ imports
+PASS G1 1 fixture(s)
+PASS G2 2 fixture(s)
+PASS G3 1 fixture(s)
+PASS G4 1 fixture(s)
+PASS G5 1 fixture(s)
+PASS G6 1 fixture(s)
+PASS G7 1 fixture(s)
+PASS G8 1 fixture(s)
+PASS G9 3 fixture(s)
+PASS G10 2 fixture(s)
+PASS G11 5 fixture(s)
+PASS G12 2 fixture(s)
+PASS G13 2 fixture(s)
+PASS G14 4 fixture(s)
+PASS G15 3 fixture(s)
+PASS G16 1 fixture(s)
+PASS G17 1 fixture(s)
+PASS G18 1 fixture(s)
+PASS G19 3 fixture(s)
+PASS G20 4 fixture(s)
+PASS G21 5 fixture(s)
+PASS G22 4 fixture(s)
+PASS G23 6 fixture(s)
+PASS G24 2 fixture(s)
+PASS G25 10 fixture(s)
+PASS G26 3 fixture(s)
+PASS G27 2 fixture(s)
+PASS G28 2 fixture(s)
+PASS G29 1 fixture(s)
+guarantees: 29; cases: 66; bindings: 1; fixture files: 14
+exit: 0
+
+### T3 surface: every surface library analyzes with no diagnostic under --fatal-infos
+Analyzing surface...
+No issues found!
+exit: 0
+
+### T4 reject: the (line, code) pairs reported in each file equal the pairs its markers name
+PASS dsl_types_are_closed.dart [9:invalid_use_of_type_outside_library 12:invalid_use_of_type_outside_library 15:invalid_use_of_type_outside_library 18:invalid_use_of_type_outside_library 21:invalid_use_of_type_outside_library 25:new_with_undefined_constructor_default 27:new_with_undefined_constructor_default]
+PASS handle_is_opaque.dart [56:undefined_getter 60:undefined_getter 62:undefined_getter 66:undefined_method 68:invalid_assignment 71:argument_type_not_assignable 73:argument_type_not_assignable]
+PASS plan_is_a_separate_library.dart [9:undefined_class 12:undefined_class 15:undefined_function]
+PASS reduce_into_targets_state.dart [41:argument_type_not_assignable 43:argument_type_not_assignable 46:argument_type_not_assignable 49:argument_type_not_assignable]
+PASS time_takes_duration.dart [16:argument_type_not_assignable 18:undefined_named_parameter 20:extra_positional_arguments 22:extra_positional_arguments 24:undefined_named_parameter 26:argument_type_not_assignable 28:undefined_named_parameter]
+PASS topology_declares_id_and_scope.dart [8:not_enough_positional_arguments 11:non_abstract_class_inherits_abstract_member 20:non_abstract_class_inherits_abstract_member 29:non_abstract_class_inherits_abstract_member 38:argument_type_not_assignable]
+PASS topology_is_a_base_class.dart [20:invalid_override_of_non_virtual_member 24:invalid_use_of_type_outside_library 27:subtype_of_base_or_final_is_not_base_final_or_sealed 39:must_be_immutable]
+PASS transformers_see_payloads.dart [32:argument_type_not_assignable 34:argument_type_not_assignable 36:argument_type_not_assignable 38:argument_type_not_assignable 41:argument_type_not_assignable 44:argument_type_not_assignable]
+PASS write_type_checks.dart [38:could_not_infer 40:could_not_infer 43:could_not_infer]
+exit: 0
+
+### T5 reject: the raw diagnostics behind T4, one line each (line severity code)
+-- dsl_types_are_closed.dart
+9 ERROR invalid_use_of_type_outside_library
+12 ERROR invalid_use_of_type_outside_library
+15 ERROR invalid_use_of_type_outside_library
+18 ERROR invalid_use_of_type_outside_library
+21 ERROR invalid_use_of_type_outside_library
+25 ERROR new_with_undefined_constructor_default
+27 ERROR new_with_undefined_constructor_default
+-- handle_is_opaque.dart
+56 ERROR undefined_getter
+60 ERROR undefined_getter
+62 ERROR undefined_getter
+66 ERROR undefined_method
+68 ERROR invalid_assignment
+71 ERROR argument_type_not_assignable
+73 ERROR argument_type_not_assignable
+-- plan_is_a_separate_library.dart
+9 ERROR undefined_class
+12 ERROR undefined_class
+15 ERROR undefined_function
+-- reduce_into_targets_state.dart
+41 ERROR argument_type_not_assignable
+43 ERROR argument_type_not_assignable
+46 ERROR argument_type_not_assignable
+49 ERROR argument_type_not_assignable
+-- time_takes_duration.dart
+16 ERROR argument_type_not_assignable
+18 ERROR undefined_named_parameter
+20 ERROR extra_positional_arguments
+22 ERROR extra_positional_arguments
+24 ERROR undefined_named_parameter
+26 ERROR argument_type_not_assignable
+28 ERROR undefined_named_parameter
+-- topology_declares_id_and_scope.dart
+8 ERROR not_enough_positional_arguments
+11 ERROR non_abstract_class_inherits_abstract_member
+20 ERROR non_abstract_class_inherits_abstract_member
+29 ERROR non_abstract_class_inherits_abstract_member
+38 ERROR argument_type_not_assignable
+-- topology_is_a_base_class.dart
+24 ERROR invalid_use_of_type_outside_library
+27 ERROR subtype_of_base_or_final_is_not_base_final_or_sealed
+20 WARNING invalid_override_of_non_virtual_member
+39 WARNING must_be_immutable
+-- transformers_see_payloads.dart
+32 ERROR argument_type_not_assignable
+34 ERROR argument_type_not_assignable
+36 ERROR argument_type_not_assignable
+38 ERROR argument_type_not_assignable
+41 ERROR argument_type_not_assignable
+44 ERROR argument_type_not_assignable
+-- write_type_checks.dart
+38 ERROR could_not_infer
+40 ERROR could_not_infer
+43 ERROR could_not_infer
+
+### T6 behavior, recording: the binding under dart test, run from the root
+00:00 +0: loading hsdd/contract/fixture/topology-dsl/behavior/topology_builder_test.dart
+00:00 +0: G9 planOf runs declare once against a fresh builder and carries the id and scope
+00:00 +1: G9 buildDefinition runs declare once and equals the definition of a fresh plan
+00:00 +2: G9 the builder form runs its body on each planOf call and never at construction
+00:00 +3: G10 recording calls none of the functions a declaration passes
+00:00 +4: G10 recording creates no timer and schedules no microtask
+00:00 +5: G11 each combinator call adds one stage, in call order, of its combinator class
+00:00 +6: G11 a stage holds the handles, functions and durations it was given
+00:00 +7: G11 sinks list the write and reduceInto calls in call order with their topics and inputs
+00:00 +8: G11 the arity forms of combine and withLatestFrom apply the transformer to values in input order
+00:00 +9: G11 the stage and sink lists of a plan are unmodifiable
+00:00 +10: G12 the definition reads the topics of the read stages and writes the topics of the sinks
+00:00 +11: G12 a topic read twice is read once, and a declaration with no stages reads and writes nothing
+00:00 +12: G13 a read records its dedup argument, null when none is given
+00:00 +13: G13 a dedup argument on an event or replay topic read throws ArgumentError
+00:00 +14: G14 a handle made by another declaration throws ArgumentError wherever it is passed
+00:00 +15: G14 a second sink on one StateTopic throws ArgumentError; event and replay topics take any number
+00:00 +16: G14 a negative duration throws ArgumentError and a zero duration is accepted
+00:00 +17: G14 an empty input list throws ArgumentError
+00:00 +18: G15 planOf throws StateError when a stage reaches no sink
+00:00 +19: G15 an empty topology id fails: ArgumentError from topology(), StateError from planOf
+00:00 +20: G15 a builder or a handle used after declare returned throws StateError
+00:00 +21: G16 visitStage and visitSink pass each stage and sink to the method of its class
+00:00 +22: G17 topology references are equal, with equal hash codes, exactly when their ids are
+00:00 +23: All tests passed!
+exit: 0
+
+### T7 behavior, recording: a guarantee restriction by test-name prefix (--guarantee topology-dsl/G14)
+00:00 +0: loading hsdd/contract/fixture/topology-dsl/behavior/topology_builder_test.dart
+00:00 +0: G14 a handle made by another declaration throws ArgumentError wherever it is passed
+00:00 +1: G14 a second sink on one StateTopic throws ArgumentError; event and replay topics take any number
+00:00 +2: G14 a negative duration throws ArgumentError and a zero duration is accepted
+00:00 +3: G14 an empty input list throws ArgumentError
+00:00 +4: All tests passed!
+exit: 0
+
+### T8 behavior, live: the stand-in binding of the live suite
+00:00 +0: loading packages/live_standin/test/live_standin_test.dart
+00:00 +0: G18 activation runs declare once and a sink publishes with the topology as its source
+00:00 +1: G19 a state topic read delivers the current value at activation, then each later value
+00:00 +2: G19 a default read skips a value equal to the previous one it delivered; a Dedup.none read delivers every publish
+00:00 +3: G19 a replay topic read delivers the buffer at activation; an event topic read delivers later values only
+00:00 +4: G20 map transforms and filter passes the values its test accepts
+00:00 +5: G20 scan emits each accumulated value and never its seed
+00:00 +6: G20 pairwise emits each value with the one before it, from the second value on
+00:00 +7: G20 distinctUntilChanged drops a value equal to the one before it
+00:00 +8: G21 combine emits once every input has a value, then on each input value
+00:00 +9: G21 the combine forms pass the latest values in input order
+00:00 +10: G21 withLatestFrom emits only on a primary value, once every latest input has a value
+00:00 +11: G21 withLatestFrom2 combines the primary with a state topic and an event topic
+00:00 +12: G21 merge emits the values of every input in arrival order
+00:00 +13: G22 switchMap listens to the next inner stream within the outer delivery, without waiting for the previous cancel
+00:00 +14: G22 switchMap calls toStream once per outer value and delivers the current inner values
+00:00 +15: G22 a retry policy calls toStream again after its delay on the run clock, numbering the attempts
+00:00 +16: G22 without a retry policy, or when the policy returns null, an inner error goes downstream
+00:00 +17: G23 debounce emits a value once its duration passes without a newer value
+00:00 +18: G23 throttle emits a value and drops the values that follow it within its duration
+00:00 +19: G23 delay shifts each value by its duration
+00:00 +20: G23 sample emits the most recent value once per period that received one, counting from the first value
+00:00 +21: G23 buffer emits the values of each period as one batch, counting from the first value, and never an empty batch
+00:00 +22: G23 timeout raises one TimeoutException per silence of its duration, counted from activation or the last value
+00:00 +23: G24 reduceInto seeds its fold with the current value and publishes nothing at activation
+00:00 +24: G24 after re-activation reduceInto resumes from the retained value
+00:00 +25: G25 a single-input stage passes its input lineage: the input envelope is the cause, correlation and parents are kept
+00:00 +26: G25 combine takes the trigger as cause and keeps a shared correlation
+00:00 +27: G25 combine of different correlations takes a fresh one and records the inputs as parents
+00:00 +28: G25 withLatestFrom keeps the lineage of the primary value
+00:00 +29: G25 switchMap inner values carry the lineage of the outer value that created them
+00:00 +30: G25 debounce passes the lineage of the value that survives, buffer that of the last value of its batch
+00:00 +31: G25 scan and reduceInto pass the lineage of the input that triggered them
+00:00 +32: G25 merge passes the lineage of each input value
+00:00 +33: G25 an untraced read and the initial value of a state topic start a new flow
+00:00 +34: G25 a catchError value carries the lineage the failing stage would have passed; a timeout recovers as a new flow
+00:00 +35: G26 catchError replaces an error with a value and the pipeline goes on
+00:00 +36: G26 an error that reaches a sink ends that sink for the activation, and the other sinks go on
+00:00 +37: G26 a reducer that throws ends its reduceInto and the state keeps its last value
+00:00 +38: G27 a stage that feeds several consumers runs once per input value
+00:00 +39: G27 one value written by several sinks is delivered in sink declaration order
+00:00 +40: G28 the raw operator is called once per activation and its values and lineages go downstream
+00:00 +41: G28 a raw operator that builds a lineage, with the fresh correlation it is given, has it published
+00:00 +42: G29 a deactivated topology publishes nothing and has cancelled its inner subscriptions and timers
+00:00 +43: All tests passed!
+exit: 0
+
+### T9 the conformance libraries and the binding analyze clean (warnings included)
+Analyzing behavior...
+No issues found!
+exit: 0
+
+### T10 the recording suite is not vacuous: each seeded defect in the stand-in recorder fails the cases of its guarantee
+-- dangling stages accepted (G15)
+G15 planOf throws StateError when a stage reaches no sink [E]
+Some tests failed.
+-- dedup accepted on any read (G13)
+G13 a dedup argument on an event or replay topic read throws ArgumentError [E]
+Some tests failed.
+-- second sink on a state topic accepted (G14)
+G14 a second sink on one StateTopic throws ArgumentError; event and replay topics take any number [E]
+Some tests failed.
+-- foreign handles accepted (G14)
+G14 a handle made by another declaration throws ArgumentError wherever it is passed [E]
+Some tests failed.
+-- builder left open after declare (G15)
+G15 a builder or a handle used after declare returned throws StateError [E]
+Some tests failed.
+-- negative durations accepted (G14)
+G14 a negative duration throws ArgumentError and a zero duration is accepted [E]
+Some tests failed.
+-- declare run twice per planOf (G9)
+G9 buildDefinition runs declare once and equals the definition of a fresh plan [E]
+G9 planOf runs declare once against a fresh builder and carries the id and scope [E]
+G9 the builder form runs its body on each planOf call and never at construction [E]
+Some tests failed.
+-- writes projected without reduceInto sinks (G12)
+G12 the definition reads the topics of the read stages and writes the topics of the sinks [E]
+Some tests failed.
+-- stages recorded newest first (G11)
+G11 each combinator call adds one stage, in call order, of its combinator class [E]
+Some tests failed.
+-- combine4 passes its values out of order (G11)
+G11 the arity forms of combine and withLatestFrom apply the transformer to values in input order [E]
+Some tests failed.
+-- a map stage keeps a wrapper, not the function passed (G11)
+G11 a stage holds the handles, functions and durations it was given [E]
+Some tests failed.
+-- recording schedules a microtask (G10)
+G10 recording creates no timer and schedules no microtask [E]
+Some tests failed.
+-- recording calls a recover function (G10)
+G10 recording calls none of the functions a declaration passes [E]
+G10 recording creates no timer and schedules no microtask [E]
+G11 a stage holds the handles, functions and durations it was given [E]
+G11 each combinator call adds one stage, in call order, of its combinator class [E]
+G11 sinks list the write and reduceInto calls in call order with their topics and inputs [E]
+G12 the definition reads the topics of the read stages and writes the topics of the sinks [E]
+G13 a read records its dedup argument, null when none is given [E]
+G16 visitStage and visitSink pass each stage and sink to the method of its class [E]
+Some tests failed.
+-- topology references equal whatever their ids (G17)
+G17 topology references are equal, with equal hash codes, exactly when their ids are [E]
+Some tests failed.
+-- a map stage is visited as another stage (G16)
+G11 each combinator call adds one stage, in call order, of its combinator class [E]
+G16 visitStage and visitSink pass each stage and sink to the method of its class [E]
+Some tests failed.
+
+### T11 the live suite is not vacuous: each seeded defect in the stand-in live implementation fails the cases of its guarantee
+-- switchMap waits for the previous inner cancel future (G22)
+G22 switchMap listens to the next inner stream within the outer delivery, without waiting for the previous cancel [E]
+Some tests failed.
+-- switchMap listens to the next inner after a root-zone microtask, as RxDart 0.28 does (G22)
+G22 a retry policy calls toStream again after its delay on the run clock, numbering the attempts [E]
+G22 switchMap listens to the next inner stream within the outer delivery, without waiting for the previous cancel [E]
+G29 a deactivated topology publishes nothing and has cancelled its inner subscriptions and timers [E]
+Some tests failed.
+-- activation records the definition with a second declare run (G18)
+G18 activation runs declare once and a sink publishes with the topology as its source [E]
+Some tests failed.
+-- a read ignores its Dedup.none (G19)
+G19 a default read skips a value equal to the previous one it delivered; a Dedup.none read delivers every publish [E]
+Some tests failed.
+-- a read does not replay the buffer of a replay topic (G19)
+G19 a replay topic read delivers the buffer at activation; an event topic read delivers later values only [E]
+Some tests failed.
+-- scan emits its seed first (G20)
+G20 scan emits each accumulated value and never its seed [E]
+G25 scan and reduceInto pass the lineage of the input that triggered them [E]
+Some tests failed.
+-- withLatestFrom emits before every latest input has a value (G21)
+G21 withLatestFrom emits only on a primary value, once every latest input has a value [E]
+G21 withLatestFrom2 combines the primary with a state topic and an event topic [E]
+Some tests failed.
+-- a retry does not wait for its delay (G22)
+G22 a retry policy calls toStream again after its delay on the run clock, numbering the attempts [E]
+Some tests failed.
+-- throttle emits trailing values too (G23)
+G23 throttle emits a value and drops the values that follow it within its duration [E]
+Some tests failed.
+-- buffer emits empty batches (G23)
+G23 buffer emits the values of each period as one batch, counting from the first value, and never an empty batch [E]
+Some tests failed.
+-- reduceInto seeds from the declared initial value (G24)
+G24 after re-activation reduceInto resumes from the retained value [E]
+Some tests failed.
+-- map starts a new flow instead of passing its input lineage (G25)
+G25 a catchError value carries the lineage the failing stage would have passed; a timeout recovers as a new flow [E]
+G25 a single-input stage passes its input lineage: the input envelope is the cause, correlation and parents are kept [E]
+G25 combine takes the trigger as cause and keeps a shared correlation [E]
+G25 debounce passes the lineage of the value that survives, buffer that of the last value of its batch [E]
+Some tests failed.
+-- combine takes the first input as trigger (G25)
+G25 combine of different correlations takes a fresh one and records the inputs as parents [E]
+Some tests failed.
+-- an untraced read keeps the envelope lineage (G25)
+G25 an untraced read and the initial value of a state topic start a new flow [E]
+Some tests failed.
+-- a recovered value starts a new flow (G25)
+G25 a catchError value carries the lineage the failing stage would have passed; a timeout recovers as a new flow [E]
+Some tests failed.
+-- a sink goes on after an error (G26)
+G26 an error that reaches a sink ends that sink for the activation, and the other sinks go on [E]
+Some tests failed.
+-- sinks are wired in reverse declaration order (G27)
+G27 one value written by several sinks is delivered in sink declaration order [E]
+Some tests failed.
+-- a map stage is interpreted once per consumer (G27)
+G27 a stage that feeds several consumers runs once per input value [E]
+Some tests failed.
+-- the raw operator is called twice per activation (G28)
+G28 the raw operator is called once per activation and its values and lineages go downstream [E]
+Some tests failed.
+-- deactivation leaves the switchMap inner subscription (G29)
+G29 a deactivated topology publishes nothing and has cancelled its inner subscriptions and timers [E]
+Some tests failed.
+
+### T12 a stage class added to the Interface fails the surface set (StageVisitor implemented in full)
+1
+NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER|/Users/mohamad.purbo/gitx/nidana-bus-dart/docs/auto-run/experiments/topology-dsl-fixtures/hsdd/contract/fixture/topology-dsl/surface/plan.dart|11|13
+exit: 3
+stand-in restored
+
+### cleanup: remove the copied tree; the repository's hsdd/contract/ stays the only copy
+removed

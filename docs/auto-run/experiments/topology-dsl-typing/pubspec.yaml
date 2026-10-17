@@ -1,0 +1,5 @@
+name: topology_dsl_typing
+description: Probe of write-path typing forms for topology-dsl@v1 (experiment only).
+publish_to: none
+environment:
+  sdk: ^3.13.0

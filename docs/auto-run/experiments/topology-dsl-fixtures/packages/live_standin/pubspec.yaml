@@ -1,0 +1,14 @@
+name: live_standin
+description: Stand-in live implementation of topology-dsl@v1 on RxDart and a virtual scheduler (experiment only).
+publish_to: none
+environment:
+  sdk: ^3.13.0
+resolution: workspace
+dependencies:
+  clock: ^1.1.2
+  matcher: ^0.12.17
+  meta: ^1.16.0
+  nidana_dart_contracts: ^0.1.0
+  rxdart: ^0.28.0
+dev_dependencies:
+  test: ^1.25.0

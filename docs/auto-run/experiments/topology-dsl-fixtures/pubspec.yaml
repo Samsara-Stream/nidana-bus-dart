@@ -1,0 +1,14 @@
+# topology-dsl-fixtures: replays the topology-dsl@v1 fixtures against a
+# stand-in of nidana_dart_contracts and a stand-in live implementation (see
+# run.sh). Its own pub workspace, never a member of the repository's
+# workspace.
+name: tdf_root
+publish_to: none
+environment:
+  sdk: ^3.13.0
+workspace:
+  - packages/nidana_dart_contracts
+  - packages/nidana_contract_check
+  - packages/live_standin
+dev_dependencies:
+  lints: ^6.1.0

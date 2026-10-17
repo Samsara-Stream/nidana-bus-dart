@@ -1,0 +1,6 @@
+# The fixture options (ADR-001 item 2): no lint set, strict modes on.
+analyzer:
+  language:
+    strict-casts: true
+    strict-inference: true
+    strict-raw-types: true
