@@ -1,0 +1,8 @@
+# Analysis options for every contract fixture (ADR-001 item 2): no lint set,
+# the strict language modes on. Only the replay tool analyzes fixtures; the
+# workspace root's options exclude hsdd/** (ADR-002 item 2).
+analyzer:
+  language:
+    strict-casts: true
+    strict-inference: true
+    strict-raw-types: true

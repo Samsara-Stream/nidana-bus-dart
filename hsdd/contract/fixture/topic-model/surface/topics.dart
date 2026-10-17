@@ -84,6 +84,34 @@ String describe(Topic<Object?> topic) => switch (topic) {
       ReplayTopic<Object?>(bufferSize: final int size) => 'replay of $size',
     };
 
+/// The same family read by writers: one owner, or any writer (G1, G27).
+String writers(Topic<Object?> topic) => switch (topic) {
+      StateTopic<Object?>() => 'one owner',
+      MultiWriterTopic<Object?>() => 'any writer',
+    };
+
+/// Matching on the multi-writer topics needs no default case either (G1).
+String describeMultiWriter(MultiWriterTopic<Object?> topic) => switch (topic) {
+      EventTopic<Object?>() => 'event',
+      ReplayTopic<Object?>(bufferSize: final int size) => 'replay of $size',
+    };
+
+/// The shape of a publish path that takes no ownership claim (G27), as
+/// bus-api@v1's publisher-less publish and Publisher.publish are.
+void publishTo<T>(MultiWriterTopic<T> topic, T value) {}
+
+void publishWithoutClaim() {
+  publishTo<AuthEvent>(AuthTopics.events, const AuthEvent('tap'));
+  publishTo<ChatMessage>(ChatTopics.messages, const ChatMessage('hi'));
+  publishTo(ChatTopics.typed, const ChatMessage('hi'));
+}
+
+/// Every topic a shell component may publish to without a claim.
+final List<MultiWriterTopic<ChatMessage>> chatWithoutClaim =
+    <MultiWriterTopic<ChatMessage>>[ChatTopics.messages, ChatTopics.typed];
+
+final MultiWriterTopic<AuthEvent> authWithoutClaim = AuthTopics.events;
+
 String variantLabel(TopicVariant variant) => switch (variant) {
       TopicVariant.state => 'state',
       TopicVariant.event => 'event',

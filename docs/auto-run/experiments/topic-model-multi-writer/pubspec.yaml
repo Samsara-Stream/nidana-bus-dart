@@ -1,0 +1,15 @@
+# topic-model-multi-writer: checks the S10 amendment of topic-model@v1 (a
+# sealed MultiWriterTopic<T> above EventTopic<T> and ReplayTopic<T>) against
+# the fixtures of topic-model@v1, as they were before the amendment and as
+# amended, and against the consumers' fixtures (see run.sh). Its own pub
+# workspace, never a member of the repository's workspace.
+name: tmmw_root
+publish_to: none
+environment:
+  sdk: ^3.13.0
+workspace:
+  - packages/nidana_dart_contracts
+  - packages/nidana_contract_check
+  - packages/nidana_dart_runtime
+dev_dependencies:
+  lints: ^6.1.0

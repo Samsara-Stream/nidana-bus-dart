@@ -804,4 +804,29 @@ final List<ConformanceCase<TopicModelHarness>> topicModelConformance =
           isFalse);
     },
   ),
+  // ------------------------------------------------------------ G27
+  (
+    name: 'G27 event and replay topics are multi-writer topics and a state topic is not',
+    body: (TopicModelHarness h) async {
+      final List<Topic<int>> topics = <Topic<int>>[
+        StateTopic<int>(name: 'a.count', initial: 0),
+        EventTopic<int>(name: 'a.tapped'),
+        ReplayTopic<int>(name: 'a.log', bufferSize: 1),
+      ];
+      await h.settle();
+      expect(
+        topics.map((Topic<int> t) => t is MultiWriterTopic<int>).toList(),
+        equals(<bool>[false, true, true]),
+      );
+      expect(
+        topics
+            .map((Topic<int> t) => switch (t) {
+                  StateTopic<int>() => 'one owner',
+                  MultiWriterTopic<int>() => 'any writer',
+                })
+            .toList(),
+        equals(<String>['one owner', 'any writer', 'any writer']),
+      );
+    },
+  ),
 ];

@@ -1,6 +1,6 @@
 // Reject fixture for topic-model@v1 G1: the topic family is closed. No type
-// outside the library extends or implements a topic, and a switch that omits
-// a variant does not compile.
+// outside the library extends or implements a topic or a multi-writer topic,
+// and a switch over either that omits a variant does not compile.
 // covers: G1
 import 'package:nidana_dart_contracts/nidana_dart_contracts.dart';
 
@@ -18,5 +18,16 @@ final class CustomTopic implements Topic<int> {
 // expect-diagnostic: non_exhaustive_switch_expression
 String describe(Topic<int> topic) => switch (topic) {
       StateTopic<int>() => 'state',
+      EventTopic<int>() => 'event',
+    };
+
+// expect-diagnostic: invalid_use_of_type_outside_library
+final class CustomMultiWriterTopic implements MultiWriterTopic<int> {
+  @override
+  dynamic noSuchMethod(Invocation invocation) => null;
+}
+
+// expect-diagnostic: non_exhaustive_switch_expression
+String describeMultiWriter(MultiWriterTopic<int> topic) => switch (topic) {
       EventTopic<int>() => 'event',
     };

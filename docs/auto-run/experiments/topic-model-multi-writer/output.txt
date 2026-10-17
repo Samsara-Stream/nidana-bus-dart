@@ -1,0 +1,387 @@
+
+### setup: copy the trees, resolve
+before tree from df5e8f8 judgement: S09
+before/hsdd/contract/fixture/analysis_options.yaml
+before/hsdd/contract/fixture/topic-model/behavior/nidana_dart_contracts_test.dart
+before/hsdd/contract/fixture/topic-model/behavior/topic_model_conformance.dart
+before/hsdd/contract/fixture/topic-model/reject/envelope_requires_metadata.dart
+before/hsdd/contract/fixture/topic-model/reject/no_dispatcher_hint.dart
+before/hsdd/contract/fixture/topic-model/reject/observer_has_no_publish_path.dart
+before/hsdd/contract/fixture/topic-model/reject/only_state_topics_carry_values.dart
+before/hsdd/contract/fixture/topic-model/reject/replay_buffer_is_positive.dart
+before/hsdd/contract/fixture/topic-model/reject/source_family_is_closed.dart
+before/hsdd/contract/fixture/topic-model/reject/state_topic_requires_initial.dart
+before/hsdd/contract/fixture/topic-model/reject/topic_family_is_closed.dart
+before/hsdd/contract/fixture/topic-model/reject/values_are_immutable.dart
+before/hsdd/contract/fixture/topic-model/surface/envelopes.dart
+before/hsdd/contract/fixture/topic-model/surface/observers.dart
+before/hsdd/contract/fixture/topic-model/surface/topics.dart
+before/hsdd/contract/topic-model.md
+changed topic-model files, before -> after:
+Files before/hsdd/contract/topic-model.md and hsdd/contract/topic-model.md differ
+Files before/hsdd/contract/fixture/topic-model/behavior/topic_model_conformance.dart and hsdd/contract/fixture/topic-model/behavior/topic_model_conformance.dart differ
+Only in hsdd/contract/fixture/topic-model/reject: state_topic_is_not_multi_writer.dart
+Files before/hsdd/contract/fixture/topic-model/reject/topic_family_is_closed.dart and hsdd/contract/fixture/topic-model/reject/topic_family_is_closed.dart differ
+Files before/hsdd/contract/fixture/topic-model/surface/topics.dart and hsdd/contract/fixture/topic-model/surface/topics.dart differ
+pub get exit: 0
+resolved clock: "1.1.3"
+resolved lints: "6.1.0"
+resolved matcher: "0.12.20"
+resolved meta: "1.19.0"
+resolved rxdart: "0.28.0"
+resolved test: "1.33.0"
+stand-in diff, before -> after:
+2c2,5
+< /// from docs/auto-run/experiments/topic-model-fixtures/.
+---
+> /// from docs/auto-run/experiments/bus-api-fixtures/: topic-model@v1 with the
+> /// S10 amendment, a sealed `MultiWriterTopic<T>` above `EventTopic<T>` and
+> /// `ReplayTopic<T>`. standin/topic_model.before.dart is the same file before
+> /// the amendment.
+94c97,107
+< final class EventTopic<T> extends Topic<T> {
+---
+> /// The topics any number of writers may publish to (Spec §2.1, §3.11): the
+> /// event and replay variants. Sealed (topic-model@v1 G1, G27).
+> sealed class MultiWriterTopic<T> extends Topic<T> {
+>   const MultiWriterTopic._({
+>     required super.name,
+>     required super.sensitive,
+>     required super.tracing,
+>   }) : super._();
+> }
+> 
+> final class EventTopic<T> extends MultiWriterTopic<T> {
+105c118
+< final class ReplayTopic<T> extends Topic<T> {
+---
+> final class ReplayTopic<T> extends MultiWriterTopic<T> {
+
+### T0 the stand-in packages are clean under the root lint set and --fatal-infos
+Analyzing packages...
+No issues found!
+exit: 0
+
+### T1 workspace-wide analyze at the root skips hsdd/**, before/**, probe/** and standin/**
+Analyzing topic-model-multi-writer...
+No issues found!
+exit: 0
+
+### P1 probe: the diagnostic each candidate misuse of MultiWriterTopic reports (after stand-in)
+-- codes.dart
+9 ERROR argument_type_not_assignable
+10 ERROR argument_type_not_assignable
+11 ERROR argument_type_not_assignable
+12 ERROR invalid_assignment
+14 ERROR list_element_type_not_assignable
+15 ERROR set_element_type_not_assignable
+18 ERROR invalid_use_of_type_outside_library
+23 ERROR invalid_use_of_type_outside_library
+25 ERROR invalid_use_of_type_outside_library
+29 ERROR non_exhaustive_switch_expression
+34 WARNING pattern_never_matches_value_type
+52 WARNING unreachable_switch_case
+
+################ A: after stand-in, topic-model@v1 fixtures as they stood before S10
+
+### A1 structure, against the contract before S10
+PASS G1 1 fixture(s)
+PASS G2 1 fixture(s)
+PASS G3 1 fixture(s)
+PASS G4 3 fixture(s)
+PASS G5 1 fixture(s)
+PASS G6 2 fixture(s)
+PASS G7 2 fixture(s)
+PASS G8 2 fixture(s)
+PASS G9 2 fixture(s)
+PASS G10 2 fixture(s)
+PASS G11 3 fixture(s)
+PASS G12 1 fixture(s)
+PASS G13 2 fixture(s)
+PASS G14 3 fixture(s)
+PASS G15 3 fixture(s)
+PASS G16 1 fixture(s)
+PASS G17 4 fixture(s)
+PASS G18 2 fixture(s)
+PASS G19 7 fixture(s)
+PASS G20 1 fixture(s)
+PASS G21 1 fixture(s)
+PASS G22 1 fixture(s)
+PASS G23 1 fixture(s)
+PASS G24 2 fixture(s)
+PASS G25 not executable
+PASS G26 not executable
+guarantees: 26; cases: 40; bindings: 1; fixture files: 14
+exit: 0
+
+### A2 surface
+Analyzing surface...
+No issues found!
+exit: 0
+
+### A3 reject
+PASS envelope_requires_metadata.dart [11:missing_required_argument 14:missing_required_argument 17:missing_required_argument 20:missing_required_argument 23:missing_required_argument 26:missing_required_argument 29:missing_required_argument 32:missing_required_argument]
+PASS no_dispatcher_hint.dart [7:undefined_named_parameter 10:undefined_named_parameter 13:undefined_named_parameter]
+PASS observer_has_no_publish_path.dart [19:undefined_method 21:undefined_getter 23:undefined_method 25:undefined_method 27:undefined_method]
+PASS only_state_topics_carry_values.dart [11:undefined_method 13:undefined_method 15:undefined_getter 17:undefined_getter 19:argument_type_not_assignable 21:invalid_assignment 26:undefined_named_parameter 29:undefined_named_parameter]
+PASS replay_buffer_is_positive.dart [7:const_eval_throws_exception]
+PASS source_family_is_closed.dart [8:invalid_use_of_type_outside_library 11:invalid_use_of_type_outside_library 16:non_exhaustive_switch_expression]
+PASS state_topic_requires_initial.dart [8:missing_required_argument 11:missing_required_argument 14:argument_type_not_assignable 17:argument_type_not_assignable]
+PASS topic_family_is_closed.dart [8:invalid_use_of_type_outside_library 13:invalid_use_of_type_outside_library 19:non_exhaustive_switch_expression]
+PASS values_are_immutable.dart [16:assignment_to_final 18:assignment_to_final 20:assignment_to_final 22:assignment_to_final 24:assignment_to_final 26:assignment_to_final 28:assignment_to_final 30:assignment_to_final]
+exit: 0
+
+### A4 behavior: the binding under dart test
+-- nidana_dart_contracts_test.dart
++40: All tests passed!
+exit: 0
+
+################ B: after stand-in, topic-model@v1 fixtures as amended
+
+### B1 structure, against the amended contract
+PASS G1 1 fixture(s)
+PASS G2 1 fixture(s)
+PASS G3 1 fixture(s)
+PASS G4 3 fixture(s)
+PASS G5 1 fixture(s)
+PASS G6 2 fixture(s)
+PASS G7 2 fixture(s)
+PASS G8 2 fixture(s)
+PASS G9 2 fixture(s)
+PASS G10 2 fixture(s)
+PASS G11 3 fixture(s)
+PASS G12 1 fixture(s)
+PASS G13 2 fixture(s)
+PASS G14 3 fixture(s)
+PASS G15 3 fixture(s)
+PASS G16 1 fixture(s)
+PASS G17 4 fixture(s)
+PASS G18 2 fixture(s)
+PASS G19 7 fixture(s)
+PASS G20 1 fixture(s)
+PASS G21 1 fixture(s)
+PASS G22 1 fixture(s)
+PASS G23 1 fixture(s)
+PASS G24 2 fixture(s)
+PASS G25 not executable
+PASS G26 not executable
+PASS G27 2 fixture(s)
+guarantees: 27; cases: 41; bindings: 1; fixture files: 15
+exit: 0
+
+### B2 surface
+Analyzing surface...
+No issues found!
+exit: 0
+
+### B3 reject
+PASS envelope_requires_metadata.dart [11:missing_required_argument 14:missing_required_argument 17:missing_required_argument 20:missing_required_argument 23:missing_required_argument 26:missing_required_argument 29:missing_required_argument 32:missing_required_argument]
+PASS no_dispatcher_hint.dart [7:undefined_named_parameter 10:undefined_named_parameter 13:undefined_named_parameter]
+PASS observer_has_no_publish_path.dart [19:undefined_method 21:undefined_getter 23:undefined_method 25:undefined_method 27:undefined_method]
+PASS only_state_topics_carry_values.dart [11:undefined_method 13:undefined_method 15:undefined_getter 17:undefined_getter 19:argument_type_not_assignable 21:invalid_assignment 26:undefined_named_parameter 29:undefined_named_parameter]
+PASS replay_buffer_is_positive.dart [7:const_eval_throws_exception]
+PASS source_family_is_closed.dart [8:invalid_use_of_type_outside_library 11:invalid_use_of_type_outside_library 16:non_exhaustive_switch_expression]
+PASS state_topic_is_not_multi_writer.dart [12:argument_type_not_assignable 14:argument_type_not_assignable 16:argument_type_not_assignable 18:invalid_assignment 23:set_element_type_not_assignable]
+PASS state_topic_requires_initial.dart [8:missing_required_argument 11:missing_required_argument 14:argument_type_not_assignable 17:argument_type_not_assignable]
+PASS topic_family_is_closed.dart [8:invalid_use_of_type_outside_library 13:invalid_use_of_type_outside_library 19:non_exhaustive_switch_expression 25:invalid_use_of_type_outside_library 31:non_exhaustive_switch_expression]
+PASS values_are_immutable.dart [16:assignment_to_final 18:assignment_to_final 20:assignment_to_final 22:assignment_to_final 24:assignment_to_final 26:assignment_to_final 28:assignment_to_final 30:assignment_to_final]
+exit: 0
+
+### B4 reject: the raw diagnostics of the two reject files S10 wrote or extended
+-- topic_family_is_closed.dart
+8 ERROR invalid_use_of_type_outside_library
+13 ERROR invalid_use_of_type_outside_library
+19 ERROR non_exhaustive_switch_expression
+25 ERROR invalid_use_of_type_outside_library
+31 ERROR non_exhaustive_switch_expression
+-- state_topic_is_not_multi_writer.dart
+12 ERROR argument_type_not_assignable
+14 ERROR argument_type_not_assignable
+16 ERROR argument_type_not_assignable
+18 ERROR invalid_assignment
+23 ERROR set_element_type_not_assignable
+
+### B5 behavior: the binding under dart test
+00:00 +38: G24 a redacted payload shows the runtime type and eight hex digits of the hash code
+00:00 +39: G24 equal payloads redact to equal values
+00:00 +40: G27 event and replay topics are multi-writer topics and a state topic is not
+00:00 +41: All tests passed!
+exit: 0
+
+### B6 behavior: the new case alone (--guarantee topic-model/G27)
+00:00 +0: loading hsdd/contract/fixture/topic-model/behavior/nidana_dart_contracts_test.dart
+00:00 +0: G27 event and replay topics are multi-writer topics and a state topic is not
+00:00 +1: All tests passed!
+exit: 0
+
+### B7 the binding and the conformance library analyze clean (warnings included)
+Analyzing behavior...
+No issues found!
+exit: 0
+
+################ C: after stand-in, the consumers' fixtures
+
+### C1 surface and reject of topology-dsl@v1, topology-ir@v1 and bus-api@v1
+-- topology-dsl surface
+exit: 0
+-- topology-dsl reject
+PASS dsl_types_are_closed.dart [9:invalid_use_of_type_outside_library 12:invalid_use_of_type_outside_library 15:invalid_use_of_type_outside_library 18:invalid_use_of_type_outside_library 21:invalid_use_of_type_outside_library 25:new_with_undefined_constructor_default 27:new_with_undefined_constructor_default]
+PASS handle_is_opaque.dart [56:undefined_getter 60:undefined_getter 62:undefined_getter 66:undefined_method 68:invalid_assignment 71:argument_type_not_assignable 73:argument_type_not_assignable]
+PASS plan_is_a_separate_library.dart [9:undefined_class 12:undefined_class 15:undefined_function]
+PASS reduce_into_targets_state.dart [41:argument_type_not_assignable 43:argument_type_not_assignable 46:argument_type_not_assignable 49:argument_type_not_assignable]
+PASS time_takes_duration.dart [16:argument_type_not_assignable 18:undefined_named_parameter 20:extra_positional_arguments 22:extra_positional_arguments 24:undefined_named_parameter 26:argument_type_not_assignable 28:undefined_named_parameter]
+PASS topology_declares_id_and_scope.dart [8:not_enough_positional_arguments 11:non_abstract_class_inherits_abstract_member 20:non_abstract_class_inherits_abstract_member 29:non_abstract_class_inherits_abstract_member 38:argument_type_not_assignable]
+PASS topology_is_a_base_class.dart [20:invalid_override_of_non_virtual_member 24:invalid_use_of_type_outside_library 27:subtype_of_base_or_final_is_not_base_final_or_sealed 39:must_be_immutable]
+PASS transformers_see_payloads.dart [32:argument_type_not_assignable 34:argument_type_not_assignable 36:argument_type_not_assignable 38:argument_type_not_assignable 41:argument_type_not_assignable 44:argument_type_not_assignable]
+PASS write_type_checks.dart [38:could_not_infer 40:could_not_infer 43:could_not_infer]
+exit: 0
+-- topology-ir surface
+exit: 0
+-- topology-ir reject
+PASS ir_families_are_closed.dart [11:invalid_use_of_type_outside_library 14:invalid_use_of_type_outside_library 17:invalid_use_of_type_outside_library 20:invalid_use_of_type_outside_library 23:invalid_use_of_type_outside_library 26:invalid_use_of_type_outside_library 29:invalid_use_of_type_outside_library 32:invalid_use_of_type_outside_library 35:invalid_use_of_type_outside_library 38:non_exhaustive_switch_expression 43:non_exhaustive_switch_expression 50:non_exhaustive_switch_expression]
+PASS ir_holds_no_function.dart [11:argument_type_not_assignable 13:invocation_of_non_function_expression 15:undefined_getter 17:undefined_getter 19:argument_type_not_assignable]
+PASS ir_values_are_immutable.dart [19:assignment_to_final 21:assignment_to_final 23:assignment_to_final 25:assignment_to_final 27:assignment_to_final 29:assignment_to_final 31:assignment_to_final 33:assignment_to_final 35:assignment_to_final 37:assignment_to_final]
+exit: 0
+-- bus-api surface
+exit: 0
+-- bus-api reject
+PASS config_is_immutable.dart [7:assignment_to_final 9:assignment_to_final 11:assignment_to_final 13:assignment_to_final]
+PASS current_value_is_state_only.dart [14:argument_type_not_assignable 16:argument_type_not_assignable 18:argument_type_not_assignable 20:argument_type_not_assignable]
+PASS diagnostics_are_closed.dart [7:invalid_use_of_type_outside_library 10:invalid_use_of_type_outside_library]
+PASS no_global_accessor.dart [8:undefined_getter 10:undefined_getter 12:undefined_method]
+PASS no_publisherless_state_publish.dart [11:argument_type_not_assignable 13:argument_type_not_assignable]
+PASS publisher_reaches_state_through_writer.dart [15:argument_type_not_assignable 17:set_element_type_not_assignable 19:set_element_type_not_assignable 21:argument_type_not_assignable 24:argument_type_not_assignable]
+PASS runtime_types_are_closed.dart [8:invalid_use_of_type_outside_library 11:invalid_use_of_type_outside_library 14:invalid_use_of_type_outside_library 17:invalid_use_of_type_outside_library 20:invalid_use_of_type_outside_library 23:invalid_use_of_type_outside_library 26:invalid_use_of_type_outside_library 29:invalid_use_of_type_outside_library 32:invalid_use_of_type_outside_library 35:invalid_use_of_type_outside_library 39:new_with_undefined_constructor_default 41:new_with_undefined_constructor_default 43:new_with_undefined_constructor_default 45:new_with_undefined_constructor_default 47:new_with_undefined_constructor_default]
+PASS scheduler_providers_are_closed.dart [7:invalid_use_of_type_outside_library 10:invalid_use_of_type_outside_library 13:invalid_use_of_type_outside_library]
+exit: 0
+
+### C2 behavior bindings that need no schema validator: the recorder, the bus-api suite, the live suite
+-- topology_builder_test.dart
++23: All tests passed!
+exit: 0
+-- nidana_dart_runtime_test.dart
++86: All tests passed!
+exit: 0
+-- bus_activation_test.dart
++43: All tests passed!
+exit: 0
+
+### C3 inference probe (probe/lub.dart) against the after stand-in
+-- lub.dart
+17 ERROR argument_type_not_assignable
+20 ERROR invalid_assignment
+
+################ D: before stand-in, without MultiWriterTopic
+stand-in: before (MultiWriterTopic declared: 0)
+
+### D1 baseline: topic-model@v1 fixtures as they stood before S10 (surface, reject, behavior)
+Analyzing surface...
+No issues found!
+exit: 0
+PASS envelope_requires_metadata.dart [11:missing_required_argument 14:missing_required_argument 17:missing_required_argument 20:missing_required_argument 23:missing_required_argument 26:missing_required_argument 29:missing_required_argument 32:missing_required_argument]
+PASS no_dispatcher_hint.dart [7:undefined_named_parameter 10:undefined_named_parameter 13:undefined_named_parameter]
+PASS observer_has_no_publish_path.dart [19:undefined_method 21:undefined_getter 23:undefined_method 25:undefined_method 27:undefined_method]
+PASS only_state_topics_carry_values.dart [11:undefined_method 13:undefined_method 15:undefined_getter 17:undefined_getter 19:argument_type_not_assignable 21:invalid_assignment 26:undefined_named_parameter 29:undefined_named_parameter]
+PASS replay_buffer_is_positive.dart [7:const_eval_throws_exception]
+PASS source_family_is_closed.dart [8:invalid_use_of_type_outside_library 11:invalid_use_of_type_outside_library 16:non_exhaustive_switch_expression]
+PASS state_topic_requires_initial.dart [8:missing_required_argument 11:missing_required_argument 14:argument_type_not_assignable 17:argument_type_not_assignable]
+PASS topic_family_is_closed.dart [8:invalid_use_of_type_outside_library 13:invalid_use_of_type_outside_library 19:non_exhaustive_switch_expression]
+PASS values_are_immutable.dart [16:assignment_to_final 18:assignment_to_final 20:assignment_to_final 22:assignment_to_final 24:assignment_to_final 26:assignment_to_final 28:assignment_to_final 30:assignment_to_final]
+exit: 0
+-- nidana_dart_contracts_test.dart
++40: All tests passed!
+exit: 0
+
+### D2 negative control: the amended topic-model@v1 surface and reject sets fail without MultiWriterTopic
+-- topic-model surface
+ERROR|UNDEFINED_CLASS|/Users/mohamad.purbo/gitx/nidana-bus-dart/docs/auto-run/experiments/topic-model-multi-writer/hsdd/contract/fixture/topic-model/surface/topics.dart|90
+ERROR|UNDEFINED_CLASS|/Users/mohamad.purbo/gitx/nidana-bus-dart/docs/auto-run/experiments/topic-model-multi-writer/hsdd/contract/fixture/topic-model/surface/topics.dart|94
+ERROR|UNDEFINED_CLASS|/Users/mohamad.purbo/gitx/nidana-bus-dart/docs/auto-run/experiments/topic-model-multi-writer/hsdd/contract/fixture/topic-model/surface/topics.dart|101
+ERROR|NON_TYPE_AS_TYPE_ARGUMENT|/Users/mohamad.purbo/gitx/nidana-bus-dart/docs/auto-run/experiments/topic-model-multi-writer/hsdd/contract/fixture/topic-model/surface/topics.dart|110
+ERROR|NON_TYPE_AS_TYPE_ARGUMENT|/Users/mohamad.purbo/gitx/nidana-bus-dart/docs/auto-run/experiments/topic-model-multi-writer/hsdd/contract/fixture/topic-model/surface/topics.dart|111
+ERROR|UNDEFINED_CLASS|/Users/mohamad.purbo/gitx/nidana-bus-dart/docs/auto-run/experiments/topic-model-multi-writer/hsdd/contract/fixture/topic-model/surface/topics.dart|113
+WARNING|DEAD_CODE|/Users/mohamad.purbo/gitx/nidana-bus-dart/docs/auto-run/experiments/topic-model-multi-writer/hsdd/contract/fixture/topic-model/surface/topics.dart|96
+exit: 3
+-- topic-model reject
+PASS envelope_requires_metadata.dart [11:missing_required_argument 14:missing_required_argument 17:missing_required_argument 20:missing_required_argument 23:missing_required_argument 26:missing_required_argument 29:missing_required_argument 32:missing_required_argument]
+PASS no_dispatcher_hint.dart [7:undefined_named_parameter 10:undefined_named_parameter 13:undefined_named_parameter]
+PASS observer_has_no_publish_path.dart [19:undefined_method 21:undefined_getter 23:undefined_method 25:undefined_method 27:undefined_method]
+PASS only_state_topics_carry_values.dart [11:undefined_method 13:undefined_method 15:undefined_getter 17:undefined_getter 19:argument_type_not_assignable 21:invalid_assignment 26:undefined_named_parameter 29:undefined_named_parameter]
+PASS replay_buffer_is_positive.dart [7:const_eval_throws_exception]
+PASS source_family_is_closed.dart [8:invalid_use_of_type_outside_library 11:invalid_use_of_type_outside_library 16:non_exhaustive_switch_expression]
+FAIL state_topic_is_not_multi_writer.dart [12:argument_type_not_assignable 14:argument_type_not_assignable 16:argument_type_not_assignable 18:invalid_assignment 23:set_element_type_not_assignable] reported={(code: undefined_class, line: 8), (code: undefined_class, line: 18), (code: non_type_as_type_argument, line: 23)}
+PASS state_topic_requires_initial.dart [8:missing_required_argument 11:missing_required_argument 14:argument_type_not_assignable 17:argument_type_not_assignable]
+FAIL topic_family_is_closed.dart [8:invalid_use_of_type_outside_library 13:invalid_use_of_type_outside_library 19:non_exhaustive_switch_expression 25:invalid_use_of_type_outside_library 31:non_exhaustive_switch_expression] reported={(code: invalid_use_of_type_outside_library, line: 8), (code: invalid_use_of_type_outside_library, line: 13), (code: non_exhaustive_switch_expression, line: 19), (code: implements_non_class, line: 25), (code: undefined_class, line: 31)}
+PASS values_are_immutable.dart [16:assignment_to_final 18:assignment_to_final 20:assignment_to_final 22:assignment_to_final 24:assignment_to_final 26:assignment_to_final 28:assignment_to_final 30:assignment_to_final]
+exit: 1
+
+### D3 topology-dsl@v1 and topology-ir@v1 give the same results as in C1; bus-api@v1 needs the amendment
+-- topology-dsl surface
+exit: 0
+-- topology-dsl reject
+PASS dsl_types_are_closed.dart [9:invalid_use_of_type_outside_library 12:invalid_use_of_type_outside_library 15:invalid_use_of_type_outside_library 18:invalid_use_of_type_outside_library 21:invalid_use_of_type_outside_library 25:new_with_undefined_constructor_default 27:new_with_undefined_constructor_default]
+PASS handle_is_opaque.dart [56:undefined_getter 60:undefined_getter 62:undefined_getter 66:undefined_method 68:invalid_assignment 71:argument_type_not_assignable 73:argument_type_not_assignable]
+PASS plan_is_a_separate_library.dart [9:undefined_class 12:undefined_class 15:undefined_function]
+PASS reduce_into_targets_state.dart [41:argument_type_not_assignable 43:argument_type_not_assignable 46:argument_type_not_assignable 49:argument_type_not_assignable]
+PASS time_takes_duration.dart [16:argument_type_not_assignable 18:undefined_named_parameter 20:extra_positional_arguments 22:extra_positional_arguments 24:undefined_named_parameter 26:argument_type_not_assignable 28:undefined_named_parameter]
+PASS topology_declares_id_and_scope.dart [8:not_enough_positional_arguments 11:non_abstract_class_inherits_abstract_member 20:non_abstract_class_inherits_abstract_member 29:non_abstract_class_inherits_abstract_member 38:argument_type_not_assignable]
+PASS topology_is_a_base_class.dart [20:invalid_override_of_non_virtual_member 24:invalid_use_of_type_outside_library 27:subtype_of_base_or_final_is_not_base_final_or_sealed 39:must_be_immutable]
+PASS transformers_see_payloads.dart [32:argument_type_not_assignable 34:argument_type_not_assignable 36:argument_type_not_assignable 38:argument_type_not_assignable 41:argument_type_not_assignable 44:argument_type_not_assignable]
+PASS write_type_checks.dart [38:could_not_infer 40:could_not_infer 43:could_not_infer]
+exit: 0
+-- topology-ir surface
+exit: 0
+-- topology-ir reject
+PASS ir_families_are_closed.dart [11:invalid_use_of_type_outside_library 14:invalid_use_of_type_outside_library 17:invalid_use_of_type_outside_library 20:invalid_use_of_type_outside_library 23:invalid_use_of_type_outside_library 26:invalid_use_of_type_outside_library 29:invalid_use_of_type_outside_library 32:invalid_use_of_type_outside_library 35:invalid_use_of_type_outside_library 38:non_exhaustive_switch_expression 43:non_exhaustive_switch_expression 50:non_exhaustive_switch_expression]
+PASS ir_holds_no_function.dart [11:argument_type_not_assignable 13:invocation_of_non_function_expression 15:undefined_getter 17:undefined_getter 19:argument_type_not_assignable]
+PASS ir_values_are_immutable.dart [19:assignment_to_final 21:assignment_to_final 23:assignment_to_final 25:assignment_to_final 27:assignment_to_final 29:assignment_to_final 31:assignment_to_final 33:assignment_to_final 35:assignment_to_final 37:assignment_to_final]
+exit: 0
+-- bus-api surface
+exit: 0
+-- bus-api reject
+PASS config_is_immutable.dart [7:assignment_to_final 9:assignment_to_final 11:assignment_to_final 13:assignment_to_final]
+PASS current_value_is_state_only.dart [14:argument_type_not_assignable 16:argument_type_not_assignable 18:argument_type_not_assignable 20:argument_type_not_assignable]
+PASS diagnostics_are_closed.dart [7:invalid_use_of_type_outside_library 10:invalid_use_of_type_outside_library]
+PASS no_global_accessor.dart [8:undefined_getter 10:undefined_getter 12:undefined_method]
+FAIL no_publisherless_state_publish.dart [11:argument_type_not_assignable 13:argument_type_not_assignable] reported={}
+FAIL publisher_reaches_state_through_writer.dart [15:argument_type_not_assignable 17:set_element_type_not_assignable 19:set_element_type_not_assignable 21:argument_type_not_assignable 24:argument_type_not_assignable] reported={(code: set_element_type_not_assignable, line: 17), (code: set_element_type_not_assignable, line: 19), (code: argument_type_not_assignable, line: 21), (code: argument_type_not_assignable, line: 24)}
+PASS runtime_types_are_closed.dart [8:invalid_use_of_type_outside_library 11:invalid_use_of_type_outside_library 14:invalid_use_of_type_outside_library 17:invalid_use_of_type_outside_library 20:invalid_use_of_type_outside_library 23:invalid_use_of_type_outside_library 26:invalid_use_of_type_outside_library 29:invalid_use_of_type_outside_library 32:invalid_use_of_type_outside_library 35:invalid_use_of_type_outside_library 39:new_with_undefined_constructor_default 41:new_with_undefined_constructor_default 43:new_with_undefined_constructor_default 45:new_with_undefined_constructor_default 47:new_with_undefined_constructor_default]
+PASS scheduler_providers_are_closed.dart [7:invalid_use_of_type_outside_library 10:invalid_use_of_type_outside_library 13:invalid_use_of_type_outside_library]
+exit: 1
+-- topology_builder_test.dart
++23: All tests passed!
+exit: 0
+
+### D4 inference probe (probe/lub.dart) against the before stand-in
+-- lub.dart
+stand-in: after (MultiWriterTopic declared: 1)
+
+################ M: seeded defects in the after stand-in fail the fixtures of G1 and G27
+
+### M1 MultiWriterTopic abstract instead of sealed (G1)
+-- surface
+ERROR|NON_EXHAUSTIVE_SWITCH_EXPRESSION|80
+ERROR|NON_EXHAUSTIVE_SWITCH_EXPRESSION|94
+exit: 3
+-- reject
+FAIL topic_family_is_closed.dart [8:invalid_use_of_type_outside_library 13:invalid_use_of_type_outside_library 19:non_exhaustive_switch_expression 25:invalid_use_of_type_outside_library 31:non_exhaustive_switch_expression] reported={(code: invalid_use_of_type_outside_library, line: 8), (code: invalid_use_of_type_outside_library, line: 13), (code: non_exhaustive_switch_expression, line: 19), (code: non_exhaustive_switch_expression, line: 31)}
+exit: 1
+-- nidana_dart_contracts_test.dart
++41: All tests passed!
+exit: 0
+
+### M2 StateTopic a multi-writer topic (G27)
+-- surface
+ERROR|NON_EXHAUSTIVE_SWITCH_EXPRESSION|94
+exit: 3
+-- reject
+FAIL state_topic_is_not_multi_writer.dart [12:argument_type_not_assignable 14:argument_type_not_assignable 16:argument_type_not_assignable 18:invalid_assignment 23:set_element_type_not_assignable] reported={(code: argument_type_not_assignable, line: 16)}
+exit: 1
+-- nidana_dart_contracts_test.dart
++40 -1: G27 event and replay topics are multi-writer topics and a state topic is not [E]
++40 -1: Some tests failed.
+exit: 1
+stand-in restored: MultiWriterTopic declared 1
+
+### cleanup: remove the copied trees; the repository's hsdd/contract/ stays the only copy
+removed

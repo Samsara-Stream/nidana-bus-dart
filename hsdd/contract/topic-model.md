@@ -23,7 +23,7 @@ nidana.model produces three contracts from one package. This contract holds the 
 
 | Declaration group | Contract |
 |-------------------|----------|
-| `Topic`, `StateTopic`, `EventTopic`, `ReplayTopic`, `TopicVariant`, `Dedup`, `Tracing`, the sensitive flag, initial values, `TopicRef`, `isWellFormedTopicName` | topic-model@v1 |
+| `Topic`, `StateTopic`, `MultiWriterTopic`, `EventTopic`, `ReplayTopic`, `TopicVariant`, `Dedup`, `Tracing`, the sensitive flag, initial values, `TopicRef`, `isWellFormedTopicName` | topic-model@v1 |
 | `MessageEnvelope`, `MessageSource` and its five variants, `Lineage` with its combination rules, `RedactedPayload` | topic-model@v1 |
 | `Scope` and its lifetime order | topic-model@v1 |
 | `BusObserver`, `ObserveContext`, `SpanHandle`, `LogLevel`, `ObserverCapability` and its admission rule | topic-model@v1 |
@@ -99,7 +99,13 @@ final class StateTopic<T> extends Topic<T> {
   T createInitial();
 }
 
-final class EventTopic<T> extends Topic<T> {
+/// The topics any number of writers may publish to (Spec §2.1, §3.11): the
+/// event and replay variants, and no other (G1). The parameter type of a
+/// publish path that takes no ownership claim, so a state topic does not
+/// fit one (G27).
+sealed class MultiWriterTopic<T> extends Topic<T> {}
+
+final class EventTopic<T> extends MultiWriterTopic<T> {
   const EventTopic({
     required String name,
     bool sensitive = false,
@@ -107,7 +113,7 @@ final class EventTopic<T> extends Topic<T> {
   });
 }
 
-final class ReplayTopic<T> extends Topic<T> {
+final class ReplayTopic<T> extends MultiWriterTopic<T> {
   /// Buffers the [bufferSize] most recent values (Spec §2.1), at least one.
   const ReplayTopic({
     required String name,
@@ -119,6 +125,8 @@ final class ReplayTopic<T> extends Topic<T> {
   int get bufferSize;
 }
 ```
+
+The family has three variants, the final classes. `StateTopic<T>` extends `Topic<T>` directly; `EventTopic<T>` and `ReplayTopic<T>` extend it through `MultiWriterTopic<T>`, which declares no member of its own and adds no variant, so `TopicVariant` keeps its three values. A switch over a `Topic` is exhaustive when it names the three variants, or `StateTopic` and `MultiWriterTopic`. Spec §2.1 makes state topics single-writer and the other two multi-writer; `MultiWriterTopic<T>` is that split as a type, which bus-api@v1's `Bus.publish` and `Publisher.publish` take so that the only path from shell code to a state topic is a writer handle (Spec §2.4).
 
 A topic declaration takes no dispatcher hint; on Dart every topic of a bus shares the bus's provider zone (ADR-003 item 9). This decides OQ-M3 (G5). It takes no owner or writer annotation (Spec §3.11) and no persistence option (root D1).
 
@@ -293,7 +301,7 @@ final class Lineage {
 }
 ```
 
-**How the lineage functions are applied.** Lineage is computed per published message, not per pipeline stage. A value enters a pipeline with `Lineage.causedBy(envelope)` of the envelope its read handle delivered, or with `Lineage.root()` when the topic is `Tracing.disabled`. A single-input stage (`map`, `filter`, `switchMap` over its outer emission, `pairwise`), a time-shifting stage (`debounce`, `throttle`, `delay`, `sample`, `buffer`) and an accumulator (`scan`, `reduceInto`) pass the lineage of their triggering, surviving or most recent input through unchanged; `Lineage.combine` and `Lineage.withLatestFrom` are the only functions that make a new lineage inside a pipeline. A write publishes with `MessageEnvelope.publishedTo`, given a fresh id and the provider clock's time (ADR-003 item 8). The consequence: every `causationId` a published envelope carries is null or the id of a published envelope, so a causation chain can be walked through observed envelopes only (Spec §2.4 "Correlation vs. Causation"). Spec §3.5 describes a fresh envelope with a fresh id at every stage; those intermediate envelopes are invisible (Spec §3.5 "Where Envelopes Are Visible"), and a published envelope whose cause is one of them could not be traced. topology-dsl@v1 states, per combinator, which of these rules it applies; bus-api@v1 applies `publishedTo` at every publish and `Lineage.root` or `Lineage.causedBy` at shell publishes.
+**How the lineage functions are applied.** Lineage is computed per published message, not per pipeline stage. A value enters a pipeline with `Lineage.causedBy(envelope)` of the envelope its read handle delivered, or with `Lineage.root()` when the topic is `Tracing.disabled` or the value is a state topic's declared initial value. A subject seeded from `createInitial()` holds a value that no publish delivered, so no envelope and no message caused it: the initial value enters with `Lineage.root()` at every read that delivers it, a read after a removal reseeds the subject included. With the defaults it carries no correlation id, so a publish it leads to starts a new flow, and it is not sensitive, while the envelope of that publish carries its own topic's flag (G14). A single-input stage (`map`, `filter`, `switchMap` over its outer emission, `pairwise`), a time-shifting stage (`debounce`, `throttle`, `delay`, `sample`, `buffer`) and an accumulator (`scan`, `reduceInto`) pass the lineage of their triggering, surviving or most recent input through unchanged; `Lineage.combine` and `Lineage.withLatestFrom` are the only functions that make a new lineage inside a pipeline. A write publishes with `MessageEnvelope.publishedTo`, given a fresh id and the provider clock's time (ADR-003 item 8). The consequence: every `causationId` a published envelope carries is null or the id of a published envelope, so a causation chain can be walked through observed envelopes only (Spec §2.4 "Correlation vs. Causation"). Spec §3.5 describes a fresh envelope with a fresh id at every stage; those intermediate envelopes are invisible (Spec §3.5 "Where Envelopes Are Visible"), and a published envelope whose cause is one of them could not be traced. topology-dsl@v1 states, per combinator, which of these rules it applies; bus-api@v1 applies `publishedTo` at every publish and `Lineage.root` or `Lineage.causedBy` at shell publishes.
 
 ### Scope
 
@@ -380,7 +388,7 @@ The hash follows Dart's `==` and `hashCode` contract, so equal payloads redact a
 
 ## Guarantees / invariants
 
-- **G1** The topic family is closed: `Topic<T>` is sealed, `StateTopic<T>`, `EventTopic<T>` and `ReplayTopic<T>` are final, no type outside the library extends or implements any of them, and a switch over a `Topic` that omits a variant does not compile.
+- **G1** The topic family is closed: `Topic<T>` and `MultiWriterTopic<T>` are sealed, `StateTopic<T>`, `EventTopic<T>` and `ReplayTopic<T>` are final, the subtypes of `MultiWriterTopic<T>` are exactly `EventTopic<T>` and `ReplayTopic<T>`, no type outside the library extends or implements any of them, and a switch over a `Topic` or a `MultiWriterTopic` that omits a variant does not compile.
 - **G2** Only a state topic carries an initial value and a dedup policy: `createInitial()` and `dedup` are not defined on `EventTopic` or `ReplayTopic`, neither takes a `dedup` argument, and neither is assignable where a `StateTopic<T>` is expected, which is the parameter type of `getCurrentValue` (Spec §2.5).
 - **G3** A state topic is declared with its initial value: `initial` is required, a `T` for `StateTopic(...)` and a `T Function()` for `StateTopic.computed(...)` (Spec §2.5).
 - **G4** Topics, topic references, envelopes, lineages, sources and redacted payloads are immutable: none of their fields can be assigned, and every list they expose is an unmodifiable copy that later changes to the argument list do not reach.
@@ -406,22 +414,24 @@ The hash follows Dart's `==` and `hashCode` contract, so equal payloads redact a
 - **G24** `RedactedPayload.of(p)` has `typeName == p.runtimeType.toString()` and `hash` equal to the low 32 bits of `p.hashCode` as eight lowercase hexadecimal digits, renders as `<redacted {typeName} #{hash}>`, never contains `p`'s own rendering, and is equal for equal payloads.
 - **G25** `nidana_dart_contracts` reads no clock, creates no timer or microtask, generates no id and performs no I/O; a function that needs a timestamp or a fresh id takes it as an argument (ADR-003 item 8).
 - **G26** `nidana_dart_contracts` depends on nothing beyond the Dart SDK and `package:meta` (ADR-002 item 4), so a pure Dart module that declares topics and observers pulls in nothing else (root D2).
+- **G27** A state topic is not a multi-writer topic (Spec §2.1, §3.11): an `EventTopic<T>` and a `ReplayTopic<T>` are assignable where a `MultiWriterTopic<T>` is expected, and neither a `StateTopic<T>` nor a `Topic<T>` whose variant is not known statically is; at run time `topic is MultiWriterTopic` holds exactly for event and replay topics. A publish path typed over `MultiWriterTopic<T>`, as bus-api@v1's `Bus.publish` and `Publisher.publish` are, therefore does not compile for a state topic.
 
 ## Versioning
 
 - v1 current, `compatibility: versioned`. A breaking change creates v2 with a migration note here; v1 stays until every consumer migrates.
 - Breaking for this contract: removing, renaming or retyping any declaration; adding a variant to `Topic`, `MessageSource` or any enum here, because consumers switch over them exhaustively (G1, G16); adding a member to `BusObserver`, `ObserveContext` or `SpanHandle`, which applications implement; changing a lineage rule, a default, equality, the source rendering or the redaction format.
-- Compatible: a new optional named constructor parameter with a default that preserves current behavior, a new getter or method on a final class, a new top-level function, a new guarantee that existing fixtures still pass.
+- Compatible: a new optional named constructor parameter with a default that preserves current behavior, a new getter or method on a final class, a new top-level function, a new guarantee that existing fixtures still pass, a new sealed type between `Topic` and existing variants that adds no variant (an abstract one is breaking, because it leaves a switch that names the variants non-exhaustive).
+- Amended within v1, at bus-api@v1's request (its Refinement 3): `MultiWriterTopic<T>` added as the sealed supertype of `EventTopic<T>` and `ReplayTopic<T>`, G1 extended to it and G27 added; the "How the lineage functions are applied" paragraph now states the lineage of a state topic's initial value, `Lineage.root()`, as topology-dsl@v1's read row already applies it. Compatible because it adds no variant: every switch over a `Topic` that names the three variants stays exhaustive, no member, default or rule changes, and every fixture written before the amendment passes against an implementation that carries it (`docs/auto-run/experiments/topic-model-multi-writer/`). One inference result changes, which no declaration here states: the least upper bound of an event topic and a replay topic is now `MultiWriterTopic<T>` where it was `Topic<T>`, so a variable or collection whose type was inferred from those two alone no longer accepts a state topic until its type is written out (`probe/lub.dart` there).
 - Not in v1, each a candidate for a later version: a dispatcher hint (G5); a persistence option (root D1); span events or status on `SpanHandle`; a dedup policy with a custom equality.
 
 ## Validation
 
 - fixture: `hsdd/contract/fixture/topic-model/`, under `hsdd/contract/fixture/analysis_options.yaml` (ADR-001 item 2); replayed with `fvm dart run nidana_contract_check topic-model`.
-- surface: `hsdd/contract/fixture/topic-model/surface/` (`topics.dart`, `envelopes.dart`, `observers.dart`). `observers.dart` implements `BusObserver`, `ObserveContext` and `SpanHandle` in full, so a member added to any of them fails the surface set; with the reject set this checks the "declares only" half of G22.
-- reject: `hsdd/contract/fixture/topic-model/reject/`, one library per type-level guarantee: `topic_family_is_closed.dart` (G1), `only_state_topics_carry_values.dart` (G2), `state_topic_requires_initial.dart` (G3), `values_are_immutable.dart` (G4), `no_dispatcher_hint.dart` (G5), `replay_buffer_is_positive.dart` (G10), `envelope_requires_metadata.dart` (G12), `source_family_is_closed.dart` (G16), `observer_has_no_publish_path.dart` (G22).
-- behavior: conformance library `hsdd/contract/fixture/topic-model/behavior/topic_model_conformance.dart`, harness `TopicModelHarness`, cases `topicModelConformance`, covering G4, G6 to G11, G13 to G15, G17 to G21, G23 and G24.
+- surface: `hsdd/contract/fixture/topic-model/surface/` (`topics.dart`, `envelopes.dart`, `observers.dart`). `topics.dart` matches the topic family both ways, by its three variants and by `StateTopic` and `MultiWriterTopic`, and passes event and replay topics where a `MultiWriterTopic` is expected. `observers.dart` implements `BusObserver`, `ObserveContext` and `SpanHandle` in full, so a member added to any of them fails the surface set; with the reject set this checks the "declares only" half of G22.
+- reject: `hsdd/contract/fixture/topic-model/reject/`, one library per type-level guarantee: `topic_family_is_closed.dart` (G1), `only_state_topics_carry_values.dart` (G2), `state_topic_requires_initial.dart` (G3), `values_are_immutable.dart` (G4), `no_dispatcher_hint.dart` (G5), `replay_buffer_is_positive.dart` (G10), `envelope_requires_metadata.dart` (G12), `source_family_is_closed.dart` (G16), `observer_has_no_publish_path.dart` (G22), `state_topic_is_not_multi_writer.dart` (G27). `topic_family_is_closed.dart` rejects an outside implementation of `MultiWriterTopic` and a switch over one that omits a variant as well.
+- behavior: conformance library `hsdd/contract/fixture/topic-model/behavior/topic_model_conformance.dart`, harness `TopicModelHarness`, cases `topicModelConformance`, covering G4, G6 to G11, G13 to G15, G17 to G21, G23, G24 and G27.
 - binding: `hsdd/contract/fixture/topic-model/behavior/nidana_dart_contracts_test.dart` binds the suite to the producer's own declarations in `nidana_dart_contracts`, under `dart test`.
 - not executable: G25, a property of the package's source rather than of its declarations; checked by nidana.model's gates
 - not executable: G26, a property of the package's pubspec; checked by nidana.model's gates
 - No schema: a `shared-model` contract with no serialized form carries none (ADR-001 item 4). The JSON encodings of `TopicRef`, `Scope` and `MessageSource` belong to topology-ir@v1's schema.
-- The fixtures are forward references, written before the package exists. Their reject codes were confirmed against a stand-in that implements this Interface, and the behavior suite passed against it, in `docs/auto-run/experiments/topic-model-fixtures/` (`output.txt`); the first replay against the real package, once nidana.model's first phase lands the replay tool, is their first verification (ADR-001 Consequences).
+- The fixtures are forward references, written before the package exists. Their reject codes were confirmed against a stand-in that implements this Interface, and the behavior suite passed against it, in `docs/auto-run/experiments/topic-model-fixtures/` (`output.txt`). For the `MultiWriterTopic` amendment, `docs/auto-run/experiments/topic-model-multi-writer/` (`run.sh`, `output.txt`) replays the fixtures as they stood before it and as amended against a stand-in that carries `MultiWriterTopic`, all passing; confirms the new reject codes; shows that the amended surface and reject sets fail against a stand-in without it, and that seeded defects (`MultiWriterTopic` abstract instead of sealed, `StateTopic` a multi-writer topic) fail the fixtures of G1 and G27; and replays the surface and reject sets of topology-dsl@v1, topology-ir@v1 and bus-api@v1 against both stand-ins, where the first two pass either way and bus-api@v1's pass only with the amendment. The first replay against the real package, once nidana.model's first phase lands the replay tool, is their first verification (ADR-001 Consequences).
