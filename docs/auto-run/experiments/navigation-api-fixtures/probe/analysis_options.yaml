@@ -1,0 +1,6 @@
+# Probes: no lint set, the strict modes on (as hsdd/contract/fixture/).
+analyzer:
+  language:
+    strict-casts: true
+    strict-inference: true
+    strict-raw-types: true

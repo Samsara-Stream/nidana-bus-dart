@@ -6,6 +6,7 @@
 |----|---------|------|--------|-------|-----------|
 | `bus-api` | v1 | api | draft | `nidana.runtime` | 4 |
 | `bus-testing` | v1 | api | draft | `nidana.runtime` | 3 |
+| `navigation-api` | v1 | api | draft | `nidana.navigation` | 2 |
 | `topic-model` | v1 | shared-model | draft | `nidana.model` | 5 |
 | `topology-dsl` | v1 | api | draft | `nidana.model` | 5 |
 | `topology-ir` | v1 | api | draft | `nidana.model` | 3 |

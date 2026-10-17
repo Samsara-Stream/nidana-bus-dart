@@ -1,0 +1,15 @@
+name: flutter_navigation_standin
+description: Minimal stand-in Flutter router for the navigation-api@v1 executor suite (experiment only).
+publish_to: none
+environment:
+  sdk: ^3.13.0
+resolution: workspace
+dependencies:
+  flutter:
+    sdk: flutter
+  nidana_dart_contracts: ^0.1.0
+  nidana_dart_runtime: ^0.1.0
+  nidana_dart_navigation: ^0.1.0
+dev_dependencies:
+  flutter_test:
+    sdk: flutter

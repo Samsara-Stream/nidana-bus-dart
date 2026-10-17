@@ -1,0 +1,491 @@
+
+### setup: copy the contracts and the fixtures from the repository, resolve
+hsdd/contract/fixture/navigation-api/behavior/in_memory_router_test.dart
+hsdd/contract/fixture/navigation-api/behavior/navigation_conformance.dart
+hsdd/contract/fixture/navigation-api/behavior/navigation_executor_conformance.dart
+hsdd/contract/fixture/navigation-api/behavior/nidana_dart_navigation_test.dart
+hsdd/contract/fixture/navigation-api/reject/current_route_is_claimed_by_the_executor.dart
+hsdd/contract/fixture/navigation-api/reject/intents_are_closed.dart
+hsdd/contract/fixture/navigation-api/reject/navigation_types_are_closed.dart
+hsdd/contract/fixture/navigation-api/reject/navigation_values_are_immutable.dart
+hsdd/contract/fixture/navigation-api/reject/resolved_intent_is_never_a_deep_link.dart
+hsdd/contract/fixture/navigation-api/reject/route_arguments_are_typed.dart
+hsdd/contract/fixture/navigation-api/surface/access_and_resolver.dart
+hsdd/contract/fixture/navigation-api/surface/executor.dart
+hsdd/contract/fixture/navigation-api/surface/routes_and_intents.dart
+hsdd/contract/navigation-api.md
+pub get exit: 0
+Dart SDK version: 3.13.5 (stable) (Tue Sep 29 01:00:52 2026 -0700) on "macos_arm64"
+resolved clock: "1.1.3"
+resolved flutter_test: "0.0.0"
+resolved lints: "6.1.0"
+resolved matcher: "0.12.20"
+resolved meta: "1.19.0"
+resolved rxdart: "0.28.0"
+resolved test: "1.31.1"
+resolved test_api: "0.7.12"
+
+### T0 the stand-in packages are clean under the root lint set and --fatal-infos
+Analyzing packages...
+No issues found!
+exit: 0
+
+### T1 structure: headers, markers, guarantee coverage, listed bindings, no src/ imports
+PASS G1 3 fixture(s)
+PASS G2 1 fixture(s)
+PASS G3 1 fixture(s)
+PASS G4 2 fixture(s)
+PASS G5 3 fixture(s)
+PASS G6 3 fixture(s)
+PASS G7 2 fixture(s)
+PASS G8 3 fixture(s)
+PASS G9 2 fixture(s)
+PASS G10 3 fixture(s)
+PASS G11 1 fixture(s)
+PASS G12 4 fixture(s)
+PASS G13 3 fixture(s)
+PASS G14 4 fixture(s)
+PASS G15 2 fixture(s)
+PASS G16 2 fixture(s)
+PASS G17 4 fixture(s)
+PASS G18 5 fixture(s)
+PASS G19 5 fixture(s)
+PASS G20 9 fixture(s)
+PASS G21 3 fixture(s)
+PASS G22 1 fixture(s)
+PASS G23 2 fixture(s)
+PASS G24 2 fixture(s)
+PASS G25 2 fixture(s)
+PASS G26 not executable
+PASS G27 not executable
+guarantees: 27; cases: 66; bindings: 2; fixture files: 13
+exit: 0
+
+### T2 surface: every surface library analyzes with no diagnostic under --fatal-infos
+Analyzing surface...
+No issues found!
+exit: 0
+
+### T3 reject: the (line, code) pairs reported in each file equal the pairs its markers name
+PASS current_route_is_claimed_by_the_executor.dart [10:argument_type_not_assignable 12:argument_type_not_assignable 14:undefined_getter 16:undefined_getter]
+PASS intents_are_closed.dart [8:invalid_use_of_type_outside_library 11:invalid_use_of_type_outside_library 14:invalid_use_of_type_outside_library 17:invalid_use_of_type_outside_library 20:non_exhaustive_switch_expression 29:non_exhaustive_switch_expression]
+PASS navigation_types_are_closed.dart [8:invalid_use_of_type_outside_library 11:invalid_use_of_type_outside_library 14:invalid_use_of_type_outside_library 17:invalid_use_of_type_outside_library 20:invalid_use_of_type_outside_library 23:invalid_use_of_type_outside_library 28:invalid_use_of_type_outside_library 31:invalid_use_of_type_outside_library 34:non_exhaustive_switch_expression 41:non_exhaustive_switch_expression 47:non_exhaustive_switch_expression 54:non_exhaustive_switch_expression]
+PASS navigation_values_are_immutable.dart [8:assignment_to_final 10:assignment_to_final 12:assignment_to_final 14:assignment_to_final 16:assignment_to_final 18:assignment_to_final]
+PASS resolved_intent_is_never_a_deep_link.dart [9:invalid_assignment 11:argument_type_not_assignable 16:argument_type_not_assignable 19:return_of_invalid_type_from_closure 21:argument_type_not_assignable 27:pattern_never_matches_value_type]
+PASS route_arguments_are_typed.dart [11:argument_type_not_assignable 13:argument_type_not_assignable 15:argument_type_not_assignable 17:new_with_undefined_constructor_default 19:new_with_undefined_constructor_default 21:new_with_undefined_constructor_default 23:invalid_assignment]
+exit: 0
+
+### T4 reject: the raw diagnostics behind T3, one line each (line severity code)
+-- current_route_is_claimed_by_the_executor.dart
+10 ERROR argument_type_not_assignable
+12 ERROR argument_type_not_assignable
+14 ERROR undefined_getter
+16 ERROR undefined_getter
+-- intents_are_closed.dart
+8 ERROR invalid_use_of_type_outside_library
+11 ERROR invalid_use_of_type_outside_library
+14 ERROR invalid_use_of_type_outside_library
+17 ERROR invalid_use_of_type_outside_library
+20 ERROR non_exhaustive_switch_expression
+29 ERROR non_exhaustive_switch_expression
+-- navigation_types_are_closed.dart
+8 ERROR invalid_use_of_type_outside_library
+11 ERROR invalid_use_of_type_outside_library
+14 ERROR invalid_use_of_type_outside_library
+17 ERROR invalid_use_of_type_outside_library
+20 ERROR invalid_use_of_type_outside_library
+23 ERROR invalid_use_of_type_outside_library
+28 ERROR invalid_use_of_type_outside_library
+31 ERROR invalid_use_of_type_outside_library
+34 ERROR non_exhaustive_switch_expression
+41 ERROR non_exhaustive_switch_expression
+47 ERROR non_exhaustive_switch_expression
+54 ERROR non_exhaustive_switch_expression
+-- navigation_values_are_immutable.dart
+8 ERROR assignment_to_final
+10 ERROR assignment_to_final
+12 ERROR assignment_to_final
+14 ERROR assignment_to_final
+16 ERROR assignment_to_final
+18 ERROR assignment_to_final
+-- resolved_intent_is_never_a_deep_link.dart
+9 ERROR invalid_assignment
+11 ERROR argument_type_not_assignable
+16 ERROR argument_type_not_assignable
+19 ERROR return_of_invalid_type_from_closure
+21 ERROR argument_type_not_assignable
+27 WARNING pattern_never_matches_value_type
+-- route_arguments_are_typed.dart
+11 ERROR argument_type_not_assignable
+13 ERROR argument_type_not_assignable
+15 ERROR argument_type_not_assignable
+17 ERROR new_with_undefined_constructor_default
+19 ERROR new_with_undefined_constructor_default
+21 ERROR new_with_undefined_constructor_default
+23 ERROR invalid_assignment
+
+### T5 the conformance libraries and the bindings analyze clean (warnings included)
+Analyzing behavior, behavior...
+No issues found!
+exit: 0
+
+### T6 behavior: the navigation suite on the stand-in, under dart test from the root
+00:00 +0: loading hsdd/contract/fixture/navigation-api/behavior/nidana_dart_navigation_test.dart
+00:00 +0: G1 a deep link is a NavIntent and never a ResolvedNavIntent; the six other variants are resolved intents
+00:00 +1: G4 lists, maps and sets the values expose are unmodifiable copies of their arguments
+00:00 +2: G5 two routes are equal, with equal hash codes, exactly when their paths and argument types are equal
+00:00 +3: G5 NavRoute.none has the empty path, and an empty path is otherwise rejected when assertions are enabled
+00:00 +4: G5 argsOf is the arguments of a state of the route, typed by the route, and null for a state of another route
+00:00 +5: G6 a route builds its intents: go, replace and showModal carry the route and the arguments, null when omitted, and backTo is BackTo(route)
+00:00 +6: G6 intents are equal exactly when their variants and fields are equal
+00:00 +7: G6 targetRoute is the route of GoTo, Replace, ShowModal and BackTo, and null for Back and DismissModal
+00:00 +8: G7 a registry lists its routes once each in the order given and looks them up by path
+00:00 +9: G7 a registry rejects one path under two argument types, and NavRoute.none, with ArgumentError
+00:00 +10: G8 a route state defaults to no arguments and no parameters, and RouteState.initial is NavRoute.none with nothing
+00:00 +11: G8 route states are equal exactly when route, arguments and both parameter maps are equal, maps compared by entries
+00:00 +12: G8 route transitions are equal exactly when from, to, intent and timestamp are equal
+00:00 +13: G9 NavigationTopics declares the five navigation topics with the names, variants, types and initial values of Guide §3.3
+00:00 +14: G9 the navigation topics are not sensitive, are traced, deduplicate state by equality and have well-formed names
+00:00 +15: G10 a policy answers a listed route's requirement and its fallback for any other, PublicAccess unless given
+00:00 +16: G10 policies, requirements and principals are equal exactly when their fields are; RoleAccess rejects an empty set
+00:00 +17: G10 AccessRedirects.pending is the unauthenticated redirect when none is given
+00:00 +18: G11 resolveDeepLinks resolves a deep link with one call of the resolver, and returns any other intent itself without calling it
+00:00 +19: G12 applyAuthGuard passes an intent with no target route, and one whose target is public, for every principal
+00:00 +20: G12 an authenticated requirement passes an authenticated principal and redirects a pending one to pending and an anonymous one to unauthenticated, with the attempted intent
+00:00 +21: G12 a role requirement passes an authenticated principal holding any of its roles and redirects any other authenticated one to forbidden
+00:00 +22: G12 a custom requirement passes when its test holds and otherwise redirects by the principal: pending, unauthenticated or forbidden
+00:00 +23: G13 the reactive nav-resolver is an APPLICATION topology that resolves intents, then guards them with the latest principal and access policy, and writes nav.resolved-intent
+00:00 +24: G13 given a static policy the nav-resolver does not read nav.access-policy
+00:00 +25: G13 two nav-resolvers built from one configuration record equal definitions
+00:00 +26: G14 the live nav-resolver publishes one resolved intent per intent, in order, guarded with the latest principal and policy
+00:00 +27: G14 the live nav-resolver resolves a deep link before it guards it
+00:00 +28: G14 a nav-resolver with a static policy ignores nav.access-policy
+00:00 +29: G14 a resolved intent is published by the nav-resolver, caused by the intent's envelope and in its flow
+00:00 +30: G15 the nav-resolver reads nothing an executor writes, and with an executor constructed the live graph has no finding
+00:00 +31: G15 a topology that feeds resolved intents back into nav.intent forms a cycle with the nav-resolver and is not activated
+00:00 +32: G16 resultsFor records a withLatestFrom on the requests, a filter and a map, and nothing else
+00:00 +33: G16 resultsFor passes exactly the results that answer the latest request, matched on payloads, and drops results that arrive before any request
+00:00 +34: G17 planNavigation pushes for GoTo, pushes a modal entry for ShowModal and replaces the top for Replace
+00:00 +35: G17 planNavigation pops for Back and for DismissModal over a modal entry, and refuses Back at the root and DismissModal with no modal on top
+00:00 +36: G17 planNavigation pops to the nearest entry of a BackTo route, natively or as one pop per entry above it, does nothing when it is on top, and refuses it when it is absent
+00:00 +37: G17 planNavigation rejects an empty stack with ArgumentError and leaves the stack it is given unchanged
+00:00 +38: G25 an in-memory router starts at its initial route, pops until natively unless told not to, and confirms each perform before it returns
+00:00 +39: G25 an in-memory router records the calls of every perform it carried out, in order, and platformBack pops and confirms with Back
+00:00 +40: All tests passed!
+exit: 0
+
+### T7 behavior: the executor suite on NavigationExecutor over InMemoryRouter, both capabilities, under dart test
+00:00 +0: loading hsdd/contract/fixture/navigation-api/behavior/in_memory_router_test.dart
+00:00 +0: G18 a router's stack starts as the initial entry alone, not modal, and reflects each perform as soon as it returns
+00:00 +1: G18 a router's stack starts as the initial entry alone, not modal, and reflects each perform as soon as it returns (BackTo synthesized from pops)
+00:00 +2: G18 a router confirms each perform once, after its calls complete, with the stack they leave and the intent it was given
+00:00 +3: G18 a router confirms each perform once, after its calls complete, with the stack they leave and the intent it was given (BackTo synthesized from pops)
+00:00 +4: G18 PopUntilRoute pops to the nearest entry of its route on a router that supports it, and is refused with StateError on one that does not
+00:00 +5: G18 PopUntilRoute pops to the nearest entry of its route on a router that supports it, and is refused with StateError on one that does not (BackTo synthesized from pops)
+00:00 +6: G18 a perform with no calls, or one that would empty the stack or pop to a route not on it, throws and changes and confirms nothing
+00:00 +7: G18 a perform with no calls, or one that would empty the stack or pop to a route not on it, throws and changes and confirms nothing (BackTo synthesized from pops)
+00:00 +8: G18 a platform back pops the top entry and is confirmed once with Back; at the root it changes and confirms nothing
+00:00 +9: G18 a platform back pops the top entry and is confirmed once with Back; at the root it changes and confirms nothing (BackTo synthesized from pops)
+00:00 +10: G19 constructing an executor claims nav.current-route for ExecutorSource(name)
+00:00 +11: G19 constructing an executor claims nav.current-route for ExecutorSource(name) (BackTo synthesized from pops)
+00:00 +12: G19 a second claimant of nav.current-route is rejected: another executor or publisher throws ClaimRejected, and a topology writing it is not activated
+00:00 +13: G19 a second claimant of nav.current-route is rejected: another executor or publisher throws ClaimRejected, and a topology writing it is not activated (BackTo synthesized from pops)
+00:00 +14: G19 at construction the executor writes the router's top entry to nav.current-route, delivered at start(), and nothing to nav.history
+00:00 +15: G19 at construction the executor writes the router's top entry to nav.current-route, delivered at start(), and nothing to nav.history (BackTo synthesized from pops)
+00:00 +16: G19 in dev mode an executor constructed after start() is reported as LateExecutorConstruction, and works
+00:00 +17: G19 in dev mode an executor constructed after start() is reported as LateExecutorConstruction, and works (BackTo synthesized from pops)
+00:00 +18: G20 GoTo pushes its route with its arguments
+00:00 +19: G20 GoTo pushes its route with its arguments (BackTo synthesized from pops)
+00:00 +20: G20 Replace replaces the top entry
+00:00 +21: G20 Replace replaces the top entry (BackTo synthesized from pops)
+00:00 +22: G20 ShowModal pushes a modal entry and DismissModal pops it
+00:00 +23: G20 ShowModal pushes a modal entry and DismissModal pops it (BackTo synthesized from pops)
+00:00 +24: G20 Back pops the top entry
+00:00 +25: G20 Back pops the top entry (BackTo synthesized from pops)
+00:00 +26: G20 BackTo pops to the nearest entry of its route as one transition, whether or not the router pops until natively
+00:00 +27: G20 BackTo pops to the nearest entry of its route as one transition, whether or not the router pops until natively (BackTo synthesized from pops)
+00:00 +28: G20 BackTo the route on top changes nothing and writes nothing
+00:00 +29: G20 BackTo the route on top changes nothing and writes nothing (BackTo synthesized from pops)
+00:00 +30: G20 an intent the stack does not admit is refused: nothing navigates or is written, and dev mode reports NavigationRefused with its reason
+00:00 +31: G20 an intent the stack does not admit is refused: nothing navigates or is written, and dev mode reports NavigationRefused with its reason (BackTo synthesized from pops)
+00:00 +32: G20 resolved intents are performed in the order they are delivered
+00:00 +33: G20 resolved intents are performed in the order they are delivered (BackTo synthesized from pops)
+00:00 +34: G20 the executor acts on nav.resolved-intent only: an intent on nav.intent with no resolver active navigates nothing
+00:00 +35: G20 the executor acts on nav.resolved-intent only: an intent on nav.intent with no resolver active navigates nothing (BackTo synthesized from pops)
+00:00 +36: G21 each confirmed transition writes nav.current-route and then nav.history, with no delivery between them
+00:00 +37: G21 each confirmed transition writes nav.current-route and then nav.history, with no delivery between them (BackTo synthesized from pops)
+00:00 +38: G21 a transition runs from the previously confirmed route to the new top with the intent the router confirmed, and the history ends at nav.current-route
+00:00 +39: G21 a transition runs from the previously confirmed route to the new top with the intent the router confirmed, and the history ends at nav.current-route (BackTo synthesized from pops)
+00:00 +40: G21 transitions confirmed before the earlier ones are delivered still run each from the previous one
+00:00 +41: G21 transitions confirmed before the earlier ones are delivered still run each from the previous one (BackTo synthesized from pops)
+00:00 +42: G22 a transition is stamped with the bus clock at its confirmation
+00:00 +43: G22 a transition is stamped with the bus clock at its confirmation (BackTo synthesized from pops)
+00:00 +44: G23 dispose is idempotent, releases the claim and stops the executor: later intents and confirmations write nothing
+00:00 +45: G23 dispose is idempotent, releases the claim and stops the executor: later intents and confirmations write nothing (BackTo synthesized from pops)
+00:00 +46: G23 shutting the bus down disposes the executor
+00:00 +47: G23 shutting the bus down disposes the executor (BackTo synthesized from pops)
+00:00 +48: G24 a deep link published before start(), with the resolver activated and the executor constructed before start(), is resolved and executed once the bus starts
+00:00 +49: G24 a deep link published before start(), with the resolver activated and the executor constructed before start(), is resolved and executed once the bus starts (BackTo synthesized from pops)
+00:00 +50: G24 a deep link to a guarded route at bootstrap is guarded after it is resolved
+00:00 +51: G24 a deep link to a guarded route at bootstrap is guarded after it is resolved (BackTo synthesized from pops)
+00:00 +52: All tests passed!
+exit: 0
+
+### T8 behavior: a guarantee restriction by test-name prefix selects both registrations (--guarantee navigation-api/G20)
+00:00 +16: G20 the executor acts on nav.resolved-intent only: an intent on nav.intent with no resolver active navigates nothing
+00:00 +17: G20 the executor acts on nav.resolved-intent only: an intent on nav.intent with no resolver active navigates nothing (BackTo synthesized from pops)
+00:00 +18: All tests passed!
+exit: 0
+
+### T9 behavior: the executor suite under flutter test and testWidgets, on a stand-in Flutter router and a production-provider bus
+00:00 +0: loading /Users/mohamad.purbo/gitx/nidana-bus-dart/docs/auto-run/experiments/navigation-api-fixtures/hsdd/contract/fixture/flutter-binding/behavior/flutter_navigation_standin_test.dart
+00:00 +0: G18 a router's stack starts as the initial entry alone, not modal, and reflects each perform as soon as it returns
+00:00 +1: G18 a router confirms each perform once, after its calls complete, with the stack they leave and the intent it was given
+00:00 +2: G18 PopUntilRoute pops to the nearest entry of its route on a router that supports it, and is refused with StateError on one that does not
+00:00 +3: G18 a perform with no calls, or one that would empty the stack or pop to a route not on it, throws and changes and confirms nothing
+00:00 +4: G18 a platform back pops the top entry and is confirmed once with Back; at the root it changes and confirms nothing
+00:00 +5: G19 constructing an executor claims nav.current-route for ExecutorSource(name)
+00:00 +6: G19 a second claimant of nav.current-route is rejected: another executor or publisher throws ClaimRejected, and a topology writing it is not activated
+00:00 +7: G19 at construction the executor writes the router's top entry to nav.current-route, delivered at start(), and nothing to nav.history
+00:00 +8: G19 in dev mode an executor constructed after start() is reported as LateExecutorConstruction, and works
+00:00 +9: G20 GoTo pushes its route with its arguments
+00:00 +10: G20 Replace replaces the top entry
+00:00 +11: G20 ShowModal pushes a modal entry and DismissModal pops it
+00:00 +12: G20 Back pops the top entry
+00:00 +13: G20 BackTo pops to the nearest entry of its route as one transition, whether or not the router pops until natively
+00:00 +14: G20 BackTo the route on top changes nothing and writes nothing
+00:00 +15: G20 an intent the stack does not admit is refused: nothing navigates or is written, and dev mode reports NavigationRefused with its reason
+00:00 +16: G20 resolved intents are performed in the order they are delivered
+00:00 +17: G20 the executor acts on nav.resolved-intent only: an intent on nav.intent with no resolver active navigates nothing
+00:00 +18: G21 each confirmed transition writes nav.current-route and then nav.history, with no delivery between them
+00:00 +19: G21 a transition runs from the previously confirmed route to the new top with the intent the router confirmed, and the history ends at nav.current-route
+00:00 +20: G21 transitions confirmed before the earlier ones are delivered still run each from the previous one
+00:00 +21: G22 a transition is stamped with the bus clock at its confirmation
+00:00 +22: G23 dispose is idempotent, releases the claim and stops the executor: later intents and confirmations write nothing
+00:00 +23: G23 shutting the bus down disposes the executor
+00:00 +24: G24 a deep link published before start(), with the resolver activated and the executor constructed before start(), is resolved and executed once the bus starts
+00:00 +25: G24 a deep link to a guarded route at bootstrap is guarded after it is resolved
+00:00 +26: All tests passed!
+exit: 0
+
+### T10 the runtime change keeps bus-api@v1's two bindings and bus-testing@v1's binding passing, unchanged
+-- hsdd/contract/fixture/bus-api/behavior/nidana_dart_runtime_test.dart
+00:00 +86: All tests passed!
+exit: 0
+-- hsdd/contract/fixture/bus-api/behavior/bus_activation_test.dart
+00:00 +43: All tests passed!
+exit: 0
+-- hsdd/contract/fixture/bus-testing/behavior/nidana_dart_runtime_test.dart
+00:00 +45: All tests passed!
+exit: 0
+
+### T11 what bus-api@v1 G22 and G34 must give: the connection probe, on the changed runtime and on the S11 runtime
+-- changed runtime
+G22, published right after activate:   [41] (41 when the connection comes first)
+G34, queued, start() right after activate: [41] (41 when the connection comes first)
+G34, queued, microtasks run before start(): [41]
+-- S11 runtime, unchanged (../bus-testing-fixtures/)
+G22, published right after activate:   [] (41 when the connection comes first)
+G34, queued, start() right after activate: [] (41 when the connection comes first)
+G34, queued, microtasks run before start(): [41]
+-- the navigation suites on the S11 runtime: the cases that rest on Refinement 8
+G14 a nav-resolver with a static policy ignores nav.access-policy [E]
+Some tests failed.
+G24 a deep link published before start(), with the resolver activated and the executor constructed before start(), is resolved and executed once the bus starts (BackTo synthesized from pops) [E]
+G24 a deep link published before start(), with the resolver activated and the executor constructed before start(), is resolved and executed once the bus starts [E]
+G24 a deep link to a guarded route at bootstrap is guarded after it is resolved (BackTo synthesized from pops) [E]
+G24 a deep link to a guarded route at bootstrap is guarded after it is resolved [E]
+Some tests failed.
+-- the Flutter binding on the S11 runtime (pumpWidget runs the connection microtask before start)
+00:00 +26: All tests passed!
+restored the changed runtime
+
+### T12 probes: names a Flutter page imports, publish and constructor inference, a DeepLink where a resolved intent is expected
+flutter_names.dart 32 ERROR ambiguous_import
+patterns.dart 15 ERROR return_of_invalid_type
+widening.dart 24 ERROR could_not_infer
+widening.dart 25 ERROR could_not_infer
+widening.dart 28 ERROR argument_type_not_assignable
+widening.dart 29 ERROR argument_type_not_assignable
+patterns.dart 6 WARNING pattern_never_matches_value_type
+-- the W lines of probe/widening.dart; a line with no diagnostic above compiles (W1, W2, W5, W6)
+22:  p.publish(NavigationTopics.resolvedIntent, DeepLink(uri)); // W1
+23:  bus.publish(ints, 'one'); // W2
+24:  publishExact(NavigationTopics.resolvedIntent, DeepLink(uri)); // W3
+25:  publishExact(ints, 'one'); // W4
+26:  publishExact(NavigationTopics.resolvedIntent, detail.go(1)); // W5 (well typed)
+27:  final g = GenericGoTo(detail, 'one'); // W6
+28:  final GenericGoTo<int> h = GenericGoTo(detail, 'one'); // W6b
+29:  detail.go('one'); // W7
+
+### T13 probe at run time: a DeepLink published to nav.resolved-intent through bus-api@v1's publish
+void
+false
+publish threw _TypeError: type 'MessageEnvelope<NavIntent>' is not a subtype of type 'MessageEnvelope<ResolvedNavIntent>' of 'e'
+observer saw: []
+queued before start without error
+start delivered it
+
+### T14 the navigation suite is not vacuous: each seeded defect in the stand-in fails the cases of its guarantee
+-- route equality ignores the argument type (G5)
+G5 argsOf is the arguments of a state of the route, typed by the route, and null for a state of another route [E]
+G5 two routes are equal, with equal hash codes, exactly when their paths and argument types are equal [E]
+G7 a registry rejects one path under two argument types, and NavRoute.none, with ArgumentError [E]
+G8 route states are equal exactly when route, arguments and both parameter maps are equal, maps compared by entries [E]
+Some tests failed.
+-- argsOf ignores the state's route (G5)
+G5 argsOf is the arguments of a state of the route, typed by the route, and null for a state of another route [E]
+Some tests failed.
+-- GoTo equality ignores the arguments (G6)
+G6 intents are equal exactly when their variants and fields are equal [E]
+Some tests failed.
+-- the registry accepts one path under two argument types (G7)
+G7 a registry rejects one path under two argument types, and NavRoute.none, with ArgumentError [E]
+Some tests failed.
+-- route state equality ignores the query parameters (G8)
+G8 route states are equal exactly when route, arguments and both parameter maps are equal, maps compared by entries [E]
+Some tests failed.
+-- nav.history buffers 10 (G9)
+G9 NavigationTopics declares the five navigation topics with the names, variants, types and initial values of Guide §3.3 [E]
+Some tests failed.
+-- a policy ignores its fallback (G10)
+G10 a policy answers a listed route's requirement and its fallback for any other, PublicAccess unless given [E]
+Some tests failed.
+-- resolveDeepLinks calls the resolver twice (G11)
+G11 resolveDeepLinks resolves a deep link with one call of the resolver, and returns any other intent itself without calling it [E]
+Some tests failed.
+-- a pending principal is treated as anonymous (G12)
+G12 a custom requirement passes when its test holds and otherwise redirects by the principal: pending, unauthenticated or forbidden [E]
+G12 a role requirement passes an authenticated principal holding any of its roles and redirects any other authenticated one to forbidden [E]
+G12 an authenticated requirement passes an authenticated principal and redirects a pending one to pending and an anonymous one to unauthenticated, with the attempted intent [E]
+G14 the live nav-resolver publishes one resolved intent per intent, in order, guarded with the latest principal and policy [E]
+Some tests failed.
+-- RoleAccess requires every role (G12)
+G12 a role requirement passes an authenticated principal holding any of its roles and redirects any other authenticated one to forbidden [E]
+Some tests failed.
+-- the reactive resolver does not guard (G14)
+G14 the live nav-resolver publishes one resolved intent per intent, in order, guarded with the latest principal and policy [E]
+G14 the live nav-resolver resolves a deep link before it guards it [E]
+Some tests failed.
+-- a static policy is ignored and nav.access-policy read (G13, G14)
+G13 given a static policy the nav-resolver does not read nav.access-policy [E]
+Some tests failed.
+-- resultsFor does not filter (G16)
+G16 resultsFor passes exactly the results that answer the latest request, matched on payloads, and drops results that arrive before any request [E]
+Some tests failed.
+-- BackTo targets the bottommost entry of its route (G17, G20)
+G17 planNavigation pops to the nearest entry of a BackTo route, natively or as one pop per entry above it, does nothing when it is on top, and refuses it when it is absent [E]
+Some tests failed.
+-- Back is planned at the root (G17, G20)
+G17 planNavigation pops for Back and for DismissModal over a modal entry, and refuses Back at the root and DismissModal with no modal on top [E]
+Some tests failed.
+-- synthesized BackTo pops one entry too many (G17, G20)
+G17 planNavigation pops to the nearest entry of a BackTo route, natively or as one pop per entry above it, does nothing when it is on top, and refuses it when it is absent [E]
+Some tests failed.
+-- the in-memory router pops its last entry on a platform back (G18, G25)
+G25 an in-memory router records the calls of every perform it carried out, in order, and platformBack pops and confirms with Back [E]
+Some tests failed.
+
+### T15 the executor suite is not vacuous: each seeded defect fails the cases of its guarantee, on the VM binding
+-- a failed perform keeps the calls before the failing one (G18)
+G18 a perform with no calls, or one that would empty the stack or pop to a route not on it, throws and changes and confirms nothing (BackTo synthesized from pops) [E]
+G18 a perform with no calls, or one that would empty the stack or pop to a route not on it, throws and changes and confirms nothing [E]
+Some tests failed.
+-- a perform is confirmed twice (G18)
+G18 a router confirms each perform once, after its calls complete, with the stack they leave and the intent it was given (BackTo synthesized from pops) [E]
+G18 a router confirms each perform once, after its calls complete, with the stack they leave and the intent it was given [E]
+G20 an intent the stack does not admit is refused: nothing navigates or is written, and dev mode reports NavigationRefused with its reason (BackTo synthesized from pops) [E]
+G20 an intent the stack does not admit is refused: nothing navigates or is written, and dev mode reports NavigationRefused with its reason [E]
+G20 BackTo pops to the nearest entry of its route as one transition, whether or not the router pops until natively (BackTo synthesized from pops) [E]
+G20 BackTo pops to the nearest entry of its route as one transition, whether or not the router pops until natively [E]
+G20 BackTo the route on top changes nothing and writes nothing (BackTo synthesized from pops) [E]
+G20 BackTo the route on top changes nothing and writes nothing [E]
+G20 resolved intents are performed in the order they are delivered (BackTo synthesized from pops) [E]
+G20 resolved intents are performed in the order they are delivered [E]
+G21 a transition runs from the previously confirmed route to the new top with the intent the router confirmed, and the history ends at nav.current-route (BackTo synthesized from pops) [E]
+G21 a transition runs from the previously confirmed route to the new top with the intent the router confirmed, and the history ends at nav.current-route [E]
+G21 each confirmed transition writes nav.current-route and then nav.history, with no delivery between them (BackTo synthesized from pops) [E]
+G21 each confirmed transition writes nav.current-route and then nav.history, with no delivery between them [E]
+G21 transitions confirmed before the earlier ones are delivered still run each from the previous one (BackTo synthesized from pops) [E]
+G21 transitions confirmed before the earlier ones are delivered still run each from the previous one [E]
+G22 a transition is stamped with the bus clock at its confirmation (BackTo synthesized from pops) [E]
+G22 a transition is stamped with the bus clock at its confirmation [E]
+G23 dispose is idempotent, releases the claim and stops the executor: later intents and confirmations write nothing (BackTo synthesized from pops) [E]
+G23 dispose is idempotent, releases the claim and stops the executor: later intents and confirmations write nothing [E]
+G24 a deep link published before start(), with the resolver activated and the executor constructed before start(), is resolved and executed once the bus starts (BackTo synthesized from pops) [E]
+G24 a deep link published before start(), with the resolver activated and the executor constructed before start(), is resolved and executed once the bus starts [E]
+Some tests failed.
+-- the executor's source ignores its name (G19)
+G19 constructing an executor claims nav.current-route for ExecutorSource(name) (BackTo synthesized from pops) [E]
+G19 constructing an executor claims nav.current-route for ExecutorSource(name) [E]
+G19 in dev mode an executor constructed after start() is reported as LateExecutorConstruction, and works (BackTo synthesized from pops) [E]
+G19 in dev mode an executor constructed after start() is reported as LateExecutorConstruction, and works [E]
+Some tests failed.
+-- the executor does not write the initial route (G19)
+G19 at construction the executor writes the router's top entry to nav.current-route, delivered at start(), and nothing to nav.history (BackTo synthesized from pops) [E]
+G19 at construction the executor writes the router's top entry to nav.current-route, delivered at start(), and nothing to nav.history [E]
+G19 in dev mode an executor constructed after start() is reported as LateExecutorConstruction, and works (BackTo synthesized from pops) [E]
+G19 in dev mode an executor constructed after start() is reported as LateExecutorConstruction, and works [E]
+G21 each confirmed transition writes nav.current-route and then nav.history, with no delivery between them (BackTo synthesized from pops) [E]
+G21 each confirmed transition writes nav.current-route and then nav.history, with no delivery between them [E]
+G23 dispose is idempotent, releases the claim and stops the executor: later intents and confirmations write nothing (BackTo synthesized from pops) [E]
+G23 dispose is idempotent, releases the claim and stops the executor: later intents and confirmations write nothing [E]
+Some tests failed.
+-- late construction is not reported (G19)
+G19 in dev mode an executor constructed after start() is reported as LateExecutorConstruction, and works (BackTo synthesized from pops) [E]
+G19 in dev mode an executor constructed after start() is reported as LateExecutorConstruction, and works [E]
+Some tests failed.
+-- refusals are not reported (G20)
+G20 an intent the stack does not admit is refused: nothing navigates or is written, and dev mode reports NavigationRefused with its reason (BackTo synthesized from pops) [E]
+G20 an intent the stack does not admit is refused: nothing navigates or is written, and dev mode reports NavigationRefused with its reason [E]
+Some tests failed.
+-- the executor also performs intents from nav.intent (G20)
+G20 the executor acts on nav.resolved-intent only: an intent on nav.intent with no resolver active navigates nothing (BackTo synthesized from pops) [E]
+G20 the executor acts on nav.resolved-intent only: an intent on nav.intent with no resolver active navigates nothing [E]
+Some tests failed.
+-- history is written before the route (G21)
+G21 each confirmed transition writes nav.current-route and then nav.history, with no delivery between them (BackTo synthesized from pops) [E]
+G21 each confirmed transition writes nav.current-route and then nav.history, with no delivery between them [E]
+Some tests failed.
+-- a transition starts from the delivered current value (G21)
+G21 transitions confirmed before the earlier ones are delivered still run each from the previous one (BackTo synthesized from pops) [E]
+G21 transitions confirmed before the earlier ones are delivered still run each from the previous one [E]
+Some tests failed.
+-- a transition is stamped with the wall clock (G22)
+G22 a transition is stamped with the bus clock at its confirmation (BackTo synthesized from pops) [E]
+G22 a transition is stamped with the bus clock at its confirmation [E]
+Some tests failed.
+-- dispose keeps the claim (G23)
+G23 dispose is idempotent, releases the claim and stops the executor: later intents and confirmations write nothing (BackTo synthesized from pops) [E]
+G23 dispose is idempotent, releases the claim and stops the executor: later intents and confirmations write nothing [E]
+Some tests failed.
+-- dispose is not registered with onShutdown (G23)
+G23 shutting the bus down disposes the executor (BackTo synthesized from pops) [E]
+G23 shutting the bus down disposes the executor [E]
+Some tests failed.
+-- a deep link is dropped by the resolver (G24)
+G24 a deep link published before start(), with the resolver activated and the executor constructed before start(), is resolved and executed once the bus starts (BackTo synthesized from pops) [E]
+G24 a deep link published before start(), with the resolver activated and the executor constructed before start(), is resolved and executed once the bus starts [E]
+G24 a deep link to a guarded route at bootstrap is guarded after it is resolved (BackTo synthesized from pops) [E]
+G24 a deep link to a guarded route at bootstrap is guarded after it is resolved [E]
+Some tests failed.
+
+### T16 the executor suite is not vacuous under testWidgets: defects in the stand-in Flutter router and in the executor
+-- the Flutter router confirms the pops of its own performs as platform backs (G18, G20)
+G20 BackTo pops to the nearest entry of its route as one transition, whether or not the router pops until natively [E]
+G20 resolved intents are performed in the order they are delivered [E]
+G21 a transition runs from the previously confirmed route to the new top with the intent the router confirmed, and the history ends at nav.current-route [E]
+G21 each confirmed transition writes nav.current-route and then nav.history, with no delivery between them [E]
+G21 transitions confirmed before the earlier ones are delivered still run each from the previous one [E]
+Some tests failed.
+-- the Flutter router does not confirm a platform back (G18, G21)
+G18 a platform back pops the top entry and is confirmed once with Back; at the root it changes and confirms nothing [E]
+G21 a transition runs from the previously confirmed route to the new top with the intent the router confirmed, and the history ends at nav.current-route [E]
+G21 each confirmed transition writes nav.current-route and then nav.history, with no delivery between them [E]
+Some tests failed.
+-- a transition is stamped with the wall clock (G22)
+G22 a transition is stamped with the bus clock at its confirmation [E]
+Some tests failed.
+
+### cleanup: remove the copied tree; the repository's hsdd/contract/ stays the only copy
+removed
