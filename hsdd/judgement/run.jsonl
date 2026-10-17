@@ -1,2 +1,3 @@
 {"step_ref":"S00","skill":"none","target":"inputs","started":"2026-10-17T11:50:00Z","finished":"2026-10-17T12:01:00Z","commit":"b3e5c86","dispatches":0,"note":"orchestrator step"}
 {"step_ref":"S01","skill":"none","target":"execution plan","started":"2026-10-17T12:01:00Z","finished":"2026-10-17T12:05:00Z","commit":"d392999","dispatches":0,"note":"orchestrator step"}
+{"step_ref":"S02","skill":"hsdd-spec","target":"nidana (root)","started":"2026-10-17T12:03:53Z","finished":"2026-10-17T12:41:00Z","commit":"f127e15","dispatches":1}

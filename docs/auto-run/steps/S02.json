@@ -1,0 +1,990 @@
+{
+  "step_ref": "S02",
+  "skill": "hsdd-spec",
+  "target": "nidana (root)",
+  "status": "completed",
+  "stop": null,
+  "artifacts": [
+    "hsdd/spec/nidana.md",
+    "hsdd/spec/nidana.model.md",
+    "hsdd/spec/nidana.runtime.md",
+    "hsdd/spec/nidana.navigation.md",
+    "hsdd/spec/nidana.flutter.md",
+    "hsdd/spec/nidana.tooling.md",
+    "hsdd/spec/nidana.integration.md",
+    "hsdd/conventions.md"
+  ],
+  "decisions": [
+    {
+      "at": "2026-10-17T12:24:55Z",
+      "artifact": "hsdd/spec/nidana.md",
+      "question": "What are the root node's id and name?",
+      "options": [
+        {
+          "label": "nidana",
+          "consequence": "Shortest prefix for every dotted node id (nidana.runtime); the platform is already in the repository and package names."
+        },
+        {
+          "label": "nidana-bus",
+          "consequence": "Closer to the product's full name; every node id gets four more characters."
+        },
+        {
+          "label": "nidana-bus-dart",
+          "consequence": "Matches the repository name; repeats the platform in every node id."
+        }
+      ],
+      "chosen": "nidana",
+      "why": "Node ids are dotted paths from the root, so the root slug prefixes every id in the tree, every phase id and every OQ heading context. The repository name and the package names (nidana_dart_*) already carry the platform. No evidence beyond naming economy; the name is 'Nidana Bus for Dart and Flutter'.",
+      "evidence": [],
+      "blast_radius": "tree",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T12:24:55Z",
+      "artifact": "hsdd/spec/nidana.md",
+      "question": "hsdd-spec asks \"who builds what?\" before choosing an axis. The owner's facts answer it (Purbo alone with coding agents, one team, one repository). How does that answer shape the decomposition axis?",
+      "options": [
+        {
+          "label": "Capability slices along package boundaries",
+          "consequence": "One owner holds the whole stack, so HSDD allows capability slices; slicing along published packages (the deploy targets) keeps each node one package and one contract surface."
+        },
+        {
+          "label": "Guide Appendix B layers one to one",
+          "consequence": "One node per Guide B.2 package, including layers 2 and 3 that are not a real boundary on Dart and a test-utilities package that cannot be tested apart from the runtime."
+        },
+        {
+          "label": "Stack split between pure Dart and Flutter",
+          "consequence": "Implies separate owners for the VM packages and the Flutter adapter, which the owner's facts deny; adds a Team field nobody uses."
+        }
+      ],
+      "chosen": "Capability slices along package boundaries",
+      "why": "The owner's facts state the team structure, so the axis question needed no stop. HSDD's axis rule (methodology spec §2.5) says vertical capability slices are correct when one owner holds the stack. Package boundaries are this tree's deploy targets and coincide with the Guide's library layers where a layer is a real dependency boundary on Dart; layers 2 and 3 are not, because RxDart is the only Dart engine (Guide §6.1).",
+      "evidence": [
+        "owner's facts (step preamble)",
+        "~/git/hsdd/spec/hsdd-spec-v0_10.md §2.5",
+        "Guide §6.1",
+        "Guide Appendix B.1"
+      ],
+      "blast_radius": "tree",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T12:24:55Z",
+      "artifact": "hsdd/spec/nidana.md",
+      "question": "Who are the package consumers?",
+      "options": [
+        {
+          "label": "App teams, their CI, pure Dart modules and the tree itself",
+          "consequence": "Contracts and runtime stay usable without Flutter, so topology modules and VM tests depend on pure packages; the tooling has its own consumers (builds and CI)."
+        },
+        {
+          "label": "Flutter app developers only",
+          "consequence": "Simpler story, but nothing forces the contracts package to stay pure, and topology modules would be free to pull Flutter in."
+        }
+      ],
+      "chosen": "App teams, their CI, pure Dart modules and the tree itself",
+      "why": "The Specification makes topology definitions and transformers pure (Spec §5.3) and runs one bus per test (Spec §3.1), which only pays off if pure Dart code can depend on the contracts and runtime without Flutter. Build and CI consumers follow from the Spec's CI layers (Spec §3.11, §4.3, §4.5). GoTo Financial app teams as the first adopters is an assumption from the owner's context; if the first release is public pub.dev instead, only the publishing item changes.",
+      "evidence": [
+        "Spec §5.3",
+        "Spec §3.1",
+        "Spec §3.11",
+        "Spec §4.5",
+        "Rationale §7.6"
+      ],
+      "blast_radius": "contract",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T12:24:59Z",
+      "artifact": "hsdd/spec/nidana.md",
+      "question": "Does navigation (Guide Appendix B layer 4, Guide §3) ship in v1?",
+      "options": [
+        {
+          "label": "Navigation in v1, executor in the Flutter adapter",
+          "consequence": "Adds nidana.navigation and navigation-api@v1; the Flutter adapter ships FlutterNavigationExecutor as Spec Appendix A.8 says."
+        },
+        {
+          "label": "Navigation deferred",
+          "consequence": "One node and one contract fewer; the Flutter adapter ships without the executor Spec Appendix A.8 attributes to it, and the deep-link bootstrap of Spec §3.13 has no reference implementation."
+        }
+      ],
+      "chosen": "Navigation in v1, executor in the Flutter adapter",
+      "why": "The two options produce different nodes, so this was checked against the tree-shape stop rule: the Specification gives inclusion a stated reason (Spec Appendix A.8 puts FlutterNavigationExecutor in nidana-runtime-flutter; Appendix A.6 defines the navigation vocabulary), and Guide B.4 draws the UI adapter on top of the navigation layer. Guide §3.7 calls navigation optional for apps, which D7 honors as opt-in by use. Signal that would have changed my mind: the owner saying the first adopting app keeps its own router-driven navigation.",
+      "evidence": [
+        "Spec Appendix A.6",
+        "Spec Appendix A.8",
+        "Spec §3.11",
+        "Spec §3.13",
+        "Guide §3",
+        "Guide §3.7",
+        "Guide Appendix B.1",
+        "Guide Appendix B.4"
+      ],
+      "blast_radius": "tree",
+      "confidence": "medium",
+      "would_have_asked": true,
+      "stop_class": "shape",
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T12:24:59Z",
+      "artifact": "hsdd/spec/nidana.md",
+      "question": "Does persistence (Guide Appendix B layer 5) ship in v1?",
+      "options": [
+        {
+          "label": "Defer persistence",
+          "consequence": "No persistence node; the hydration pattern of Spec §2.5 still works through events and reducers; persisted topics wait for a later release."
+        },
+        {
+          "label": "Include a persistence package",
+          "consequence": "Adds a node whose design the Guide records as open (per-topic syntax, backend, migration, secure storage, hydration timing all open in Guide §10.5)."
+        }
+      ],
+      "chosen": "Defer persistence",
+      "why": "Guide §10.5 lists every persistence question as open and says the package is in design; the Specification only constrains persistence that exists (Spec §9.2 item 3). Building it would mean deciding five open reference-architecture questions with no adopting app to test them. Signal that would bring it in: an owner-named v1 app that needs topic persistence.",
+      "evidence": [
+        "Guide §10.5",
+        "Guide Appendix B.1",
+        "Spec §9.2",
+        "Spec §2.5",
+        "Guide §1.4"
+      ],
+      "blast_radius": "tree",
+      "confidence": "high",
+      "would_have_asked": true,
+      "stop_class": "shape",
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T12:24:59Z",
+      "artifact": "hsdd/spec/nidana.md",
+      "question": "Which Layer 7 tools ship in v1?",
+      "options": [
+        {
+          "label": "Guide's planned-v1 tools",
+          "consequence": "Codegen, topic catalog, graph emission, the v1 checks and the build-time graph ship; v2 checks, runtime devtools and the perf suite wait."
+        },
+        {
+          "label": "No tooling in v1",
+          "consequence": "A much smaller v1, but the Specification's CI layers (single-writer layer 2, CI name uniqueness, cycle and scope lints) would be missing although the Spec calls CI validation mandatory."
+        },
+        {
+          "label": "All of Appendix C, v2 included",
+          "consequence": "Adds sequencer, orphan and purity analyses and runtime devtools the Guide itself schedules after v1."
+        }
+      ],
+      "chosen": "Guide's planned-v1 tools",
+      "why": "Spec §4.3 calls CI validation of topic names mandatory and Spec §3.11 enforces single-writer in two layers, one of them a CI scan; Guide Appendix C marks the codegen, the single-writer, scope and raw-string lints, the build-time visualizer and the TestBus recorder as planned v1. Following the Guide's own plan is the choice with a stated reason; the v2 items have one too (the Guide schedules them later).",
+      "evidence": [
+        "Spec §3.8",
+        "Spec §3.11",
+        "Spec §4.3",
+        "Spec §4.5",
+        "Spec §7.2",
+        "Spec §9.2",
+        "Guide Appendix C.1",
+        "Guide Appendix C.2",
+        "Guide Appendix C.4",
+        "Guide Appendix C.5"
+      ],
+      "blast_radius": "tree",
+      "confidence": "high",
+      "would_have_asked": true,
+      "stop_class": "shape",
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T12:24:59Z",
+      "artifact": "hsdd/spec/nidana.md",
+      "question": "Guide Appendix C.4 plans an OpenTelemetry exporter for v1. What ships?",
+      "options": [
+        {
+          "label": "SDK-neutral telemetry observer, SDK binding deferred",
+          "consequence": "v1 ships the Guide §8.2 mapping as a BusObserver writing to ObserveContext.span; apps bind the span sink to any backend; no third-party SDK dependency."
+        },
+        {
+          "label": "Bind a concrete OpenTelemetry SDK in v1",
+          "consequence": "A ready exporter, but tied to a pre-1.0 Dart SDK whose ecosystem is being renamed."
+        },
+        {
+          "label": "Defer telemetry entirely",
+          "consequence": "Nothing to maintain, but the Guide's planned-v1 item is dropped although the mapping is cheap."
+        }
+      ],
+      "chosen": "SDK-neutral telemetry observer, SDK binding deferred",
+      "why": "pub.dev on 2026-10-17: package opentelemetry 0.18.11+1 is deprecated and re-exports opentelemetry_wk; dartastic_opentelemetry is at 0.12.0; opentelemetry_api last published 2022 for Dart 2. The observer seam (Spec §3.7) makes a binding an add-on, so the stable part, the mapping, ships now. Signal: the owner names a telemetry backend.",
+      "evidence": [
+        "Guide §8.2",
+        "Guide Appendix C.4",
+        "Spec §3.7",
+        "https://pub.dev/api/packages/opentelemetry",
+        "https://pub.dev/api/packages/dartastic_opentelemetry"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T12:24:59Z",
+      "artifact": "hsdd/spec/nidana.md",
+      "question": "Spec §6.3 states a CI lint that warns when a service exposes a stream factory and also publishes; Guide Appendix C has no row for it. Is it in v1?",
+      "options": [
+        {
+          "label": "Defer it and report upstream",
+          "consequence": "v1 checks match Appendix C; the gap between the Spec's sentence and the tooling plan is recorded for upstreaming."
+        },
+        {
+          "label": "Include it in the v1 checks",
+          "consequence": "Closes the gap now, but adds an analysis the Guide never scoped and that needs cross-library data-flow knowledge."
+        }
+      ],
+      "chosen": "Defer it and report upstream",
+      "why": "Every other lint the Specification mentions has an Appendix C status; this one has none, so the Guide's plan gives no v1 reason. The Spec text reads as a description of tooling rather than a rule on the bus. Signal: a service in the example app that combines both and hides a data flow.",
+      "evidence": [
+        "Spec §6.3",
+        "Guide Appendix C.1",
+        "Guide Appendix C.2"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": true
+    },
+    {
+      "at": "2026-10-17T12:27:52Z",
+      "artifact": "hsdd/spec/nidana.md",
+      "question": "What is the root's child set, and what kind is each child?",
+      "options": [
+        {
+          "label": "Six children: model, runtime, navigation, flutter, tooling, integration",
+          "consequence": "Pure core, runtime and tooling internal where they span mechanisms, navigation and Flutter as leaf-parents, one integration node."
+        },
+        {
+          "label": "One node per Guide B.2 package",
+          "consequence": "Ten or more nodes, including an RxDart adapter split from a runtime that has one engine and a test-utilities package that cannot be tested apart from the runtime."
+        },
+        {
+          "label": "Contracts folded into the runtime",
+          "consequence": "Five children; topology modules would depend on the RxDart runtime and the pure core would disappear as a unit."
+        }
+      ],
+      "chosen": "Six children: model, runtime, navigation, flutter, tooling, integration",
+      "why": "Guide Appendix B separates contracts, runtime, navigation, UI adapter and tooling as layers with their own dependents; Guide B.1 groups codegen, lint and devtools as one tooling layer, which is the stated reason for one internal tooling node rather than two root children. nidana.runtime and nidana.tooling each span several mechanisms (D4) and will not fit one phase plan; the leaf-parents each hold one scope one owner can keep in mind. Signal that would change the grouping: a second team taking the tooling.",
+      "evidence": [
+        "Guide Appendix B.1",
+        "Guide Appendix B.2",
+        "Guide Appendix B.4",
+        "Spec §5.3",
+        ".agents/skills/hsdd-spec/SKILL.md (Stop recursing; Integration nodes)"
+      ],
+      "blast_radius": "tree",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T12:27:52Z",
+      "artifact": "hsdd/spec/nidana.md",
+      "question": "Where do TestBus, the virtual scheduler and the envelope recorder live: in the runtime, or in a separate test-utilities node and package?",
+      "options": [
+        {
+          "label": "Inside nidana.runtime, as its testing.dart library",
+          "consequence": "One node owns the bus and its test configuration; the runtime's own tests use the virtual scheduler; no package:test dependency in the runtime."
+        },
+        {
+          "label": "Separate nidana.testkit node and nidana_dart_test_utils package",
+          "consequence": "Matches the package name Guide §6.5 and §10.1 use, but the runtime's tests need the virtual scheduler and the testkit needs the runtime, so neither can be tested alone."
+        }
+      ],
+      "chosen": "Inside nidana.runtime, as its testing.dart library",
+      "why": "The Specification defines TestBus as a bus constructed with a VirtualSchedulerProvider (Spec §3.6, Appendix A.7), and hsdd-spec says to merge two nodes that cannot be tested independently. The Guide's nidana-test-utils maps to the runtime's testing.dart (ADR-002 item 3). Signal: an app-facing matcher library on package:test, which would justify a separate package later.",
+      "evidence": [
+        "Spec §3.6",
+        "Spec Appendix A.7",
+        "Guide §6.5",
+        "Guide §10.1",
+        ".agents/skills/hsdd-spec/SKILL.md (merge when two nodes cannot be tested independently)"
+      ],
+      "blast_radius": "tree",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T12:27:52Z",
+      "artifact": "hsdd/spec/nidana.md",
+      "question": "Does the contracts package hold only data types, or also the DSL interface, the recording builder and the IR analyses?",
+      "options": [
+        {
+          "label": "Contracts package holds DSL interface, recorder and pure analyses",
+          "consequence": "Topology modules depend on a pure package; activation-time and CI checks run the same functions; tooling needs no runtime."
+        },
+        {
+          "label": "Data types only; DSL and analyses in the runtime",
+          "consequence": "Matches a narrow reading of Guide B.1 layer 1, but topology modules and the tooling then depend on RxDart (Guide B.4 draws tooling on layer 3), and the same cycle and scope rules risk two implementations."
+        }
+      ],
+      "chosen": "Contracts package holds DSL interface, recorder and pure analyses",
+      "why": "Guide B.1 lists Topology in layer 1; Spec §6.5 makes the recorder and the IR pure; Spec §3.8 and §7.2 run the same checks at activation and in CI. The owner's functional-first preference (pure core, imperative shell) points the same way. Guide B.4's tooling-on-layer-3 edge is not followed: tooling never runs a bus.",
+      "evidence": [
+        "Guide Appendix B.1",
+        "Guide Appendix B.4",
+        "Spec §6.5",
+        "Spec §3.8",
+        "Spec §7.2",
+        "Spec §5.3",
+        "owner's engineering preferences"
+      ],
+      "blast_radius": "contract",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T12:27:52Z",
+      "artifact": "hsdd/spec/nidana.md",
+      "question": "Do the root's children need an integration node?",
+      "options": [
+        {
+          "label": "Add nidana.integration",
+          "consequence": "A leaf-parent with hard edges to every producer replays fixtures live and runs end-to-end slices; scheduled last by the DAG."
+        },
+        {
+          "label": "No integration node",
+          "consequence": "Each consumer's last phase composes what it consumes; nothing exercises the full stack, the example app and the CI checks together."
+        }
+      ],
+      "chosen": "Add nidana.integration",
+      "why": "hsdd-spec's integration-node rule: when an internal node's children exchange contracts, add a child leaf-parent named {node}.integration with hard edges to each producing sibling. The root's children exchange nine contracts.",
+      "evidence": [
+        ".agents/skills/hsdd-spec/SKILL.md (Integration nodes)",
+        "~/git/hsdd/spec/hsdd-spec-v0_10.md §3.7"
+      ],
+      "blast_radius": "tree",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T12:27:52Z",
+      "artifact": "hsdd/spec/nidana.md",
+      "question": "Which contracts sit on the root's edges?",
+      "options": [
+        {
+          "label": "Nine contracts",
+          "consequence": "topic-model, topology-dsl, topology-ir, bus-api, bus-testing, navigation-api, flutter-binding, topic-codegen, nidana-checks: one per distinct surface and validation kind."
+        },
+        {
+          "label": "One contract per package",
+          "consequence": "Six coarser contracts; a package's value types, DSL and serialized IR would share one validation format although ADR-001 validates them differently."
+        },
+        {
+          "label": "Finer split",
+          "consequence": "Eleven or more: separate contracts for the topics.yaml schema, the generated tree, the CLI and the analyzer diagnostics; more hsdd-contract steps for one consumer, the integration node."
+        }
+      ],
+      "chosen": "Nine contracts",
+      "why": "Each contract groups what one consumer set uses and one ADR-001 validation format can pin: value types (shared-model), the DSL and bus surfaces (api), the testing surface (api, separate consumers), the generated file layout (file), the CI-facing checks (cli). The tooling's input format and output tree share one file contract because the integration node and app builds consume them together. No external evidence; judgement on the consumer sets.",
+      "evidence": [
+        ".agents/skills/hsdd-contract/SKILL.md (kinds)",
+        "Guide Appendix C.3"
+      ],
+      "blast_radius": "contract",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T12:27:52Z",
+      "artifact": "hsdd/spec/nidana.md",
+      "question": "What do contract and shared-model edges mean between Dart packages, where a consumer cannot compile without the producer's declarations?",
+      "options": [
+        {
+          "label": "Start after the producer's first phase",
+          "consequence": "Under fp-progression the first phase lands the contract's types and signatures; consumers start then, keeping the DAG's parallel lanes."
+        },
+        {
+          "label": "Type every Dart package dependency as hard",
+          "consequence": "Honest about compilation, but every consumer waits for its producer's whole node and the lanes collapse into a chain."
+        }
+      ],
+      "chosen": "Start after the producer's first phase",
+      "why": "HSDD's contract edge means the consumer builds against the interface once it is stable (methodology spec §3.2); for Dart packages the interface is the producer's declarations, which the first phase lands under fp-progression. Hard edges stay where a consumer's tests need real behavior (runtime to Flutter, runtime testing surface to navigation).",
+      "evidence": [
+        "~/git/hsdd/spec/hsdd-spec-v0_10.md §3.2",
+        "~/git/hsdd/spec/hsdd-spec-v0_10.md §7.4"
+      ],
+      "blast_radius": "tree",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T12:31:12Z",
+      "artifact": "hsdd/spec/nidana.md",
+      "question": "What does executable validation (hsdd-contract's schema or fixtures) mean for this tree's contracts, most of which are Dart API surfaces? Proposed as ADR-001.",
+      "options": [
+        {
+          "label": "Compile, reject and conformance fixtures for Dart surfaces; JSON Schema for data",
+          "consequence": "Positive compile fixtures pin signatures, negative ones pin type-level guarantees, package:test conformance libraries pin behavior and also validate implementations of interface contracts; data formats use JSON Schema; one replay tool runs them."
+        },
+        {
+          "label": "Language-neutral scenario fixtures",
+          "consequence": "JSON scenarios run by an interpreter; answers Guide §10.1's cross-platform parity, but needs a scenario vocabulary and interpreter before any gate runs and cannot express type-level guarantees."
+        },
+        {
+          "label": "Public API snapshot diff",
+          "consequence": "Pins signatures cheaply; pins no behavior and no type-level misuse."
+        }
+      ],
+      "chosen": "Compile, reject and conformance fixtures for Dart surfaces; JSON Schema for data",
+      "why": "The decision spans every contract and every producing gate, so it is cross-cutting and proposed as ADR-001. Many Specification guarantees are type-level (Spec §2.5, §3.7, §6.1 say a misuse does not compile) and the rest are behavioral (Spec §3). The experiment shows Dart files under the workspace root, outside every member, analyze and test against member packages, and that dart analyze --format=machine reports the code a reject fixture expects. Signal that would favor scenario fixtures: a second platform port starting within v1.",
+      "evidence": [
+        "docs/auto-run/experiments/sdk-workspace/",
+        "~/git/hsdd/spec/hsdd-spec-v0_10.md §3.4",
+        "Spec §2.5",
+        "Spec §3.7",
+        "Spec §6.1",
+        "Guide §10.1"
+      ],
+      "blast_radius": "tree",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T12:31:12Z",
+      "artifact": "hsdd/spec/nidana.md",
+      "question": "What package set and workspace layout does the tree use? Proposed as ADR-002.",
+      "options": [
+        {
+          "label": "Pub workspace at the repository root, Guide B.2 names, runtime layers in one package",
+          "consequence": "One resolution and lockfile; members under packages/; contracts, runtime (layers 2 and 3), navigation, Flutter adapter, codegen, lint, a replay tool and the integration app; no rxdart-adapter, persistence, perf-suite, devtools or test-utilities package in v1."
+        },
+        {
+          "label": "Guide B.2 exactly",
+          "consequence": "Separate nidana_dart_runtime_rxdart and nidana_dart_test_utils, navigation types in contracts: an engine abstraction with one implementation and a package that cannot be tested apart from the runtime."
+        },
+        {
+          "label": "Separate resolutions per package",
+          "consequence": "Melos-style independence; contradicts the committed root lockfile and the no-melos note .gitignore already records."
+        }
+      ],
+      "chosen": "Pub workspace at the repository root, Guide B.2 names, runtime layers in one package",
+      "why": ".gitignore already records a pub workspace (root lockfile committed, non-member examples, no melos overrides). Experiments show a workspace resolving, analyzing and testing on the pinned SDK with pure Dart and Flutter members together, and contract fixtures resolving through the root (ADR-001 needs this). Guide B.2 names are kept for traceability where a package keeps its layer's role; the omissions in B.2 (no test-utilities or telemetry package although Guide §6.5, §10.1 and C.4 name them) are reported upstream. Signal that would split the runtime: a v1 requirement for a second engine such as plain dart:async streams.",
+      "evidence": [
+        ".gitignore",
+        ".fvmrc",
+        "docs/auto-run/experiments/sdk-workspace/",
+        "docs/auto-run/experiments/workspace-flutter-member/",
+        "Guide Appendix B.2",
+        "Guide Appendix B.4",
+        "Guide §6.1",
+        "Guide §6.5",
+        "Guide §10.1"
+      ],
+      "blast_radius": "tree",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": true
+    },
+    {
+      "at": "2026-10-17T12:31:12Z",
+      "artifact": "hsdd/spec/nidana.md",
+      "question": "Which static-analysis mechanism carries the v1 checks: custom_lint, which Spec §3.11 and Guide C.2 name, or the Dart 3.10 analysis server plugin API? Recorded in ADR-002 item 5.",
+      "options": [
+        {
+          "label": "Analysis server plugin, no custom_lint in the workspace",
+          "consequence": "Rules run inside dart analyze and the IDE on the SDK's own analyzer (14.5.0); the workspace's single resolution stays current."
+        },
+        {
+          "label": "custom_lint as the Specification names it",
+          "consequence": "Matches the text, but custom_lint 0.8.1 resolves only with analyzer 8.4.0 and drags the whole workspace's resolution (build, source_gen, analysis_server_plugin) back with it."
+        },
+        {
+          "label": "custom_lint in a non-member package",
+          "consequence": "Keeps the workspace current, but the lint package then resolves apart from everything it checks and from the codegen it shares analyzer code with."
+        }
+      ],
+      "chosen": "Analysis server plugin, no custom_lint in the workspace",
+      "why": "Both mechanisms ran the same rule on the pinned SDK, so feasibility did not decide it; resolution did. One workspace has one resolution, and with custom_lint in it the analyzer is 8.4.0 instead of 14.5.0. The plugin API is the SDK's supported path since Dart 3.10. Reported upstream: Spec §3.11 and Guide C.2 name custom_lint.",
+      "evidence": [
+        "docs/auto-run/experiments/lint-mechanism/output-plugin.txt",
+        "docs/auto-run/experiments/lint-mechanism/output-custom-lint.txt",
+        "docs/auto-run/experiments/lint-mechanism/output-cohabit.txt",
+        "docs/auto-run/experiments/lint-mechanism/output-resolution.txt",
+        "Spec §3.11",
+        "Guide Appendix C.2"
+      ],
+      "blast_radius": "tree",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": true
+    },
+    {
+      "at": "2026-10-17T12:31:12Z",
+      "artifact": "hsdd/spec/nidana.md",
+      "question": "How do Spec §3.6's SchedulerProvider and VirtualScheduler map onto Dart, where RxDart's time operators take no scheduler? Proposed as ADR-003.",
+      "options": [
+        {
+          "label": "Zone plus clock provider, own VirtualScheduler",
+          "consequence": "The bus subscribes inside the provider's zone, so RxDart's own operators honor virtual time; production forks Zone.current; TestBus is synchronous; widget tests use tester.pump."
+        },
+        {
+          "label": "Reimplement time combinators against a scheduler interface",
+          "consequence": "No zones, but the bus implements stream combinators, which Spec §2.3 says it does not, and duplicates RxDart."
+        },
+        {
+          "label": "Rely on fake_async in tests only",
+          "consequence": "Least code, but fails whenever a bus is constructed or activated outside the fake zone, and SchedulerProvider gets no Dart meaning."
+        }
+      ],
+      "chosen": "Zone plus clock provider, own VirtualScheduler",
+      "why": "Experiments: fake_async controls RxDart timers only when the subscription was made inside its zone; DateTime.now() is not virtualized while clock.now() is; nested fake zones keep separate clocks; a bus-owned zone controls debounceTime, throttleTime and delay and captures the replay microtask and the Spec §3.4 deferral; under testWidgets a pass-through zone lets tester.pump drive the bus. RxDart 0.28.0 defines no scheduler type, although Guide §6.5 names an EventLoopScheduler for Dart: reported upstream. Rationale §3.2 makes full determinism under TestBus a stated property.",
+      "evidence": [
+        "docs/auto-run/experiments/time-source/",
+        "docs/auto-run/experiments/time-source-flutter/",
+        "docs/auto-run/experiments/time-source/output-rxdart-schedulers.txt",
+        "Spec §2.3",
+        "Spec §3.6",
+        "Guide §6.5",
+        "Guide §10.1",
+        "Rationale §3.2"
+      ],
+      "blast_radius": "tree",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": true
+    },
+    {
+      "at": "2026-10-17T12:31:12Z",
+      "artifact": "hsdd/spec/nidana.md",
+      "question": "Guide §6.3's Dart example composes topology bodies with RxDart's Streams.combineLatest2 on read handles. Does the Dart DSL allow that?",
+      "options": [
+        {
+          "label": "Wrap every combinator in the model's DSL",
+          "consequence": "The recorder captures every edge and the runtime threads envelopes; raw RxDart only through the Spec §3.5 escape hatch."
+        },
+        {
+          "label": "Allow raw RxDart on read handles as the Guide shows",
+          "consequence": "Familiar Rx code, but the recording builder cannot capture it (Spec §6.5) and the bus cannot thread envelopes through it (Spec §3.5)."
+        }
+      ],
+      "chosen": "Wrap every combinator in the model's DSL",
+      "why": "The Specification wins over the informative Guide: Spec §6.5 needs every combinator recorded and Spec §3.5 needs every stage to build the output envelope. Reported upstream: Guide §6.3 and the Combine row of Guide B.3 should show the wrapped form.",
+      "evidence": [
+        "Spec §3.5",
+        "Spec §6.1",
+        "Spec §6.5",
+        "Guide §6.3",
+        "Guide Appendix B.3"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": true
+    },
+    {
+      "at": "2026-10-17T12:31:12Z",
+      "artifact": "hsdd/spec/nidana.md",
+      "question": "Where do the navigation types (NavIntent, RouteState, NavigationTopics) live: in the contracts package as Guide B.1 lists them, or in the navigation package?",
+      "options": [
+        {
+          "label": "Navigation package, with the Flutter adapter depending on it",
+          "consequence": "The contracts package carries nothing navigation-specific; navigation is opt-in by use; the Flutter adapter ships the executor as Spec Appendix A.8 says."
+        },
+        {
+          "label": "Contracts package as Guide B.1 lists",
+          "consequence": "Every app carries navigation types whether or not it navigates through the bus, contradicting Guide §3.7's opt-in package."
+        }
+      ],
+      "chosen": "Navigation package, with the Flutter adapter depending on it",
+      "why": "Guide §3.3 says the navigation topics are published by the navigation package and Guide §3.7 makes that package optional; Guide B.4 draws layer 6 on layer 4 and Spec Appendix A.8 puts FlutterNavigationExecutor in the Flutter adapter. Reported upstream: Guide B.1 lists the navigation ADTs in layer 1, inconsistent with §3.7.",
+      "evidence": [
+        "Guide §3.3",
+        "Guide §3.7",
+        "Guide Appendix B.1",
+        "Guide Appendix B.4",
+        "Spec Appendix A.8"
+      ],
+      "blast_radius": "contract",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": true
+    },
+    {
+      "at": "2026-10-17T12:31:12Z",
+      "artifact": "hsdd/spec/nidana.md",
+      "question": "What is dev mode on Dart, where do dev-mode diagnostics go, and is that an ADR?",
+      "options": [
+        {
+          "label": "BusConfig dev mode and typed diagnostics, carried by bus-api@v1",
+          "consequence": "Defaults to assertions enabled; diagnostics are sealed values to a sink in BusConfig; one producer owns it and every node reads it through the contract; no ADR."
+        },
+        {
+          "label": "A cross-cutting ADR for diagnostics",
+          "consequence": "Makes the mechanism a tree-wide decision file although only the runtime implements it."
+        },
+        {
+          "label": "Flutter's kDebugMode",
+          "consequence": "Ties dev mode to Flutter, which the pure-Dart runtime must not import."
+        }
+      ],
+      "chosen": "BusConfig dev mode and typed diagnostics, carried by bus-api@v1",
+      "why": "The Specification requires dev-mode diagnostics (Spec §2.4, §3.4, §3.7, §3.13, §10.2) without defining dev mode. Assertions are on in debug and test runs and off in release builds on every Dart target; kDebugMode exists only in Flutter. HSDD keeps ADRs few and prefers a node-local decision when one producer owns the mechanism and others reach it through a contract.",
+      "evidence": [
+        "Spec §2.4",
+        "Spec §3.4",
+        "Spec §3.7",
+        "Spec §3.13",
+        "Spec §10.2",
+        ".agents/skills/hsdd-adr/SKILL.md (ADR or node-local D{n})"
+      ],
+      "blast_radius": "contract",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T12:31:12Z",
+      "artifact": "hsdd/spec/nidana.md",
+      "question": "Is the reactive engine and subject construction on Dart a cross-cutting ADR?",
+      "options": [
+        {
+          "label": "Node-local to nidana.runtime, timing surfaced in bus-api@v1",
+          "consequence": "RxDart is fixed by the Spec and Guide; how subjects are built is the runtime's OQ-R1; consumers see only bus-api@v1 guarantees."
+        },
+        {
+          "label": "A cross-cutting ADR",
+          "consequence": "Records engine and subject construction tree-wide, although no node other than the runtime touches a subject."
+        }
+      ],
+      "chosen": "Node-local to nidana.runtime, timing surfaced in bus-api@v1",
+      "why": "Spec §2.1 and §3.3 and Guide §6.1 already fix RxDart for Dart. The experiment found facts the runtime's design must handle (asynchronous first delivery of sync behavior and replay subjects, StateError on same-subject reentrant add, depth-first delivery across subjects); they are recorded at the root (D9) and handed to OQ-R1. Reported upstream: Spec §3.3 says no machinery beyond sync: true is needed for RxDart.",
+      "evidence": [
+        "docs/auto-run/experiments/rxdart-sync-subjects/",
+        "Spec §2.1",
+        "Spec §3.3",
+        "Spec §3.4",
+        "Guide §6.1"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": true
+    },
+    {
+      "at": "2026-10-17T12:33:26Z",
+      "artifact": "hsdd/conventions.md",
+      "question": "Which ordering policy does conventions.md declare?",
+      "options": [
+        {
+          "label": "fp-progression",
+          "consequence": "Types, pure functions, effects, composition as four bands; the first phase lands every produced contract's declarations, unblocking contract and shared-model edges."
+        },
+        {
+          "label": "interfaces-first",
+          "consequence": "HSDD's default; interfaces first and composition last, with pure and effectful middle phases in any order."
+        }
+      ],
+      "chosen": "fp-progression",
+      "why": "The owner's standing preference is functional-first, pure core and imperative shell; the model node is pure end to end and the runtime separates pure decisions (ownership, lifecycle state) from effects. Both policies put the contract skeleton first, so D10's edge semantics hold either way. Signal that would favor interfaces-first: phase plans finding effect-free bands too thin to earn a cycle under the sizing floor.",
+      "evidence": [
+        "owner's engineering preferences",
+        "~/git/hsdd/spec/hsdd-spec-v0_10.md §7.4",
+        ".agents/skills/hsdd-phase-plan/SKILL.md (Phase Ordering)"
+      ],
+      "blast_radius": "tree",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T12:33:26Z",
+      "artifact": "hsdd/conventions.md",
+      "question": "Which OQ prefixes do the node specs use?",
+      "options": [
+        {
+          "label": "One letter per child, one more letter per grandchild",
+          "consequence": "M, R, N, F, T, I for the six children; a child of an internal node appends a letter (RA, RB) declared when it is created."
+        },
+        {
+          "label": "Numbered prefixes",
+          "consequence": "Stable but unreadable at a glance (OQ-C1 for which child?)."
+        }
+      ],
+      "chosen": "One letter per child, one more letter per grandchild",
+      "why": "Readable ids that grep to their owner, and a rule that lets later hsdd-spec runs mint prefixes without colliding. Judgement only; no evidence.",
+      "evidence": [],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T12:33:26Z",
+      "artifact": "hsdd/conventions.md",
+      "question": "How do the template's OpenSpec-specific sections of conventions.md adapt to the superpowers method without dropping the template's structure?",
+      "options": [
+        {
+          "label": "Keep every section, rewrite the OpenSpec ones for superpowers",
+          "consequence": "Same section order; Layout swaps openspec/ for docs/superpowers/plans/; 'OpenSpec init' becomes 'Execution setup (superpowers)'; sizing counts plan tasks; the execution protocol swaps config.yaml and capability naming for per-phase context and plan files; each rewritten section says what it replaces."
+        },
+        {
+          "label": "Delete the OpenSpec sections",
+          "consequence": "Shorter file, but later skills and readers lose the template's anchors."
+        },
+        {
+          "label": "Keep them verbatim and add a superpowers note",
+          "consequence": "Template-identical, but the file would instruct an openspec init the owner forbids."
+        }
+      ],
+      "chosen": "Keep every section, rewrite the OpenSpec ones for superpowers",
+      "why": "The owner fixes superpowers and forbids installing OpenSpec. hsdd-config's superpowers derivative starts at writing-plans, saves plans under docs/superpowers/plans/ and reads the task count from the phase's size estimate, so the sizing line keeps HSDD's wording and redefines the unit. The standalone-spec-repo profile section stays and says it is unused.",
+      "evidence": [
+        ".agents/skills/hsdd-spec/templates/conventions.md",
+        ".agents/skills/hsdd-config/SKILL.md (The Superpowers Derivative)",
+        "owner's facts (step preamble)"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T12:33:26Z",
+      "artifact": "hsdd/spec/nidana.md",
+      "question": "Child-owned open questions whose answers shape a root-level contract (OQ-M1 to OQ-M3, OQ-R1 to OQ-R3, OQ-N1, OQ-N2, OQ-F1) come up before the owning node's own step runs. Resolve them at the root now, or mint them in the owning child as OPEN?",
+      "options": [
+        {
+          "label": "Mint in the owning child as OPEN, waiting on the contract step",
+          "consequence": "The producer's contract author decides the interface; the row names that step; the owner node's next step or hsdd-reconcile's sweep marks it resolved."
+        },
+        {
+          "label": "Resolve them at the root now",
+          "consequence": "No open rows, but the root would design contract interfaces that hsdd-contract owns, ahead of the contract author reading the full Interface."
+        }
+      ],
+      "chosen": "Mint in the owning child as OPEN, waiting on the contract step",
+      "why": "The decision policy allows child-owned questions minted OPEN for the child's own step; these are owned by the producing node, and the run plan authors root contracts (stage 4) before the owning node's decomposition or phase plan, so the contract step is where each gets decided. Conventions now say so in the OQ section.",
+      "evidence": [
+        "docs/auto-run/execution-plan.md (stages 4 to 6)",
+        ".agents/skills/hsdd-spec/SKILL.md (Open Questions)"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T12:35:40Z",
+      "artifact": "hsdd/spec/nidana.md",
+      "question": "What kind is topology-ir@v1, whose content is Dart types and analysis functions plus a JSON form?",
+      "options": [
+        {
+          "label": "api with a serialized form",
+          "consequence": "Surface, reject and conformance fixtures pin the Dart types and analyses; a JSON Schema and edge cases pin topology-graph.json; ADR-001 item 2 allows the combination."
+        },
+        {
+          "label": "schema",
+          "consequence": "Pins the JSON form only; the analyses the runtime and the tooling call stay unpinned."
+        }
+      ],
+      "chosen": "api with a serialized form",
+      "why": "Spec §6.5 defines the IR as Dart values with toGraph and renderers, and Guide C.3 emits topology-graph.json for CI. Both consumer sets need pinning: the runtime and tooling call the analyses; external CI tools read the JSON.",
+      "evidence": [
+        "Spec §6.5",
+        "Guide Appendix C.3"
+      ],
+      "blast_radius": "contract",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    }
+  ],
+  "experiments": [
+    {
+      "path": "docs/auto-run/experiments/sdk-workspace/",
+      "question": "Do pub workspaces resolve and run on the pinned SDK (Dart 3.13.5), and can contract fixtures that live under the workspace root but outside every member analyze and test against member packages, with dart analyze reporting a reject fixture's expected diagnostic code?",
+      "finding": "Yes. A two-member workspace with rxdart resolves and runs. A positive fixture under fixture/ analyzes clean; dart analyze --format=machine reports ERROR|COMPILE_TIME_ERROR|UNDEFINED_METHOD on the reject fixture (exit 3); dart test runs a behavior fixture from the workspace root and from inside a member by relative path."
+    },
+    {
+      "path": "docs/auto-run/experiments/rxdart-sync-subjects/",
+      "question": "What do RxDart 0.28.0 subjects built with sync: true do for the behaviors Spec §3.3, §3.4 and §3.10 rely on?",
+      "finding": "PublishSubject(sync: true) delivers synchronously. BehaviorSubject and ReplaySubject with sync: true deliver the replay to a new subscriber in the first microtask after listen, then buffered events in order, and synchronously afterwards. A reentrant add to the same sync subject throws StateError; to another sync subject it is delivered depth-first before the first subject's remaining subscribers; deferring it with scheduleMicrotask restores order. BehaviorSubject does not dedup. Stream.multi does not deliver synchronously on listen and a reentrant addSync reorders subscribers."
+    },
+    {
+      "path": "docs/auto-run/experiments/time-source/",
+      "question": "What controls time for RxDart's time operators on the pinned SDK, and can a bus-owned zone serve as Spec §3.6's injected scheduler?",
+      "finding": "fake_async controls debounceTime only when the subscription was made inside its zone; timers of subscriptions made outside stay real. clock.now() is virtualized, DateTime.now() is not. Nested fake zones keep separate clocks. A small zone intercepting createTimer and scheduleMicrotask controls debounceTime, throttleTime and delay, captures a sync BehaviorSubject's replay microtask and the Spec §3.4 deferral, and runs tests synchronously; a listener outside the zone needs a real event-loop turn. RxDart 0.28.0 defines no scheduler type (output-rxdart-schedulers.txt)."
+    },
+    {
+      "path": "docs/auto-run/experiments/time-source-flutter/",
+      "question": "Under Flutter's testWidgets, does a bus-owned pass-through zone let tester.pump drive RxDart time operators, and is a bus-owned virtual zone independent of pump?",
+      "finding": "Yes to both: with a pass-through zone, debounceTime fires at tester.pump(300ms); with a virtual zone, tester.pump(1s) leaves it untouched and advanceTimeBy(300ms) fires it."
+    },
+    {
+      "path": "docs/auto-run/experiments/lint-mechanism/",
+      "question": "Does the pinned SDK run analyzer rules through the Dart 3.10 analysis server plugin API and through custom_lint, and can custom_lint share one resolution with codegen packages?",
+      "finding": "Both run a one-rule check flagging Bus.instance (dart analyze with a plugins: entry; dart run custom_lint). custom_lint 0.8.1 resolves only with analyzer 8.4.0 and, in one resolution with build, source_gen, build_runner and analysis_server_plugin, holds all of them back (build 4.0.7, source_gen 4.2.4, analysis_server_plugin 0.3.3); without it the same set resolves analyzer 14.5.0, build 5.0.0, source_gen 4.3.1, analysis_server_plugin 0.3.24. sample_app/analysis_options.yaml holds a machine-specific absolute path to the probe plugin."
+    },
+    {
+      "path": "docs/auto-run/experiments/workspace-flutter-member/",
+      "question": "Does one pub workspace hold a pure Dart member and a Flutter member together on the pinned toolchain?",
+      "finding": "Yes: fvm dart pub get and fvm flutter pub get both resolve at the root, dart test passes in the pure member, flutter test passes in the Flutter member, dart analyze at the root reports no issues."
+    },
+    {
+      "path": "docs/auto-run/experiments/function-ref-names/",
+      "question": "Can a topology recorder name a transformer (Spec §6.5 FunctionRef) from the function value alone, in JIT and AOT?",
+      "finding": "A tear-off's toString() carries the function name in JIT and in AOT without --obfuscate (Closure: (int, int) => int from Function 'buildTotal': static.), omits the class of a static method, carries no name for an inline closure; obfuscated release builds rename it. Recorded as evidence for OQ-M1."
+    }
+  ],
+  "self_check": [
+    {
+      "gate": "The spec stays high-level; it is not an implementation plan.",
+      "status": "pass",
+      "note": "Node specs name packages, responsibilities and contracts; the proposed ADRs are detailed because a later hsdd-adr step materializes them from this text, but no phase, task or code is planned."
+    },
+    {
+      "gate": "Every node has explicit consumed/produced contract ids.",
+      "status": "pass",
+      "note": "Every header lists Consumes and Produces by id; nidana.model consumes none and nidana.integration produces none."
+    },
+    {
+      "gate": "Every node is testable in isolation (fixtures, mocks, schemas).",
+      "status": "pass",
+      "note": "Every Isolation strategy builds against consumed contracts and ADR-001 fixtures, except nidana.integration, which HSDD's integration-node rule makes hard-edged by design and says so."
+    },
+    {
+      "gate": "Every dependency edge is typed; parallel lanes are called out.",
+      "status": "pass",
+      "note": "Edge table types every contract on every edge; Development flow names lane A (runtime, critical path) and lane B (tooling), and the binding-versus-executor overlap in nidana.flutter."
+    },
+    {
+      "gate": "Each child is marked internal or leaf-parent.",
+      "status": "pass",
+      "note": "internal: nidana.runtime, nidana.tooling; leaf-parent: nidana.model, nidana.navigation, nidana.flutter, nidana.integration."
+    },
+    {
+      "gate": "Mermaid DAG matches the dependency table.",
+      "status": "pass",
+      "note": "Checked edge by edge: model to runtime, navigation, flutter, tooling; runtime to navigation, flutter, tooling; navigation to flutter; every child to integration."
+    },
+    {
+      "gate": "`conventions.md` exists/updated at the root.",
+      "status": "pass",
+      "note": "hsdd/conventions.md seeded from the bundled template: Coding method superpowers, Teams single-team, Ordering policy fp-progression, OQ prefixes M R N F T I."
+    },
+    {
+      "gate": "The decomposition axis at each level matches ownership stated by the human, not assumed. No node is owned by two teams.",
+      "status": "pass",
+      "note": "Quoted with the template's em-dash rewritten as a sentence break, per the prose rule. The owner's facts state one owner and one team; D3 records the axis."
+    },
+    {
+      "gate": "Every child node has its own `hsdd/spec/{child-id}.md` file.",
+      "status": "pass",
+      "note": "Six child files; the orchestrator gate's Decomposes-into check passes."
+    },
+    {
+      "gate": "Every input source appears in the Sources of at least one node, or is marked in the root `## Sources` as \"informative only, not decomposed\", with a reason.",
+      "status": "pass",
+      "note": "Quoted with the em-dash rewritten. Spec and Guide appear on every child; the Rationale on model, runtime, flutter and integration; older arch versions and loop/ are marked informative only, not decomposed, with the reason."
+    },
+    {
+      "gate": "No node's Sources lists a document that does not govern it.",
+      "status": "pass",
+      "note": "Sources are section-level; navigation's §6.4 was removed on review. Tooling keeps Spec §6.3, §6.4 and §7.6 because they define the deferred lints its decomposition must leave room for."
+    },
+    {
+      "gate": "Field blocks are bullet lists and empty lists say \"none\".",
+      "status": "pass",
+      "note": "All header blocks are bullet lists; Consumes and Produces say none where empty."
+    },
+    {
+      "gate": "Every open question is defined once, in its owning spec, with a table row and a `### {ID}` detail subsection; child views carry `[inherits …]`; no cited ID lacks a definition.",
+      "status": "pass",
+      "note": "Root OQ1 to OQ12; OQ-M1 to OQ-M3, OQ-R1 to OQ-R3, OQ-N1, OQ-N2, OQ-F1, OQ-T1, OQ-T2; OQ-R2 carries [inherits OQ2]; detail headings use the colon form; the orchestrator gate's OQ check passes."
+    },
+    {
+      "gate": "OQ prefixes used by node specs are declared in `conventions.md`.",
+      "status": "pass",
+      "note": "M, R, N, F, T, I, plus the grandchild rule."
+    },
+    {
+      "gate": "Under `multi-team`, every node whose team differs from its parent's carries `- **Team:**`; no node is owned by two teams.",
+      "status": "n/a",
+      "note": "Teams: single-team."
+    },
+    {
+      "gate": "Where children exchange contracts, an integration node exists or the decision not to add one is stated in the parent (one line).",
+      "status": "pass",
+      "note": "nidana.integration (D5)."
+    },
+    {
+      "gate": "A graft kept every existing child id and touched only the new child's file, the parent's summaries and the parent's DAG.",
+      "status": "n/a",
+      "note": "Root decomposition, not a graft."
+    },
+    {
+      "gate": "A retired node's file is kept; its contracts' retirement went through `hsdd-reconcile`.",
+      "status": "n/a",
+      "note": "No retirement."
+    },
+    {
+      "gate": "Promotion: the human confirmed before `- **Adopted:** promoted` was written; `## Observed surface` kept; `v0` contracts unchanged unless redesigned.",
+      "status": "n/a",
+      "note": "Greenfield; no promotion."
+    },
+    {
+      "gate": "node docs/auto-run/tools/gate.mjs --skill hsdd-spec --contracts-pending --pending-adr ADR-001,ADR-002,ADR-003",
+      "status": "pass",
+      "note": "0 errors; warnings only: pending ADRs and contract ids with no file yet."
+    }
+  ],
+  "notes_for_orchestrator": [
+    "Proposed ADRs for stage 3 (hsdd-adr, one step each); every affected node spec already carries Governed by; contract files do not exist yet, so the ADR steps leave contract ids in affects as forward references.",
+    "ADR-001 Executable validation for Dart API contracts: api and shared-model contracts carry surface/ (compile clean), reject/ (expected diagnostic code) and behavior/ (package:test conformance libraries taking factories, plus bindings) fixtures; schema contracts JSON Schema plus valid/invalid; file contracts input/expected trees; cli contracts recorded invocations; one replay tool, packages/nidana_contract_check, owned by nidana.model phase 1. Affects: nidana and all six children; all nine contracts.",
+    "ADR-002 Package and workspace layout: pub workspace at the repository root, one committed lockfile, members under packages/ (nidana_dart_contracts, nidana_dart_runtime with layers 2 and 3, nidana_dart_navigation, nidana_dart_runtime_flutter, nidana_dart_codegen, nidana_dart_lint, nidana_contract_check, nidana_integration), sdk ^3.13.0, analysis server plugin and no custom_lint, lockstep 0.x versions, publishing is an owner action. Affects: nidana and all six children.",
+    "ADR-003 Time source and virtual scheduler on Dart: SchedulerProvider is a zone plus a clock; the bus subscribes inside it; production forks Zone.current and reads clock.now(); VirtualScheduler is nidana's own zone intercepting timers and microtasks with advanceTimeBy, advanceTimeTo, triggerActions; RxDart's own time operators; no DateTime.now() or bare Timer in nidana packages; widget tests use the production provider. Affects: nidana.runtime, nidana.navigation, nidana.flutter, nidana.integration; bus-api@v1, bus-testing@v1.",
+    "Contracts for stage 4 (hsdd-contract, one step each), producer then in-tree consumers: topic-model@v1 (shared-model) nidana.model to runtime, navigation, flutter, tooling, integration; topology-dsl@v1 (api) nidana.model to runtime (implements it live, binds its behavior/ suite), navigation, flutter, tooling, integration; topology-ir@v1 (api with a JSON serialized form) nidana.model to runtime, tooling, integration; bus-api@v1 (api) nidana.runtime to navigation, flutter, tooling (surface only), integration; bus-testing@v1 (api) nidana.runtime to navigation, flutter, integration; navigation-api@v1 (api) nidana.navigation to flutter (implements the executor protocol, binds its behavior/ suite), integration; flutter-binding@v1 (api) nidana.flutter to integration; topic-codegen@v1 (file) nidana.tooling to integration; nidana-checks@v1 (cli) nidana.tooling to integration. Suggested authoring order follows the DAG: topic-model, topology-dsl, topology-ir, bus-api, bus-testing, navigation-api, flutter-binding, topic-codegen, nidana-checks.",
+    "Contract steps must decide child OQs that wait on them: topic-model@v1 decides OQ-M3; topology-dsl@v1 and topology-ir@v1 decide OQ-M1 and OQ-M2; bus-api@v1 decides OQ-R1 and OQ-R3 (OQ-R3 also touches topology-dsl@v1's read option); bus-testing@v1 decides OQ-R2; navigation-api@v1 decides OQ-N1 and OQ-N2; flutter-binding@v1 decides OQ-F1. hsdd-contract cannot write node specs, so the owning node's next step (runtime decomposition, model/navigation/flutter phase plans) or hsdd-reconcile's sweep must mark those rows RESOLVED pointing at the contract.",
+    "Root OQs minted: OQ1, OQ3 to OQ12 RESOLVED (2026-10-17) to D1, D6, D7, D8, ADR-001, ADR-002, ADR-003; OQ2 PARTIAL, residual OQ-R2. Child OQs minted OPEN: OQ-M1, OQ-M2, OQ-M3 (nidana.model), OQ-R1, OQ-R2 [inherits OQ2], OQ-R3 (nidana.runtime), OQ-N1, OQ-N2 (nidana.navigation), OQ-F1 (nidana.flutter), OQ-T1, OQ-T2 (nidana.tooling, for its decomposition step).",
+    "Internal children needing their own hsdd-spec step, in recommended order: nidana.runtime (critical path), then nidana.tooling. Their conventions prefixes for grandchildren follow the rule in conventions.md (RA, RB; TA, TB).",
+    "Phase-planning inputs: nidana.model's first phase must land the type-level skeleton of all three contracts and packages/nidana_contract_check (ADR-001 item 7), since every producing gate calls it; nidana.runtime's gate binds topology-dsl@v1's behavior/ suite and nidana.flutter's binds navigation-api@v1's.",
+    "Upstream findings (would_upstream), for REPORT.md: Spec §3.3 RxDart bullet omits the asynchronous first delivery and the same-subject StateError; Spec §3.6 and Guide §6.5 name scheduler injection and an EventLoopScheduler that RxDart does not have; Spec §3.11 and Guide C.2 name custom_lint; Guide §6.3 and B.3 compose raw RxDart in the Dart DSL; Guide B.1 lists navigation types in layer 1 against §3.7; Guide B.2 omits the test-utilities and telemetry packages §6.5, §10.1 and C.4 name; Spec §6.3's stream-factory lint has no Appendix C row.",
+    "Workspace hygiene for ADR-002's first implementation: the root analysis_options.yaml must exclude docs/** (the experiment directories carry their own pubspecs, and docs/auto-run/experiments/lint-mechanism/sample_app/analysis_options.yaml holds a machine-specific absolute plugin path). Experiment lockfiles and .dart_tool/build directories are ignored by the existing .gitignore.",
+    "No run-stop candidate: every tree-shape choice (navigation in, persistence out, testing inside the runtime, tooling as one internal node, model as the pure core) has a stated reason in the Specification, the Guide or HSDD's rules, recorded as evidence. Decisions marked would_have_asked (stop_class shape) are the three v1 scope choices a careful engineer would show the owner.",
+    "Timestamps were taken in batches at the moments the decision groups were finalized during this step (12:24:55 scope inputs, 12:24:59 scope, 12:27:52 tree, 12:31:12 ADRs and root Ds, 12:33:26 conventions, 12:35:40 topology-ir kind)."
+  ]
+}
