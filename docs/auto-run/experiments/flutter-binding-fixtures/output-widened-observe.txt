@@ -1,0 +1,3 @@
+typed read, then widened observe: TypeError: type '_SyncStreamController<Object?>' is not a subtype of type 'StreamController<int>' of 'key'
+widened observe, then typed read: TypeError: type '_Cell<Object?>' is not a subtype of type '_Cell<int>' in type cast
+typed observe, then typed read: ok

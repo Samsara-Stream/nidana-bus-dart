@@ -1,0 +1,278 @@
+
+### setup: copy the contracts and the fixtures from the repository, resolve
+pub get exit: 0
+Flutter 3.47.7 • channel stable • https://github.com/flutter/flutter.git
+Dart SDK version: 3.13.5 (stable) (Tue Sep 29 01:00:52 2026 -0700) on "macos_arm64"
+-- the workspace root's own dependencies (no Flutter package):
+  lints: ^6.1.0
+dev_dependencies:
+
+### P1 runApp attaches the root widget from a Timer (production binding)
+P1 after runApp returns: navigator absent
+P1 in a microtask queued after runApp: navigator absent
+P1 after one timer turn: navigator present
+00:00 +1: All tests passed!
+
+### P2 to P8 Flutter's Navigator: observer timing, initial routes, platform back and route push, unmount, dialogs, maybePop
+P2 after push: [push /a]
+P2 after pushReplacement: [push /a, replace /a -> /b]
+P2 after replace: [push /a, replace /a -> /b, replace /b -> /c]
+P2 after push and pop: [push /a, replace /a -> /b, replace /b -> /c, push /d, pop /d]
+P2 after popUntil: [push /a, replace /a -> /b, replace /b -> /c, push /d, pop /d, push /e, push /f, pop /f, pop /e]
+P3 initial routes: [push /home, push /a, push /b]
+P3 visible: 1, below kept mounted: 1
+P4 at root: []; above root, before any pump: [pop /a], after: [pop /a]; under PopScope(canPop: false): []
+P5 with an earlier observer: captured [/detail/5?x=1], navigator events []; without it: onGenerateRoute [/detail/6], navigator events [push /detail/6]
+P5b late observer: captured [], onGenerateRoute [/detail/7]
+P6 attached while mounted: true; after unmount: navigator null, events []
+P7 dialog shown: [push -]; after popUntil(identical /a): [push -, pop -]
+P8 maybePop from the page: true, events [pop /a]
+00:00 +8: All tests passed!
+
+### R1 go_router 18.1.0 resolves on the pinned SDK, and what it brings
+pub get exit: 0
+- flutter 0.0.0 [characters collection material_color_utilities meta vector_math sky_engine]
+- go_router 18.1.0 [collection cupertino_ui flutter flutter_web_plugins logging material_ui meta]
+-- transitive packages go_router adds beyond Flutter's own:
+- cupertino_ui 1.1.3 [collection flutter flutter_localizations intl]
+- flutter_localizations 0.0.0 [flutter intl path]
+- flutter_web_plugins 0.0.0 [flutter]
+- intl 0.20.3 [clock meta path]
+- logging 1.3.0
+- material_ui 1.7.0 [collection cupertino_ui flutter flutter_localizations intl material_color_utilities vector_math]
+
+### R2, R4, R5 go_router: push timing, the platform's initial route, go
+R2 when push returns: []; after one pump: [push /a]
+R4 initial location: /detail/5; navigator events: [push /, push /detail/5]
+R5 after push(/a): [push /, push /a]; then go(/b): [push /, push /a, push /b, remove /a]; canPop: true; pages on the Navigator: [/, /b]
+00:00 +3: All tests passed!
+
+### R3 go_router has no pop-until (a tagged line with no diagnostic compiles)
+  error - pop_until.dart:8:10 - The method 'popUntil' isn't defined for the type 'GoRouter'.
+7:  router.pop(); // R3a compiles
+8:  router.popUntil('/a'); // R3b
+
+### T0 the stand-in adapter is clean under the root lint set and --fatal-infos
+Analyzing nidana_dart_runtime_flutter...
+No issues found!
+exit: 0
+
+### T1 structure: headers, markers, guarantee coverage, listed bindings, no src/ imports
+PASS G1 2 fixture(s)
+PASS G2 1 fixture(s)
+PASS G3 3 fixture(s)
+PASS G4 3 fixture(s)
+PASS G5 7 fixture(s)
+PASS G6 3 fixture(s)
+PASS G7 5 fixture(s)
+PASS G8 5 fixture(s)
+PASS G9 2 fixture(s)
+PASS G10 8 fixture(s)
+PASS G11 2 fixture(s)
+PASS G12 2 fixture(s)
+PASS G13 4 fixture(s)
+PASS G14 3 fixture(s)
+PASS G15 3 fixture(s)
+PASS G16 1 fixture(s)
+PASS G17 6 fixture(s)
+PASS G18 not executable
+PASS G19 not executable
+guarantees: 19; cases: 52; bindings: 2; fixture files: 13
+exit: 0
+-- navigation-api@v1, unchanged by this step
+guarantees: 27; cases: 66; bindings: 2; fixture files: 13
+exit: 0
+
+### T2 surface: every surface library analyzes with no diagnostic under --fatal-infos
+Analyzing surface...
+No issues found!
+exit: 0
+
+### T3 reject: the (line, code) pairs reported in each file equal the pairs its markers name
+PASS adapter_exports_only_its_own.dart [10:undefined_class 13:undefined_class 16:undefined_class 19:undefined_class 22:undefined_class]
+PASS binding_types_are_closed.dart [9:invalid_use_of_type_outside_library 12:invalid_use_of_type_outside_library 15:invalid_use_of_type_outside_library 18:invalid_use_of_type_outside_library 21:invalid_use_of_type_outside_library 24:invalid_use_of_type_outside_library 27:invalid_use_of_type_outside_library 30:invalid_use_of_type_outside_library 33:invalid_use_of_type_outside_library]
+PASS no_global_bus_accessor.dart [9:undefined_getter 11:undefined_getter 13:static_access_to_instance_member 15:not_enough_positional_arguments]
+PASS page_writes_are_state_topics.dart [13:set_element_type_not_assignable 15:set_element_type_not_assignable]
+PASS testing_exports_only_its_own.dart [10:undefined_class 13:undefined_class 16:undefined_class]
+PASS topic_builders_are_typed.dart [17:argument_type_not_assignable 19:argument_type_not_assignable 21:argument_type_not_assignable 23:argument_type_not_assignable 25:argument_type_not_assignable 27:argument_type_not_assignable]
+PASS widget_test_bus_has_no_virtual_time.dart [10:undefined_getter 12:undefined_method 14:invalid_assignment]
+exit: 0
+
+### T4 the conformance library and both bindings analyze clean (warnings included)
+Analyzing behavior...
+No issues found!
+exit: 0
+
+### T5 behavior: this contract's suite, under fvm flutter test from the workspace root
+00:00 +52: All tests passed!
+exit: 0
+
+### T6 behavior: navigation-api@v1's executor suite bound to FlutterNavigationExecutor
+00:00 +26: All tests passed!
+exit: 0
+
+### T7 a name-prefix filter selects one guarantee's cases (--guarantee flutter-binding/G10)
+All tests passed!
+G10 a replace within the subtree acquires the new route before releasing the old, so even a zero grace period keeps the topologies
+G10 a route matching two modules holds a reference of each, and a route matching none or without a name holds none
+G10 an acquire the bus rejects is reported through FlutterError.reportError, holds no reference, and leaves the Navigator working
+G10 constructing the observer declares each module on the bus, and a declaration the bus rejects throws ArgumentError
+G10 dispose releases every reference and is idempotent; after it, or after shutdown, the observer acquires nothing
+G10 each route whose path matches a module holds one reference from its push to its pop, the initial routes included
+G10 leaving the subtree and returning within the grace period keeps the topologies; leaving for longer deactivates them
+G10 pathOf is the entry's route path for a route a FlutterNavigationRouter built, else the route's name, else null
+
+### T8 seeded defects in the stand-in fail the cases of the guarantee they break
+-- BusProvider.value owns its bus (G4)
+G4 a provider made with value never shuts its bus down [E]
+G5 a change of the provided bus resubscribes to the new bus [E]
+G5 unmounting cancels the subscription, and a forced removal ends rebuilds without an error [E]
+Some tests failed.
+-- an owning provider does not shut its bus down when disposed (G4, G17)
+G17 wrap gives an owning provider: unmounting it shuts the bus down and cancels a pending grace timer [E]
+G4 an owning provider shuts its bus down when it is disposed, after its descendants are disposed [E]
+Some tests failed.
+-- a provider of another bus does not notify its dependents (G3, G5)
+G3 a widget that read the bus rebuilds when its provider provides another bus, and only then [E]
+G4 an owning provider rebuilt with another bus shuts the previous bus down and provides the new one [E]
+G5 a change of the provided bus resubscribes to the new bus [E]
+Some tests failed.
+-- the state builder rebuilds for its subscription's first value (G5)
+G5 a builder mounted before start() renders the initial value, then what start() delivers [E]
+G5 a change of the provided bus resubscribes to the new bus [E]
+G5 each later delivery marks the builder for rebuild, and the next frame renders the current value once [E]
+G5 the first frame renders getCurrentValue, and the subscription's first value causes no rebuild [E]
+G5 unmounting cancels the subscription, and a forced removal ends rebuilds without an error [E]
+Some tests failed.
+-- the state builder keeps its subscription when its topic changes (G5)
+G5 a change of topic resubscribes: the new topic renders, its first value causes no rebuild, and the old topic no longer rebuilds [E]
+Some tests failed.
+-- the replay builder rebuilds for the replay of its buffer (G6)
+G6 each later delivery is rendered in the next frame from getBufferedValues [E]
+G6 the first frame renders getBufferedValues, and the replay of the buffer causes no rebuild [E]
+Some tests failed.
+-- a subscription error reaches the zone (G5)
+G5 unmounting cancels the subscription, and a forced removal ends rebuilds without an error [E]
+Some tests failed.
+-- a named route keeps its leading slash in the page source (G7)
+G7 an explicit route wins, and a named route gives its name without the leading slash [E]
+Some tests failed.
+-- the page publisher is bound to application scope (G7)
+G7 a PageScope under a router route publishes with PageSource of its entry's route path, at page scope [E]
+G7 the page publisher claims its writes at page scope and is disposed at unmount, releasing them [E]
+Some tests failed.
+-- page topologies are not counted: every unmount deactivates (G8)
+G8 a topology two mounted PageScopes name stays active until the last of them unmounts [E]
+Some tests failed.
+-- PageScope accepts a topology that is not PAGE-scoped (G8)
+G8 PageScope rejects a topology that is not PAGE-scoped, and keeps an unmodifiable copy of its arguments [E]
+Some tests failed.
+-- a failed claim leaves the page topologies active (G8)
+G8 a claim rejected at mount releases the topologies the mount activated and is rethrown [E]
+Some tests failed.
+-- a prefix segment matches any segment it begins (G9)
+G9 a module prefix matches the paths whose segments begin with its segments, whatever the leading slash [E]
+Some tests failed.
+-- a replace releases the old route before acquiring the new (G10)
+G10 a replace within the subtree acquires the new route before releasing the old, so even a zero grace period keeps the topologies [E]
+Some tests failed.
+-- a pop releases nothing (G10)
+G10 each route whose path matches a module holds one reference from its push to its pop, the initial routes included [E]
+G10 leaving the subtree and returning within the grace period keeps the topologies; leaving for longer deactivates them [E]
+Some tests failed.
+-- an acquire the bus rejects is thrown into the Navigator (G10)
+G10 an acquire the bus rejects is reported through FlutterError.reportError, holds no reference, and leaves the Navigator working [E]
+Some tests failed.
+-- dispose releases nothing (G10)
+G10 dispose releases every reference and is idempotent; after it, or after shutdown, the observer acquires nothing [E]
+Some tests failed.
+-- a perform does not pop the foreign routes above the top entry first (G13)
+G13 a route the router did not build is not an entry: a dialog changes and confirms nothing, its pop neither, and a perform pops it first [E]
+Some tests failed.
+-- a pop of any route, a foreign one included, is confirmed as Back (G13)
+/Users/mohamad.purbo/gitx/nidana-bus-dart/docs/auto-run/experiments/flutter-binding-fixtures/hsdd/contract/fixture/flutter-binding/behavior/nidana_dart_runtime_flutter_test.dart: G13 a route the router did not build is not an entry: a dialog changes and confirms nothing, its pop neither, and a perform pops it first [E]
+Some tests failed.
+-- a perform throws while no Navigator hosts the router (G12, G16)
+/Users/mohamad.purbo/gitx/nidana-bus-dart/docs/auto-run/experiments/flutter-binding-fixtures/hsdd/contract/fixture/flutter-binding/behavior/nidana_dart_runtime_flutter_test.dart: G12 when its Navigator unmounts the router keeps its stack, and the next Navigator starts from that stack with new routes [E]
+/Users/mohamad.purbo/gitx/nidana-bus-dart/docs/auto-run/experiments/flutter-binding-fixtures/hsdd/contract/fixture/flutter-binding/behavior/nidana_dart_runtime_flutter_test.dart: G12 while no Navigator hosts it, a perform changes the stack alone and confirms at once; the Navigator that then hosts it starts with one route per entry [E]
+/Users/mohamad.purbo/gitx/nidana-bus-dart/docs/auto-run/experiments/flutter-binding-fixtures/hsdd/contract/fixture/flutter-binding/behavior/nidana_dart_runtime_flutter_test.dart: G16 with the resolver active and the executor constructed before start(), the platform's deep link is performed before any Navigator exists, and the first frame shows it above the initial route [E]
+Some tests failed.
+-- the hosting Navigator starts with the bottom entry only (G12, G16)
+/Users/mohamad.purbo/gitx/nidana-bus-dart/docs/auto-run/experiments/flutter-binding-fixtures/hsdd/contract/fixture/flutter-binding/behavior/nidana_dart_runtime_flutter_test.dart: G12 when its Navigator unmounts the router keeps its stack, and the next Navigator starts from that stack with new routes [E]
+/Users/mohamad.purbo/gitx/nidana-bus-dart/docs/auto-run/experiments/flutter-binding-fixtures/hsdd/contract/fixture/flutter-binding/behavior/nidana_dart_runtime_flutter_test.dart: G12 while no Navigator hosts it, a perform changes the stack alone and confirms at once; the Navigator that then hosts it starts with one route per entry [E]
+/Users/mohamad.purbo/gitx/nidana-bus-dart/docs/auto-run/experiments/flutter-binding-fixtures/hsdd/contract/fixture/flutter-binding/behavior/nidana_dart_runtime_flutter_test.dart: G16 with the resolver active and the executor constructed before start(), the platform's deep link is performed before any Navigator exists, and the first frame shows it above the initial route [E]
+Some tests failed.
+-- a route built without its settings is accepted (G11, G13)
+G11 a perform the stack does not admit, or whose route builder breaks the settings rule, throws before the Navigator is touched [E]
+Some tests failed.
+-- PopUntilRoute pops to the bottom-most entry of its route (G11)
+/Users/mohamad.purbo/gitx/nidana-bus-dart/docs/auto-run/experiments/flutter-binding-fixtures/hsdd/contract/fixture/flutter-binding/behavior/flutter_navigation_executor_test.dart: G18 PopUntilRoute pops to the nearest entry of its route on a router that supports it, and is refused with StateError on one that does not [E]
+/Users/mohamad.purbo/gitx/nidana-bus-dart/docs/auto-run/experiments/flutter-binding-fixtures/hsdd/contract/fixture/flutter-binding/behavior/flutter_navigation_executor_test.dart: G20 BackTo pops to the nearest entry of its route as one transition, whether or not the router pops until natively [E]
+/Users/mohamad.purbo/gitx/nidana-bus-dart/docs/auto-run/experiments/flutter-binding-fixtures/hsdd/contract/fixture/flutter-binding/behavior/nidana_dart_runtime_flutter_test.dart: G11 after each perform the Navigator holds the routes of the stack's entries in order, and the confirmation comes before perform returns [E]
+Some tests failed.
+-- the router does not update its stack after a perform (navigation-api G18; G11)
+/Users/mohamad.purbo/gitx/nidana-bus-dart/docs/auto-run/experiments/flutter-binding-fixtures/hsdd/contract/fixture/flutter-binding/behavior/flutter_navigation_executor_test.dart: G18 a platform back pops the top entry and is confirmed once with Back; at the root it changes and confirms nothing [E]
+/Users/mohamad.purbo/gitx/nidana-bus-dart/docs/auto-run/experiments/flutter-binding-fixtures/hsdd/contract/fixture/flutter-binding/behavior/flutter_navigation_executor_test.dart: G18 a router confirms each perform once, after its calls complete, with the stack they leave and the intent it was given [E]
+/Users/mohamad.purbo/gitx/nidana-bus-dart/docs/auto-run/experiments/flutter-binding-fixtures/hsdd/contract/fixture/flutter-binding/behavior/flutter_navigation_executor_test.dart: G18 a router's stack starts as the initial entry alone, not modal, and reflects each perform as soon as it returns [E]
+/Users/mohamad.purbo/gitx/nidana-bus-dart/docs/auto-run/experiments/flutter-binding-fixtures/hsdd/contract/fixture/flutter-binding/behavior/flutter_navigation_executor_test.dart: G18 PopUntilRoute pops to the nearest entry of its route on a router that supports it, and is refused with StateError on one that does not [E]
+/Users/mohamad.purbo/gitx/nidana-bus-dart/docs/auto-run/experiments/flutter-binding-fixtures/hsdd/contract/fixture/flutter-binding/behavior/flutter_navigation_executor_test.dart: G19 in dev mode an executor constructed after start() is reported as LateExecutorConstruction, and works [E]
+/Users/mohamad.purbo/gitx/nidana-bus-dart/docs/auto-run/experiments/flutter-binding-fixtures/hsdd/contract/fixture/flutter-binding/behavior/flutter_navigation_executor_test.dart: G20 an intent the stack does not admit is refused: nothing navigates or is written, and dev mode reports NavigationRefused with its reason [E]
+/Users/mohamad.purbo/gitx/nidana-bus-dart/docs/auto-run/experiments/flutter-binding-fixtures/hsdd/contract/fixture/flutter-binding/behavior/flutter_navigation_executor_test.dart: G20 Back pops the top entry [E]
+/Users/mohamad.purbo/gitx/nidana-bus-dart/docs/auto-run/experiments/flutter-binding-fixtures/hsdd/contract/fixture/flutter-binding/behavior/flutter_navigation_executor_test.dart: G20 BackTo pops to the nearest entry of its route as one transition, whether or not the router pops until natively [E]
+/Users/mohamad.purbo/gitx/nidana-bus-dart/docs/auto-run/experiments/flutter-binding-fixtures/hsdd/contract/fixture/flutter-binding/behavior/flutter_navigation_executor_test.dart: G20 BackTo the route on top changes nothing and writes nothing [E]
+/Users/mohamad.purbo/gitx/nidana-bus-dart/docs/auto-run/experiments/flutter-binding-fixtures/hsdd/contract/fixture/flutter-binding/behavior/flutter_navigation_executor_test.dart: G20 GoTo pushes its route with its arguments [E]
+/Users/mohamad.purbo/gitx/nidana-bus-dart/docs/auto-run/experiments/flutter-binding-fixtures/hsdd/contract/fixture/flutter-binding/behavior/flutter_navigation_executor_test.dart: G20 Replace replaces the top entry [E]
+/Users/mohamad.purbo/gitx/nidana-bus-dart/docs/auto-run/experiments/flutter-binding-fixtures/hsdd/contract/fixture/flutter-binding/behavior/flutter_navigation_executor_test.dart: G20 resolved intents are performed in the order they are delivered [E]
+/Users/mohamad.purbo/gitx/nidana-bus-dart/docs/auto-run/experiments/flutter-binding-fixtures/hsdd/contract/fixture/flutter-binding/behavior/flutter_navigation_executor_test.dart: G20 ShowModal pushes a modal entry and DismissModal pops it [E]
+/Users/mohamad.purbo/gitx/nidana-bus-dart/docs/auto-run/experiments/flutter-binding-fixtures/hsdd/contract/fixture/flutter-binding/behavior/flutter_navigation_executor_test.dart: G21 a transition runs from the previously confirmed route to the new top with the intent the router confirmed, and the history ends at nav.current-route [E]
+/Users/mohamad.purbo/gitx/nidana-bus-dart/docs/auto-run/experiments/flutter-binding-fixtures/hsdd/contract/fixture/flutter-binding/behavior/flutter_navigation_executor_test.dart: G21 each confirmed transition writes nav.current-route and then nav.history, with no delivery between them [E]
+/Users/mohamad.purbo/gitx/nidana-bus-dart/docs/auto-run/experiments/flutter-binding-fixtures/hsdd/contract/fixture/flutter-binding/behavior/flutter_navigation_executor_test.dart: G21 transitions confirmed before the earlier ones are delivered still run each from the previous one [E]
+/Users/mohamad.purbo/gitx/nidana-bus-dart/docs/auto-run/experiments/flutter-binding-fixtures/hsdd/contract/fixture/flutter-binding/behavior/flutter_navigation_executor_test.dart: G22 a transition is stamped with the bus clock at its confirmation [E]
+/Users/mohamad.purbo/gitx/nidana-bus-dart/docs/auto-run/experiments/flutter-binding-fixtures/hsdd/contract/fixture/flutter-binding/behavior/flutter_navigation_executor_test.dart: G23 dispose is idempotent, releases the claim and stops the executor: later intents and confirmations write nothing [E]
+/Users/mohamad.purbo/gitx/nidana-bus-dart/docs/auto-run/experiments/flutter-binding-fixtures/hsdd/contract/fixture/flutter-binding/behavior/flutter_navigation_executor_test.dart: G24 a deep link published before start(), with the resolver activated and the executor constructed before start(), is resolved and executed once the bus starts [E]
+/Users/mohamad.purbo/gitx/nidana-bus-dart/docs/auto-run/experiments/flutter-binding-fixtures/hsdd/contract/fixture/flutter-binding/behavior/flutter_navigation_executor_test.dart: G24 a deep link to a guarded route at bootstrap is guarded after it is resolved [E]
+/Users/mohamad.purbo/gitx/nidana-bus-dart/docs/auto-run/experiments/flutter-binding-fixtures/hsdd/contract/fixture/flutter-binding/behavior/nidana_dart_runtime_flutter_test.dart: G11 after each perform the Navigator holds the routes of the stack's entries in order, and the confirmation comes before perform returns [E]
+/Users/mohamad.purbo/gitx/nidana-bus-dart/docs/auto-run/experiments/flutter-binding-fixtures/hsdd/contract/fixture/flutter-binding/behavior/nidana_dart_runtime_flutter_test.dart: G12 when its Navigator unmounts the router keeps its stack, and the next Navigator starts from that stack with new routes [E]
+/Users/mohamad.purbo/gitx/nidana-bus-dart/docs/auto-run/experiments/flutter-binding-fixtures/hsdd/contract/fixture/flutter-binding/behavior/nidana_dart_runtime_flutter_test.dart: G12 while no Navigator hosts it, a perform changes the stack alone and confirms at once; the Navigator that then hosts it starts with one route per entry [E]
+/Users/mohamad.purbo/gitx/nidana-bus-dart/docs/auto-run/experiments/flutter-binding-fixtures/hsdd/contract/fixture/flutter-binding/behavior/nidana_dart_runtime_flutter_test.dart: G13 a platform back that the top entry's page refuses with PopScope is not a pop: nothing changes or is confirmed [E]
+/Users/mohamad.purbo/gitx/nidana-bus-dart/docs/auto-run/experiments/flutter-binding-fixtures/hsdd/contract/fixture/flutter-binding/behavior/nidana_dart_runtime_flutter_test.dart: G13 a pop of the top entry's route that no perform made, such as a page's own Navigator.maybePop, is confirmed as Back [E]
+/Users/mohamad.purbo/gitx/nidana-bus-dart/docs/auto-run/experiments/flutter-binding-fixtures/hsdd/contract/fixture/flutter-binding/behavior/nidana_dart_runtime_flutter_test.dart: G13 a route the router did not build is not an entry: a dialog changes and confirms nothing, its pop neither, and a perform pops it first [E]
+/Users/mohamad.purbo/gitx/nidana-bus-dart/docs/auto-run/experiments/flutter-binding-fixtures/hsdd/contract/fixture/flutter-binding/behavior/nidana_dart_runtime_flutter_test.dart: G16 with the resolver active and the executor constructed before start(), the platform's deep link is performed before any Navigator exists, and the first frame shows it above the initial route [E]
+Some tests failed.
+-- the executor's default name is navigation (G14)
+G14 the executor is a FlutterNavigationRouter with a NavigationExecutor over it, named flutter-navigation by default [E]
+G15 the platform's initial route is published to nav.intent as a deep link at construction, through a publisher of ExecutorSource(name), queued before start() [E]
+Some tests failed.
+-- forwarding is set up before the NavigationExecutor, so a failed construction leaves it (G14)
+G14 a construction that throws claims nothing and forwards nothing [E]
+G14 dispose is idempotent, disposes the NavigationExecutor and stops forwarding; shutting the bus down disposes it [E]
+G15 a route the platform pushes is published as a deep link, and nothing is pushed on the Navigator [E]
+Some tests failed.
+-- dispose leaves the platform route forwarding registered (G14)
+G14 a construction that throws claims nothing and forwards nothing [E]
+G14 dispose is idempotent, disposes the NavigationExecutor and stops forwarding; shutting the bus down disposes it [E]
+G15 a route the platform pushes is published as a deep link, and nothing is pushed on the Navigator [E]
+Some tests failed.
+-- the platform's initial route is forwarded even when it is / (G15)
+G14 dispose is idempotent, disposes the NavigationExecutor and stops forwarding; shutting the bus down disposes it [E]
+G15 a route the platform pushes is published as a deep link, and nothing is pushed on the Navigator [E]
+G15 the platform's initial route is published to nav.intent as a deep link at construction, through a publisher of ExecutorSource(name), queued before start() [E]
+Some tests failed.
+-- a pushed platform route is published but left to WidgetsApp too (G15)
+G15 a route the platform pushes is published as a deep link, and nothing is pushed on the Navigator [E]
+Some tests failed.
+-- WidgetTestBus accepts a virtual provider (G17)
+G17 a WidgetTestBus rejects a virtual provider [E]
+Some tests failed.
+-- WidgetTestBus publishes as ServiceSource('widget-test') (G17)
+G17 input and stub publish as ServiceSource(test), each made once, stub claiming its topic alone at application scope [E]
+Some tests failed.
+-- wrap does not own the bus (G17)
+G17 wrap gives an owning provider: unmounting it shuts the bus down and cancels a pending grace timer [E]
+Some tests failed.
+
+### T9 the stand-in restored: both suites pass again
+00:00 +78: All tests passed!
+
+### cleanup: remove the copied tree and the Flutter build output; the repository's hsdd/contract/ stays the only copy
+removed

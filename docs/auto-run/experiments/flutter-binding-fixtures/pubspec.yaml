@@ -1,0 +1,18 @@
+# flutter-binding-fixtures: replays the flutter-binding@v1 fixtures, and
+# navigation-api@v1's executor suite bound to FlutterNavigationExecutor,
+# against a stand-in of nidana_dart_runtime_flutter that implements the
+# contract's Interface, on the stand-in runtime and navigation packages of
+# ../bus-api-amendment/ (see run.sh). Its own pub workspace, never a member
+# of the repository's workspace.
+name: fbf_root
+publish_to: none
+environment:
+  sdk: ^3.13.0
+workspace:
+  - packages/nidana_dart_contracts
+  - packages/nidana_contract_check
+  - packages/nidana_dart_runtime
+  - packages/nidana_dart_navigation
+  - packages/nidana_dart_runtime_flutter
+dev_dependencies:
+  lints: ^6.1.0
