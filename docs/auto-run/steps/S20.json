@@ -1,0 +1,348 @@
+{
+  "step_ref": "S20",
+  "skill": "hsdd-contract",
+  "target": "bus-api@v1 (hsdd/contract/bus-api.md), compatible touch",
+  "status": "completed",
+  "stop": null,
+  "artifacts": [
+    "hsdd/contract/bus-api.md",
+    "hsdd/contract/fixture/bus-api/behavior/bus_api_conformance.dart",
+    "hsdd/contract/INDEX.md",
+    "docs/auto-run/experiments/bus-api-widened/run.sh",
+    "docs/auto-run/experiments/bus-api-widened/output.txt",
+    "docs/auto-run/experiments/bus-api-widened/pubspec.yaml",
+    "docs/auto-run/experiments/bus-api-widened/analysis_options.yaml",
+    "docs/auto-run/experiments/bus-api-widened/packages/",
+    "docs/auto-run/experiments/bus-api-widened/s13_runtime/",
+    "docs/auto-run/experiments/bus-api-widened/tool/widened_observe.dart",
+    "docs/auto-run/experiments/bus-api-widened/tool/widened_envelopes.dart",
+    "docs/auto-run/steps/S20.json"
+  ],
+  "decisions": [
+    {
+      "at": "2026-10-17T23:15:46Z",
+      "artifact": "hsdd/contract/bus-api.md",
+      "question": "Is the widened-reference guarantee a new G41 or a sharpening of an existing guarantee (G6 or G7)? ADR-001 item 3: never renumber or reuse ids.",
+      "options": [
+        {
+          "label": "new G41",
+          "consequence": "Its own id: case names begin 'G41', a phase restricts --guarantee bus-api/G41, and G6 and G7 keep their scope (lazy creation, name uniqueness). Costs one more id."
+        },
+        {
+          "label": "sharpen G7",
+          "consequence": "G7 already says equal declarations share one subject, so a widened reference arguably falls under it; but G7 would grow from a naming rule into an access-typing rule covering reads, writes and writers, and --guarantee G7 would pull in six unrelated cases."
+        }
+      ],
+      "chosen": "new G41",
+      "why": "The new content (what each operation returns through a widened reference, writes, writers, topology reads) is more than G7's naming rule, and a separate id keeps --guarantee restrictions precise. bus-api@v1 Versioning lists a new guarantee that existing fixtures pass as compatible.",
+      "evidence": [
+        "hsdd/adr/001-executable-contract-validation.md item 3",
+        "hsdd/contract/bus-api.md ## Versioning (Compatible)"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T23:15:46Z",
+      "artifact": "hsdd/contract/bus-api.md",
+      "question": "Which read-side operations does G41 cover, and what does each return through a widened reference?",
+      "options": [
+        {
+          "label": "every read, typed by the reference",
+          "consequence": "observe returns a Stream<R> of the same payloads with G17's first values and G16's dedup; getCurrentValue the same value; getBufferedValues an unmodifiable List<R> of the same values; a topology read, its connection included, the same values; an observer receives topic.ref, the same through every reference. Needs a registry whose subject does not take the first access's type argument."
+        },
+        {
+          "label": "observe and getCurrentValue only",
+          "consequence": "Covers S14's probe pair, which is what flutter-binding@v1's state widget does, but leaves replay buffers and topology reads order-dependent, so the next generic caller finds the same TypeError elsewhere."
+        }
+      ],
+      "chosen": "every read, typed by the reference",
+      "why": "Spec §3.2 gives one backing subject per topic per bus, created on first runtime access, whatever reaches it; flutter-binding@v1's widgets read through getCurrentValue, getBufferedValues and observe at whatever type argument their call site gives; a topology factory can hold widened references. Every read failed on the S13 stand-in in some order, and all of them pass on the patched one.",
+      "evidence": [
+        "Spec §3.2",
+        "Spec §4.3",
+        "hsdd/contract/flutter-binding.md G5, G6",
+        "docs/auto-run/experiments/flutter-binding-fixtures/output-widened-observe.txt",
+        "docs/auto-run/experiments/bus-api-widened/ (P1, T5, T7)"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T23:22:29Z",
+      "artifact": "hsdd/contract/bus-api.md",
+      "question": "Does G41 cover writes through a widened reference (Bus.publish, Publisher.publish, writer and StateWriter.publish, a topology sink), and what about the envelope's type argument and a value outside the topic's value type?",
+      "options": [
+        {
+          "label": "include writes of a value of the value type; leave the envelope's type argument and off-type values outside",
+          "consequence": "A widened publish is delivered as the same publish at the value type, to recorders, observers, subscriptions and reads at either type. Its envelope is a MessageEnvelope<R> (P2), so bus-testing@v1 G16's envelopesOf, typed by the topic and identical to the delivered envelopes, cannot return it: a gap that exists whatever G41 says, now reachable in both orders, left for a bus-testing@v1 touch."
+        },
+        {
+          "label": "exclude writes from G41",
+          "consequence": "No interaction with bus-testing@v1 is stated here, but G41 would narrow what the delivery rule and G13 already say of every publish, a widened one included (G40 lets a generic caller publish without type arguments), and generic shell code that writes stays order-dependent."
+        },
+        {
+          "label": "include writes and pin the envelope at the topic's value type",
+          "consequence": "Closes the bus-testing@v1 gap and allows a publish-time value check, but no runtime can build a MessageEnvelope<int> from a MultiWriterTopic<Object?> over topic-model@v1's public API (P3: valueType is a Type, with == only); it needs a type-capturing member on the Topic family, a topic-model@v1 amendment this step cannot write."
+        }
+      ],
+      "chosen": "include writes of a value of the value type; leave the envelope's type argument and off-type values outside",
+      "why": "Including keeps every existing statement about publishes true and makes them hold in either order; pinning the envelope is not implementable today; excluding would narrow existing text. The off-type value is the same covariance gap G40 already leaves outside for explicit type arguments. Close call against exclusion: if the owner reads Spec §4.2 strictly (every write at the declared type) and wants nidana-checks to flag widened publishes as it flags explicit type arguments, exclusion plus a lint would be cleaner; if a consumer needs typed envelopes of widened publishes, request topic-model@v1's type-capturing member and extend G41 compatibly.",
+      "evidence": [
+        "Spec §4.2",
+        "hsdd/contract/bus-api.md delivery rules and G40",
+        "hsdd/contract/bus-testing.md G16",
+        "docs/auto-run/experiments/bus-api-widened/tool/widened_envelopes.dart",
+        "docs/auto-run/experiments/bus-api-widened/output.txt (P2, P3)"
+      ],
+      "blast_radius": "contract",
+      "confidence": "medium",
+      "would_have_asked": true,
+      "stop_class": "axis",
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T23:15:46Z",
+      "artifact": "hsdd/contract/bus-api.md",
+      "question": "How does the registry key and type a subject so the order of first access does not matter (topic-model@v1's valueType)?",
+      "options": [
+        {
+          "label": "key by name, compare topic values, store at Object?, convert at each access",
+          "consequence": "The subject registers the topic value of the creating access; G7 compares topic values, valueType among them; payloads and buffers are held at Object? and each access converts at its own type argument, which is always a supertype of the value type, so the conversion is sound for every value of the value type. An off-type value is not detected at publish."
+        },
+        {
+          "label": "type the subject by the first access's type argument",
+          "consequence": "The S13 stand-in's design: fails in both orders with a _Cell<Object?> cast to _Cell<int> or a StreamController<Object?> added to a Set<StreamController<int>> (P1, T7)."
+        },
+        {
+          "label": "type the subject at the value type through a type witness",
+          "consequence": "Typed subjects, typed envelopes and publish-time value checks, but needs a topic-model@v1 member that calls back generic code with the value type; topic-model@v1 has none today."
+        }
+      ],
+      "chosen": "key by name, compare topic values, store at Object?, convert at each access",
+      "why": "Spec §4.3's bus-level check compares the type a topic was declared with, and topic-model@v1 G7 already compares valueType, which a widened reference does not change; P3 shows a Type supports == only, so nothing can be instantiated at the value type from a widened reference. G41 states only the observable part (keyed by name, compared by topic values, never by a reference's type argument); the storage representation is nidana.runtime's.",
+      "evidence": [
+        "Spec §4.3",
+        "hsdd/contract/topic-model.md G7, G8 and the TopicRef paragraph",
+        "docs/auto-run/experiments/bus-api-widened/ (P1, P3, T5, T7, T8 collision defect)"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T23:15:46Z",
+      "artifact": "hsdd/contract/bus-api.md",
+      "question": "What does G20's 'returns the same handle on every call' mean once writer is reachable through a widened reference?",
+      "options": [
+        {
+          "label": "same handle per type argument",
+          "consequence": "G20 reads 'on every call with the same type argument (G41)'. Implementable in both orders (writers kept per topic and type argument); every existing case still holds; identity across type arguments is no longer promised."
+        },
+        {
+          "label": "keep 'every call'",
+          "consequence": "Unimplementable in the widened-first order: the StateWriter<Object?> made first cannot be returned as the StateWriter<int> a later call asks for (T7: StateWriter<Object?> is not a subtype of StateWriter<int>), so G41 and G20 would contradict each other."
+        },
+        {
+          "label": "exclude writer through a widened reference from G41",
+          "consequence": "G20 untouched, but its 'every call' stays unimplementable in that order, and generic code that writes a state topic must obtain the writer at the value type."
+        }
+      ],
+      "chosen": "same handle per type argument",
+      "why": "The old wording cannot be met across type arguments by any runtime over topic-model@v1's public API, no fixture or contract compares writers across type arguments (the G20 case compares two typed calls), and the experiment's seeded defect (writers per topic only) fails exactly the G41 writer case. It rewords an existing guarantee, so an owner would have been asked.",
+      "evidence": [
+        "docs/auto-run/experiments/bus-api-widened/output.txt (T7, T8)",
+        "hsdd/contract/fixture/bus-api/behavior/bus_api_conformance.dart (G20 and G41 writer cases)"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": true,
+      "stop_class": "axis",
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T23:15:46Z",
+      "artifact": "hsdd/contract/bus-api.md",
+      "question": "How does For static analysis cite nidana-checks@v1 G5, which adds top-level and static getters to the global-accessor definition?",
+      "options": [
+        {
+          "label": "restate G5's set and cite G5",
+          "consequence": "One definition that matches the check, readable without opening nidana-checks@v1; a one-sentence copy that could drift if G5 changes."
+        },
+        {
+          "label": "keep the narrower definition and add that G5 also reports getters",
+          "consequence": "Two definitions that disagree in one paragraph."
+        },
+        {
+          "label": "replace the definition by a bare reference to G5",
+          "consequence": "No copy, but a reader of bus-api@v1 must open another contract to know what the term means."
+        }
+      ],
+      "chosen": "restate G5's set and cite G5",
+      "why": "The paragraph exists so the checks have one definition of what they recognize; the restated set is G5's own wording in substance, and the citation names the owner of the check. No guarantee of this contract changes.",
+      "evidence": [
+        "hsdd/contract/nidana-checks.md G5 and the global_bus_accessor row",
+        "Spec §3.1",
+        "docs/auto-run/steps/S16.json notes"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T23:15:46Z",
+      "artifact": "hsdd/contract/bus-api.md",
+      "question": "Where is the term 'widened reference' defined?",
+      "options": [
+        {
+          "label": "a Delivery rules bullet",
+          "consequence": "The section that defines the terms the guarantees use; G41 stays one statement; the term can be cited by later guarantees."
+        },
+        {
+          "label": "inline in G41",
+          "consequence": "Self-contained guarantee, but a longer one, and a later guarantee would redefine the term."
+        }
+      ],
+      "chosen": "a Delivery rules bullet",
+      "why": "The section's own sentence says it defines the terms the guarantees use; consistent terminology across guarantees. No evidence beyond the contract's structure.",
+      "evidence": [
+        "hsdd/contract/bus-api.md ### Delivery rules"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T23:15:46Z",
+      "artifact": "hsdd/contract/fixture/bus-api/behavior/bus_api_conformance.dart",
+      "question": "Where do the G41 cases live, and how is 'either order' exercised?",
+      "options": [
+        {
+          "label": "six cases in bus_api_conformance.dart, each running both orders on fresh buses",
+          "consequence": "The existing binding nidana_dart_runtime_test.dart runs them; Validation changes only its coverage line; each case fails if either order fails, and its reason string names the order."
+        },
+        {
+          "label": "a separate conformance library and binding",
+          "consequence": "A second harness and a second binding to list in Validation and run in every gate, for cases that need nothing the existing harness lacks."
+        }
+      ],
+      "chosen": "six cases in bus_api_conformance.dart, each running both orders on fresh buses",
+      "why": "ADR-001 item 4 keeps one conformance library per subject; the helpers take widened references as generic shell code does, so inference gives each call the type argument Object?. One case per surface: state reads, replay reads, event publishes with observers, writers, a topology over widened references, and the collision check.",
+      "evidence": [
+        "hsdd/adr/001-executable-contract-validation.md item 4",
+        "docs/auto-run/experiments/bus-api-widened/output.txt (T1, T1b, T6)"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    }
+  ],
+  "experiments": [
+    {
+      "path": "docs/auto-run/experiments/bus-api-widened/",
+      "question": "Does the S13 stand-in runtime fail the new G41 cases, does a stand-in that stores subjects at Object? and keeps writers per type argument pass them, and does every existing fixture that binds bus-api@v1 still pass on it? What envelope does a widened publish build, and what does Topic.valueType offer generic code?",
+      "finding": "P1: S14's probe throws a TypeError in both orders on the S13 runtime and passes on the patched one. T1, T1b: structure passes (bus-api 41 guarantees, 95 cases; amended ADR-001 prototype: 9 contracts, 0 problems). T2 to T4: surface, reject and behavior libraries of bus-api, bus-testing, navigation-api and flutter-binding analyze as before. T5 (patched): bus-api 95/95, topology-dsl live 43/43, bus-testing 45/45, navigation 40/40, executor on InMemoryRouter 52/52, flutter-binding 52/52 and 26/26 under fvm flutter test. T7 (S13 runtime): exactly the six G41 cases fail (five on _Cell<Object?> cast to _Cell<int>, one on StateWriter<Object?> cast to StateWriter<int>); every other suite passes. T8: four seeded defects each fail the G41 case they break. P2: a widened publish builds MessageEnvelope<Object?>; bus-testing@v1's recorder envelopesOf and payloadsOf, typed by the topic, then throw a TypeError. P3: T == topic.valueType tells whether a call's type argument is the value type (int, List<int>), and that is all a Type offers."
+    }
+  ],
+  "self_check": [
+    {
+      "gate": "Frontmatter has id, version, status, kind, owner, compatibility, produced_by, consumers; external_consumers when any exist.",
+      "status": "pass",
+      "note": "Frontmatter unchanged."
+    },
+    {
+      "gate": "`consumers` lists phase ids that actually consume this contract.",
+      "status": "pass",
+      "note": "Node ids under phase_ids: provisional, unchanged; hsdd-reconcile finalizes them."
+    },
+    {
+      "gate": "The Interface section is concrete enough to mock against.",
+      "status": "pass",
+      "note": "No declaration changed; observe and writer comments cite G41; the delivery rules define a widened reference; the patched stand-in implements it."
+    },
+    {
+      "gate": "At least one guarantee/invariant is stated.",
+      "status": "pass",
+      "note": "41 guarantees; G41 added, G20 reworded (same writer handle per type argument); no id renumbered or reused."
+    },
+    {
+      "gate": "A breaking change bumped the version and added a migration note.",
+      "status": "pass",
+      "note": "Not breaking for any consumer: no declaration, default, delivery rule or stated throw changes at the value type; G20 changes only across type arguments, which nothing compares; every fixture of every other contract passes unchanged on both runtimes (T5, T7). ## Versioning records the touch as (e) and (f) with the reasons."
+    },
+    {
+      "gate": "The registry was regenerated.",
+      "status": "pass",
+      "note": "node hsdd/scripts/gen-registry.mjs run; INDEX.md unchanged because no frontmatter changed; gate.mjs confirms it is fresh."
+    },
+    {
+      "gate": "`phase_ids` is present (`provisional` until `hsdd-reconcile` finalizes it).",
+      "status": "pass",
+      "note": "provisional"
+    },
+    {
+      "gate": "Every code-level artifact both sides consume (types file, fixtures, shared package) names its canonical path and its owner in the Interface or Validation section: the owning phase for code, `hsdd-contract` for validation artifacts.",
+      "status": "pass",
+      "note": "Unchanged: library path and code owner in the Interface; hsdd/contract/fixture/bus-api/ owned by hsdd-contract."
+    },
+    {
+      "gate": "A contract or version created by this run has its schema and its kind's fixtures written at the canonical paths.",
+      "status": "n/a",
+      "note": "Amendment within v1, not a new contract or version; the fixtures were updated in the same edit (six G41 cases and their helpers)."
+    },
+    {
+      "gate": "Open questions are cited by ID only. They are never defined here; prose justifying behavior as \"pending OQ-x\" is swept when the OQ resolves (hsdd-reconcile).",
+      "status": "pass",
+      "note": "Quoted with the gate's em-dash rewritten as a sentence break, per the prose rule. No OQ added, defined or cited by this touch."
+    },
+    {
+      "gate": "A `stable` contract names a schema or a fixtures directory at the canonical paths and the artifact exists, or it carries `validation: grandfathered` (never on a contract authored after the upgrade).",
+      "status": "n/a",
+      "note": "draft; the fixtures directory exists and Validation names it."
+    },
+    {
+      "gate": "No version is `retired` while a consumer or an external consumer still names it.",
+      "status": "n/a",
+      "note": "Nothing retired."
+    },
+    {
+      "gate": "A `v0` contract carries `## Observed completeness`, and the block changed in any commit that added fixtures to it.",
+      "status": "n/a",
+      "note": "v1."
+    },
+    {
+      "gate": "ADR-001 item 12: the fixtures directory meets item 3 and the items for its kind, checked by reading until the replay tool exists.",
+      "status": "pass",
+      "note": "G41 covered by six behavior cases whose names begin 'G41 '; G38 and G39 stay not executable; the behavior bullet's coverage reads G1, G3 to G37 and G41; both structure prototypes pass (T1, T1b)."
+    },
+    {
+      "gate": "node docs/auto-run/tools/gate.mjs --skill hsdd-contract",
+      "status": "pass",
+      "note": "0 errors, 0 warnings."
+    }
+  ],
+  "notes_for_orchestrator": [
+    "Changes: G41 added (widened references); G20 reworded to 'the same handle on every call with the same type argument (G41)'; the delivery rules gained the term 'a widened reference'; observe and writer comments cite G41; For static analysis defines a global bus accessor as nidana-checks@v1 G5 reports it, getters included; ## Versioning records the touch as (e) and (f); ## Validation's behavior coverage reads G1, G3 to G37 and G41 and a new bullet describes the experiment. No frontmatter change, no OQ minted, no ADR proposed, nothing marked would_upstream. The fixtures gained six G41 cases and seven helpers in bus_api_conformance.dart; bus-api now has 95 cases.",
+    "For nidana.runtime's decomposition, the registry design G41 implies: (1) subjects are keyed by topic name, the registered declaration is the topic value of the creating access, and the collision check compares topic values (variant, valueType, sensitive, tracing, dedup, buffer size), never an access's type argument (Spec §4.3; topic-model@v1 G7). (2) topic-model@v1's public API gives generic code no way to instantiate anything at a topic's value type from a widened reference (valueType is a Type with == only, P3), so a subject cannot be typed by its value type in the widened-first order: store payloads, buffers and the RxDart subject's elements at Object? and convert at each access's type argument (a cast in getCurrentValue, a List<R>.unmodifiable copy in getBufferedValues, payload as R per observed subscription and per topology read, current as S for reduceInto). The conversions are sound for every value of the value type, because every reference's type argument is a supertype of it. (3) Never cast an envelope to MessageEnvelope<T>: a widened publish builds a MessageEnvelope<R> through publishedTo, so cells, reads, lineage, recorders and observers take MessageEnvelope<Object?>. (4) Writers are kept per topic and type argument; T == topic.valueType is available to prefer the value-type handle. (5) An off-type value published through a widened reference is not detectable at publish and fails later, at a typed access's conversion; G41 leaves it outside, but the design should decide where that TypeError goes (the subscription's error channel, or the provider zone's handler as G18 does for a throwing callback) so it never stops delivery to the other subscriptions (G13). (6) A stronger design (typed subjects and envelopes, a publish-time value check, one writer across type arguments) needs a type-capturing member on topic-model@v1's Topic family; that would be a compatible topic-model@v1 addition and a later compatible extension of G41, not requested now. (7) --guarantee bus-api/G41 selects the six cases; the phase that lands the registry should deliver them.",
+    "Follow-up for bus-testing@v1 (not blocking, no fixture changes): G16 says envelopesOf is typed by the topic and returns the delivered envelopes themselves, and payloadsOf is their payloads; for an envelope of a publish made through a widened reference (a MessageEnvelope<Object?>) both throw a TypeError on the stand-in (P2). The gap predates G41 (the delivery rule plus G40's generic callers), but G41 now makes such a publish reach delivery in both orders. A bus-testing@v1 touch should state what both return then: payloadsOf can convert payloads and work; envelopesOf cannot be both typed and identical, so it must skip, throw or wait for topic-model@v1's type-capturing member. Related: bus-testing@v1 G18 and flutter-binding@v1 G17 say stub(topic) is the same writer on every later call; a widened call before a typed one cannot meet that (the stand-ins cast the cached writer, as T7's StateWriter failure shows); a touch could say 'with the same type argument', matching G20.",
+    "Editorial sweep for nidana-checks@v1: its global_bus_accessor note says bus-api@v1 For static analysis defines a global accessor as a top-level variable or static field and that the rule also reports getters; bus-api@v1 now gives G5's set and cites G5, so that sentence can say so at the next touch or reconcile sweep.",
+    "Candidate, not decided: a nidana-checks@v1 rule flagging a publish through a widened reference (the covariance gap explicit_topic_type_arguments closes for explicit type arguments) would close G41's off-type exclusion statically. It belongs to decision 3's alternative.",
+    "No stop condition met: no fixture outside bus-api@v1 changed and every other suite passes on both runtimes (T5, T7); the G20 rewording breaks no consumer (nothing compares writers across type arguments); no tree-shape choice; nothing outside the repository.",
+    "Timestamps: decisions 1, 2 and 4 to 8 were taken at 23:15:46Z, after reading the sources and before the experiment; decision 3 at 23:22:29Z, after probe P2 showed the envelope type and the bus-testing@v1 interaction; the final experiment run ended at 23:28:13Z.",
+    "Experiment side effects: run.sh copies the repository's hsdd/contract/ into the experiment and removes it at the end; .dart_tool and the nested pubspec.lock are git-ignored. T1b runs S17's structure prototype (docs/auto-run/experiments/file-invocations/structure_check.dart) from the repository root, which writes nothing."
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "step_ref": "S20",
+  "skill": "none",
+  "target": "follow-ups of the bus-api@v1 touch",
+  "status": "completed",
+  "decisions": [
+    {
+      "at": "2026-10-17T23:32:24Z",
+      "artifact": "docs/auto-run/execution-plan.md",
+      "question": "S20 leaves three compatible follow-ups in contracts other than bus-api@v1: bus-testing@v1 G16 (envelopesOf and payloadsOf throw a TypeError on an envelope published through a widened reference), the 'same writer on every later call' wording of stub in bus-testing@v1 G18 and flutter-binding@v1 G17 (the per-type-argument problem G20 had), and an editorial note in nidana-checks@v1 that still describes the older global-accessor definition. Run three more touch steps now, or route them to the producing nodes' phase planning?",
+      "options": [
+        { "label": "Three more touch steps now", "consequence": "The contracts read consistently before decomposition, at the cost of three steps, each of which can surface further cross-contract follow-ups, as the last five did." },
+        { "label": "Route to the producers' phase planning as amend entries", "consequence": "nidana.runtime's and nidana.flutter's phase plans, and nidana.tooling's, emit amend entries for their own contracts, which reconcile folds in; the touch batch ends at S21; the follow-ups are named in those steps' prompts so none is lost." }
+      ],
+      "chosen": "Route to the producers' phase planning as amend entries",
+      "why": "Each item is a producer-side semantic of a contract whose producer has not been planned yet, which is what hsdd-phase-plan's amend entry exists for: 'a guarantee or semantic this plan settled for a contract this node owns'. None blocks a decomposition: the runtime decomposition reads S20's registry notes, and nothing consumes these three wordings before the producer plans. Ending the batch here also stops a pattern in which each touch raised the next. The signal that would change this: a decomposition step that needs one of these settled to draw its children.",
+      "evidence": ["docs/auto-run/steps/S20.json (notes_for_orchestrator)", ".agents/skills/hsdd-phase-plan/SKILL.md (Producer-side discoveries)"],
+      "blast_radius": "contract",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "would_upstream": false
+    }
+  ]
+}

@@ -174,8 +174,8 @@ tree. Done when `node docs/auto-run/tools/gate.mjs --final` passes.
 | S17 | 4 | hsdd-adr | ADR-001 update: plan-interpretation wording, data directories in the structure set, coverage wording for file and cli contracts, cases without files/ | done | 5385a5f |
 | S18 | 4 | hsdd-adr | ADR-003 update: affects gains topology-dsl@v1 (and its Governed by) | done | 376ccc4 |
 | S19 | 4 | hsdd-contract | navigation-api@v1 touch: G1 reject line, citations of bus-api@v1 G22, G34, G40, the Flutter executor binding name | done | 31fc505 |
-| S20 | 4 | hsdd-contract | bus-api@v1 touch: widened Topic<Object?> reference case, cite nidana-checks@v1 G5 | running | |
-| S21 | 4 | hsdd-contract | topic-codegen@v1 touch: catalog's claim rule aligned with nidana-checks@v1's recognizer; recorded invocations for G2, G14, G19 under amended ADR-001 item 7 | planned | |
+| S20 | 4 | hsdd-contract | bus-api@v1 touch: widened Topic<Object?> reference case, cite nidana-checks@v1 G5 | done | 27ce541 |
+| S21 | 4 | hsdd-contract | topic-codegen@v1 touch: catalog's claim rule aligned with nidana-checks@v1's recognizer; recorded invocations for G2, G14, G19 under amended ADR-001 item 7 | running | |
 | next | 5 | hsdd-spec | nidana.runtime, then nidana.tooling (each followed by its ADRs and internal contracts) | planned | |
 | end of 5 | 5 | hsdd-spec (root refresh) | root D1 check table (adds explicit_topic_type_arguments), OQ2 and OQ5, embedded child summaries | planned | |
 
@@ -267,3 +267,11 @@ tree. Done when `node docs/auto-run/tools/gate.mjs --final` passes.
 - 2026-10-17 (UTC), after S18: ADR-003 now affects topology-dsl@v1. The reconcile sweep must fix
   ADR-003's Consequences, which still call the dispatcher hint OQ-M3 although topic-model@v1 G5
   decided it.
+- 2026-10-17 (UTC), after S20: bus-api@v1 gains G41 (one subject per topic whatever the reference's
+  type argument) and narrows G20 to "same type argument". The touch batch ends at S21. Carried into
+  phase planning as amend entries the producers emit: bus-testing@v1 G16 (envelopesOf and payloadsOf on
+  a widened-published envelope) and G18 (stub writer per type argument), for nidana.runtime's plan;
+  flutter-binding@v1 G17 (same stub wording), for nidana.flutter's plan; nidana-checks@v1's
+  global-accessor note, for nidana.tooling's plan. The runtime decomposition must read S20's registry
+  notes: subjects hold values at `Object?`, envelopes are never cast to the value type, writers are
+  kept per (topic, type argument), and an off-type widened publish must not stop delivery (G13).
