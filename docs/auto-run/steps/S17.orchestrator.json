@@ -1,0 +1,24 @@
+{
+  "step_ref": "S17",
+  "skill": "none",
+  "target": "review of the ADR-001 amendment",
+  "status": "completed",
+  "decisions": [
+    {
+      "at": "2026-10-17T22:42:36Z",
+      "artifact": "hsdd/adr/001-executable-contract-validation.md",
+      "question": "S17 went beyond the listed changes: it extended item 7 so a file contract may carry recorded invocations with expected exit codes (the item 6 option), and extended items 9 and 10 so --guarantee restricts file replays and recorded invocations and producing phases run file and cli sets restricted like behavior. Keep these, or limit the amendment to the listed wording fixes?",
+      "options": [
+        { "label": "Keep them", "consequence": "topic-codegen@v1's G2, G14 and G19 become executable through recorded invocations in S21; nidana.tooling's producing phases can replay only the guarantees delivered so far, as api contracts already do." },
+        { "label": "Limit to the listed fixes", "consequence": "Those three guarantees stay not executable, and every producing phase of nidana.tooling replays every file and cli case, including ones for guarantees not yet built." }
+      ],
+      "chosen": "Keep them",
+      "why": "Each extension removes an asymmetry between api contracts and file or cli contracts rather than adding new machinery: the replay tool already runs recorded invocations for cli contracts, and restricting by guarantee is how behavior already works. Phase planning cannot amend an ADR, so the restriction has to be settled before the tooling phases are planned. The prototype in docs/auto-run/experiments/file-invocations/ shows all nine contracts still pass the amended structure check.",
+      "evidence": ["docs/auto-run/experiments/file-invocations/ (output.txt, structure-output.txt)", "hsdd/adr/001-executable-contract-validation.md (Amendments)"],
+      "blast_radius": "contract",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "would_upstream": false
+    }
+  ]
+}

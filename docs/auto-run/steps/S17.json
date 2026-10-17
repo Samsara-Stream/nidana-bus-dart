@@ -1,0 +1,203 @@
+{
+  "step_ref": "S17",
+  "skill": "hsdd-adr",
+  "target": "ADR-001 (hsdd/adr/001-executable-contract-validation.md)",
+  "status": "completed",
+  "stop": null,
+  "artifacts": [
+    "hsdd/adr/001-executable-contract-validation.md",
+    "hsdd/adr/INDEX.md (regenerated, unchanged: the registry projects id, status and affects only)",
+    "docs/auto-run/experiments/file-invocations/"
+  ],
+  "decisions": [
+    {
+      "at": "2026-10-17T22:34:01Z",
+      "artifact": "hsdd/adr/001-executable-contract-validation.md",
+      "question": "Decide whether this is an in-place amendment of the accepted ADR or a superseding ADR, and record why.",
+      "options": [
+        { "label": "amend in place", "consequence": "Every item number and every Governed by link stays; the amended text becomes what hsdd-config injects; the original text survives in git (1fc3a48) and the change is recorded in a dated ## Amendments section." },
+        { "label": "supersede with ADR-004", "consequence": "New file with supersedes: [ADR-001] and ADR-001 set to superseded; Governed by moves in seven node specs and nine contracts, and the contract bodies' many 'ADR-001 item N' citations point at a superseded ADR until separate contract steps rewrite them." }
+      ],
+      "chosen": "amend in place",
+      "why": "No change reverses an item: the kinds, the sets, their pass rules for existing fixtures and the replay tool stay, and all nine contracts as written still pass the amended rules (structure-output.txt S1). Superseding exists so a replaced decision is not injected as binding; here the binding text simply becomes the amended one, so a superseding ADR would cost a touch of every node spec and contract for no change in what binds. Signal that would have changed it: any change that made an existing fixture fail or removed a set, which would be a new decision rather than an amendment.",
+      "evidence": [".agents/skills/hsdd-adr/SKILL.md (Status Lifecycle)", "~/git/hsdd/spec/hsdd-spec-v0_10.md §4.3", "grep of 'ADR-001 item' across hsdd/contract/*.md", "docs/auto-run/experiments/file-invocations/structure-output.txt (S1)"],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T22:34:01Z",
+      "artifact": "hsdd/adr/001-executable-contract-validation.md",
+      "question": "How should item 4's cross-contract binding example, and the matching Consequences bullet, read now that topology-dsl@v1 has no live builder?",
+      "options": [
+        { "label": "name bus-api@v1's activation path and bus_activation_test.dart", "consequence": "The example matches what bus-api@v1 and topology-dsl@v1 state: Bus.activate interprets the TopologyPlan a declaration produces, and the binding file exists." },
+        { "label": "drop the example, keep the general rule", "consequence": "Shorter, but the replay tool's author loses the one concrete case of a binding that lives in another contract's fixture directory." }
+      ],
+      "chosen": "name bus-api@v1's activation path and bus_activation_test.dart",
+      "why": "Contracts cite item 4 for this placement rule (topology-dsl@v1's live binding bullet, bus-api@v1's binding bullet), and S07 already recorded that the phrase reads as the activation path. The Consequences bullet now names both cross-contract bindings by what implements them.",
+      "evidence": ["hsdd/contract/topology-dsl.md (Validation, live binding)", "hsdd/contract/bus-api.md (Validation, bus_activation_test.dart)", "docs/auto-run/steps/S07.json (notes)"],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T22:34:01Z",
+      "artifact": "hsdd/adr/001-executable-contract-validation.md",
+      "question": "Which directories may a fixture tree hold besides the named sets, and what does the structure set do with them?",
+      "options": [
+        { "label": "data directories listed in Validation; structure fails on any other entry", "consequence": "A misspelt set directory fails structure; render/ and rejected/ are already listed in the required bullet form; no ADR change per new data directory." },
+        { "label": "structure ignores unknown directories", "consequence": "No contract text needed, but a misspelt reject/ or behavior/ directory goes unreplayed and the gate passes." },
+        { "label": "fixed list of data directory names in the ADR", "consequence": "Mechanical, but every new data directory needs an ADR change." }
+      ],
+      "chosen": "data directories listed in Validation; structure fails on any other entry",
+      "why": "It is the only option that catches a misspelt set directory without centralizing names. Both existing data directories are already listed as '- {dir}: `hsdd/contract/fixture/{slug}/{dir}/`, ...'; the prototype check passed all nine contracts as written and reported a misspelt rejcet/ and an unlisted goldens/. Item 2 now also says the replay never analyzes input trees, expected trees or data directories, which topic-codegen@v1's expected/topics.g.dart (imports of a stand-in app) needs.",
+      "evidence": ["hsdd/contract/topology-ir.md (Validation, render)", "hsdd/contract/topic-codegen.md (Validation, rejected; expected/ never analyzed)", "docs/auto-run/experiments/file-invocations/structure-output.txt (S1, S2)", "docs/auto-run/steps/S08.json, S15.json (notes)"],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T22:34:01Z",
+      "artifact": "hsdd/adr/001-executable-contract-validation.md",
+      "question": "How does item 3's coverage rule count the schema set, the file replay and recorded invocations, whose files carry no G{n}?",
+      "options": [
+        { "label": "declared in Validation in the forms the contracts use", "consequence": "A '- schema:' or '- file:' bullet ends with 'covers {ids}.'; each recorded invocation has a row in a Case/Covers table; no contract changes, and structure can check table rows against case directories." },
+        { "label": "a covers file in each case", "consequence": "Coverage sits beside the fixture as reject headers do, but repeats nidana-checks@v1's table and needs a touch of its seventeen cases; two copies drift." },
+        { "label": "no mechanical check for file and cli coverage", "consequence": "Nothing to write, but item 3 and item 12 cannot be checked for two contract kinds." }
+      ],
+      "chosen": "declared in Validation in the forms the contracts use",
+      "why": "topic-codegen@v1 and nidana-checks@v1 already declare coverage exactly this way, and structure already parses Validation for bindings and not-executable lines. The prototype parsed every declaration in the nine contracts and found every guarantee covered or not executable, and reported a removed covers clause and a case with no row. The schema clause is optional (topology-ir@v1's schema bullet covers nothing that behavior cases do not). The {ids} form, ids and 'G{a} to G{b}' ranges joined by ', ' or ' and ', matches every cell and header written so far. Signal that would have changed it: the replay tool's author finding Markdown table parsing brittle, which would favor per-case covers files.",
+      "evidence": ["hsdd/contract/topic-codegen.md (Validation)", "hsdd/contract/nidana-checks.md (Validation table)", "docs/auto-run/experiments/file-invocations/structure_check.dart", "docs/auto-run/experiments/file-invocations/structure-output.txt (S1, S2)", "docs/auto-run/steps/S15.json, S16.json (notes)"],
+      "blast_radius": "contract",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T22:34:01Z",
+      "artifact": "hsdd/adr/001-executable-contract-validation.md",
+      "question": "Item 3 and item 4 give one form each, '// covers: G{n}' and '- not executable: G{n}, ...'; contracts also wrote two-id reject headers and not-executable lines for part of a guarantee. Admit them or make contracts split guarantees?",
+      "options": [
+        { "label": "admit {ids} headers and G{n}'s {part} lines", "consequence": "bus-api@v1 (G19, G20), flutter-binding@v1 (G5, G6) and nidana-checks@v1 (G9, G17) stand as written; structure reads the leading id and 'checked by {node}'s gates'." },
+        { "label": "require each guarantee wholly covered or wholly not executable", "consequence": "Simpler parsing, but three contracts change and guarantees get split for the parser's sake." }
+      ],
+      "chosen": "admit {ids} headers and G{n}'s {part} lines",
+      "why": "The text should describe what the contracts found they need; splitting a guarantee to fit a parser loses the statement's unity and changes three contracts for no gain. A reject library per misuse that breaks several guarantees is how the two-id headers arose.",
+      "evidence": ["hsdd/contract/fixture/bus-api/reject/publisher_reaches_state_through_writer.dart", "hsdd/contract/fixture/flutter-binding/reject/topic_builders_are_typed.dart", "hsdd/contract/nidana-checks.md (Validation, G9 and G17 lines)", "docs/auto-run/experiments/file-invocations/structure-output.txt (S1)"],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T22:34:01Z",
+      "artifact": "hsdd/adr/001-executable-contract-validation.md",
+      "question": "Item 7 does not say where a recorded invocation without files/ runs.",
+      "options": [
+        { "label": "the workspace root", "consequence": "Usage cases need no input tree, and arguments name fixture inputs by root-relative paths; nidana-checks@v1's scan-usage-no-package stands." },
+        { "label": "every case must hold files/", "consequence": "One working-directory rule, but usage cases carry an empty or token tree, and nidana-checks@v1 changes." }
+      ],
+      "chosen": "the workspace root",
+      "why": "nidana-checks@v1 relies on it, both replay prototypes implement it, and it passed for one nidana-checks case and four topic-codegen candidate cases.",
+      "evidence": ["hsdd/contract/nidana-checks.md (Validation, invocations)", "docs/auto-run/experiments/nidana-checks-fixtures/output.txt (T1)", "docs/auto-run/experiments/file-invocations/output.txt (E1)"],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T22:34:01Z",
+      "artifact": "hsdd/adr/001-executable-contract-validation.md",
+      "question": "S15 proposed extending item 6 so a file contract can carry several input/expected cases, including cases with an expected exit code (making topic-codegen@v1's G2, G14 and G19 executable). Does this belong in v1?",
+      "options": [
+        { "label": "not in v1", "consequence": "No change; G2, G14 and G19 stay with nidana.tooling's gates, written by phases after the producer, and nidana.integration's --all never replays them. Adding cases later is a compatible change." },
+        { "label": "item 6 case directories", "consequence": "input/{case}/ and expected/{case}/ with per-case arguments and exit code: a second layout repeating item 7's args and exit_code, run by a second runner in the replay tool." },
+        { "label": "item 7 gains {output} and expected/; file contracts may carry recorded invocations", "consequence": "One command runner and one tree comparison, composed; topic-codegen@v1's single input/expected pair is untouched; about thirty lines in the replay tool's cli set; topic-codegen@v1 gains sixteen case directories at its next touch." }
+      ],
+      "chosen": "item 7 gains {output} and expected/; file contracts may carry recorded invocations",
+      "why": "It makes G14 fully and G2 and G19 in part executable before the producer exists, replayed at every gate and by nidana.integration's --all, at the cost of a small addition to a tool not yet written. Composing item 7's runner with item 6's comparison avoids a second case layout. The prototype ran sixteen candidate cases (no graph, undecodable graph, four usage errors, the ten rejected/ documents) against S15's stand-in generator, all passing, and four seeded defects (accepting a rejected document, a changed catalog, a page written without a graph, a wrong exit code) each failed. The diagnostic form of G19 and G2's valid/ and invalid/ halves stay not executable: stderr text is not part of topic-codegen@v1, and one case per invalid/ document would be 53 directories. Close call: the signal that would have favored 'not in v1' is nidana.model's first phase overflowing its Phase Equivalent with the replay tool.",
+      "evidence": ["docs/auto-run/steps/S15.json (decision 'One input/expected pair ... or several cases?', notes)", "docs/auto-run/experiments/file-invocations/output.txt (E1, E2, E3)", "docs/auto-run/experiments/file-invocations/replay.dart", "docs/auto-run/experiments/topic-codegen-fixtures/output.txt (T8 to T11)", "hsdd/contract/topic-codegen.md (generate command, G2, G14, G18, G19)"],
+      "blast_radius": "contract",
+      "confidence": "medium",
+      "would_have_asked": true,
+      "stop_class": "axis",
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T22:34:01Z",
+      "artifact": "hsdd/adr/001-executable-contract-validation.md",
+      "question": "Item 6 does not say a file contract may carry a schema and valid/ and invalid/ cases for its input format, which topic-codegen@v1 does.",
+      "options": [
+        { "label": "state it in item 6", "consequence": "valid/ and invalid/ become set directories of the file kind for the layout check; the replay tool's author sees the schema set applies to file contracts." },
+        { "label": "leave it implicit in 'every set the slug has'", "consequence": "No text, but the layout check would have to treat valid/ and invalid/ as data directories or reject them." }
+      ],
+      "chosen": "state it in item 6",
+      "why": "topic-codegen@v1 carries the schema, 4 valid and 53 invalid documents, citing item 5, and the amended layout check needs the set directories of each kind named. It parallels item 4's serialized-form clause for api contracts.",
+      "evidence": ["hsdd/contract/topic-codegen.md (Validation, schema, valid, invalid)", "docs/auto-run/steps/S15.json (schema decision)"],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T22:34:01Z",
+      "artifact": "hsdd/adr/001-executable-contract-validation.md",
+      "question": "Item 10 runs every set but behavior in full at every producing phase, and --guarantee restricts only behavior cases; how do the file and cli sets gate a node that delivers a generator or a checker over several phases?",
+      "options": [
+        { "label": "--guarantee restricts file replays and recorded invocations by declared ids", "consequence": "A case runs only when every id it covers is delivered; schema runs in full like structure, surface and reject; behavior, file and cli run restricted until the last producing phase." },
+        { "label": "leave item 10 as written", "consequence": "Every producing phase of nidana.tooling replays every case of topic-codegen@v1 and nidana-checks@v1, which fails until the last phase that delivers them." },
+        { "label": "leave it to nidana.tooling's phase planning", "consequence": "Phase plans would need --set exclusions the ADR does not provide for, and phase planning cannot change an ADR (governance is read-only then), so the gap would surface as a stop." }
+      ],
+      "chosen": "--guarantee restricts file replays and recorded invocations by declared ids",
+      "why": "Not in the step's list; found while amending item 3. With coverage now declared per case, the restriction is well defined, and closing it now costs a sentence in a tool not yet written rather than a later ADR touch during nidana.tooling's phase planning. The subset rule mirrors behavior's cumulative delivery. Signal that would have changed it: nidana.tooling's decomposition putting each of its contracts in a single producing phase, where the restriction is unused and harmless.",
+      "evidence": ["hsdd/conventions.md (Parallel development protocol: governance read-only during phase planning)", "hsdd/contract/nidana-checks.md (Validation table: plugin and scan cases)", "docs/auto-run/experiments/file-invocations/structure_check.dart (Covers parsing)"],
+      "blast_radius": "contract",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    }
+  ],
+  "experiments": [
+    {
+      "path": "docs/auto-run/experiments/file-invocations/",
+      "question": "Can a file contract's generator failures and other modes be replayed as recorded invocations with an {output} argument and an expected/ tree, against S15's stand-in nidana_dart_codegen, and does a case without files/ run from the workspace root?",
+      "finding": "run.sh / output.txt: sixteen candidate cases for topic-codegen@v1's generate (generate-no-graph with expected/topics.g.dart identical to the file replay's and a no-graph topics.md; generate-graph-undecodable; four generate-usage-* cases; ten generate-rejected-* cases from rejected/) passed, 16 of 16; the four cases without files/ ran from the workspace root with root-relative arguments; four seeded defects each failed the case they break. The stand-in creates nothing at {output} on exit 1 or 2."
+    },
+    {
+      "path": "docs/auto-run/experiments/file-invocations/structure.sh",
+      "question": "Do the nine contracts as written meet the amended coverage (item 3) and layout (item 9) rules, and does a check of those rules catch seeded defects?",
+      "finding": "structure-output.txt S1: 9 contracts, 0 problems (every guarantee covered by a reject header, a behavior case name, a covers clause or a Covers cell, or listed not executable; data directories render/ and rejected/ listed). S2: a misspelt reject/ directory, an unlisted directory, a case with no table row, a removed file covers clause and a reject header naming no id were each reported."
+    }
+  ],
+  "self_check": [
+    { "gate": "Frontmatter has `id`, `status`, `affects`, `date`.", "status": "pass", "note": "Frontmatter unchanged: status accepted, original date 2026-10-17." },
+    { "gate": "The decision is genuinely cross-cutting; a node-local one stayed a `D{n}`.", "status": "pass", "note": "Every addition binds all contracts of a kind and the replay tool owned by nidana.model." },
+    { "gate": "`## Decision` and `## Consequences` are self-contained (no reliance on Context).", "status": "pass", "note": "Experiments and deliberation sit in Context, Alternatives considered and Amendments, none injected; Decision references only contracts, items and paths." },
+    { "gate": "Every id in `affects` carries a matching `Governed by: [ADR-NNN]`.", "status": "pass", "note": "affects unchanged; node docs/auto-run/tools/gate.mjs --skill hsdd-adr: 0 errors, 0 warnings." },
+    { "gate": "A superseding ADR set both `supersedes` and the old ADR's `superseded_by`.", "status": "n/a", "note": "Amended in place, no superseding ADR." },
+    { "gate": "No invented decision was written as `accepted`; an unknown decision is `proposed` with a TODO.", "status": "pass", "note": "Each amendment either states what the contracts already do (checked by structure-output.txt S1) or was decided under the run's policy with experiment evidence (decisions above)." },
+    { "gate": "The registry was regenerated.", "status": "pass", "note": "node hsdd/scripts/gen-registry.mjs; hsdd/adr/INDEX.md and hsdd/contract/INDEX.md unchanged, since id, status and affects did not change." },
+    { "gate": "Open questions are cited by ID only; an ADR that resolves one names the ID in its Decision, and the owning spec's OQ row is updated to point at this ADR (RESOLVED (date)).", "status": "pass", "note": "OQ8 still named in Decision; root OQ8 row already RESOLVED (2026-10-17): ADR-001. No new OQ resolved." }
+  ],
+  "notes_for_orchestrator": [
+    "Amended in place: hsdd/adr/001-executable-contract-validation.md keeps status accepted, date 2026-10-17 and every item number; a dated ## Amendments section (2026-10-17, UTC) lists the changes per item. Items changed: 2, 3, 4, 6, 7, 9, 10 and Consequences (one bullet rewritten, three added); Alternatives considered gained four entries. No node spec or contract changed; no Governed by link moved.",
+    "Confirmed: ADR-001 gives no '..' count for the plugin path (item 7 says only 'by a relative path to the plugin package'), so S03's six-level slip needs no ADR change. Seven levels from invocation/{case}/files/ to the workspace root is correct (files, {case}, invocation, nidana-checks, fixture, contract, hsdd).",
+    "Beyond the step's list, three more mismatches were fixed because contracts already depend on them: reject headers naming two ids (bus-api@v1 G19, G20; flutter-binding@v1 G5, G6), not-executable lines for part of a guarantee (nidana-checks@v1 G9, G17), and a file contract's input schema (topic-codegen@v1). One forward-looking change was added: --guarantee restricts file replays and recorded invocations by declared ids, and item 10 runs file and cli restricted like behavior (decision 9); review it if you want the amendment limited to the listed items.",
+    "For S21 (topic-codegen@v1 touch), exactly what the item 7 extension needs: (1) add hsdd/contract/fixture/topic-codegen/invocation/ with the sixteen cases of docs/auto-run/experiments/file-invocations/ (cases/ plus what run.sh adds): generate-no-graph (args nidana_dart_codegen:generate, hsdd/contract/fixture/topic-codegen/input/topics.yaml, {output}; exit 0; no files/; expected/topics.g.dart a copy of expected/topics.g.dart, expected/topics.md = cases/generate-no-graph/expected/topics.md, reviewed); generate-graph-undecodable (files/topics.yaml a copy of input/topics.yaml, files/topology-graph.json a copy of topology-ir@v1's invalid/format_v2.json; args --graph topology-graph.json topics.yaml {output}; exit 1); generate-usage-no-arguments, generate-usage-unknown-option, generate-usage-missing-topics (no files/, exit 2) and generate-usage-output-is-a-file (files/topics.yaml and files/afile; exit 2); generate-rejected-{name} for each rejected/{name}.yaml (files/topics.yaml; args topics.yaml {output}; exit 1). No stdout or stderr is recorded: message texts are not part of topic-codegen@v1. (2) Decide whether rejected/ moves into the generate-rejected-* cases (recommended: one copy; drop the '- rejected:' data-directory bullet; reword G2's 'every rejected/ document' and the G2 tooling-gate note to name those cases' documents, a compatible editorial change since the document set is unchanged) or stays and is duplicated. (3) Validation: an '- invocations:' bullet and a '| Case | Command | Exit | Covers |' table, one row per case: generate-no-graph covers G14, G18; each generate-rejected-* covers G2, G19; generate-graph-undecodable and each generate-usage-* cover G19. (4) Not-executable lines: drop G14's; rewrite G2's as a part line (G2's acceptance of valid/ and rejection of invalid/ documents, and the builder's rejection; checked by nidana.tooling's gates) and G19's as a part line (G19's diagnostic form {path}:{line}:{column}: {message}, since stderr text is not recorded; checked by nidana.tooling's gates). (5) Keep the '- file:' bullet's 'The file set covers ...' ending and the '- schema:' bullet's 'covers G1.' ending (item 3's form; both conform today). (6) Versioning: added fixtures are compatible.",
+    "For nidana.model's first phase (replay tool): docs/auto-run/experiments/file-invocations/replay.dart is the cli-set prototype with {output}, expected/ and the 'nothing at {output}' check; structure_check.dart prototypes item 3's coverage parsing and item 9's layout check. With ../nidana-checks-fixtures/tool/replay.dart and S08's expectMatchesSchema note they cover the tool's text-level rules.",
+    "Optional, not blocking: the root spec's '### ADR-001 (accepted)' pointer entry could note the 2026-10-17 amendment at the next root touch or reconcile sweep; it already says the file holds the binding text.",
+    "Decision timestamps: all nine were fixed at 22:34:01Z, after the experiment's output (22:32Z) and before the ADR edits; one refinement within decision 4 (the covers clause is optional on a schema bullet, because topology-ir@v1's carries none) was made while editing, about a minute later. structure.sh ran after the edits (22:37Z) as a check of the amended text.",
+    "No stop condition met: no collision, no amendment that breaks a consumer (all nine contracts pass the amended rules as written; the new forms are optional), no tree-shape choice, nothing outside the repository. Experiment side effects: work/ and work-structure/ under the experiment are created and removed by the scripts; .dart_tool and nested lockfiles are git-ignored."
+  ]
+}

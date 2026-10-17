@@ -44,7 +44,7 @@ function changed() {
 const NEVER = [/^ref\//, /^hsdd\/judgement\//, /^\.agents\//, /^\.claude\//, /^skills-lock\.json$/, /^\.fvmrc$/];
 const ALWAYS = [/^docs\/auto-run\/experiments\//, /^docs\/auto-run\/steps\//];
 // Orchestrator-owned run files: edited between steps, never by a step.
-const ORCH = [/^docs\/auto-run\/execution-plan\.md$/, /^docs\/auto-run\/REPORT\.md$/, /^docs\/auto-run\/tools\//];
+const ORCH = [/^docs\/auto-run\/execution-plan\.md$/, /^docs\/auto-run\/REPORT\.md$/, /^docs\/auto-run\/timestamp-corrections\.md$/, /^docs\/auto-run\/tools\//];
 const ALLOW = {
   "hsdd-spec": [/^hsdd\/spec\/[^/]+\.md$/, /^hsdd\/conventions\.md$/],
   "hsdd-adr": [/^hsdd\/adr\/[^/]+\.md$/, /^hsdd\/spec\/[^/]+\.md$/, /^hsdd\/contract\/[^/]+\.md$/, /^hsdd\/scripts\/gen-registry\.mjs$/],

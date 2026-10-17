@@ -146,6 +146,7 @@ if (cmd === "decisions") {
       commit,
     };
     errs.push(...check(d, `item ${i}`));
+    if (Date.parse(d.at) > Date.now() + 60_000) errs.push(`item ${i}: at ${d.at} is in the future`);
     out.push(d);
   }
   if (errs.length) { console.error(errs.join("\n")); process.exit(1); }
@@ -155,6 +156,8 @@ if (cmd === "decisions") {
 } else if (cmd === "run") {
   const [stepRef, skill, target, started, finished, commit, dispatches, note] = a;
   if (!commitExists(commit)) { console.error(`commit ${commit} not in repo`); process.exit(1); }
+  for (const t of [started, finished])
+    if (!(Date.parse(t) <= Date.now() + 60_000)) { console.error(`time ${t} is invalid or in the future`); process.exit(1); }
   const r = { step_ref: stepRef, skill, target, started, finished, commit };
   if (dispatches) r.dispatches = Number(dispatches);
   if (note) r.note = note;
