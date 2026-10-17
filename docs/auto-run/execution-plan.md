@@ -162,8 +162,9 @@ tree. Done when `node docs/auto-run/tools/gate.mjs --final` passes.
 | S05 | 3 | hsdd-adr | ADR-003 time source and virtual scheduler | done | 435a18b |
 | S06 | 4 | hsdd-contract | topic-model@v1 | done | ba86d16 |
 | S07 | 4 | hsdd-contract | topology-dsl@v1 | done | b14b2e9 |
-| S08 | 4 | hsdd-contract | topology-ir@v1 | running | |
-| S09..S14 | 4 | hsdd-contract | bus-api, bus-testing, navigation-api, flutter-binding, topic-codegen, nidana-checks (all @v1), in that order | planned | |
+| S08 | 4 | hsdd-contract | topology-ir@v1 | done | 03fe7c9 |
+| S09 | 4 | hsdd-contract | bus-api@v1 | running | |
+| S10..S14 | 4 | hsdd-contract | bus-api, bus-testing, navigation-api, flutter-binding, topic-codegen, nidana-checks (all @v1), in that order | planned | |
 | after S14 | 4 | hsdd-adr, then hsdd-spec (root touch) | governance touch-up: ADR affects and Governed-by links the root contracts exposed; root prose fixes | planned | |
 | next | 5 | hsdd-spec | nidana.runtime, then nidana.tooling (each followed by its ADRs and internal contracts) | planned | |
 
@@ -202,3 +203,7 @@ tree. Done when `node docs/auto-run/tools/gate.mjs --final` passes.
   builder" wording follows S07's plan interpretation; the root OQ5 detail stops saying switchMap covers
   server rewiring (S07 dropped a selecting switch). topology-dsl@v1 decided OQ-M2 (one plan, IR projected
   from it, interpreted live) and the DSL side of OQ-M1 and OQ-R3.
+- 2026-10-17, after S08: the touch-up list grows: ADR-001's structure set must tolerate topology-ir@v1's
+  `render/` golden directory, and nidana.model's Owns list should name the single-writer analysis
+  (topology-ir@v1 holds it; ADR-002 item 8 assumes it). OQ-M1 is decided by topology-ir@v1 G9; OQ-M1,
+  OQ-M2, OQ-M3 rows are marked at nidana.model's phase planning or the reconcile sweep.
