@@ -1,0 +1,3 @@
+topics:
+  - auth.state
+  - auth.login-requested

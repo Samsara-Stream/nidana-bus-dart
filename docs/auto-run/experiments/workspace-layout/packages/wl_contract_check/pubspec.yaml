@@ -1,0 +1,13 @@
+name: wl_contract_check
+publish_to: none
+environment:
+  sdk: ^3.13.0
+resolution: workspace
+dependencies:
+  args: any
+  json_schema: ^5.2.2
+  matcher: any
+  package_config: any
+  path: any
+dev_dependencies:
+  test: any

@@ -1,0 +1,20 @@
+# Stand-in for the planned workspace root (ADR-002): explicit member list,
+# one lockfile, the lint set as the root's only dependency.
+name: wl_workspace
+publish_to: none
+environment:
+  sdk: ^3.13.0
+workspace:
+  - packages/wl_contracts
+  - packages/wl_runtime
+  - packages/wl_navigation
+  - packages/wl_runtime_flutter
+  - packages/wl_codegen
+  - packages/wl_lint
+  - packages/wl_lint_hosted
+  - packages/wl_lint_path
+  - packages/wl_lint_pinned
+  - packages/wl_contract_check
+  - packages/wl_integration
+dev_dependencies:
+  lints: ^6.1.0

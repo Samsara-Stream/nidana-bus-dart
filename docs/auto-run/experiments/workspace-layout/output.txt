@@ -1,0 +1,252 @@
+
+### setup: resolve the workspace at the root
+pub get exit: 0
+lockfiles below the root:
+  (end)
+
+### Q1 one resolution of the planned dependency set, Flutter member included
+  analyzer                13.3.0
+  analysis_server_plugin  0.3.18
+  build                   4.0.11
+  source_gen              4.2.4
+  build_runner            2.16.1
+  build_test              3.5.20
+  dart_style              3.1.14
+  json_schema             5.2.2
+  rxdart                  0.28.0
+  clock                   1.1.3
+  meta                    1.19.0
+  test                    1.31.1
+  test_api                0.7.12
+  test_core               0.6.18
+  matcher                 0.12.20
+  lints                   6.1.0
+  yaml                    3.1.4
+  path                    1.9.1
+  args                    2.7.0
+  package_config          2.2.0
+direct dependencies:     
+analysis_server_plugin    *0.3.18   *0.3.18     *0.3.18     0.3.24   
+analyzer                  *13.3.0   *13.3.0     *13.3.0     14.5.0   
+build                     *4.0.11   *4.0.11     *4.0.11     5.0.0    
+package_config            *2.2.0    *2.2.0      *2.2.0      3.0.0    
+source_gen                *4.2.4    *4.2.4      *4.2.4      4.3.1    
+
+dev_dependencies:        
+build_runner              *2.16.1   *2.16.1     *2.16.1     2.17.1   
+build_test                *3.5.20   *3.5.20     *3.5.20     3.5.23   
+test                      *1.31.1   *1.31.1     *1.31.1     1.33.0   
+
+transitive dependencies: 
+
+### Q2 what caps analyzer below 14: three probes outside the workspace
+-- q2a: Flutter + flutter_test + test + analyzer ^14
+Note: matcher is pinned to version 0.12.20 by flutter_test from the flutter SDK.
+See https://dart.dev/go/sdk-version-pinning for details.
+
+Note: test_api is pinned to version 0.7.12 by flutter_test from the flutter SDK.
+See https://dart.dev/go/sdk-version-pinning for details.
+
+The current Dart SDK version is 3.13.5.
+
+Because test >=1.16.6 <1.17.10 depends on analyzer ^1.0.0 and test >=1.17.10 <1.20.0 depends on analyzer >=1.0.0 <3.0.0, test >=1.16.6 <1.20.0 requires analyzer >=1.0.0 <3.0.0.
+And because test >=1.20.0 <1.21.2 depends on test_api 0.4.9 and test >=1.21.0 <1.21.6 depends on analyzer >=2.0.0 <5.0.0, test >=1.16.6 <1.21.6 requires analyzer >=1.0.0 <5.0.0 or test_api 0.4.9.
+And because test >=1.21.6 <1.24.4 depends on analyzer >=2.0.0 <6.0.0 and test >=1.24.3 <1.25.13 depends on matcher >=0.12.16 <0.12.17, test >=1.16.6 <1.25.13 requires analyzer >=1.0.0 <6.0.0 or test_api 0.4.9 or matcher >=0.12.16 <0.12.17.
+And because test >=1.25.13 <1.28.0 depends on matcher >=0.12.16 <0.12.18 and test >=1.28.0 <1.30.0 depends on matcher >=0.12.16 <0.12.19, test >=1.16.6 <1.30.0 requires analyzer >=1.0.0 <6.0.0 or test_api 0.4.9 or matcher >=0.12.16 <0.12.19.
+exit: 1
+-- q2b: Flutter + flutter_test + analyzer ^14, no test
+exit: 0
+  analyzer                14.5.0
+  test_api                0.7.12
+-- q2c: test + analyzer ^14, no Flutter
+exit: 0
+  analyzer                14.5.0
+  test                    1.33.0
+  test_core               0.6.21
+
+### Q3 a hosted constraint on a sibling resolves to the local member; a mismatch fails
+  - wl_contracts ^0.1.0
+- wl_contracts 0.1.0
+Because wl_integration depends on wl_contracts ^0.1.0 and wl_workspace depends on wl_contracts, version solving failed.
+exit: 1
+
+### Q4 glob members (workspace: [packages/*]) on the pinned SDK
+exit: 0
+Package             Path                          
+wl_workspace        ./                            
+wl_contracts        packages/wl_contracts/        
+wl_runtime_flutter  packages/wl_runtime_flutter/  
+wl_navigation       packages/wl_navigation/       
+wl_lint_pinned      packages/wl_lint_pinned/      
+wl_lint_path        packages/wl_lint_path/        
+wl_runtime          packages/wl_runtime/          
+wl_codegen          packages/wl_codegen/          
+wl_contract_check   packages/wl_contract_check/   
+wl_lint             packages/wl_lint/             
+wl_lint_hosted      packages/wl_lint_hosted/      
+wl_integration      packages/wl_integration/      
+
+### Q5 pub get run inside a member resolves the whole workspace at the root
+exit: 0
+ls: {q5}/packages/wl_contracts/pubspec.lock: No such file or directory
+{q5}/pubspec.lock
+
+### Q6a an example/ with its own pubspec below a member, not a member
+-- root pub get with the non-member example present
+Because every version of wl_runtime from path depends on wl_contracts any which doesn't exist (could not find package wl_contracts at https://pub.dev), wl_runtime from path is forbidden.
+So, because wl_runtime_example depends on wl_runtime from path, version solving failed.
+exit: 69
+-- pub get inside the example (its own resolution)
+Because every version of wl_runtime from path depends on wl_contracts any which doesn't exist (could not find package wl_contracts at https://pub.dev), wl_runtime from path is forbidden.
+So, because wl_runtime_example depends on wl_runtime from path, version solving failed.
+exit: 69
+
+### Q6b the same example as a nested workspace member
+exit: 0
+wl_runtime_example  packages/wl_runtime/example/  
+-- does the nested member ship inside wl_runtime's archive? (publish dry-run file list)
+├── example
+│   └── pubspec.yaml (<1 KB)
+├── pubspec.yaml (<1 KB)
+* It's strongly recommended to include a "homepage" or "repository" field in your pubspec.yaml
+
+### Q6c an example/ with no pubspec is part of its member
+Analyzing example...
+No issues found!
+exit: 0
+true
+exit: 0
+
+### Q7 codegen: the build_runner builder in the Flutter integration member
+W These options have been removed and were ignored: --delete-conflicting-outputs
+  Built with build_runner/aot in 0s; wrote 1 output.
+exit: 0
+// GENERATED by wl_codegen
+const topicNames = <String>[
+  'auth.state',
+  'auth.login-requested',
+];
+
+### Q8 codegen: the command entry outside build_runner, from the root, same bytes as the builder
+generated into {tmp}/q8-out
+exit: 0
+builder output and command output are identical
+
+### Q9 member executables run from the root by package:executable
+wl_lint:scan ran with [a, b]
+exit: 0
+wl_contract_check ran: rest=[topic-model] set=surface
+exit: 0
+
+### Q10 tests: pure member under dart test, Flutter members under flutter test
+00:00 +1: All tests passed!
+exit: 0
+00:00 +1: All tests passed!
+exit: 0
+00:00 +1: All tests passed!
+exit: 0
+
+### Q11 workspace-wide analyze at the root: excludes, inherited lint set, and a plugin declared in a member's own options
+INFO|LINT|IMPLEMENTATION_IMPORTS|{root}/packages/wl_navigation/lib/src/bad_import.dart|2|8|38|Import of a library in the 'lib/src' directory of another package.
+WARNING|STATIC_WARNING|INVALID_DEPENDENCY|{root}/packages/wl_lint_path/pubspec.yaml|11|5|4|Publishable packages can't have 'path' dependencies.
+WARNING|STATIC_WARNING|PLUGINS_IN_INNER_OPTIONS|{root}/packages/wl_integration/analysis_options.yaml|3|3|29|Plugins can only be specified in the root of a pub workspace or the root of a package that isn't in a workspace.
+WARNING|STATIC_WARNING|STRICT_RAW_TYPE|{root}/packages/wl_integration/lib/app.dart|6|1|4|The generic type 'List<dynamic>' should have explicit type arguments but doesn't.
+exit: 2
+
+### Q11b the same plugin enabled in the workspace root options instead: it applies to every member
+INFO|STATIC_WARNING|NO_GLOBAL_BUS|/private{q11b}/packages/wl_integration/lib/app.dart|3|17|12|Global Bus accessor.
+INFO|STATIC_WARNING|NO_GLOBAL_BUS|/private{q11b}/packages/wl_runtime/lib/src/internal.dart|6|20|12|Global Bus accessor.
+exit: 2
+-- wl_lint synthetic package
+  analyzer                14.5.0
+  analysis_server_plugin  0.3.24
+
+### Q11d with the plugin enabled at the root, explicit-path analysis of excluded hsdd/ trees
+-- a fixture under a nested options file with no plugins section
+exit: 0
+-- a file under hsdd/ with no nested options file
+{q11b}/hsdd/loose.dart|5|20|12|Global Bus accessor.
+exit: 0
+
+### Q11c a root-enabled plugin that does not compile
+An error occurred while executing an analyzer plugin: Failed to compile "{home}/.dartServer/.plugin_manager/04431b7304f51c59433f32093f7f70c2/bin/plugin.dart" to an AOT snapshot.
+  pluginFolder = {home}/.dartServer/.plugin_manager/04431b7304f51c59433f32093f7f70c2
+  exitCode = 254
+  stdout = 
+exit: 3
+
+### Q12 plugin with a hosted constraint on an unpublished sibling, enabled by relative path
+An error occurred while executing an analyzer plugin: An error occurred while setting up the analyzer plugin package at '{home}/.dartServer/.plugin_manager/1e554ec1d09e90f0cfa9e0d87c872d41'. The `dart pub upgrade` command failed:
+  exitCode = 69
+  stdout = Resolving dependencies...
+
+  stderr = Because every version of wl_lint_hosted from path depends on wl_contracts any which doesn't exist (could not find package wl_contracts at https://pub.dev), wl_lint_hosted from path is forbidden.
+So, because plugin_entrypoint depends on wl_lint_hosted from path, version solving failed.
+
+
+#0      PluginManager._computeFiles (package:analysis_server/src/plugin/plugin_manager.dart:683)
+#1      PluginManager.filesFor (package:analysis_server/src/plugin/plugin_manager.dart:348)
+#2      PluginManager.addPluginToContextRoot (package:analysis_server/src/plugin/plugin_manager.dart:189)
+#3      PluginWatcher._addPlugins (package:analysis_server/src/plugin/plugin_watcher.dart:160)
+exit: 4
+
+### Q13 plugin with a path dependency on a sibling, enabled by relative path
+INFO|STATIC_WARNING|NO_GLOBAL_BUS_PATH|{root}/hsdd/inputs/path/app.dart|5|20|12|Global Bus accessor (true).
+exit: 0
+
+### Q14 the plugin's run-time resolution is the analysis server's synthetic package, not the workspace
+-- wl_lint: workspace lockfile
+  analyzer                13.3.0
+  analysis_server_plugin  0.3.18
+-- wl_lint: synthetic package in ~/.dartServer/.plugin_manager
+  analyzer                14.5.0
+  analysis_server_plugin  0.3.24
+  wl_contracts            -
+-- wl_lint_path: workspace lockfile
+  analyzer                13.3.0
+  analysis_server_plugin  0.3.18
+-- wl_lint_path: synthetic package in ~/.dartServer/.plugin_manager
+  analyzer                14.5.0
+  analysis_server_plugin  0.3.24
+  wl_contracts            0.1.0
+
+### Q15 plugin pinning analyzer and analysis_server_plugin to the workspace lockfile's versions
+INFO|STATIC_WARNING|NO_GLOBAL_BUS_PINNED|{root}/hsdd/inputs/pinned/app.dart|5|20|12|Global Bus accessor.
+exit: 0
+-- synthetic package
+  analyzer                13.3.0
+  analysis_server_plugin  0.3.18
+
+### Q16 publish dry-run: hosted sibling constraints and resolution: workspace versus a path dependency
+-- wl_runtime (hosted constraint on wl_contracts)
+Package validation found the following error:
+* You must have a LICENSE file in the root directory.
+Package validation found the following 3 potential issues:
+* It's strongly recommended to include a "homepage" or "repository" field in your pubspec.yaml
+* Please add a README.md file that describes your package.
+* Please add a `CHANGELOG.md` to your package. See https://dart.dev/tools/pub/publishing#important-files.
+-- wl_lint_path (path dependency on wl_contracts)
+Package validation found the following 2 errors:
+* You must have a LICENSE file in the root directory.
+* Don't depend on "wl_contracts" from the path source. Use the hosted source instead. For example:
+Package validation found the following 7 potential issues:
+* `dart analyze` found the following issue(s):
+* The name of "lib/main.dart", "main", should match the name of the package, "wl_lint_path".
+* It's strongly recommended to include a "homepage" or "repository" field in your pubspec.yaml
+* Your dependency on "analysis_server_plugin" should have a version constraint. For example:
+* Your dependency on "analyzer" should have a version constraint. For example:
+* Please add a README.md file that describes your package.
+* Please add a `CHANGELOG.md` to your package. See https://dart.dev/tools/pub/publishing#important-files.
+
+### Q17 a rule-testing package next to the pinned analyzer
+  analyzer 13.3.0 (14.5.0 available)
++ analyzer_testing 0.3.2 (0.4.3 available)
+Would change 1 dependency in `/Users/mohamad.purbo/gitx/nidana-bus-dart/docs/auto-run/experiments/workspace-layout`.
+
+### Q18 an app outside the workspace consuming unpublished members
+-- path dependency on wl_runtime alone
+Because every version of wl_runtime from path depends on wl_contracts any which doesn't exist (could not find package wl_contracts at https://pub.dev), wl_runtime from path is forbidden.
+So, because q18_app depends on wl_runtime from path, version solving failed.
+exit: 69
+-- plus a dependency override for every unpublished sibling it reaches
+exit: 0

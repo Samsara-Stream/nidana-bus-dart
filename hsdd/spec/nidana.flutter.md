@@ -11,7 +11,7 @@
   - module-scope binding: a route observer that matches route prefixes and acquires and releases the runtime's module scope references on push, pop and replace (Spec §7.3)
   - `FlutterNavigationExecutor`, implementing the navigation-api@v1 protocol against the router OQ-F1 selects (Guide §3.4)
   - bus shutdown when the coordination domain ends (Spec §11.2)
-  - a widget-test library for apps: helpers that run a real bus under `testWidgets` with the production scheduler provider, so `tester.pump` drives time (ADR-003)
+  - a widget-test library for apps: helpers that run a real bus under `testWidgets` with the production scheduler provider, so `tester.pump` drives time (ADR-003); the library imports neither `flutter_test` nor `test` (ADR-002 item 4)
 - **Does not own:** reference counting arithmetic and the grace timer (nidana.runtime); intent vocabulary, guard and resolution (nidana.navigation); the app's routes, widgets and auth state
 - **Consumes:** [topic-model@v1, topology-dsl@v1, bus-api@v1, bus-testing@v1, navigation-api@v1]
 - **Produces:** [flutter-binding@v1]

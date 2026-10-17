@@ -1,0 +1,9 @@
+name: wl_lint_pinned
+version: 0.1.0
+description: Plugin pinning analyzer and analysis_server_plugin to the workspace lockfile.
+environment:
+  sdk: ^3.13.0
+resolution: workspace
+dependencies:
+  analysis_server_plugin: 0.3.18
+  analyzer: 13.3.0

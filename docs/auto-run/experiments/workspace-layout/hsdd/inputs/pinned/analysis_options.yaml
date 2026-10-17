@@ -1,0 +1,3 @@
+plugins:
+  wl_lint_pinned:
+    path: ../../../packages/wl_lint_pinned

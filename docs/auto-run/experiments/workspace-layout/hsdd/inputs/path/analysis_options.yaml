@@ -1,0 +1,3 @@
+plugins:
+  wl_lint_path:
+    path: ../../../packages/wl_lint_path

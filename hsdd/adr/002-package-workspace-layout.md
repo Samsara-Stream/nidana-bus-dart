@@ -1,0 +1,127 @@
+---
+id: ADR-002
+status: accepted
+affects: [nidana, nidana.model, nidana.runtime, nidana.navigation, nidana.flutter, nidana.tooling, nidana.integration, topic-model@v1, topology-dsl@v1, topology-ir@v1, bus-api@v1, bus-testing@v1, navigation-api@v1, flutter-binding@v1, topic-codegen@v1, nidana-checks@v1]
+date: 2026-10-17
+---
+
+# ADR-002: Package and workspace layout
+
+## Context
+
+The tree builds the Dart/Flutter implementation as pub packages, one or two per child node (root D3, D4). One owner builds everything in one repository on a pinned toolchain (`.fvmrc`: Flutter 3.47.7, which bundles Dart 3.13.5), installs no global tooling, and leaves publishing to pub.dev out of v1 (root D1). `.gitignore` already anticipates a pub workspace: the root lockfile is tracked, lockfiles below the root are not, and melos overrides are ignored. Guide Appendix B.2 lists ten Dart packages, one per library layer; Spec §3.11 and Guide Appendix C.2 name custom_lint for the Dart lint rules. Root OQ9 asks which static-analysis mechanism carries the v1 checks, and root OQ12 asks which packages exist (root D7 already placed the navigation types). ADR-001 adds obligations to the layout: the replay tool `nidana_contract_check` with `package:json_schema`, contract fixtures under `hsdd/` that only the replay tool analyzes, and a `file` contract whose replay runs the codegen outside build_runner.
+
+The root decomposition proposed this ADR on the strength of `docs/auto-run/experiments/sdk-workspace/`, `workspace-flutter-member/` and `lint-mechanism/`. The experiment `docs/auto-run/experiments/workspace-layout/` (`run.sh`, captured in `output.txt`) rebuilds the planned layout on the pinned SDK with stand-in members and settles what those had not checked:
+
+- **One resolution holds the analyzer ecosystem one release back.** With every planned dependency in one resolution (Flutter, `test`, rxdart, clock, json_schema, build, source_gen, build_runner, build_test, dart_style, analysis_server_plugin), the lockfile resolves analyzer 13.3.0, analysis_server_plugin 0.3.18, build 4.0.11, source_gen 4.2.4, build_runner 2.16.1 and test 1.31.1, where 14.5.0, 0.3.24, 5.0.0, 4.3.1, 2.17.1 and 1.33.0 are current (Q1). The cause is `flutter_test` pinning `test_api` 0.7.12, which holds `test` at 1.31.1, whose `test_core` 0.6.18 caps analyzer below 14; without `test`, or without Flutter, analyzer 14.5.0 resolves (Q2). custom_lint 0.8.1 would hold the same resolution at analyzer 8.4.0 (`lint-mechanism/output-cohabit.txt`).
+- **Members.** A hosted constraint on a sibling resolves to the local member, and a local version that does not satisfy it fails resolution (Q3). Glob member lists work on the pinned SDK (Q4). `pub get` run inside a member writes only the root lockfile (Q5). A member with hosted sibling constraints and `resolution: workspace` passes `pub publish --dry-run` except for metadata (LICENSE, README, CHANGELOG, a repository field); a path dependency is a publish error and an `invalid_dependency` analyzer warning (Q11, Q16).
+- **Examples and outside consumers.** The root `pub get` also resolves each member's `example/` package, outside the workspace, where a hosted constraint on an unpublished sibling cannot be found, so one such example fails the root `pub get` (Q6a). A nested member works (Q6b). An `example/` folder without a `pubspec.yaml` is part of its member and analyzes with it (Q6c). An app outside the workspace resolves unpublished members only when it overrides every sibling it reaches (Q18).
+- **Analysis options.** With `ref/**`, `docs/**` and `hsdd/**` excluded, a workspace-wide `fvm dart analyze` reports nothing from those trees, including a nested package under `docs/` whose options name a nonexistent plugin. Members without an options file inherit the root's lint set and strict modes, and so does a member whose options include the root file (Q11).
+- **Where a plugin can be enabled.** A member's own options cannot enable a plugin: the analyzer reports `plugins_in_inner_options`, "Plugins can only be specified in the root of a pub workspace or the root of a package that isn't in a workspace" (Q11). Enabled in the root options by relative path, a plugin reports in every member (Q11b). Analyzed by explicit path, a fixture under a nested options file without a `plugins:` section gets no plugin diagnostics, while a file under `hsdd/` with no nested options file does (Q11d). A plugin that does not compile fails `dart analyze` with exit 3 (Q11c). Plugin warning rules report at INFO severity (Q11b, Q13).
+- **The plugin's own resolution.** The analysis server runs a plugin from a synthetic package under `~/.dartServer/.plugin_manager/`, resolved apart from the workspace. A plugin with a hosted constraint on an unpublished sibling fails to load, exit 4 (Q12); one with a path dependency loads (Q13). With open constraints the synthetic package resolves analyzer 14.5.0 and analysis_server_plugin 0.3.24, while the workspace, where the plugin's tests run, holds 13.3.0 and 0.3.18 (Q14). Exact pins to the workspace's versions make both resolutions agree, and the plugin loads on the pinned SDK, whose server asks for `analysis_server_plugin: ^0.3.8` (Q15). `analyzer_testing` 0.3.2 resolves beside analyzer 13.3.0 (Q17). The server imports the plugin as `package:{plugin}/main.dart` and reads its top-level `plugin`.
+- **Codegen and commands.** A build_runner builder runs in the Flutter integration member, and a command entry calling the same pure generator from the workspace root writes byte-identical output (Q7, Q8). `fvm dart run {package}:{executable}` runs any member's executable from the root (Q9). Pure members test under `fvm dart test`, Flutter members under `fvm flutter test` (Q10).
+
+Spec §3.11 has the single-writer workspace scan feed the topology graph generator, "so single-writer enforcement and graph generation share infrastructure", and Guide Appendix C.3 lists the codegen's `topology-graph.json` as the CI lint manifest for cycle detection. Root D4 requires the activation-time checks and the CI checks to run the same pure analyses from the contracts package. Those analyses are aggregate (across topologies, registries and the ownership table), while a plugin rule sees one library at a time.
+
+## Decision
+
+Resolves OQ9 and, together with root D7, OQ12. Partially resolves OQ-T2: item 8 fixes where the workspace scan runs; what it reads stays with nidana.tooling's decomposition.
+
+1. **Workspace root.** The repository root is one pub workspace. Its `pubspec.yaml` has `name: nidana_workspace`, `publish_to: none`, `environment: sdk: ^3.13.0`, `dev_dependencies: lints: ^6.1.0` as its only dependency, and a `workspace:` list that names every member path explicitly, without globs. The root `pubspec.lock` is committed and is the only lockfile outside `docs/`; no member has a lockfile or package configuration of its own. A `dependency_overrides` entry, when one is needed, goes in the root `pubspec.yaml` only. `fvm dart pub get` or `fvm flutter pub get`, run at the root or inside any member, resolves the whole workspace.
+
+2. **Root analysis options.** The root `analysis_options.yaml` is the following, plus item 7's `plugins:` section once it applies:
+
+   ```yaml
+   include: package:lints/recommended.yaml
+   analyzer:
+     exclude:
+       - ref/**
+       - docs/**
+       - hsdd/**
+     language:
+       strict-casts: true
+       strict-inference: true
+       strict-raw-types: true
+   ```
+
+   It governs every member. A member has no options file of its own unless it adds rules; such a file starts with `include: ../../analysis_options.yaml` and has no `plugins:` section. The workspace stays clean under `fvm dart analyze --fatal-infos` run at the root. The only options files under `hsdd/` are the ones ADR-001 places there.
+
+3. **Members.** Every member lives at `packages/{name}/`, in a directory named after the package, and is owned by exactly one node. A published member's main library is `lib/{name}.dart`; its other public libraries sit directly under `lib/` and are named by the contract that declares them; everything else is under `lib/src/`.
+
+   | Package | Owner | Published | Dependencies | Dev dependencies |
+   |---------|-------|-----------|--------------|------------------|
+   | `nidana_dart_contracts` | nidana.model | yes | `meta` | `test` |
+   | `nidana_dart_runtime` | nidana.runtime | yes | `nidana_dart_contracts`, `rxdart`, `clock`, `meta` | `test` |
+   | `nidana_dart_navigation` | nidana.navigation | yes | `nidana_dart_contracts`, `nidana_dart_runtime`, `meta` | `test` |
+   | `nidana_dart_runtime_flutter` | nidana.flutter | yes | `flutter` (SDK), `nidana_dart_contracts`, `nidana_dart_runtime`, `nidana_dart_navigation`, `meta`; a router package only if OQ-F1 selects one | `flutter_test` (SDK) |
+   | `nidana_dart_codegen` | nidana.tooling | yes | `nidana_dart_contracts`, `build`, and those of `source_gen`, `analyzer`, `dart_style`, `yaml` and `path` its code imports | `build_test`, `test` |
+   | `nidana_dart_lint` | nidana.tooling | yes | `analysis_server_plugin`, `analyzer`, pinned as item 7 states | `analyzer_testing`, `test` |
+   | `nidana_contract_check` | nidana.model | no | `args`, `json_schema`, `matcher`, `package_config`, `path` | `test` |
+   | `nidana_integration` | nidana.integration | no | `flutter` (SDK), `nidana_dart_contracts`, `nidana_dart_runtime`, `nidana_dart_navigation`, `nidana_dart_runtime_flutter` | `flutter_test` (SDK), `build_runner`, `nidana_dart_codegen` |
+
+   - `nidana_dart_runtime` holds Guide Appendix B.1 layers 2 and 3. Its RxDart-specific code sits behind an internal library seam under `lib/src/`, so a second engine would be a new package, not a rewrite. Its public libraries are `nidana_dart_runtime.dart` and `testing.dart` (`TestBus`, `VirtualScheduler`, the envelope recorder).
+   - `nidana_dart_lint`'s entry point is `lib/main.dart` with a top-level `plugin`, as the analysis server requires.
+   - The table is the v1 baseline. A phase that needs another third-party package in a member records it as a `D{n}` in the owning node's spec, within item 4's rules.
+
+4. **Dependency rules.**
+   - A member depends on another member by a hosted version constraint (`nidana_dart_contracts: ^0.1.0`), never by `path:`. The workspace resolves it to the local member, and the member stays publishable unchanged.
+   - A third-party dependency takes a caret constraint whose lower bound is the version the committed lockfile resolves when the dependency is added. A package that several members declare carries the same constraint in each. Item 7's exact pins are the only exception.
+   - The member graph is acyclic: `nidana_dart_contracts`, then `nidana_dart_runtime`, then `nidana_dart_navigation`, then `nidana_dart_runtime_flutter`; `nidana_dart_codegen` depends on `nidana_dart_contracts` only; `nidana_dart_lint` and `nidana_contract_check` depend on no nidana package; `nidana_integration` depends on every published runtime package. A member imports another member's public libraries only, never its `lib/src/`, which the root lint set's `implementation_imports` reports.
+   - `nidana_dart_contracts` depends on `meta` alone. Flutter appears only in `nidana_dart_runtime_flutter` and `nidana_integration`.
+   - No published member lists `test` or `flutter_test` under `dependencies`. `nidana_dart_runtime`'s `testing.dart` and the Flutter adapter's widget-test helpers import neither, so VM tests and widget tests use them alike; `package:matcher` is allowed.
+   - No member depends on `custom_lint`.
+
+5. **SDK constraint.** The root and every member declare `environment: sdk: ^3.13.0`, the Dart of the `.fvmrc` pin. A change of the pin changes every SDK constraint, the lockfile and item 7's pins together.
+
+6. **Non-members and packages not created.** `docs/**` holds standalone experiments with their own resolutions and is never a member. A member's `example/` folder, when present, has no `pubspec.yaml` and is part of its member's package; the runnable example app is `nidana_integration`. Not created in v1: `nidana_dart_runtime_rxdart` (folded into the runtime, item 3), `nidana_dart_persistence` (deferred by root D1), `nidana_dart_perf_suite`, `nidana_dart_devtools` (the name stays reserved for v2 runtime devtools; the v1 build-time graph ships in `nidana_dart_codegen`), and a test-utilities package (the `nidana-test-utils` of Guide §6.5 and §10.1 is the runtime's `testing.dart`).
+
+7. **Static analysis mechanism.** The v1 checks that one library's resolved AST decides ship as rules of `nidana_dart_lint`, an analysis server plugin on the Dart 3.10 plugin API (`package:analysis_server_plugin`). A check that needs more than one library, or the IR, is not a plugin rule (item 8).
+   - `nidana_dart_lint` depends on `analysis_server_plugin` and `analyzer` only, each pinned to the exact version the committed lockfile resolves (0.3.18 and 13.3.0 on the current pin), and on no nidana package. It recognizes nidana API by library URI and element name.
+   - The phase that creates `nidana_dart_lint` adds this to the root options, so its rules run over every member under `fvm dart analyze` and in the IDE; before that phase the root options have no `plugins:` section:
+
+     ```yaml
+     plugins:
+       nidana_dart_lint:
+         path: packages/nidana_dart_lint
+     ```
+
+   - A recorded invocation under `hsdd/contract/fixture/` enables the plugin in its own `files/analysis_options.yaml` by relative path (ADR-001 item 7).
+
+8. **Codegen command entries.** `nidana_dart_codegen` holds the build_runner builders and command entries under `bin/`, run from the workspace root as `fvm dart run nidana_dart_codegen:{executable}`:
+   - a generator command that runs the builders' generators outside build_runner, which the `file` replay of topic-codegen@v1 runs (ADR-001 item 6);
+   - the workspace scan, which runs every v1 check over more than one library or over the IR (topic name uniqueness across registries, single-writer, inter-topology cycles, intra-topology self-reference, scope compatibility) by calling `nidana_dart_contracts`' analyses, the functions activation also calls, and which shares the topology catalog scan with graph emission.
+
+   Builders and command entries call the same pure generator functions, so build_runner and the commands write identical bytes. Executable names, arguments, outputs and exit codes belong to topic-codegen@v1 and nidana-checks@v1.
+
+9. **Versions and publishing.** Published members share one version, start at `0.1.0`, stay `0.x` until the v1 release, and move together: a bump changes every published member's `version` and every inter-member constraint in one change. Unpublished members (`nidana_contract_check`, `nidana_integration`) carry `publish_to: none` and no version. Each published member carries a `README.md`, a `CHANGELOG.md` and a copy of the repository's `LICENSE` (Apache-2.0). Publishing, the `repository` field and the publication order are owner actions outside the tree.
+
+## Consequences
+
+- The workspace builds on analyzer 13.3.0, analysis_server_plugin 0.3.18, build 4.0.11, source_gen 4.2.4, build_runner 2.16.1 and test 1.31.1 until a Flutter pin upgrade moves `test_api`. Codegen and lint code is written against these versions; an analyzer 14 API is not available.
+- `fvm dart analyze --fatal-infos` at the root checks every member against the lint set, the strict modes and, once it exists, `nidana_dart_lint`. Plugin rules report at INFO severity, so only `--fatal-infos` makes one fail a gate.
+- The plugin's rules also run over the tree's own packages, so a rule accepts what those packages legitimately contain, such as topic declarations with literal names.
+- A `nidana_dart_lint` that does not build fails every root analyze, and with it every gate that analyzes. nidana.tooling's phases keep the plugin building at every merge.
+- The plugin runs under the analyzer version its tests ran against. A published `nidana_dart_lint` works only with SDKs whose analysis server accepts analysis_server_plugin 0.3.18; the pins move with the SDK pin.
+- `hsdd/contract/fixture/analysis_options.yaml` (ADR-001 item 2) also keeps the root-enabled plugin off surface and reject fixtures. A file under `hsdd/` outside any directory with its own options file gets the plugin's diagnostics when analyzed by path.
+- A seeded violation never sits in a member's analyzed code. Seeded cases live in excluded trees analyzed by explicit path with their own options file, as nidana-checks@v1's recorded invocations do, or are input to the workspace scan.
+- nidana-checks@v1 covers two hosts: `nidana_dart_lint`'s diagnostics under `dart analyze`, and the workspace scan command of `nidana_dart_codegen`. topic-codegen@v1 names the generator command. An app that runs the aggregate checks takes `nidana_dart_codegen` as a dev dependency even when it writes its registries by hand.
+- build_runner runs inside the member that applies the builders (`fvm dart run build_runner build` in `packages/nidana_integration`), not at the root, whose only dependency is `lints`.
+- Before publication, an app outside this repository consumes the packages by path or git and lists every nidana package it reaches, transitive ones included, under its own `dependency_overrides`. It enables the plugin by a path to `packages/nidana_dart_lint`, which loads because the plugin depends on no nidana package.
+- Publication follows the member graph, `nidana_dart_contracts` first, because outside the workspace a hosted constraint resolves against pub.dev.
+- Spec §3.11 and Guide Appendix C.2 name custom_lint for Dart, and Guide Appendix C.2 groups the single-writer and scope checks under `nidana_dart_lint`; this tree uses neither (marked for upstreaming).
+- `.gitignore`'s comment about non-member examples describes a case this layout never creates; its ignore rule stays correct for `docs/`.
+
+## Alternatives considered
+
+- **Guide Appendix B.2 exactly**: a separate `nidana_dart_runtime_rxdart` and test-utilities package, with navigation types in the contracts package. It adds an engine abstraction with one implementation and a package that cannot be tested apart from the runtime. The signal that would split the runtime: a v1 requirement for a second engine, such as plain `dart:async` streams.
+- **Melos or a separate resolution per package**: no single lockfile, and `.gitignore` already rules it out.
+- **The tooling packages outside the workspace**, resolving on their own to analyzer 14.5.0 and build 5.0.0. They would reach `nidana_dart_contracts` only by path with overrides, resolve apart from the integration app that runs them, and every gate would resolve twice. The signal that would favor it: a v1 check that needs an analyzer 14 API.
+- **custom_lint**, as Spec §3.11 and Guide Appendix C.2 name: it runs a rule on the pinned SDK but holds the single resolution at analyzer 8.4.0.
+- **`nidana_dart_lint` hosting the workspace scan**, depending on `nidana_dart_contracts` by path with `publish_to: none` until release. It keeps Guide Appendix C.2's grouping, but plugin rules see one library at a time and have no use for aggregate analyses, and the package would need a dependency edit before it could be published. The signal that would favor it: a plugin rule that must run the model's analyses inside the IDE.
+- **A separate package for the workspace scan**: a clearer name and one more package, and the scan would share the topology catalog scan with the codegen across a package boundary.
+- **The plugin enabled only in `nidana_integration`'s options, or only in recorded invocations**: the analyzer rejects the first; the second never checks any member, the example app included.
+- **`nidana_integration` outside the workspace**, enabling the plugin in its own options: closer to an adopting app, but with its own resolution and lockfile, path dependencies plus overrides for every package, and gates that resolve twice.
+- **`example/` packages**: as non-members they fail the root `pub get`; as nested members they work but each adds a package to the single resolution. `nidana_integration` is the runnable example.
+- **A glob member list (`packages/*`)**: it works on the pinned SDK, but any directory under `packages/` would join the resolution without an owning node.
+- **Open constraints on the plugin's analyzer**: the plugin would run on analyzer 14.5.0 while its tests run on 13.3.0.
+- **A lower SDK bound for adopters on older Flutter releases**: nothing in the tree tests a lower bound, and the bound matters only at publication, where widening it is non-breaking.

@@ -1,0 +1,17 @@
+name: wl_codegen
+version: 0.1.0
+description: Stand-in for nidana_dart_codegen.
+environment:
+  sdk: ^3.13.0
+resolution: workspace
+dependencies:
+  wl_contracts: ^0.1.0
+  build: any
+  source_gen: any
+  analyzer: any
+  dart_style: any
+  yaml: any
+  path: any
+dev_dependencies:
+  build_test: any
+  test: any

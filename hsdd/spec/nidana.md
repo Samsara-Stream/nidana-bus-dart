@@ -321,27 +321,9 @@ Each entry is a proposal until a later hsdd-adr step materializes and accepts it
 
 Accepted 2026-10-17 as `hsdd/adr/001-executable-contract-validation.md`, which holds the binding text; it resolves OQ8. The accepted decision sharpens the proposal: reject fixtures anchor each expected diagnostic to a line, conformance cases are values bound per implementation and per test runner, contract guarantees carry `G{n}` ids that fixtures cover, and the workspace root's analysis options exclude `hsdd/**`.
 
-### ADR-002 (proposed): Package and workspace layout
+### ADR-002 (accepted): Package and workspace layout
 
-- **Recommended decision:**
-  1. One pub workspace rooted at the repository root: `pubspec.yaml` (name `nidana_workspace`, `publish_to: none`, a `workspace:` list), one committed `pubspec.lock`, and an `analysis_options.yaml` that excludes `ref/**` and `docs/**`. Every member declares `environment: sdk: ^3.13.0`, the `.fvmrc` pin.
-  2. Members under `packages/`, each owned by one node:
-     - `nidana_dart_contracts` (nidana.model): depends on `meta` only.
-     - `nidana_dart_runtime` (nidana.runtime): depends on `nidana_dart_contracts`, `rxdart`, `clock` and `meta`. Guide B.1 layers 2 and 3 in one package, with the RxDart adapter behind an internal library seam so a second engine would be a new package, not a rewrite. Public libraries: the runtime itself and `testing.dart` (`TestBus`, `VirtualScheduler`, envelope recorder), with no dependency on `package:test`.
-     - `nidana_dart_navigation` (nidana.navigation): depends on `nidana_dart_contracts`, `nidana_dart_runtime` and `meta`; no Flutter.
-     - `nidana_dart_runtime_flutter` (nidana.flutter): depends on Flutter, `nidana_dart_contracts`, `nidana_dart_runtime`, `nidana_dart_navigation` and `meta`; any router dependency is decided by OQ-F1.
-     - `nidana_dart_codegen` (nidana.tooling): build_runner builders, the topic catalog, the topology catalog, graph emission and the build-time HTML graph.
-     - `nidana_dart_lint` (nidana.tooling): the analysis server plugin and the workspace scan; depends on no nidana runtime package and recognizes the API by library URI and element name.
-     - `nidana_contract_check` (nidana.model, not published): the contract replay tool of ADR-001.
-     - `nidana_integration` (nidana.integration, not published): the example Flutter app and its tests.
-  3. Not created in v1: `nidana_dart_runtime_rxdart` (folded into the runtime), `nidana_dart_persistence`, `nidana_dart_perf_suite`, `nidana_dart_devtools` (the name stays reserved for v2 runtime devtools; the v1 build-time graph ships in the codegen package), and a separate test-utilities package (the `nidana-test-utils` of Guide §6.5 and §10.1 maps to the runtime's `testing.dart`).
-  4. Dependencies stay acyclic: contracts, then runtime, then navigation, then the Flutter adapter; codegen on contracts; lint on nothing of ours; integration on everything. A package imports another's public libraries only.
-  5. Static analysis rules ship as an analysis server plugin on the Dart 3.10 plugin API, enabled through the top-level `plugins:` section of `analysis_options.yaml`. No member depends on `custom_lint`.
-  6. Not members: `docs/auto-run/experiments/**` and every package's `example/` folder (their lockfiles stay uncommitted, as `.gitignore` already says).
-  7. All members share one version, moved in lockstep, `0.x` until the v1 release. Publishing to pub.dev is an owner action outside the tree.
-- **Affects:** nidana, nidana.model, nidana.runtime, nidana.navigation, nidana.flutter, nidana.tooling, nidana.integration
-- **Rationale:** `.gitignore` already records a pub workspace (root lockfile committed, non-member examples, no melos). The experiments `docs/auto-run/experiments/sdk-workspace/` and `docs/auto-run/experiments/workspace-flutter-member/` show workspaces resolving, analyzing and testing on the pinned SDK with pure-Dart and Flutter members together. Guide B.2's package names are kept wherever a package keeps its layer's role, for traceability to the Guide. The lint rule rests on `docs/auto-run/experiments/lint-mechanism/`: a rule runs under `dart analyze` through the new plugin API (`output-plugin.txt`) and under `custom_lint` (`output-custom-lint.txt`), but custom_lint 0.8.1 resolves only with analyzer 8.4.0 and drags a shared resolution down to it, holding `build`, `source_gen` and `analysis_server_plugin` back too, while without it the SDK's analyzer 14.5.0 resolves (`output-cohabit.txt`). One workspace has one resolution, so custom_lint would pin every member. Marked for upstreaming: Spec §3.11 and Guide C.2 name custom_lint for Dart.
-- **Alternatives considered:** following Guide B.2 exactly (separate `nidana_dart_runtime_rxdart`, `nidana_dart_test_utils`, navigation types in contracts), which adds an engine abstraction with one implementation and a package that cannot be tested apart from the runtime; melos-managed packages with separate resolutions, which `.gitignore` already rules out. The signal that would split the runtime: a v1 requirement for a second engine, such as plain `dart:async` streams.
+Accepted 2026-10-17 as `hsdd/adr/002-package-workspace-layout.md`, which holds the binding text; it resolves OQ9 and, with D7, OQ12, and partially resolves nidana.tooling's OQ-T2. The package set and names are the proposal's. Four changes follow from `docs/auto-run/experiments/workspace-layout/`: `nidana_dart_lint` depends on no nidana package and pins its analyzer, because the analysis server resolves a plugin outside the workspace; the workspace scan and every check over the aggregated IR run as a command of `nidana_dart_codegen`; the plugin is enabled in the workspace root's analysis options, the only place the analyzer accepts it in a workspace; and a member's `example/` folder has no pubspec of its own. The accepted decision also fixes the root lint set and strict modes, the `hsdd/**` exclude, hosted constraints between members, and the replay tool's dependency set.
 
 ### ADR-003 (proposed): Time source and virtual scheduler on Dart
 
@@ -408,7 +390,7 @@ HSDD's validation artifacts (schema plus payloads) fit wire formats; most contra
 
 ### OQ9: Static-analysis mechanism
 
-Spec §3.11 and Guide C.2 name custom_lint. On the pinned SDK both custom_lint and the Dart 3.10 analysis server plugin API run a rule, but custom_lint pins the workspace's single resolution to analyzer 8.4.0. Resolved by ADR-002 (item 5): the analysis server plugin; marked for upstreaming.
+Spec §3.11 and Guide C.2 name custom_lint. On the pinned SDK both custom_lint and the Dart 3.10 analysis server plugin API run a rule, but custom_lint pins the workspace's single resolution to analyzer 8.4.0, against 13.3.0 without it. Resolved by ADR-002 (items 7 and 8): per-library rules in an analysis server plugin, the aggregate checks as a command of the codegen package; marked for upstreaming.
 
 ### OQ10: Dev mode on Dart
 

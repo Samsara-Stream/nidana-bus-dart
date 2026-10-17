@@ -1,0 +1,17 @@
+name: wl_integration
+publish_to: none
+environment:
+  sdk: ^3.13.0
+resolution: workspace
+dependencies:
+  flutter:
+    sdk: flutter
+  wl_contracts: ^0.1.0
+  wl_runtime: ^0.1.0
+  wl_navigation: ^0.1.0
+  wl_runtime_flutter: ^0.1.0
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  build_runner: any
+  wl_codegen: ^0.1.0

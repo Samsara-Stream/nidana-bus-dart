@@ -1,0 +1,16 @@
+name: wl_runtime_flutter
+version: 0.1.0
+description: Stand-in for nidana_dart_runtime_flutter.
+environment:
+  sdk: ^3.13.0
+resolution: workspace
+dependencies:
+  flutter:
+    sdk: flutter
+  wl_contracts: ^0.1.0
+  wl_runtime: ^0.1.0
+  wl_navigation: ^0.1.0
+  meta: ^1.18.3
+dev_dependencies:
+  flutter_test:
+    sdk: flutter

@@ -1,0 +1,8 @@
+name: wl_contracts
+version: 0.1.0
+description: Stand-in for nidana_dart_contracts.
+environment:
+  sdk: ^3.13.0
+resolution: workspace
+dependencies:
+  meta: ^1.18.3

@@ -1,0 +1,11 @@
+name: wl_lint_path
+version: 0.1.0
+description: Plugin with a path dependency on a sibling.
+environment:
+  sdk: ^3.13.0
+resolution: workspace
+dependencies:
+  analysis_server_plugin: any
+  analyzer: any
+  wl_contracts:
+    path: ../wl_contracts

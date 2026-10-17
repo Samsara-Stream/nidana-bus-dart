@@ -1,0 +1,12 @@
+# Stand-in for the planned root analysis options: lint set, strict modes,
+# and the non-code trees excluded.
+include: package:lints/recommended.yaml
+analyzer:
+  exclude:
+    - ref/**
+    - docs/**
+    - hsdd/**
+  language:
+    strict-casts: true
+    strict-inference: true
+    strict-raw-types: true

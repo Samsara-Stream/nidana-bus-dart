@@ -1,0 +1,7 @@
+builders:
+  topics:
+    import: "package:wl_codegen/builder.dart"
+    builder_factories: ["topicsBuilder"]
+    build_extensions: {".topics.yaml": [".topics.g.dart"]}
+    auto_apply: dependents
+    build_to: source

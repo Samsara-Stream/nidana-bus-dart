@@ -1,0 +1,3 @@
+plugins:
+  absent_plugin:
+    path: /nonexistent/absent_plugin

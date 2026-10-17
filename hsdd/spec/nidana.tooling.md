@@ -9,7 +9,7 @@
   - `Catalog.scanTopologies` for Dart and `topology-graph.json` (Spec §6.5, Guide C.3), with the registration mechanism the scan needs to instantiate topology classes (Spec §6.5)
   - the build-time topology graph as static HTML (Guide C.4)
   - the v1 checks (root D1): topic name uniqueness across registries (Spec §4.3); the single-writer workspace scan over topology `write(...)` calls and publisher `writes` claims, with unresolvable write sets reported as warnings (Spec §3.11 layer 2); inter-topology cycles and intra-topology self-reference (Spec §3.8); scope compatibility over the aggregated IR (Spec §7.2); raw-string topic use (Spec §4.4); a global bus accessor (Guide C.5); the sensitive flag on known-sensitive types, as a warning (Spec §9.2, Guide C.1)
-  - the delivery of those checks as analysis server plugin rules on the Dart 3.10 plugin API plus a workspace scan command (ADR-002 item 5)
+  - the delivery of those checks: per-library rules in the analysis server plugin `nidana_dart_lint` on the Dart 3.10 plugin API, and the workspace scan, which runs every check over more than one library or over the IR, as a command entry of `nidana_dart_codegen` (ADR-002 items 7 and 8)
 - **Does not own:** the analyses' algorithms, which are pure functions in nidana.model that tooling runs over what it scans; runtime enforcement of the same rules (nidana.runtime); the checks D1 defers to v2
 - **Consumes:** [topic-model@v1, topology-dsl@v1, topology-ir@v1, bus-api@v1]
 - **Produces:** [topic-codegen@v1, nidana-checks@v1]
@@ -29,7 +29,7 @@ This node is internal because it spans three mechanisms with different hosts and
 ## Inherited from the root
 
 - The checks ship on the Dart 3.10 analysis server plugin API; no member depends on custom_lint, because custom_lint 0.8.1 pins a shared resolution to analyzer 8.4.0 (ADR-002, `docs/auto-run/experiments/lint-mechanism/`). A one-rule plugin flagging `Bus.instance` already runs under `fvm dart analyze` on the pinned SDK (`output-plugin.txt`).
-- `nidana_dart_lint` depends on no nidana runtime package (ADR-002 item 2).
+- `nidana_dart_lint` depends on no nidana package and pins `analyzer` and `analysis_server_plugin` to the lockfile's versions, because the analysis server resolves a plugin outside the workspace; the workspace root's analysis options enable it (ADR-002 item 7). The aggregate checks, which run `nidana_dart_contracts`' analyses, are therefore commands of `nidana_dart_codegen` (ADR-002 item 8).
 - Deferred to v2 (root D1): sequencer, unreachable topics, orphan reads, transformer purity, sensitive flag as an error, the Initializing-variant lint, the stream-factory-plus-publish lint of Spec §6.3, binary-module manifests.
 
 ## Open questions
@@ -37,7 +37,7 @@ This node is internal because it spans three mechanisms with different hosts and
 | ID | Question | Status | Waits on | Affects |
 |----|----------|--------|----------|---------|
 | OQ-T1 | How does `Catalog.scanTopologies` obtain every `TopologyDefinition` in Dart, where Flutter builds have no reflection? | OPEN | this node's decomposition | nidana-checks@v1, topic-codegen@v1 |
-| OQ-T2 | Where does the single-writer workspace scan run, given that analysis server plugin rules see one library at a time while Spec §3.11 aggregates claims across the workspace? | OPEN | this node's decomposition | nidana-checks@v1 |
+| OQ-T2 | Where does the single-writer workspace scan run, given that analysis server plugin rules see one library at a time while Spec §3.11 aggregates claims across the workspace? | PARTIAL | this node's decomposition, for what the scan reads; ADR-002 item 8 fixed its host | nidana-checks@v1 |
 
 ### OQ-T1: Catalog scan without reflection
 
@@ -46,3 +46,5 @@ Spec §6.5 has the catalog instantiate every topology class and call `buildDefin
 ### OQ-T2: Placement of the single-writer scan
 
 Per-library plugin rules can flag a claim, but only an aggregate sees two claimants on one topic. Options: a workspace scan command over `package:analyzer` that collects topology writes and publisher claims; the catalog's IR for topology writes plus an AST scan for publisher claims, since publishers are not topologies; or both, with the plugin rule surfacing the scan's verdict in the IDE.
+
+Partially resolved (2026-10-17) by ADR-002 item 8: the scan is a command entry of `nidana_dart_codegen`, because `nidana_dart_lint` can depend on no nidana package (`docs/auto-run/experiments/workspace-layout/` Q12) and the scan runs `nidana_dart_contracts`' analyses. What the scan reads, among the options above, remains with this node's decomposition; under the third option the plugin would read the scan's output, not run the analyses.

@@ -1,0 +1,10 @@
+name: wl_navigation
+version: 0.1.0
+description: Stand-in for nidana_dart_navigation.
+environment:
+  sdk: ^3.13.0
+resolution: workspace
+dependencies:
+  wl_contracts: ^0.1.0
+  wl_runtime: ^0.1.0
+  meta: ^1.18.3

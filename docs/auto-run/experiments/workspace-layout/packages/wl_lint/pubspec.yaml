@@ -1,0 +1,9 @@
+name: wl_lint
+version: 0.1.0
+description: Stand-in for nidana_dart_lint, no sibling dependency.
+environment:
+  sdk: ^3.13.0
+resolution: workspace
+dependencies:
+  analysis_server_plugin: any
+  analyzer: any
