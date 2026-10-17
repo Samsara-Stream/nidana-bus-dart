@@ -160,8 +160,9 @@ tree. Done when `node docs/auto-run/tools/gate.mjs --final` passes.
 | S03 | 3 | hsdd-adr | ADR-001 executable validation for Dart API contracts | done | 1fc3a48 |
 | S04 | 3 | hsdd-adr | ADR-002 package and workspace layout | done | 8c90ba5 |
 | S05 | 3 | hsdd-adr | ADR-003 time source and virtual scheduler | done | 435a18b |
-| S06 | 4 | hsdd-contract | topic-model@v1 | running | |
-| S07..S14 | 4 | hsdd-contract | topology-dsl, topology-ir, bus-api, bus-testing, navigation-api, flutter-binding, topic-codegen, nidana-checks (all @v1), in that order | planned | |
+| S06 | 4 | hsdd-contract | topic-model@v1 | done | ba86d16 |
+| S07 | 4 | hsdd-contract | topology-dsl@v1 | running | |
+| S08..S14 | 4 | hsdd-contract | topology-ir, bus-api, bus-testing, navigation-api, flutter-binding, topic-codegen, nidana-checks (all @v1), in that order | planned | |
 | next | 5 | hsdd-spec | nidana.runtime, then nidana.tooling (each followed by its ADRs and internal contracts) | planned | |
 
 ## Change log

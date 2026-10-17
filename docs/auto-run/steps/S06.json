@@ -1,0 +1,498 @@
+{
+  "step_ref": "S06",
+  "skill": "hsdd-contract",
+  "target": "topic-model@v1 (producer nidana.model, package nidana_dart_contracts)",
+  "status": "completed",
+  "stop": null,
+  "artifacts": [
+    "hsdd/contract/topic-model.md",
+    "hsdd/contract/INDEX.md",
+    "hsdd/contract/fixture/analysis_options.yaml",
+    "hsdd/contract/fixture/topic-model/surface/topics.dart",
+    "hsdd/contract/fixture/topic-model/surface/envelopes.dart",
+    "hsdd/contract/fixture/topic-model/surface/observers.dart",
+    "hsdd/contract/fixture/topic-model/reject/topic_family_is_closed.dart",
+    "hsdd/contract/fixture/topic-model/reject/only_state_topics_carry_values.dart",
+    "hsdd/contract/fixture/topic-model/reject/state_topic_requires_initial.dart",
+    "hsdd/contract/fixture/topic-model/reject/values_are_immutable.dart",
+    "hsdd/contract/fixture/topic-model/reject/no_dispatcher_hint.dart",
+    "hsdd/contract/fixture/topic-model/reject/replay_buffer_is_positive.dart",
+    "hsdd/contract/fixture/topic-model/reject/envelope_requires_metadata.dart",
+    "hsdd/contract/fixture/topic-model/reject/source_family_is_closed.dart",
+    "hsdd/contract/fixture/topic-model/reject/observer_has_no_publish_path.dart",
+    "hsdd/contract/fixture/topic-model/behavior/topic_model_conformance.dart",
+    "hsdd/contract/fixture/topic-model/behavior/nidana_dart_contracts_test.dart",
+    "docs/auto-run/experiments/topic-model-fixtures/",
+    "docs/auto-run/steps/S06.json"
+  ],
+  "decisions": [
+    {
+      "at": "2026-10-17T14:25:13Z",
+      "artifact": "hsdd/contract/topic-model.md",
+      "question": "Which of nidana.model's declarations belong to topic-model@v1, and which to topology-dsl@v1 and topology-ir@v1?",
+      "options": [
+        { "label": "shared values here, API and IR elsewhere", "consequence": "topic-model@v1 holds topics, TopicRef, the name predicate, MessageEnvelope, MessageSource, Lineage, Scope, the observer seam and RedactedPayload; topology-dsl@v1 holds Topology, the builder, the stream handle, combinators, the recorder and buildDefinition(); topology-ir@v1 holds the IR, its JSON form (including the encodings of TopicRef, Scope and MessageSource), graphs, renderers and every analysis over sets of definitions" },
+        { "label": "IR-adjacent values in topology-ir, observers in bus-api", "consequence": "TopicRef and Scope would version with the IR and the observer seam with the runtime, so every app declaring topics or observers would couple to contracts it otherwise does not use, and the DSL contract would depend on the IR contract for Scope" }
+      ],
+      "chosen": "shared values here, API and IR elsewhere",
+      "why": "The root contract matrix names app code declaring topics and observers as topic-model@v1's external consumers, and Scope and TopicRef cross the DSL, the IR and bus-api@v1. The placement rule written into the contract: a value crossing more than one of the three contracts, or one an app constructs without declaring a topology, lives here; an analysis over a collection of definitions lives in topology-ir@v1 even when it compares values defined here.",
+      "evidence": ["hsdd/spec/nidana.md (contract matrix, D6, D7, D10)", "hsdd/spec/nidana.model.md (Owns)", "Spec §3.7", "Spec Appendix A.4"],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T14:25:13Z",
+      "artifact": "hsdd/contract/topic-model.md",
+      "question": "Does topic-model@v1 get a public library of its own, or does it live in the package's main library?",
+      "options": [
+        { "label": "main library only", "consequence": "one import for apps and fixtures; the topic-model fixtures compile only once the main library exists, which fp-progression lands in nidana.model's first phase anyway" },
+        { "label": "per-contract libraries exported by the main library", "consequence": "a consumer could import topic-model alone; three more public libraries to keep in step with three contracts" }
+      ],
+      "chosen": "main library only",
+      "why": "ADR-002 item 3's default; every in-tree consumer of topic-model@v1 also consumes topology-dsl@v1. The text leaves the next two contracts free to name a library of their own. Signal that would change it: a consumer needing the topic model without the DSL's names, for instance a name collision with an app type.",
+      "evidence": ["hsdd/adr/002-package-workspace-layout.md item 3", "hsdd/spec/nidana.md (dependency DAG)"],
+      "blast_radius": "contract",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T14:25:13Z",
+      "artifact": "hsdd/contract/topic-model.md",
+      "question": "Do produced_by and consumers name node ids or guessed first phase ids while no phase plan exists?",
+      "options": [
+        { "label": "node ids", "consequence": "every id resolves in the tree today; hsdd-reconcile replaces them through confirm entries" },
+        { "label": "guessed first phase ids", "consequence": "nidana.model.1 is near certain, but nidana.runtime and nidana.tooling are internal nodes whose consuming phases belong to children not yet minted, so their ids cannot be guessed, and the producer delivers this contract over several phases" }
+      ],
+      "chosen": "node ids",
+      "why": "Two of the five consumers are internal nodes, and a shared-model contract is produced over more than one phase (skeleton, then the pure functions), so a phase-id guess would be wrong more often than not. phase_ids: provisional carries the state.",
+      "evidence": ["hsdd/spec/nidana.md (child table)", ".agents/skills/hsdd-reconcile/SKILL.md (confirm entries)", "~/git/hsdd/spec/hsdd-spec-v0_10.md §3.1"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T14:25:13Z",
+      "artifact": "hsdd/contract/topic-model.md",
+      "question": "Does the contract header list ADR-003 under Governed by?",
+      "options": [
+        { "label": "ADR-001 and ADR-002 only", "consequence": "matches the affects lists; ADR-003 item 8 is cited in prose and enforced by G12 and G25" },
+        { "label": "add ADR-003", "consequence": "a Governed-by link the ADR's own affects list does not reciprocate" }
+      ],
+      "chosen": "ADR-001 and ADR-002 only",
+      "why": "ADR-003's affects lists nidana.model, not topic-model@v1, and the ADR's links are hsdd-adr's to change. If the owner wants the reciprocal link, an hsdd-adr touch adds topic-model@v1 to ADR-003's affects and then this header gains ADR-003.",
+      "evidence": ["hsdd/adr/003-time-source-virtual-scheduler.md (frontmatter, item 8)", "hsdd/adr/001-executable-contract-validation.md (affects)", "hsdd/adr/002-package-workspace-layout.md (affects)"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T14:25:13Z",
+      "artifact": "hsdd/contract/topic-model.md",
+      "question": "OQ-M3: does the Dart topic model carry Spec §3.6's per-topic dispatcher hint at all?",
+      "options": [
+        { "label": "omit the field", "consequence": "a declaration with a dispatcher argument does not compile (G5); nothing suggests a hint that cannot work" },
+        { "label": "accept it and ignore it", "consequence": "declarations translated from Kotlin compile, but a field with no effect reads as moving work off the UI isolate" }
+      ],
+      "chosen": "omit the field",
+      "why": "ADR-003 item 9 makes the provider zone the one dispatcher of every topic of a bus; Spec §3.6 and §11.1 make the hint advisory ('where supported'); ports are out of v1 (root D1) and consume the Specification, not this tree (root D2). Signal that would change it: a v1 requirement to compile topic declarations shared with another platform.",
+      "evidence": ["Spec §3.6", "Spec §11.1", "hsdd/adr/003-time-source-virtual-scheduler.md item 9", "hsdd/spec/nidana.md D1, D2"],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T14:25:13Z",
+      "artifact": "hsdd/contract/topic-model.md",
+      "question": "Is MessageEnvelope.source a String, as Spec §2.4 shows it, or a typed value?",
+      "options": [
+        { "label": "sealed MessageSource", "consequence": "five final variants (topology, service, page, executor, unknown) that render the Spec's format with toString() and parse back with tryParse; a malformed source does not compile; bus-api@v1's publisher factory takes a MessageSource" },
+        { "label": "String", "consequence": "literal Spec shape; any string is accepted and the format is checked nowhere" }
+      ],
+      "chosen": "sealed MessageSource",
+      "why": "Spec §1 'typed over stringly-typed' and the owner's ADT preference; Spec §2.4 fixes a closed format. Signal that would change it: a needed source kind outside the four the Spec names, which would make the closed family a breaking change each time.",
+      "evidence": ["Spec §1", "Spec §2.4 (Envelope Field Definitions, Publishing Context)", "docs/auto-run/experiments/topic-model-fixtures/ (G16, G17)"],
+      "blast_radius": "contract",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T14:25:13Z",
+      "artifact": "hsdd/contract/topic-model.md",
+      "question": "Is envelope lineage computed per pipeline stage, as Spec §3.5 describes (a fresh envelope and id at every stage), or per published message?",
+      "options": [
+        { "label": "per published message", "consequence": "single-input, time-shifting and accumulator stages pass their input's Lineage through; only combine and withLatestFrom make a new one; ids and timestamps are minted at publish; every published causationId names a published envelope; fewer allocations per stage" },
+        { "label": "per stage, literal Spec §3.5", "consequence": "a chain of two stages publishes an envelope whose causationId names an intermediate envelope no observer, recorder or devtool can see, so the causation chain cannot be walked" }
+      ],
+      "chosen": "per published message",
+      "why": "Intermediate envelopes are invisible (Spec §3.5 'Where Envelopes Are Visible'), and Spec §2.4's purpose for causationId is walking the chain backward. The two readings agree on every one-stage pipeline and differ only where the literal one breaks tracing. topology-dsl@v1 must adopt this mapping per combinator.",
+      "evidence": ["Spec §2.4 (Correlation vs. Causation, lineage table)", "Spec §3.5", "Guide §8.1 (per-stage allocation cost)"],
+      "blast_radius": "contract",
+      "confidence": "medium",
+      "would_have_asked": true,
+      "stop_class": "upstream",
+      "would_upstream": true
+    },
+    {
+      "at": "2026-10-17T14:25:13Z",
+      "artifact": "hsdd/contract/topic-model.md",
+      "question": "What is the sensitive flag of an envelope published to a topic when its inputs differ: the destination topic's flag (Spec §2.4) or the flag propagated through the pipeline (Spec §3.5)?",
+      "options": [
+        { "label": "mirror the destination topic", "consequence": "published sensitive == topic.sensitive; the lineage carries the propagated flag for diagnostics only; a non-sensitive topic derived from a sensitive one is visible to non-sensitive observers" },
+        { "label": "taint", "consequence": "published sensitive is the topic's flag or any input's; every topic downstream of auth state, the navigation resolver's resolved intents included, disappears from non-sensitive observers" }
+      ],
+      "chosen": "mirror the destination topic",
+      "why": "Spec §2.4 defines the field as the published-to topic's flag, and Spec §9.2 places the discipline in flagging topics, backed by the v1 sensitive-type lint. Taint would hide most of an app's traffic from logging. The two Spec sections disagree when a combine stage publishes directly. Signal that would change it: an owner or compliance requirement (PCI scope) that derived data be hidden by default.",
+      "evidence": ["Spec §2.4", "Spec §3.5 (combine sketch)", "Spec §9.2", "Guide §3.4", "docs/auto-run/experiments/topic-model-fixtures/output.txt T9 (taint mutation fails G14)"],
+      "blast_radius": "contract",
+      "confidence": "medium",
+      "would_have_asked": true,
+      "stop_class": "upstream",
+      "would_upstream": true
+    },
+    {
+      "at": "2026-10-17T14:25:13Z",
+      "artifact": "hsdd/contract/topic-model.md",
+      "question": "How does a value read from a Tracing.disabled topic enter lineage?",
+      "options": [
+        { "label": "lineage-neutral root without a correlation", "consequence": "Lineage.root() contributes no correlation and no parents to a combine; a pipeline fed only by untraced topics starts a new flow at publish" },
+        { "label": "root with a minted correlation", "consequence": "every combine of a traced and an untraced input becomes cross-correlation, so flows lose their grouping and gain parents no published envelope carries" },
+        { "label": "a separate untraced envelope type", "consequence": "a sealed envelope family that observers, which never see untraced topics, would still have to match on" }
+      ],
+      "chosen": "lineage-neutral root without a correlation",
+      "why": "Guide §8.1 says observability tooling does not see an untraced topic; how the runtime carries untraced values stays bus-api@v1's. The neutral root keeps flow grouping intact.",
+      "evidence": ["Guide §8.1", "Spec §3.5 (Cost)", "docs/auto-run/experiments/topic-model-fixtures/ (G19 case 'inputs without a correlation id contribute none')"],
+      "blast_radius": "contract",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T14:25:13Z",
+      "artifact": "hsdd/contract/topic-model.md",
+      "question": "How do the pure lineage functions obtain a fresh correlation id, given that nidana_dart_contracts generates no id (ADR-003 item 8)?",
+      "options": [
+        { "label": "a String Function() argument", "consequence": "called only in the cross-correlation case and when a lineage has no correlation at publish, exactly once (G14, G19); the generator stays the caller's" },
+        { "label": "a String value always supplied", "consequence": "total and simple, but the runtime mints an id for every combine emission and every publish whether used or not" },
+        { "label": "an outcome value telling the caller to mint", "consequence": "purest, but every caller handles a two-variant result and threads the minted id back in" }
+      ],
+      "chosen": "a String Function() argument",
+      "why": "Mints only when the rule needs a fresh id, and the exactly-once behavior is pinned by behavior cases. Signal that would change it: nidana.model's gates forbidding any callback in the pure package.",
+      "evidence": ["hsdd/adr/003-time-source-virtual-scheduler.md item 8", "docs/auto-run/experiments/topic-model-fixtures/output.txt T6"],
+      "blast_radius": "contract",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T14:25:13Z",
+      "artifact": "hsdd/contract/topic-model.md",
+      "question": "When inputs of a combine share one correlation id, which parent correlation ids does the output carry?",
+      "options": [
+        { "label": "union in input order", "consequence": "no input's lineage is lost; equals the Spec's worked example when the inputs carry none" },
+        { "label": "the trigger's only", "consequence": "matches the single-input rule but drops the other inputs' parents" }
+      ],
+      "chosen": "union in input order",
+      "why": "Spec §2.4's example only shows empty parents; the union never loses lineage and reduces to the example. No evidence beyond that.",
+      "evidence": ["Spec §2.4 (Same-correlation combine example)"],
+      "blast_radius": "contract",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T14:25:13Z",
+      "artifact": "hsdd/contract/topic-model.md",
+      "question": "What makes two topics equal?",
+      "options": [
+        { "label": "variant, name and value type", "consequence": "Spec §2.1's identity plus the variant, so a state topic and an event topic with one name and type are distinct and the runtime reports them as a name collision; initial value, dedup, sensitive, tracing and buffer size take no part" },
+        { "label": "name and value type", "consequence": "the Spec's pair literally; a state and an event declaration of one name and type would be the same key" },
+        { "label": "object identity", "consequence": "a non-const duplicate declaration becomes a second key for the same channel" }
+      ],
+      "chosen": "variant, name and value type",
+      "why": "Spec §2.1 defines identity as (name, type) and §3.1 keys subjects by the topic; adding the variant keeps keys well defined across variants. Signal that would change it: none expected; the runtime's collision check works by name either way.",
+      "evidence": ["Spec §2.1", "Spec §3.1", "Spec §4.3", "docs/auto-run/experiments/topic-model-fixtures/output.txt T9 (G7 mutation)"],
+      "blast_radius": "contract",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T14:25:13Z",
+      "artifact": "hsdd/contract/topic-model.md",
+      "question": "How does a StateTopic declare a constant or a computed initial value in Dart?",
+      "options": [
+        { "label": "two const constructors and createInitial()", "consequence": "StateTopic(initial: T) and StateTopic.computed(initial: T Function()); both const, so registries can be const or final; a wrong form does not compile (G3)" },
+        { "label": "a public sealed Initial ADT", "consequence": "one more exposed type that consumers would only ever call create on" },
+        { "label": "always a factory", "consequence": "every declaration writes a closure and loses const" }
+      ],
+      "chosen": "two const constructors and createInitial()",
+      "why": "Spec §2.5 allows both a constant and a pure factory; Guide Appendix C.3 emits static final declarations and Spec §4.2 shows registries; both forms stay const-capable (confirmed by the surface fixture under the stand-in).",
+      "evidence": ["Spec §2.5", "Spec §4.2", "Guide Appendix C.3", "docs/auto-run/experiments/topic-model-fixtures/output.txt T3, T4"],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T14:25:13Z",
+      "artifact": "hsdd/contract/topic-model.md",
+      "question": "What does the topic name predicate accept, and do constructors validate names?",
+      "options": [
+        { "label": "two or three kebab segments, no constructor check", "consequence": "isWellFormedTopicName encodes Spec §4.4's two patterns literally; const constructors stay const; enforcement is left to diagnostics or checks" },
+        { "label": "two or more segments", "consequence": "admits deeper hierarchies the Spec does not name" },
+        { "label": "no predicate", "consequence": "the model's Owns item for the naming pattern goes unimplemented" }
+      ],
+      "chosen": "two or three kebab segments, no constructor check",
+      "why": "Spec §4.4 names domain.entity and domain.entity.action; a const constructor cannot run a pattern match. Signal that would change it: an adopting app with four-level names, which would need a breaking change to G11.",
+      "evidence": ["Spec §4.4", "hsdd/spec/nidana.model.md (Owns)"],
+      "blast_radius": "contract",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T14:25:13Z",
+      "artifact": "hsdd/contract/topic-model.md",
+      "question": "Is a replay topic's buffer size required and bounded below?",
+      "options": [
+        { "label": "required bufferSize, asserted at least 1", "consequence": "no unbounded replay by default; a const declaration below 1 does not compile, a non-const one fails an assertion" },
+        { "label": "optional, unbounded by default", "consequence": "a long-lived replay topic grows without bound" }
+      ],
+      "chosen": "required bufferSize, asserted at least 1",
+      "why": "Spec §2.1 defines ReplayTopic as buffering N values and Guide §8.1 names replay buffers as the dominant memory cost. The experiment confirmed the analyzer reports const_eval_throws_exception for a const declaration below 1.",
+      "evidence": ["Spec §2.1", "Guide §8.1", "docs/auto-run/experiments/topic-model-fixtures/probe/codes.json", "docs/auto-run/experiments/topic-model-fixtures/output.txt T4"],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T14:25:13Z",
+      "artifact": "hsdd/contract/topic-model.md",
+      "question": "Does Dedup offer a custom equality in v1?",
+      "options": [
+        { "label": "enum of equality and none", "consequence": "Dart's == decides, as Spec §3.12's table says for Dart" },
+        { "label": "a class with a custom equality function", "consequence": "covers types with unusable ==, at the cost of a generic dedup type on every state topic" }
+      ],
+      "chosen": "enum of equality and none",
+      "why": "Spec §3.12 fixes == for Dart; the custom equality is TypeScript's requirement. Signal that would change it: a payload type whose == cannot be fixed.",
+      "evidence": ["Spec §3.12"],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T14:25:13Z",
+      "artifact": "hsdd/contract/topic-model.md",
+      "question": "Which constructor arguments of MessageEnvelope are required?",
+      "options": [
+        { "label": "all but causationId and parents", "consequence": "id, payload, correlationId, timestamp, source and sensitive are required (G12); causationId defaults to null and parents to empty, as Spec §2.4 states" },
+        { "label": "sensitive defaulted to false", "consequence": "a forgotten flag silently exposes a sensitive envelope to every observer" }
+      ],
+      "chosen": "all but causationId and parents",
+      "why": "ADR-003 item 8 requires id and timestamp as arguments; a defaulted sensitive flag would fail open on privacy.",
+      "evidence": ["Spec §2.4", "hsdd/adr/003-time-source-virtual-scheduler.md item 8", "docs/auto-run/experiments/topic-model-fixtures/output.txt T4"],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T14:25:13Z",
+      "artifact": "hsdd/contract/topic-model.md",
+      "question": "How is a sensitive payload redacted, and does an envelope's toString redact it?",
+      "options": [
+        { "label": "runtime type and 32-bit hashCode, redacted toString", "consequence": "RedactedPayload.of renders '<redacted Type #8hex>'; equal payloads redact alike within a run; MessageEnvelope.toString and redacted() never render a sensitive payload" },
+        { "label": "cryptographic hash of toString()", "consequence": "stable across runs, but needs a dependency ADR-002 forbids and hashes a rendering that may itself leak" },
+        { "label": "type only", "consequence": "no way to tell two redacted values apart, against Spec §9.2's 'truncated hash'" }
+      ],
+      "chosen": "runtime type and 32-bit hashCode, redacted toString",
+      "why": "Spec §9.2 item 2 prescribes type plus truncated hash and default redaction in dev-mode logs; nidana_dart_contracts depends on meta alone. Caveat stated in the contract: a low-entropy payload stays guessable from a hash of its value.",
+      "evidence": ["Spec §9.2", "hsdd/adr/002-package-workspace-layout.md item 4", "docs/auto-run/experiments/topic-model-fixtures/output.txt T9 (G15 mutation)"],
+      "blast_radius": "contract",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T14:47:06Z",
+      "artifact": "hsdd/contract/topic-model.md",
+      "question": "What does the observer seam's span API offer, given that root D1 puts an SDK-neutral telemetry observer implementing Guide §8.2's mapping in v1?",
+      "options": [
+        { "label": "links by message id at span creation", "consequence": "ObserveContext.span(name, attributes:, links:) with envelope ids; SpanHandle has setAttribute and end; the sink resolves ids to its spans; Guide §8.2's causation-link row is implementable" },
+        { "label": "no links", "consequence": "the telemetry observer could only put causationId in an attribute, and adding links later would break every sink that implements ObserveContext" }
+      ],
+      "chosen": "links by message id at span creation",
+      "why": "First drafted without links; changed when checking D1's telemetry observer against Guide §8.2, whose 'Causation chain' row needs links. Links at creation match how telemetry SDKs take them and name no SDK type.",
+      "evidence": ["Guide §8.2", "hsdd/spec/nidana.md D1", "hsdd/spec/nidana.runtime.md (Owns: telemetry observer)"],
+      "blast_radius": "contract",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T14:25:13Z",
+      "artifact": "hsdd/contract/topic-model.md",
+      "question": "What does an observer holding only observeSensitive receive?",
+      "options": [
+        { "label": "sensitive envelopes only", "consequence": "each capability admits exactly its class of envelope (G23), as Spec §3.7 comments them" },
+        { "label": "everything", "consequence": "observeSensitive would imply observeAll" }
+      ],
+      "chosen": "sensitive envelopes only",
+      "why": "Spec §3.7 describes observeAll as 'sees non-sensitive topics' and observeSensitive as 'sees sensitive topics'; every Spec example grants both together.",
+      "evidence": ["Spec §3.7", "Spec §9.2"],
+      "blast_radius": "contract",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T14:25:13Z",
+      "artifact": "hsdd/contract/topic-model.md",
+      "question": "Does Guide §4.1's AppError become a library type in topic-model@v1?",
+      "options": [
+        { "label": "leave it to applications", "consequence": "the contract carries no error type; apps declare their own error topic as Guide §4.1 shows" },
+        { "label": "ship AppError and ErrorKind", "consequence": "a shared error type every package could publish, outside root D1's scope and the model's Owns" }
+      ],
+      "chosen": "leave it to applications",
+      "why": "Neither root D1 nor nidana.model's Owns list it; Guide §4.1 presents it as a pattern. Signal that would change it: nidana.integration needing one error type across packages.",
+      "evidence": ["Guide §4.1", "hsdd/spec/nidana.md D1", "hsdd/spec/nidana.model.md (Owns)"],
+      "blast_radius": "contract",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T14:25:13Z",
+      "artifact": "hsdd/contract/topic-model.md",
+      "question": "kind and compatibility of topic-model@v1",
+      "options": [
+        { "label": "shared-model, versioned", "consequence": "the root matrix's kind; any change consumers could break on bumps the version" },
+        { "label": "api, additive-only", "consequence": "most additions here are breaking anyway (new variants break exhaustive switches, new interface members break implementers), so additive-only would be claimed and rarely honored" }
+      ],
+      "chosen": "shared-model, versioned",
+      "why": "Root contract matrix recommends shared-model; ADR-001 item 4 treats shared-model and api alike for fixtures; the Versioning section lists which changes break.",
+      "evidence": ["hsdd/spec/nidana.md (contract matrix)", "hsdd/adr/001-executable-contract-validation.md items 1 and 4"],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T14:28:26Z",
+      "artifact": "hsdd/contract/fixture/topic-model/",
+      "question": "What does the behavior harness of a shared-model contract supply, and what is the binding named?",
+      "options": [
+        { "label": "settle only, binding named after the package", "consequence": "cases call the library's declarations directly; one binding, nidana_dart_contracts_test.dart, which imports the package so the replay tool reports PENDING until it exists" },
+        { "label": "a harness exposing the pure functions", "consequence": "a consumer could bind a stand-in for the lineage and redaction functions, at the cost of cases that reach half the surface through the harness and half directly" }
+      ],
+      "chosen": "settle only, binding named after the package",
+      "why": "A value type has no second implementation, and root D10 has consumers build against the real package after the producer's first phase. Signal that would change it: nidana.model's phase plan landing the function signatures without bodies in phase 1 while runtime phases must start.",
+      "evidence": ["hsdd/adr/001-executable-contract-validation.md items 4, 9 and 11", "hsdd/spec/nidana.md D10", "docs/auto-run/experiments/contract-fixtures/output.txt Q14"],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T14:28:26Z",
+      "artifact": "hsdd/contract/fixture/analysis_options.yaml",
+      "question": "Write hsdd/contract/fixture/analysis_options.yaml as the first contract step?",
+      "options": [
+        { "label": "write it exactly as ADR-001 item 2 states", "consequence": "no lint set; strict-casts, strict-inference and strict-raw-types on; governs every fixture of every contract" },
+        { "label": "leave it to a later step", "consequence": "the topic-model fixtures would analyze under the root lint set once a workspace exists, and depend_on_referenced_packages would fire on every import" }
+      ],
+      "chosen": "write it exactly as ADR-001 item 2 states",
+      "why": "The step instruction and ADR-001 item 8 assign it to the first hsdd-contract authoring step.",
+      "evidence": ["hsdd/adr/001-executable-contract-validation.md items 2 and 8", "docs/auto-run/experiments/contract-fixtures/output.txt Q2"],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T14:28:26Z",
+      "artifact": "hsdd/contract/topic-model.md",
+      "question": "Does topic-model@v1 carry a JSON Schema?",
+      "options": [
+        { "label": "no schema", "consequence": "the Interface's Dart declarations are the schema (ADR-001 item 4); the JSON encodings of TopicRef, Scope and MessageSource go to topology-ir@v1's schema" },
+        { "label": "a schema for TopicRef and MessageSource", "consequence": "a second home for an encoding the IR's schema must also state" }
+      ],
+      "chosen": "no schema",
+      "why": "ADR-001 item 4: api and shared-model contracts carry no schema unless they have a serialized form; this contract has none of its own.",
+      "evidence": ["hsdd/adr/001-executable-contract-validation.md item 4"],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    }
+  ],
+  "experiments": [
+    {
+      "path": "docs/auto-run/experiments/topic-model-fixtures/",
+      "question": "Do the topic-model@v1 fixtures, as written under hsdd/contract/, pass against an implementation of the contract's Interface, and does every reject marker name the code the pinned analyzer reports on that line?",
+      "finding": "Against a stand-in nidana_dart_contracts (Dart 3.13.5): the three surface libraries analyze clean under --fatal-infos; all nine reject files pass the (line, code) rule, every code confirmed (invalid_use_of_type_outside_library for extends and implements of final and sealed classes, non_exhaustive_switch_expression, undefined_method, undefined_getter, argument_type_not_assignable, invalid_assignment, undefined_named_parameter, missing_required_argument, assignment_to_final, const_eval_throws_exception); 40 behavior cases pass under dart test from the root and a --name '^G19 ' filter selects 7; a prototype structure set finds all 26 guarantees covered (24 by fixtures, 2 not executable) and fails a negative control; eight seeded defects in the stand-in each fail the cases of their guarantee; a member added to ObserveContext fails the surface set. The probe found that a const declaration missing a required argument reports three diagnostics on one line and an uninstantiated generic call adds inference_failure_on_function_invocation, so the fixtures avoid both forms."
+    }
+  ],
+  "self_check": [
+    { "gate": "Frontmatter has id, version, status, kind, owner, compatibility, produced_by, consumers; external_consumers when any exist.", "status": "pass", "note": "external_consumers lists three app-side consumers; entries carry no commas because the generator splits on them" },
+    { "gate": "`consumers` lists phase ids that actually consume this contract.", "status": "pass", "note": "node ids stand in for phase ids with phase_ids: provisional (decision above); each listed node consumes topic-model@v1 per the root matrix; hsdd-reconcile's confirm entries replace them" },
+    { "gate": "The Interface section is concrete enough to mock against.", "status": "pass", "note": "a stand-in written from the Interface compiled and passed every fixture (experiment T0 to T8)" },
+    { "gate": "At least one guarantee/invariant is stated.", "status": "pass", "note": "G1 to G26" },
+    { "gate": "A breaking change bumped the version and added a migration note.", "status": "n/a", "note": "new contract at v1" },
+    { "gate": "The registry was regenerated.", "status": "pass", "note": "node hsdd/scripts/gen-registry.mjs; hsdd/adr/INDEX.md came out unchanged" },
+    { "gate": "`phase_ids` is present (`provisional` until `hsdd-reconcile` finalizes it).", "status": "pass", "note": "phase_ids: provisional" },
+    { "gate": "Every code-level artifact both sides consume (types file, fixtures, shared package) names its canonical path and its owner in the Interface or Validation section: the owning phase for code, `hsdd-contract` for validation artifacts.", "status": "pass", "note": "package path packages/nidana_dart_contracts/ owned by nidana.model's first phase; fixtures owned by hsdd-contract (Interface header)" },
+    { "gate": "A contract or version created by this run has its schema and its kind's fixtures written at the canonical paths.", "status": "pass", "note": "fixtures at hsdd/contract/fixture/topic-model/; no schema, per ADR-001 item 4 for a shared-model contract without a serialized form, which overrides HSDD's per-kind default" },
+    { "gate": "Open questions are cited by ID only, never defined here; prose justifying behavior as \"pending OQ-x\" is swept when the OQ resolves (hsdd-reconcile).", "status": "pass", "note": "the skill's text has an em-dash where this quote has a comma (owner's prose rule); the contract cites OQ-M3 only, as decided" },
+    { "gate": "A `stable` contract names a schema or a fixtures directory at the canonical paths and the artifact exists, or it carries `validation: grandfathered` (never on a contract authored after the upgrade).", "status": "n/a", "note": "status draft; the fixtures directory exists and names its paths in Validation" },
+    { "gate": "No version is `retired` while a consumer or an external consumer still names it.", "status": "n/a", "note": "none retired" },
+    { "gate": "A `v0` contract carries `## Observed completeness`, and the block changed in any commit that added fixtures to it.", "status": "n/a", "note": "v1, not adopted" },
+    { "gate": "ADR-001 item 12: a fixtures directory counts only when it meets item 3 and the items for its kind", "status": "pass", "note": "checked by reading and by the experiment's structure prototype: every guarantee has a G id and is covered by a reject file, a behavior case or a not-executable line; surface/, reject/ (with covers headers and own-line markers), behavior/ conformance library and one listed binding are present; no src/ import" },
+    { "gate": "node docs/auto-run/tools/gate.mjs --skill hsdd-contract --contracts-pending", "status": "pass", "note": "0 errors; 241 warnings, all forward references to contracts and ADR targets not yet written; no em-dash or banned phrase" }
+  ],
+  "notes_for_orchestrator": [
+    "Boundary for S07 and S08 (written into the contract's ## Boundary with a placement rule): topic-model@v1 holds Topic and its three variants, TopicVariant, Dedup, Tracing, the sensitive flag, initial values, TopicRef, isWellFormedTopicName, MessageEnvelope, the sealed MessageSource (topology, service, page, executor, unknown), Lineage (root, causedBy, combine, withLatestFrom), RedactedPayload, Scope with isAtLeastAsLongAs, and the observer seam (BusObserver, ObserveContext with log, metric, span(links), SpanHandle, LogLevel, ObserverCapability.permits). topology-dsl@v1 holds Topology, topology(id, scope, body), TopologyBuilder, the opaque handle and every combinator, the per-read Dedup opt-out, any typed topology id, the recorder and buildDefinition(), and must state per combinator which lineage rule it applies. topology-ir@v1 holds the IR, its JSON form including the JSON encodings of TopicRef, Scope and MessageSource, graphs, renderers and all analyses over sets of definitions (cycles, self-reference, scope compatibility via Scope.isAtLeastAsLongAs, name uniqueness).",
+    "OQ-M3 is decided in topic-model@v1: no dispatcher hint on any topic declaration (G5, reject fixture no_dispatcher_hint.dart). The OQ-M3 row in hsdd/spec/nidana.model.md is still OPEN and is marked by nidana.model's phase planning or hsdd-reconcile's sweep.",
+    "topology-dsl@v1 must adopt per-published-message lineage: entry with Lineage.causedBy (or Lineage.root for a Tracing.disabled topic), pass-through for single-input, time-shifting and accumulator stages, Lineage.combine and Lineage.withLatestFrom as the only new lineages, MessageEnvelope.publishedTo at every write. Its behavior suite (bound by bus-api@v1's live builder) should test that every published causationId names a published envelope.",
+    "bus-api@v1 inherits: the publisher factory takes a MessageSource, not a String; published sensitive mirrors the destination topic (G14), with observers gated by ObserverCapability.permits on that flag; untraced topics are invisible to observers (Guide §8.1) and their values enter lineage as Lineage.root(); getCurrentValue takes StateTopic<T> (G2 is the type-level half of Spec §2.5); when createInitial() is called (once per subject) is bus-api@v1's; whether shell publishes can name a cause (Lineage.causedBy) and whether observe() can expose envelopes is open there; the runtime's name-and-type collision check compares Topic.valueType, not TopicRef.typeName.",
+    "Two decisions are marked would_upstream: true for the decision ledger: lineage per published message rather than per stage (Spec §3.5 vs §2.4's purpose), and published sensitivity mirroring the destination topic (Spec §2.4 vs §3.5's combine sketch). Both carry would_have_asked: true, stop_class upstream; neither is a run-stop condition (resolved locally, no tree shape change).",
+    "Reject codes: every code used is confirmed against the stand-in on the pinned SDK (experiment T4, T5); none unconfirmed. They remain unverified against the real package until nidana.model's first phase lands nidana_contract_check (ADR-001 Consequences).",
+    "Finding for nidana.model's replay tool (ADR-001 item 9 structure set): conformance libraries call topic constructors with a name: argument, so the tool must find case names syntactically, as the name field of the record literals in the exported List<ConformanceCase<H>>, not by matching name: text. The experiment's prototype first matched constructor arguments and reported 31 false problems.",
+    "Fixture convention introduced here, for the next contract steps: a binding imports the implementing package even when the cases reach it through the conformance library, with '// ignore: unused_import', so the replay tool's direct-import scan reports PENDING before the package exists (docs/auto-run/experiments/contract-fixtures/ Q14).",
+    "hsdd/contract/fixture/analysis_options.yaml now exists, written exactly per ADR-001 item 2; later contract steps reuse it and do not rewrite it.",
+    "Optional follow-up via hsdd-adr: add topic-model@v1 to ADR-003's affects if the owner wants the Governed-by link, since G12 and G25 implement ADR-003 item 8; the contract cites it in prose meanwhile.",
+    "nidana.model's phase planning should know: G25 (no clock, timers, microtasks, id generation or I/O in nidana_dart_contracts) and G26 (meta as the only dependency) are not executable and fall to its gates, for example a source search for DateTime.now(, Stopwatch(, Timer(, scheduleMicrotask, Random( and a pubspec check; the behavior replay runs restricted by --guarantee until the lineage, redaction and predicate functions land."
+  ]
+}
