@@ -168,9 +168,10 @@ tree. Done when `node docs/auto-run/tools/gate.mjs --final` passes.
 | S11 | 4 | hsdd-contract | bus-testing@v1 | done | 9f64d62 |
 | S12 | 4 | hsdd-contract | navigation-api@v1 | done | 9371c72 |
 | S13 | 4 | hsdd-contract | bus-api@v1 amendment: pre-start connection guarantee, publish typing, S11 wording fixes | done | 5727b7d |
-| S14 | 4 | hsdd-contract | flutter-binding@v1 | running | |
+| S14 | 4 | hsdd-contract | flutter-binding@v1 | done | cd3b670 |
+| S15 | 4 | hsdd-contract | topic-codegen@v1 | running | |
 | S10..S14 | 4 | hsdd-contract | bus-api, bus-testing, navigation-api, flutter-binding, topic-codegen, nidana-checks (all @v1), in that order | planned | |
-| after S16 | 4 | hsdd-contract (if any), hsdd-adr, then hsdd-spec (root touch) | governance touch-up: remaining compatible contract fixes (navigation-api@v1: a G1 reject line for a DeepLink published to nav.resolved-intent, and citing bus-api@v1 G22, G34, G40); ADR affects and Governed-by links; root prose fixes | planned | |
+| after S16 | 4 | hsdd-contract (if any), hsdd-adr, then hsdd-spec (root touch) | governance touch-up: remaining compatible contract fixes (navigation-api@v1: a G1 reject line for a DeepLink published to nav.resolved-intent, citing bus-api@v1 G22, G34, G40, and naming flutter-binding@v1's executor binding; bus-api@v1: a case for one topic reached through a `Topic<Object?>` reference and at its declared type); ADR affects and Governed-by links; root prose fixes | planned | |
 | next | 5 | hsdd-spec | nidana.runtime, then nidana.tooling (each followed by its ADRs and internal contracts) | planned | |
 
 ## Change log
@@ -238,3 +239,9 @@ tree. Done when `node docs/auto-run/tools/gate.mjs --final` passes.
   fixture under strict inference. nidana.runtime's decomposition must give topology reads a synchronous
   path that does not go through RxDart's replay. nidana-checks@v1 may add a check against explicit type
   arguments on `publish` (closes G40's gap).
+- 2026-10-18, after S14: flutter-binding@v1 decided OQ-F1 (Flutter's own Navigator; no router
+  dependency) and the bootstrap (the router keeps its own stack and accepts performs before a Navigator
+  hosts it, so Guide §3.5's order holds: resolver, executor, `start()`, `runApp`). nidana-checks@v1 must
+  recognize `PageScope(writes:)` as a claim site and `PageScope(topologies:)`, `ModuleRoutes(topologies:)`
+  as activation sites. The touch-up list gains a bus-api@v1 case for a topic reached through a widened
+  `Topic<Object?>` reference (the stand-in throws TypeError).
