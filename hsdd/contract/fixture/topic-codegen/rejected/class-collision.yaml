@@ -1,0 +1,10 @@
+# Rejected: domains v2 and v-2 both name the registry class V2Topics.
+domains:
+  v2:
+    owner: platform-team
+    topics:
+      started: {type: Started, variant: event}
+  v-2:
+    owner: platform-team
+    topics:
+      stopped: {type: Stopped, variant: event}

@@ -1,0 +1,6 @@
+# Rejected: .inf is a YAML float with no Dart literal.
+domains:
+  settings:
+    owner: mobile-platform
+    topics:
+      font-scale: {type: double, variant: state, initial: .inf}

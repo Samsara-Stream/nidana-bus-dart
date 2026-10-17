@@ -1,0 +1,10 @@
+# Rejected: a YAML mapping repeats the field sensitive.
+domains:
+  auth:
+    owner: platform-team
+    topics:
+      login-event:
+        type: LoginCredentials
+        variant: event
+        sensitive: true
+        sensitive: false

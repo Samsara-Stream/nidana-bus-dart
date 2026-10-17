@@ -1,0 +1,8 @@
+# Rejected: not YAML (an unclosed flow sequence).
+domains:
+  auth:
+    owner: platform-team
+    dart:
+      imports: [package:example_app/auth/auth.dart
+    topics:
+      login-event: {type: LoginCredentials, variant: event}

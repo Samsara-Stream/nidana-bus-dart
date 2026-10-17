@@ -1,0 +1,12 @@
+# Rejected: the file holds two YAML documents.
+domains:
+  auth:
+    owner: platform-team
+    topics:
+      login-event: {type: LoginCredentials, variant: event}
+---
+domains:
+  checkout:
+    owner: payments-team
+    topics:
+      submit-order: {type: OrderRequest, variant: event}

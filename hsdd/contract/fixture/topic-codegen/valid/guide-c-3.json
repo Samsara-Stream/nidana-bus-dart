@@ -1,0 +1,16 @@
+{
+  "domains": {
+    "auth": {
+      "owner": "platform-team",
+      "topics": {
+        "state": {
+          "type": "AuthState",
+          "variant": "state",
+          "initial": "Initializing",
+          "sensitive": true,
+          "description": "Current authentication state"
+        }
+      }
+    }
+  }
+}

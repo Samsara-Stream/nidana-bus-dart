@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<!-- GENERATED CODE - DO NOT MODIFY BY HAND. -->
+<!-- nidana_dart_codegen from topology-graph.json (topic-codegen@v1). -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Topology graph</title>
+<script type="module">
+import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.12.0/dist/mermaid.esm.min.mjs";
+mermaid.initialize({ startOnLoad: true });
+</script>
+</head>
+<body>
+<h1>Topology graph</h1>
+<p>4 topologies, 2 shell claims, 12 topics.</p>
+<pre class="mermaid">
+flowchart LR
+  t0(["auth.state&lt;br/&gt;state AuthState"])
+  t1(["checkout.cart-events&lt;br/&gt;event CartEvent"])
+  t2(["checkout.cart-items&lt;br/&gt;state CartItems"])
+  t3(["checkout.submit-order&lt;br/&gt;event SubmitOrder"])
+  t4(["checkout.ui-state&lt;br/&gt;state CheckoutUi"])
+  t5(["nav.current-route&lt;br/&gt;state String"])
+  t6(["order.request&lt;br/&gt;event OrderRequest"])
+  t7(["payment.result&lt;br/&gt;state PaymentResult"])
+  t8(["payment.sdk-state&lt;br/&gt;state PaymentSdkState"])
+  t9(["payment.ui-state&lt;br/&gt;state PaymentUi"])
+  t10(["settings.theme&lt;br/&gt;state Theme"])
+  t11(["settings.theme-requested&lt;br/&gt;event Theme"])
+  subgraph p0["checkout-cart-reducer&lt;br/&gt;module"]
+    p0e0["reduceInto&lt;br/&gt;reduceCart"]
+  end
+  subgraph p1["checkout-flow&lt;br/&gt;module"]
+    p1e0["combine&lt;br/&gt;buildCheckoutUi"]
+    p1e1["map&lt;br/&gt;toOrderRequest"]
+    p1e2["write"]
+    p1e3["write"]
+  end
+  subgraph p2["payment-flow&lt;br/&gt;application"]
+    p2e0["combine&lt;br/&gt;buildPaymentUi"]
+    p2e1["write"]
+  end
+  subgraph p3["theme-owner&lt;br/&gt;application"]
+    p3e0["write"]
+  end
+  s0["executor:flutter-navigation&lt;br/&gt;application"]
+  s1["service:payment-sdk&lt;br/&gt;application"]
+  t1 --&gt; p0e0
+  p0e0 --&gt; t2
+  t2 --&gt; p1e0
+  t0 --&gt; p1e0
+  t3 --&gt; p1e1
+  p1e0 --&gt; p1e2
+  p1e2 --&gt; t4
+  p1e1 --&gt; p1e3
+  p1e3 --&gt; t6
+  t8 --&gt; p2e0
+  t7 --&gt; p2e0
+  p2e0 --&gt; p2e1
+  p2e1 --&gt; t9
+  t11 --&gt; p3e0
+  p3e0 --&gt; t10
+  s0 --&gt; t5
+  s1 --&gt; t7
+  s1 --&gt; t8
+</pre>
+</body>
+</html>

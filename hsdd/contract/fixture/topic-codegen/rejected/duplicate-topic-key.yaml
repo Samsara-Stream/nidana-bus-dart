@@ -1,0 +1,14 @@
+# Rejected: a YAML mapping repeats the topic key state, so two declarations
+# would share the name auth.state (Spec §4.3).
+domains:
+  auth:
+    owner: platform-team
+    topics:
+      state:
+        type: AuthState
+        variant: state
+        initial: const AuthState.initializing()
+      state:
+        type: SessionState
+        variant: state
+        initial: const SessionState.none()

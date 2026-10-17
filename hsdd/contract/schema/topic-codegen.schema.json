@@ -1,0 +1,207 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:nidana:schema:topic-codegen:v1",
+  "title": "topic-codegen@v1 topics document",
+  "description": "The data model of topics.yaml (hsdd/contract/topic-codegen.md): domains, their owners and Dart imports, and their topics. A YAML document validates when its JSON data model does. Rules the schema cannot state (no duplicate mapping key, one YAML document, distinct registry class names, distinct member names within a domain, no member named by a Dart reserved word or an Object member, a finite number as initial) are the generator's.",
+  "type": "object",
+  "properties": {
+    "domains": {
+      "description": "Each key is a domain, the first segment of its topics' names (Spec §4.4).",
+      "type": "object",
+      "minProperties": 1,
+      "propertyNames": {
+        "$ref": "#/$defs/segment"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/domain"
+      }
+    }
+  },
+  "required": [
+    "domains"
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "segment": {
+      "description": "One lowercase kebab-case segment (topic-model@v1 isWellFormedTopicName).",
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+    },
+    "topicKey": {
+      "description": "One or two segments joined by '.', so the topic name '{domain}.{key}' has two or three.",
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*(\\.[a-z][a-z0-9]*(-[a-z0-9]+)*)?$"
+    },
+    "line": {
+      "description": "One non-blank line without leading or trailing white space.",
+      "type": "string",
+      "pattern": "^\\S(?:.*\\S)?$"
+    },
+    "domain": {
+      "type": "object",
+      "properties": {
+        "owner": {
+          "description": "The owning team (Spec §4.5, Appendix A.9).",
+          "$ref": "#/$defs/line"
+        },
+        "dart": {
+          "description": "Settings only the Dart generator reads.",
+          "type": "object",
+          "properties": {
+            "imports": {
+              "description": "URIs the registry library imports for this domain's types: a dart: library, or a package: or relative URI of a .dart file.",
+              "type": "array",
+              "items": {
+                "type": "string",
+                "pattern": "^(dart:[a-z_][a-z0-9_]*|[^\\s'\"\\\\]+\\.dart)$"
+              },
+              "uniqueItems": true
+            }
+          },
+          "additionalProperties": false
+        },
+        "topics": {
+          "type": "object",
+          "minProperties": 1,
+          "propertyNames": {
+            "$ref": "#/$defs/topicKey"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/topic"
+          }
+        }
+      },
+      "required": [
+        "owner",
+        "topics"
+      ],
+      "additionalProperties": false
+    },
+    "topic": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "description": "The Dart value type, written as the type argument.",
+          "$ref": "#/$defs/line"
+        },
+        "variant": {
+          "enum": [
+            "state",
+            "event",
+            "replay"
+          ]
+        },
+        "initial": {
+          "description": "A state topic's initial value: a string holding a Dart expression, or a number, a boolean or null written as the Dart literal.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/line"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "dedup": {
+          "enum": [
+            "equality",
+            "none"
+          ]
+        },
+        "buffer-size": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "sensitive": {
+          "type": "boolean"
+        },
+        "tracing": {
+          "enum": [
+            "enabled",
+            "disabled"
+          ]
+        },
+        "description": {
+          "description": "Markdown, copied to the member's doc comment and the catalog.",
+          "type": "string",
+          "pattern": "\\S"
+        }
+      },
+      "required": [
+        "type",
+        "variant"
+      ],
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "variant": {
+                "const": "state"
+              }
+            },
+            "required": [
+              "variant"
+            ]
+          },
+          "then": {
+            "properties": {
+              "initial": true,
+              "buffer-size": false
+            },
+            "required": [
+              "initial"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "variant": {
+                "const": "event"
+              }
+            },
+            "required": [
+              "variant"
+            ]
+          },
+          "then": {
+            "properties": {
+              "initial": false,
+              "dedup": false,
+              "buffer-size": false
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "variant": {
+                "const": "replay"
+              }
+            },
+            "required": [
+              "variant"
+            ]
+          },
+          "then": {
+            "properties": {
+              "buffer-size": true,
+              "initial": false,
+              "dedup": false
+            },
+            "required": [
+              "buffer-size"
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

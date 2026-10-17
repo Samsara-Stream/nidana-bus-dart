@@ -1,0 +1,8 @@
+# Rejected: topics token.refresh and token-refresh of one domain both name
+# the member tokenRefresh.
+domains:
+  auth:
+    owner: platform-team
+    topics:
+      token.refresh: {type: TokenRefresh, variant: event}
+      token-refresh: {type: TokenRefresh, variant: event}

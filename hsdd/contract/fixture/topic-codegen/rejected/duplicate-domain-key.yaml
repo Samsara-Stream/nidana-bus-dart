@@ -1,0 +1,10 @@
+# Rejected: a YAML mapping repeats the domain key auth.
+domains:
+  auth:
+    owner: platform-team
+    topics:
+      state: {type: AuthState, variant: state, initial: const AuthState.initializing()}
+  auth:
+    owner: payments-team
+    topics:
+      login-event: {type: LoginCredentials, variant: event}

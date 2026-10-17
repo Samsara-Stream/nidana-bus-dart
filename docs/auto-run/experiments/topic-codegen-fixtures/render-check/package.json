@@ -1,0 +1,12 @@
+{
+  "name": "topology-ir-render-check",
+  "private": true,
+  "description": "Cross-checks the topic-codegen@v1 schema cases with Ajv and the topology-graph.html golden with jsdom and Mermaid's parser (experiment only).",
+  "type": "module",
+  "dependencies": {
+    "@hpcc-js/wasm-graphviz": "^1.13.0",
+    "ajv": "^8.17.1",
+    "jsdom": "^26.1.0",
+    "mermaid": "^11.12.0"
+  }
+}

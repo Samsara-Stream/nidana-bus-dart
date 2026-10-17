@@ -1,0 +1,7 @@
+# Rejected: the topic hash-code would name the member hashCode, which a
+# static member cannot take beside Object's instance member.
+domains:
+  settings:
+    owner: mobile-platform
+    topics:
+      hash-code: {type: int, variant: state, initial: 0}

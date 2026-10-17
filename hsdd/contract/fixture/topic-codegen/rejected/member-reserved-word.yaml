@@ -1,0 +1,6 @@
+# Rejected: the topic switch would name a member with a Dart reserved word.
+domains:
+  settings:
+    owner: mobile-platform
+    topics:
+      switch: {type: bool, variant: state, initial: false}

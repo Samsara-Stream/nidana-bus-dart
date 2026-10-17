@@ -1,0 +1,13 @@
+{
+  "domains": {
+    "app": {
+      "owner": "app-team",
+      "topics": {
+        "started": {
+          "type": "AppStarted",
+          "variant": "event"
+        }
+      }
+    }
+  }
+}

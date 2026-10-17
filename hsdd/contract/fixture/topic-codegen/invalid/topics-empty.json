@@ -1,0 +1,26 @@
+{
+  "domains": {
+    "auth": {
+      "owner": "platform-team",
+      "dart": {
+        "imports": [
+          "dart:typed_data",
+          "package:example_app/auth/auth.dart",
+          "auth/tokens.dart"
+        ]
+      },
+      "topics": {}
+    },
+    "user-profile": {
+      "owner": "profile-team",
+      "dart": {},
+      "topics": {
+        "v2-migration": {
+          "type": "({bool done, int step})",
+          "variant": "state",
+          "initial": "(done: false, step: 0)"
+        }
+      }
+    }
+  }
+}

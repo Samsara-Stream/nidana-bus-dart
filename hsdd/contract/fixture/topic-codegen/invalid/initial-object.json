@@ -1,0 +1,72 @@
+{
+  "domains": {
+    "auth": {
+      "owner": "platform-team",
+      "dart": {
+        "imports": [
+          "dart:typed_data",
+          "package:example_app/auth/auth.dart",
+          "auth/tokens.dart"
+        ]
+      },
+      "topics": {
+        "state": {
+          "type": "AuthState",
+          "variant": "state",
+          "initial": "const AuthState.initializing()",
+          "dedup": "none",
+          "sensitive": true,
+          "tracing": "disabled",
+          "description": "Current authentication state.\n\nSee `AuthState`."
+        },
+        "login-event": {
+          "type": "LoginCredentials",
+          "variant": "event",
+          "sensitive": true,
+          "tracing": "enabled",
+          "description": "Credentials a login form submits."
+        },
+        "token.refresh": {
+          "type": "TokenRefresh",
+          "variant": "replay",
+          "buffer-size": 1,
+          "sensitive": false,
+          "tracing": "disabled",
+          "description": "The latest token refresh."
+        },
+        "attempts": {
+          "type": "int",
+          "variant": "state",
+          "initial": {},
+          "dedup": "equality"
+        },
+        "backoff-factor": {
+          "type": "double",
+          "variant": "state",
+          "initial": 1.5
+        },
+        "locked": {
+          "type": "bool",
+          "variant": "state",
+          "initial": false
+        },
+        "avatar": {
+          "type": "Uint8List?",
+          "variant": "state",
+          "initial": null
+        }
+      }
+    },
+    "user-profile": {
+      "owner": "profile-team",
+      "dart": {},
+      "topics": {
+        "v2-migration": {
+          "type": "({bool done, int step})",
+          "variant": "state",
+          "initial": "(done: false, step: 0)"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,12 @@
+# P5: can a catalog run on `dart run` load a library that imports Flutter?
+# A standalone package, outside the experiment's workspace.
+name: flutter_vm_probe
+publish_to: none
+environment:
+  sdk: ^3.13.0
+dependencies:
+  flutter:
+    sdk: flutter
+dev_dependencies:
+  flutter_test:
+    sdk: flutter

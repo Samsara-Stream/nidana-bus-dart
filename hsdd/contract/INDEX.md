@@ -8,6 +8,7 @@
 | `bus-testing` | v1 | api | draft | `nidana.runtime` | 3 |
 | `flutter-binding` | v1 | api | draft | `nidana.flutter` | 1 |
 | `navigation-api` | v1 | api | draft | `nidana.navigation` | 2 |
+| `topic-codegen` | v1 | file | draft | `nidana.tooling` | 1 |
 | `topic-model` | v1 | shared-model | draft | `nidana.model` | 5 |
 | `topology-dsl` | v1 | api | draft | `nidana.model` | 5 |
 | `topology-ir` | v1 | api | draft | `nidana.model` | 3 |

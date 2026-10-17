@@ -1,0 +1,9 @@
+# The stand-in's builder: lib/topics.yaml to lib/topics.g.dart in every
+# package that depends on nidana_dart_codegen (topic-codegen@v1).
+builders:
+  topics:
+    import: "package:nidana_dart_codegen/builder.dart"
+    builder_factories: ["topicsBuilder"]
+    build_extensions: {"^lib/topics.yaml": ["lib/topics.g.dart"]}
+    auto_apply: dependents
+    build_to: source

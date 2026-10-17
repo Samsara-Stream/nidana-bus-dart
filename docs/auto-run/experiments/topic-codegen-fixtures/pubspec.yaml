@@ -1,0 +1,20 @@
+# topic-codegen-fixtures: replays the topic-codegen@v1 fixtures and schema,
+# as written under the repository's hsdd/contract/, against a stand-in
+# nidana_dart_codegen (see run.sh). Its own pub workspace, never a member of
+# the repository's workspace. Third-party versions are pinned to the ones
+# ADR-002 records for the planned workspace.
+name: tcf_root
+publish_to: none
+environment:
+  sdk: ^3.13.0
+workspace:
+  - packages/nidana_dart_contracts
+  - packages/nidana_dart_codegen
+  - packages/example_app
+dev_dependencies:
+  lints: 6.1.0
+  json_schema: 5.2.2
+  yaml: 3.1.4
+  dart_style: 3.1.14
+  path: 1.9.1
+  analyzer: 13.3.0

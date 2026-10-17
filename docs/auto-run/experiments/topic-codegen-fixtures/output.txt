@@ -1,0 +1,232 @@
+
+### setup: copy the fixtures and schema from the repository, resolve
+   3 hsdd/contract/fixture/topic-codegen/expected
+   2 hsdd/contract/fixture/topic-codegen/input
+  53 hsdd/contract/fixture/topic-codegen/invalid
+  10 hsdd/contract/fixture/topic-codegen/rejected
+   4 hsdd/contract/fixture/topic-codegen/valid
+pub get exit: 0
+resolved analyzer: "13.3.0"
+resolved build: "4.0.11"
+resolved build_runner: "2.16.1"
+resolved dart_style: "3.1.14"
+resolved json_schema: "5.2.2"
+resolved lints: "6.1.0"
+resolved yaml: "3.1.4"
+npm ci exit: 0
+npm ajv 8.17.1
+npm jsdom 26.1.0
+npm mermaid 11.12.0
+
+### T0 the stand-in packages are clean under the root lint set and --fatal-infos
+Analyzing nidana_dart_codegen, nidana_dart_contracts...
+No issues found!
+exit: 0
+
+### T1 file replay (ADR-001 item 6): the Validation command from the workspace root into an empty directory, fvm dart format on the Dart, then a byte comparison with expected/
+generate exit: 0
+Formatted 1 file (0 changed) in 0.00 seconds.
+IDENTICAL: topics.g.dart topics.md topology-graph.html 
+
+### T2 the generator's own output is already formatted: no fvm dart format, same bytes
+IDENTICAL without formatting
+
+### T3 byte stability: absolute paths, another output directory
+IDENTICAL from absolute paths
+occurrences of a path: hsdd/contract/fixture/topic-codegen/expected/topics.g.dart:0
+occurrences of a path: hsdd/contract/fixture/topic-codegen/expected/topics.md:0
+occurrences of a path: hsdd/contract/fixture/topic-codegen/expected/topology-graph.html:0
+
+### T4 expected/topics.g.dart compiles against the stand-in nidana_dart_contracts and analyzes clean in the stand-in app (root lint set, strict modes, --fatal-infos)
+Analyzing example_app...
+No issues found!
+exit: 0
+
+### T5 build_runner (ADR-002 item 8): the builder nidana_dart_codegen:topics, applied by auto_apply dependents, maps lib/topics.yaml to lib/topics.g.dart with the command's bytes
+  0s nidana_dart_codegen:topics on 1 input; lib/topics.yaml
+  0s nidana_dart_codegen:topics on 1 input: 1 fixed
+  Built with build_runner/aot in 0s; wrote 1 output.
+build_runner exit: 0
+packages/example_app/lib/topics.g.dart
+builder output and command output are IDENTICAL
+-- an invalid lib/topics.yaml fails the build
+E nidana_dart_codegen:topics on lib/topics.yaml:
+  lib/topics.yaml:8:7: topic "auth.token-refresh" and topic "auth.token.refresh" both name the member tokenRefresh
+E nidana_dart_codegen:topics on lib/topics.yaml:
+  Failed to build with build_runner/aot in 0s; wrote 0 outputs.
+build_runner exit: 1
+ls: packages/example_app/lib/topics.g.dart: No such file or directory
+restored, build_runner exit: 0
+restored output IDENTICAL
+
+### T6 schema set (ADR-001 item 5) on package:json_schema 5.2.2: valid/ validates, invalid/ does not; input/topics.yaml and the parsable rejected/ documents validate
+PASS valid/every-field.json: valid
+PASS valid/guide-c-3.json: valid
+PASS valid/minimal.json: valid
+PASS valid/spec-section-4-5.json: valid
+PASS invalid/dart-unknown-key.json: invalid at /domains/auth/dart
+PASS invalid/dedup-unknown.json: invalid at /domains/auth/topics/state/dedup
+PASS invalid/description-blank.json: invalid at /domains/auth/topics/state/description
+PASS invalid/description-not-string.json: invalid at /domains/auth/topics/state/description
+PASS invalid/document-not-object.json: invalid at /
+PASS invalid/document-unknown-key.json: invalid at /
+PASS invalid/domain-key-two-segments.json: invalid at /domains/auth.core
+PASS invalid/domain-key-underscore.json: invalid at /domains/auth_core
+PASS invalid/domain-key-uppercase.json: invalid at /domains/Auth
+PASS invalid/domain-not-object.json: invalid at /domains/auth
+PASS invalid/domain-unknown-key.json: invalid at /domains/auth
+PASS invalid/domains-empty.json: invalid at /domains
+PASS invalid/domains-missing.json: invalid at /, /domains
+PASS invalid/event-buffer-size.json: invalid at /domains/auth/topics/login-event
+PASS invalid/event-dedup.json: invalid at /domains/auth/topics/login-event
+PASS invalid/event-initial.json: invalid at /domains/auth/topics/login-event
+PASS invalid/import-duplicate.json: invalid at /domains/auth/dart/imports
+PASS invalid/import-not-dart-file.json: invalid at /domains/auth/dart/imports/3
+PASS invalid/import-with-quote.json: invalid at /domains/auth/dart/imports/3
+PASS invalid/import-with-space.json: invalid at /domains/auth/dart/imports/3
+PASS invalid/imports-not-array.json: invalid at /domains/auth/dart/imports
+PASS invalid/initial-blank-string.json: invalid at /domains/auth/topics/state/initial
+PASS invalid/initial-list.json: invalid at /domains/auth/topics/attempts/initial
+PASS invalid/initial-multiline-string.json: invalid at /domains/auth/topics/state/initial
+PASS invalid/initial-object.json: invalid at /domains/auth/topics/attempts/initial
+PASS invalid/owner-blank.json: invalid at /domains/auth/owner
+PASS invalid/owner-missing.json: invalid at /domains/auth, /domains/auth/owner
+PASS invalid/owner-multiline.json: invalid at /domains/auth/owner
+PASS invalid/owner-not-string.json: invalid at /domains/auth/owner
+PASS invalid/owner-padded.json: invalid at /domains/auth/owner
+PASS invalid/replay-buffer-size-missing.json: invalid at /domains/auth/topics/token.refresh
+PASS invalid/replay-buffer-size-not-integer.json: invalid at /domains/auth/topics/token.refresh/buffer-size
+PASS invalid/replay-buffer-size-zero.json: invalid at /domains/auth/topics/token.refresh/buffer-size
+PASS invalid/replay-dedup.json: invalid at /domains/auth/topics/token.refresh
+PASS invalid/replay-initial.json: invalid at /domains/auth/topics/token.refresh
+PASS invalid/sensitive-not-boolean.json: invalid at /domains/auth/topics/state/sensitive
+PASS invalid/state-buffer-size.json: invalid at /domains/auth/topics/state
+PASS invalid/state-initial-missing.json: invalid at /domains/auth/topics/state
+PASS invalid/topic-key-leading-digit.json: invalid at /domains/auth/topics/2fa
+PASS invalid/topic-key-three-segments.json: invalid at /domains/auth/topics/token.refresh.done
+PASS invalid/topic-key-trailing-hyphen.json: invalid at /domains/auth/topics/login-
+PASS invalid/topic-key-uppercase.json: invalid at /domains/auth/topics/loginEvent
+PASS invalid/topic-not-object.json: invalid at /domains/auth/topics/attempts
+PASS invalid/topic-unknown-key.json: invalid at /domains/auth/topics/login-event
+PASS invalid/topics-empty.json: invalid at /domains/auth/topics
+PASS invalid/topics-missing.json: invalid at /domains/auth, /domains/auth/topics
+PASS invalid/tracing-unknown.json: invalid at /domains/auth/topics/state/tracing
+PASS invalid/type-blank.json: invalid at /domains/auth/topics/state/type
+PASS invalid/type-missing.json: invalid at /domains/auth/topics/state, /domains/auth/topics/state/type
+PASS invalid/type-multiline.json: invalid at /domains/auth/topics/state/type
+PASS invalid/type-padded.json: invalid at /domains/auth/topics/state/type
+PASS invalid/variant-missing.json: invalid at /domains/auth/topics/login-event, /domains/auth/topics/login-event/variant
+PASS invalid/variant-unknown.json: invalid at /domains/auth/topics/login-event/variant
+PASS input/topics.yaml: valid
+PASS rejected/class-collision.yaml: valid
+SKIP rejected/duplicate-domain-key.yaml: not one YAML document (Duplicate mapping key.)
+SKIP rejected/duplicate-field-key.yaml: not one YAML document (Duplicate mapping key.)
+SKIP rejected/duplicate-topic-key.yaml: not one YAML document (Duplicate mapping key.)
+PASS rejected/initial-not-finite.yaml: valid
+PASS rejected/member-collision.yaml: valid
+PASS rejected/member-object-name.yaml: valid
+PASS rejected/member-reserved-word.yaml: valid
+SKIP rejected/syntax-error.yaml: not one YAML document (While parsing a flow sequence, expected ',' or ']'.)
+SKIP rejected/two-documents.yaml: not one YAML document (Only expected one document.)
+schema check: 0 failure(s)
+exit: 0
+
+### T7 Ajv on the same cases; the HTML golden's diagram is topology-ir@v1's render/checkout.mmd, and Mermaid parses it
+PASS ajv valid/: 4 of 4 as marked
+PASS ajv invalid/: 53 of 53 as marked
+PASS html <pre class="mermaid"> text equals topology-ir render/checkout.mmd
+PASS html loads Mermaid 11.12.0 as an ES module
+PASS mermaid parses the embedded diagram: flowchart-v2
+exit: 0
+
+### T8 the generator accepts every valid/ document (exit 0) and rejects every invalid/ document (exit 1, nothing written)
+exit 0 every-field.json wrote: topics.g.dart topics.md 
+exit 0 guide-c-3.json wrote: topics.g.dart topics.md 
+exit 0 minimal.json wrote: topics.g.dart topics.md 
+exit 0 spec-section-4-5.json wrote: topics.g.dart topics.md 
+invalid/: 53 documents, 0 not rejected with exit 1 and no output
+
+### T9 the generator rejects every rejected/ document (exit 1, nothing written), with file:line:column diagnostics
+  hsdd/contract/fixture/topic-codegen/rejected/class-collision.yaml:7:3: domain "v-2" and domain "v2" both name the class V2Topics
+exit 1 class-collision.yaml output: none
+  hsdd/contract/fixture/topic-codegen/rejected/duplicate-domain-key.yaml:7:3: Duplicate mapping key.
+exit 1 duplicate-domain-key.yaml output: none
+  hsdd/contract/fixture/topic-codegen/rejected/duplicate-field-key.yaml:10:9: Duplicate mapping key.
+exit 1 duplicate-field-key.yaml output: none
+  hsdd/contract/fixture/topic-codegen/rejected/duplicate-topic-key.yaml:11:7: Duplicate mapping key.
+exit 1 duplicate-topic-key.yaml output: none
+  hsdd/contract/fixture/topic-codegen/rejected/initial-not-finite.yaml:6:59: topic "settings.font-scale": "initial" must be a finite number
+exit 1 initial-not-finite.yaml output: none
+  hsdd/contract/fixture/topic-codegen/rejected/member-collision.yaml:8:7: topic "auth.token-refresh" and topic "auth.token.refresh" both name the member tokenRefresh
+exit 1 member-collision.yaml output: none
+  hsdd/contract/fixture/topic-codegen/rejected/member-object-name.yaml:7:7: topic "settings.hash-code": its member name "hashCode" is reserved in Dart or declared by Object
+exit 1 member-object-name.yaml output: none
+  hsdd/contract/fixture/topic-codegen/rejected/member-reserved-word.yaml:6:7: topic "settings.switch": its member name "switch" is reserved in Dart or declared by Object
+exit 1 member-reserved-word.yaml output: none
+  hsdd/contract/fixture/topic-codegen/rejected/syntax-error.yaml:8:18: While parsing a flow sequence, expected ',' or ']'.
+exit 1 syntax-error.yaml output: none
+  hsdd/contract/fixture/topic-codegen/rejected/two-documents.yaml:7:1: Only expected one document.
+exit 1 two-documents.yaml output: none
+
+### T10 without a graph: same topics.g.dart, topics.md without readers and writers, no topology-graph.html
+exit: 0; wrote: topics.g.dart topics.md 
+topics.g.dart IDENTICAL
+<!-- GENERATED CODE - DO NOT MODIFY BY HAND. -->
+<!-- nidana_dart_codegen from topics.yaml (topic-codegen@v1). -->
+
+# Topic catalog
+
+19 topics in 5 domains, from `topics.yaml`. No topology graph was given, so readers and writers are not listed.
+rows 'Written by' or 'Read by': 0; graph sections: 0
+
+### T11 exit codes: usage errors exit 2, an undecodable graph exits 1; nothing is written either way
+expected <topics.yaml> <output>
+no arguments: exit 2
+expected <topics.yaml> <output>
+one argument: exit 2
+unknown option --frobnicate
+unknown option: exit 2
+hsdd/contract/fixture/topic-codegen/input/missing.yaml does not exist
+missing topics.yaml: exit 2
+hsdd/contract/fixture/topic-codegen/input/missing.json does not exist
+missing graph: exit 2
+{tmp}/afile is not a directory
+output is a file: exit 2
+hsdd/contract/fixture/topology-ir/invalid/format_v2.json: /format: expected "topology-ir@v1"
+undecodable graph (topology-ir invalid/format_v2.json): exit 1
+ls: {tmp}/u1: No such file or directory
+ls: {tmp}/u2: No such file or directory
+ls: {tmp}/u3: No such file or directory
+ls: {tmp}/u4: No such file or directory
+
+### T12 Spec §4.5's example (valid/spec-section-4-5.json) generates; its initial values are copied as Dart expressions
+abstract final class AuthTopics {
+  /// Current authentication state
+  static final StateTopic<AuthState> state = StateTopic<AuthState>(
+    name: 'auth.state',
+    initial: Initializing,
+  );
+
+  static final EventTopic<LoginCredentials> loginEvent =
+      EventTopic<LoginCredentials>(name: 'auth.login-event', sensitive: true);
+}
+
+/// Topics of the `checkout` domain, owned by payments-team.
+abstract final class CheckoutTopics {
+  static final StateTopic<CartItems> cartItems = StateTopic<CartItems>(
+    name: 'checkout.cart-items',
+    initial: empty,
+  );
+
+  static final EventTopic<OrderRequest> submitOrder = EventTopic<OrderRequest>(
+    name: 'checkout.submit-order',
+  );
+}
+
+### T13 (P5) a library that imports Flutter loads under the Flutter tester and not under dart run (probe/flutter-vm, its own package)
+pub get exit: 0
+{flutter}/packages/flutter/lib/src/foundation/binding.dart:19:8: Error: Dart library 'dart:ui' is not available on this platform.
+fvm dart run bin/catalog.dart: exit 254
+00:00 +1: All tests passed!
+fvm flutter test: exit 0
+run exit 0

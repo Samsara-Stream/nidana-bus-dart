@@ -1,0 +1,21 @@
+duplicate key: YamlException Duplicate mapping key. at 2:0
+key order kept: ok YamlMap [zeta, alpha, mid]
+JSON document: ok YamlMap [domains]
+multiple documents: YamlException Only expected one document. at 1:0
+syntax error: YamlException While parsing a flow sequence, expected ',' or ']'. at 1:0
+scalar i: int 0
+scalar f: double 1.0 finite=true
+scalar g: double 0.5 finite=true
+scalar e: double 1000.0 finite=true
+scalar inf: double Infinity finite=false
+scalar nan: double NaN finite=false
+scalar t: bool true
+scalar yes: String yes
+scalar n: Null null
+scalar tilde: Null null
+scalar empty: Null null
+scalar s: String AuthState.initializing()
+scalar q: String 'x'
+scalar big: double 12345678901234567000.0 finite=true
+span of owner value: line 3, column 12
+span of owner key: line 3, column 5

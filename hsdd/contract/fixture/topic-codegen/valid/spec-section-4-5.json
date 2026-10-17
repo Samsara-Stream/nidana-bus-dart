@@ -1,0 +1,34 @@
+{
+  "domains": {
+    "auth": {
+      "owner": "platform-team",
+      "topics": {
+        "state": {
+          "type": "AuthState",
+          "variant": "state",
+          "initial": "Initializing",
+          "description": "Current authentication state"
+        },
+        "login-event": {
+          "type": "LoginCredentials",
+          "variant": "event",
+          "sensitive": true
+        }
+      }
+    },
+    "checkout": {
+      "owner": "payments-team",
+      "topics": {
+        "cart-items": {
+          "type": "CartItems",
+          "variant": "state",
+          "initial": "empty"
+        },
+        "submit-order": {
+          "type": "OrderRequest",
+          "variant": "event"
+        }
+      }
+    }
+  }
+}
