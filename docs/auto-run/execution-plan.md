@@ -156,8 +156,27 @@ tree. Done when `node docs/auto-run/tools/gate.mjs --final` passes.
 |------|-------|-------|--------|--------|-----------------|
 | S00 | 0 | none (orchestrator) | inputs | done | b3e5c86 |
 | S01 | 1 | none (orchestrator) | this plan | done | this file's first commit |
-| S02 | 2 | hsdd-spec | root | next | |
+| S02 | 2 | hsdd-spec | nidana (root) | done | f127e15 |
+| S03 | 3 | hsdd-adr | ADR-001 executable validation for Dart API contracts | done | 1fc3a48 |
+| S04 | 3 | hsdd-adr | ADR-002 package and workspace layout | running | |
+| S05 | 3 | hsdd-adr | ADR-003 time source and virtual scheduler | planned | |
+| S06..S14 | 4 | hsdd-contract | topic-model, topology-dsl, topology-ir, bus-api, bus-testing, navigation-api, flutter-binding, topic-codegen, nidana-checks (all @v1), producer-first | planned | |
+| next | 5 | hsdd-spec | nidana.runtime, then nidana.tooling (each followed by its ADRs and internal contracts) | planned | |
 
 ## Change log
 
 - 2026-10-17: first version, written before any skill ran.
+- 2026-10-17, after S02: the root has six children (nidana.model, .runtime, .navigation, .flutter, .tooling,
+  .integration); two are internal (runtime, tooling), so stage 5 has two mid-level decompositions, runtime
+  first. Stage 3 has three ADRs; stage 4 has nine root contracts, authored producer-first (model's three,
+  runtime's two, navigation, flutter, tooling's two). Several child OQs (OQ-M1..M3, OQ-R1..R3, OQ-N1, OQ-N2,
+  OQ-F1) wait on the contract step that settles them; hsdd-contract cannot write node specs, so each
+  contract step reports which OQ it settled and the owning node's next spec or plan step, or a reconcile
+  sweep, marks the row. Contract steps add `Governed by: [ADR-001]` (and ADR-003 where it applies).
+- 2026-10-17, after S03: the gate tool now skips orchestrator-owned files (this plan, REPORT.md, tools/),
+  which S03's gate flagged because the orchestrator had edited this plan while the step ran. ADR-001 adds
+  follow-ups: ADR-002 must add `hsdd/**` to the root analysis excludes and `json_schema` to the replay
+  tool; contract steps write `G{n}` guarantee ids and `Governed by: [ADR-001]`; the first contract step
+  writes `hsdd/contract/fixture/analysis_options.yaml`; bus-api@v1 carries the binding of topology-dsl@v1's
+  suite and flutter-binding@v1 the binding of navigation-api@v1's executor suite (producer-first order
+  already writes each suite first).
