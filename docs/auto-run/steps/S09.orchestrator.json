@@ -1,0 +1,41 @@
+{
+  "step_ref": "S09",
+  "skill": "none",
+  "target": "follow-ups of bus-api@v1",
+  "status": "completed",
+  "decisions": [
+    {
+      "at": "2026-10-18T00:01:30Z",
+      "artifact": "docs/auto-run/execution-plan.md",
+      "question": "bus-api@v1 needs topic-model@v1 to gain `sealed class MultiWriterTopic<T> extends Topic<T>` with EventTopic and ReplayTopic extending it, so that a publisher-less publish and a publisher's publish to a StateTopic do not compile (bus-api G11, G19). Is this a breaking amendment that stops the run, and do we amend or take bus-api's fallback (take Topic<T> and throw ArgumentError on a StateTopic)?",
+      "options": [
+        { "label": "Amend topic-model@v1 now, compatibly", "consequence": "One hsdd-contract amendment step before bus-testing@v1; Spec §2.4's 'no publisher-less path to a StateTopic' becomes a compile error, consistent with the tree's typed-over-stringly reading; bus-api@v1's fixtures compile once the amendment lands." },
+        { "label": "Take bus-api's fallback", "consequence": "No amendment; the two reject fixtures become behavior cases and the rule moves from compile time to a runtime ArgumentError." },
+        { "label": "Treat it as a breaking amendment and stop", "consequence": "The run ends for the owner to decide, although no consumer code exists and the change keeps every existing exhaustive switch compiling." }
+      ],
+      "chosen": "Amend topic-model@v1 now, compatibly",
+      "why": "The breaking-amend stop covers an amendment that would break an existing consumer. Here no consumer exists: every contract is draft, no package has been written, and the only consumers named are nodes not yet planned. The change itself is additive: MultiWriterTopic is sealed with exactly EventTopic and ReplayTopic, so a switch over Topic that names the three leaf variants stays exhaustive, and topic-model@v1's Versioning rule ('adding a variant to Topic' is breaking) does not apply because no leaf variant is added. Compile-time rejection follows Spec §1 (typed over stringly-typed) and Spec §2.4. The amendment is sequenced before bus-testing@v1 so every later contract reads the amended model.",
+      "evidence": ["hsdd/contract/topic-model.md (G1, Versioning)", "hsdd/contract/bus-api.md (G11, G19)", "docs/auto-run/experiments/bus-api-fixtures/", "Spec §1", "Spec §2.4"],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T00:02:10Z",
+      "artifact": "docs/auto-run/execution-plan.md",
+      "question": "bus-api@v1's two bindings call bus-testing@v1 names that do not exist yet (TestBus, TestBus.scheduler, recorder.envelopes). S09 suggests letting the bus-testing@v1 step edit bus-api's binding files if it picks other names. Allow that?",
+      "options": [
+        { "label": "bus-testing@v1 adopts the names the bindings use", "consequence": "S11 writes only its own contract and fixtures; a reason to differ is reported and becomes a bus-api fixture amendment step." },
+        { "label": "Let bus-testing@v1 edit bus-api's bindings", "consequence": "Faster, but one step would edit two contracts' fixtures, against one step per contract." }
+      ],
+      "chosen": "bus-testing@v1 adopts the names the bindings use",
+      "why": "One step is one skill invocation on one contract, and the binding files are bus-api@v1's artifacts. The names S09 chose (TestBus, scheduler with triggerActions, advanceTimeBy, pendingTimerCount, settle; recorder.envelopes) follow Spec §3.6 and ADR-003, so adopting them costs bus-testing@v1 nothing it would otherwise decide differently.",
+      "evidence": ["hsdd/contract/fixture/bus-api/behavior/", "Spec §3.6", "hsdd/adr/003-time-source-virtual-scheduler.md"],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "would_upstream": false
+    }
+  ]
+}
