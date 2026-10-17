@@ -1,0 +1,24 @@
+{
+  "step_ref": "S13",
+  "skill": "none",
+  "target": "judgement on the bus-api@v1 amendment",
+  "status": "completed",
+  "decisions": [
+    {
+      "at": "2026-10-18T03:05:10Z",
+      "artifact": "hsdd/contract/bus-api.md",
+      "question": "S13 declared publish<T extends Object?, V extends T>(MultiWriterTopic<T>, V) instead of the publish<T, V extends T> the orchestrator named, because the named form makes a failed inference fall back to dynamic, which adds inference_failure_on_function_invocation under strict-inference and breaks navigation-api@v1's reject/current_route_is_claimed_by_the_executor.dart (experiment T10). Is the written-out bound a different change from the one authorized, making this a run-stop?",
+      "options": [
+        { "label": "Same change; accept", "consequence": "The amendment stands: wrong value types do not compile, a state topic still reports argument_type_not_assignable alone, and no fixture outside bus-api@v1 changes." },
+        { "label": "Different change; treat the named form as a breaking amendment and stop", "consequence": "The owner decides between two spellings of one signature, one of which breaks a consumer fixture and one of which does not." }
+      ],
+      "chosen": "Same change; accept",
+      "why": "The authorization was for the change's effect: restore Spec §4.2's compile-time type check on publish without breaking any other contract's fixtures. The written-out bound has the same subtyping relation and is the only spelling that meets the second condition; experiment T10 shows the named spelling would have broken navigation-api@v1. The breaking-amend stop guards existing consumers, and the accepted form breaks none.",
+      "evidence": ["docs/auto-run/experiments/bus-api-amendment/ (T10)", "hsdd/contract/bus-api.md (Refinement 3, G40)", "Spec §4.2"],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "would_upstream": false
+    }
+  ]
+}

@@ -1,0 +1,420 @@
+{
+  "step_ref": "S13",
+  "skill": "hsdd-contract",
+  "target": "bus-api@v1 (amend within v1)",
+  "status": "completed",
+  "stop": null,
+  "artifacts": [
+    "hsdd/contract/bus-api.md",
+    "hsdd/contract/fixture/bus-api/behavior/bus_api_conformance.dart",
+    "hsdd/contract/fixture/bus-api/surface/bus.dart",
+    "hsdd/contract/fixture/bus-api/reject/no_publisherless_state_publish.dart",
+    "hsdd/contract/fixture/bus-api/reject/publish_value_matches_topic.dart",
+    "hsdd/contract/INDEX.md (regenerated with node hsdd/scripts/gen-registry.mjs; no frontmatter changed, so no diff)",
+    "docs/auto-run/experiments/bus-api-amendment/",
+    "docs/auto-run/steps/S13.json"
+  ],
+  "decisions": [
+    {
+      "at": "2026-10-17T19:32:33Z",
+      "artifact": "hsdd/contract/bus-api.md",
+      "question": "Change (b): which signature makes a value of the wrong type a compile error without changing any fixture outside bus-api@v1? The orchestrator named publish<T, V extends T>(MultiWriterTopic<T> topic, V value).",
+      "options": [
+        {
+          "label": "publish<T, V extends T>, as named",
+          "consequence": "Rejects a wrong value type with could_not_infer, but a state topic passed to publish now leaves T uninferred (dynamic) and the analyzer adds inference_failure_on_function_invocation under strict-inference; navigation-api@v1's reject/current_route_is_claimed_by_the_executor.dart then fails on lines 10 and 12, so a fixture outside bus-api@v1 would have to change: a run-stop-candidate under this step's rule (experiment T10, probe P2 line 27)."
+        },
+        {
+          "label": "publish<T extends Object?, V extends T>",
+          "consequence": "The same type relation (Object? is an unbounded parameter's bound already); only a failed inference falls back to Object? instead of dynamic, so a state topic reports argument_type_not_assignable alone. Wrong value types are rejected identically (could_not_infer); every fixture outside bus-api@v1 passes unchanged (T3, T7)."
+        },
+        {
+          "label": "keep publish<T>(MultiWriterTopic<T>, T) and drop (b)",
+          "consequence": "No fixture changes, but Spec §4.2's compile-time typing stays unmet: publish(EventTopic<int>, 'one') and a DeepLink to nav.resolved-intent compile and fail at run time (navigation-api@v1 Refinement 9)."
+        }
+      ],
+      "chosen": "publish<T extends Object?, V extends T>",
+      "why": "It meets (b)'s purpose exactly and is the only one of the three that satisfies both (b) and the step's compatibility rule. The prescribed spelling differs only in the implicit bound, and that difference is what produces the extra strict-inference warning. Found by experiment, not by the orchestrator's search for explicit type arguments, which was correct as far as it went (only bus-api@v1's own surface/bus.dart and no_publisherless_state_publish.dart pass explicit type arguments) but missed that a reject fixture pins the full diagnostic set of a line. Signal that would have changed my mind: a lint in package:lints/recommended flagging the redundant bound (T0 shows none fires) or the orchestrator treating the spelled-out bound as a different change from the one it authorized, in which case the named form is a run-stop-candidate with the T10 evidence.",
+      "evidence": [
+        "Spec §4.2",
+        "docs/auto-run/experiments/bus-api-amendment/probe/signature_forms.dart",
+        "docs/auto-run/experiments/bus-api-amendment/probe/publish_typing.dart",
+        "docs/auto-run/experiments/bus-api-amendment/output.txt (T3, T5, T7, T10)",
+        "hsdd/contract/fixture/navigation-api/reject/current_route_is_claimed_by_the_executor.dart",
+        "hsdd/contract/topology-dsl.md (write<T, S extends T>, G3)"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T19:35:21Z",
+      "artifact": "hsdd/contract/bus-api.md",
+      "question": "Change (a): is the connection rule a sharpening of G22 and G34 or a new guarantee after G39?",
+      "options": [
+        {
+          "label": "sharpen G22, G34 and the connection rule",
+          "consequence": "Keeps the ids navigation-api@v1 already cites (Refinement 8, G24 rest on bus-api@v1 G22 and G34); the earlier G22 already said the connection reaches the reads before any value published after activate returns, so the rule is a restatement in terms of deliveries, not a new property."
+        },
+        {
+          "label": "new G40 for the connection rule",
+          "consequence": "A separate id to cite, but splits one activation rule across G22 and G40 and leaves navigation-api@v1's citations pointing at the weaker statement."
+        }
+      ],
+      "chosen": "sharpen G22, G34 and the connection rule",
+      "why": "The earlier G22, G34 and Spec §3.13 ('no APPLICATION topology can miss an event that was published before it subscribed') already intended it; only the fixtures failed to pin it. ADR-001 item 3 is respected: no id is renumbered or reused.",
+      "evidence": [
+        "Spec §3.13",
+        "Guide §3.5",
+        "hsdd/contract/navigation-api.md (Refinement 8, G24)",
+        "hsdd/adr/001-executable-contract-validation.md item 3"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T19:35:21Z",
+      "artifact": "hsdd/contract/bus-api.md",
+      "question": "Does G22 pin that the publishes a connection causes are made from a provider-zone microtask, never within activate, as S12 asked, or keep only 'delivered once the microtasks queued during activate have run'?",
+      "options": [
+        {
+          "label": "pin the deferral, with a case",
+          "consequence": "A runtime that delivers connection outputs inside activate fails; a topology activated right after another (in a module acquire, or a bootstrap) receives the first one's connection outputs."
+        },
+        {
+          "label": "leave the earlier wording",
+          "consequence": "Admits a runtime that delivers connection outputs synchronously inside activate, which the earlier wording also satisfied literally."
+        }
+      ],
+      "chosen": "pin the deferral, with a case",
+      "why": "Seeded defect T10 (connection publishes made within activate) fails the new G22 case and the existing 'G34 ... the order of the activations before start does not change what is delivered' case, so the deferral is what makes activation order irrelevant; the navigation-api-fixtures runtime already behaves this way and every consumer suite passes on it.",
+      "evidence": [
+        "docs/auto-run/experiments/bus-api-amendment/output.txt (T10, first defect)",
+        "docs/auto-run/steps/S12.json (notes_for_orchestrator)",
+        "Spec §3.13"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T19:35:21Z",
+      "artifact": "hsdd/contract/fixture/bus-api/behavior/bus_api_conformance.dart",
+      "question": "How do the new (a) cases detect a late connection?",
+      "options": [
+        {
+          "label": "a withLatestFrom gate over a state read",
+          "consequence": "Drops a primary value that arrives before the read's first value, so a late connection shows as a missing output; the same shape as navigation-api@v1's nav-resolver, so the cases model the deep-link bootstrap."
+        },
+        {
+          "label": "a combineLatest or a recorder-order check",
+          "consequence": "combineLatest emits late rather than dropping, which a flush hides; an order check over envelopes cannot see when a read received its first value, since the connection is not a publish."
+        }
+      ],
+      "chosen": "a withLatestFrom gate over a state read",
+      "why": "It turns the timing question into a value difference the harness can assert synchronously, and S12's connection probe already showed it separates the S11 runtime from a correct one.",
+      "evidence": [
+        "docs/auto-run/experiments/navigation-api-fixtures/tool/connection_probe.dart",
+        "docs/auto-run/experiments/bus-api-amendment/output.txt (T9, T10)"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T19:35:21Z",
+      "artifact": "hsdd/contract/bus-api.md",
+      "question": "Change (b): extend G11 and G19 with the value-type rule, or add a guarantee?",
+      "options": [
+        {
+          "label": "new G40 with its own reject library",
+          "consequence": "One rule over both publish paths, as topology-dsl@v1 G3 states it for write; ADR-001 item 4 wants one reject library per type-level guarantee, so publish_value_matches_topic.dart covers G40 alone."
+        },
+        {
+          "label": "extend G11 and G19",
+          "consequence": "No new id, but one rule stated twice and the reject lines split across two files whose guarantees are about the topic variant, not the value."
+        }
+      ],
+      "chosen": "new G40 with its own reject library",
+      "why": "The value-type rule is distinct from the variant rule G11 and G19 state; a separate id lets phase gates restrict by it. Every reject code was confirmed (T3, T4).",
+      "evidence": [
+        "Spec §4.2",
+        "hsdd/adr/001-executable-contract-validation.md items 3, 4",
+        "docs/auto-run/experiments/bus-api-amendment/output.txt (T3, T4)"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T19:35:21Z",
+      "artifact": "hsdd/contract/bus-api.md",
+      "question": "Explicit type arguments can still widen T through Dart's covariant generics (publish<num, double> on an EventTopic<int> compiles, probe P16, P26). What does G40 say about them?",
+      "options": [
+        {
+          "label": "state the limit in G40",
+          "consequence": "The guarantee is exact about what it covers (inferred type arguments); no runtime behavior is promised for the widened call."
+        },
+        {
+          "label": "add a run-time guarantee (a throw) with a behavior case",
+          "consequence": "Closes the hole at run time, but adds a check on every publish path and a rule no consumer asked for."
+        },
+        {
+          "label": "say nothing",
+          "consequence": "G40 would read as if every wrong value were a compile error, which is false."
+        }
+      ],
+      "chosen": "state the limit in G40",
+      "why": "No evidence that anyone writes explicit widening type arguments; stating the limit keeps the guarantee honest. A static check (nidana-checks@v1) is the cheaper closure if it ever matters. Signal that would change it: a consumer contract or app pattern that forwards topics through explicitly widened generics.",
+      "evidence": [
+        "docs/auto-run/experiments/bus-api-amendment/probe/publish_typing.dart (P16, P26)"
+      ],
+      "blast_radius": "contract",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T19:35:21Z",
+      "artifact": "hsdd/contract/bus-api.md",
+      "question": "Change (c): how does G38 admit the settle operation's real event-loop turns?",
+      "options": [
+        {
+          "label": "except them in G38, citing bus-testing@v1 G12 and ADR-003 item 6",
+          "consequence": "G38 and bus-testing@v1 G12, G20 state the same exception; G38 stays a source property checked by nidana.runtime's gates."
+        },
+        {
+          "label": "leave G38 and rely on bus-testing@v1's statement",
+          "consequence": "The two contracts contradict each other on one package's sources."
+        }
+      ],
+      "chosen": "except them in G38, citing bus-testing@v1 G12 and ADR-003 item 6",
+      "why": "ADR-003 item 6 is accepted and requires the real turns; S11 asked for exactly this clarification. No consumer relies on G38.",
+      "evidence": [
+        "hsdd/adr/003-time-source-virtual-scheduler.md items 6, 8",
+        "hsdd/contract/bus-testing.md (G12, G20)",
+        "docs/auto-run/steps/S11.json"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T19:35:21Z",
+      "artifact": "hsdd/contract/bus-api.md",
+      "question": "Change (d): how does the delivery rule name the recorders?",
+      "options": [
+        {
+          "label": "the recorders attached to the bus first, in attachment order (bus-testing@v1 G14, G17)",
+          "consequence": "Matches bus-testing@v1's EnvelopeRecorder.attach on any bus, a widget test's production-provider bus included; Refinement 4 says the same."
+        },
+        {
+          "label": "keep 'the recorder of a TestBus'",
+          "consequence": "Contradicts bus-testing@v1 G14 and G17 for a recorder attached to a production-provider bus."
+        }
+      ],
+      "chosen": "the recorders attached to the bus first, in attachment order (bus-testing@v1 G14, G17)",
+      "why": "Editorial alignment S11 asked for; bus-testing@v1 already states the behavior, and no fixture changes.",
+      "evidence": [
+        "hsdd/contract/bus-testing.md (Refinement 1, G14, G17)",
+        "docs/auto-run/steps/S11.json"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T19:42:48Z",
+      "artifact": "hsdd/contract/bus-api.md",
+      "question": "After the connection, does every later delivery reach a topology's read during that delivery, so the deliveries start() makes reach a topology's reads in queue order across topics? The navigation-api-fixtures runtime, which S12 offered as making (a) hold, connects synchronously but holds back the deliveries made before the RxDart replay's first microtask, so a state publish queued between two queued events reaches a withLatestFrom read after the second event (T10: [41, 51] where [41, 57] is the queue order).",
+      "options": [
+        {
+          "label": "pin it: a connected read receives each later delivery during that delivery",
+          "consequence": "A restored state queued before start (an auth session written by a service) reaches the nav-resolver's read before a deep link queued after it; the runtime needs a synchronous, non-replaying path for topology reads (the stand-in uses a sync broadcast controller per cell); every consumer suite passes on it (T7). Goes beyond Spec §3.3's general position that cross-topic ordering is not guaranteed, for synchronous deliveries on one bus."
+        },
+        {
+          "label": "pin only that the connection precedes the queue",
+          "consequence": "What S12 asked for literally; the navigation-api-fixtures runtime suffices, but a queued state publish can reach a topology after a later-queued event, so the deep-link guard can see the initial auth state instead of the restored one."
+        }
+      ],
+      "chosen": "pin it: a connected read receives each later delivery during that delivery",
+      "why": "The delivery rule already says a delivery runs synchronously and hands the envelope to the subscriptions, and G34 says start() delivers the queue in order; a read the connection reached is an established subscriber, and only RxDart's replay buffering made the window. Spec §3.13 makes the barrier the deep-link mechanism, which only works if the queue reaches the resolver in order. Medium confidence because it strengthens cross-topic ordering at a topology beyond Spec §3.3's portable minimum. Signal that would change it: nidana.runtime's design finding that a non-replaying read path costs more than the guarantee is worth, or the owner preferring Spec §3.3's weaker stance for portability.",
+      "evidence": [
+        "Spec §3.3",
+        "Spec §3.13",
+        "Guide §3.5",
+        "docs/auto-run/experiments/bus-api-amendment/output.txt (T7, T10 second defect)",
+        "docs/auto-run/experiments/bus-api-amendment/packages/nidana_dart_runtime/lib/src/bus.dart (bus-api-amendment patch, _Cell.reads)"
+      ],
+      "blast_radius": "contract",
+      "confidence": "medium",
+      "would_have_asked": true,
+      "stop_class": "axis",
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T19:49:38Z",
+      "artifact": "hsdd/contract/bus-api.md",
+      "question": "Is this amendment within v1, given that the Breaking list names retyping a declaration and changing a delivery rule?",
+      "options": [
+        {
+          "label": "within v1, with a Versioning line",
+          "consequence": "No consumer contract changes; the line records the four changes, why each is compatible here, and the experiment that shows every other contract's fixtures pass unchanged."
+        },
+        {
+          "label": "draft bus-api@v2",
+          "consequence": "A v2 and migration note for a draft contract with no producer or consumer code, and every consumer contract re-pointed."
+        }
+      ],
+      "chosen": "within v1, with a Versioning line",
+      "why": "The orchestrator's rule, verified: no package exists and an amendment breaks a consumer only by breaking another contract's fixtures; T1 to T7 replay every fixture of topology-dsl@v1 (live suite), bus-testing@v1 and navigation-api@v1 unchanged and passing. (a) restates what the earlier wording and Spec §3.13 intended; (b) rejects only calls that were wrong at run time and calls with one explicit type argument, which only bus-api@v1's own fixtures made. Timestamp taken just after the line was written (the contract's last edit is 19:46:33Z).",
+      "evidence": [
+        "docs/auto-run/experiments/bus-api-amendment/output.txt (T1 to T7)",
+        "Spec §3.13",
+        "hsdd/contract/topic-model.md (Versioning, the S10 precedent)"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T19:49:38Z",
+      "artifact": "hsdd/contract/bus-api.md",
+      "question": "The Validation section said the fixtures assume topic-model@v1 declares MultiWriterTopic. Keep the assumption or cite the declaration?",
+      "options": [
+        {
+          "label": "cite topic-model@v1 G27 and docs/auto-run/experiments/topic-model-multi-writer/",
+          "consequence": "States a fact instead of an assumption, as S10 suggested."
+        },
+        {
+          "label": "keep the assumption",
+          "consequence": "Stale since S10."
+        }
+      ],
+      "chosen": "cite topic-model@v1 G27 and docs/auto-run/experiments/topic-model-multi-writer/",
+      "why": "topic-model@v1 declares MultiWriterTopic since S10 (its G27), and that experiment replays this contract's surface and reject sets with and without it.",
+      "evidence": [
+        "hsdd/contract/topic-model.md (G27, Versioning)",
+        "docs/auto-run/experiments/topic-model-multi-writer/output.txt"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    }
+  ],
+  "experiments": [
+    {
+      "path": "docs/auto-run/experiments/bus-api-amendment/",
+      "question": "Do the amended bus-api@v1 fixtures, and every other contract's fixtures that import nidana_dart_runtime, hold against a stand-in runtime amended for (a) and (b); do the new (a) cases fail on the S11 runtime; and does any fixture outside bus-api@v1 have to change?",
+      "finding": "No fixture outside bus-api@v1 changes. On the stand-in of navigation-api-fixtures with the typed publish and topology reads on a synchronous non-replaying controller: structure passes for bus-api (40 guarantees, 89 cases), bus-testing and navigation-api; every surface clean; every reject code of the three confirmed (publish_value_matches_topic.dart: six could_not_infer and one type_argument_not_matching_bounds); bus-api 89/89, topology-dsl live 43/43, bus-testing 45/45, navigation 40/40, executor 52/52 on InMemoryRouter and 26/26 under fvm flutter test with testWidgets. On the S11 runtime the new G22 connection case and the G34 deep-link case fail and the typed-publish rejects fail. Seeded defects: connection publishes inside activate fail the G22 microtask case and the existing G34 activation-order case; the navigation-api-fixtures read stage fails the G34 case ([41, 51] for [41, 57]); the S11 interpreter fails both new connection cases. The orchestrator's named form publish<T, V extends T> adds inference_failure_on_function_invocation on a state topic and fails navigation-api@v1's reject set; publish<T extends Object?, V extends T> does not."
+    }
+  ],
+  "self_check": [
+    {
+      "gate": "Frontmatter has id, version, status, kind, owner, compatibility, produced_by, consumers; external_consumers when any exist.",
+      "status": "pass",
+      "note": "Frontmatter unchanged."
+    },
+    {
+      "gate": "`consumers` lists phase ids that actually consume this contract.",
+      "status": "pass",
+      "note": "Node ids under phase_ids: provisional, unchanged; hsdd-reconcile finalizes them."
+    },
+    {
+      "gate": "The Interface section is concrete enough to mock against.",
+      "status": "pass",
+      "note": "Both publish signatures written out with their bound; the stand-in implements them."
+    },
+    {
+      "gate": "At least one guarantee/invariant is stated.",
+      "status": "pass",
+      "note": "40 guarantees; G40 added, G22, G34, G38 reworded, no id renumbered or reused."
+    },
+    {
+      "gate": "A breaking change bumped the version and added a migration note.",
+      "status": "pass",
+      "note": "Not breaking for any existing consumer: no code exists and every other contract's fixtures pass unchanged (experiment T1 to T7); ## Versioning records the amendment within v1 and why."
+    },
+    {
+      "gate": "The registry was regenerated.",
+      "status": "pass",
+      "note": "node hsdd/scripts/gen-registry.mjs run; INDEX.md unchanged because no frontmatter changed; gate.mjs confirms it is fresh."
+    },
+    {
+      "gate": "`phase_ids` is present (`provisional` until `hsdd-reconcile` finalizes it).",
+      "status": "pass",
+      "note": "provisional"
+    },
+    {
+      "gate": "Every code-level artifact both sides consume (types file, fixtures, shared package) names its canonical path and its owner in the Interface or Validation section: the owning phase for code, `hsdd-contract` for validation artifacts.",
+      "status": "pass",
+      "note": "Unchanged: library path and code owner in the Interface, fixtures owned by hsdd-contract."
+    },
+    {
+      "gate": "A contract or version created by this run has its schema and its kind's fixtures written at the canonical paths.",
+      "status": "n/a",
+      "note": "Amendment, not a new contract or version; the fixtures were updated in place in the same edit."
+    },
+    {
+      "gate": "Open questions are cited by ID only. They are never defined here; prose justifying behavior as \"pending OQ-x\" is swept when the OQ resolves (hsdd-reconcile).",
+      "status": "pass",
+      "note": "Quoted with the gate's em-dash rewritten as a sentence break, per the prose rule. No OQ added or defined."
+    },
+    {
+      "gate": "A `stable` contract names a schema or a fixtures directory at the canonical paths and the artifact exists, or it carries `validation: grandfathered` (never on a contract authored after the upgrade).",
+      "status": "n/a",
+      "note": "draft; the fixtures directory exists and Validation names it."
+    },
+    {
+      "gate": "No version is `retired` while a consumer or an external consumer still names it.",
+      "status": "n/a",
+      "note": "Nothing retired."
+    },
+    {
+      "gate": "A `v0` contract carries `## Observed completeness`, and the block changed in any commit that added fixtures to it.",
+      "status": "n/a",
+      "note": "v1."
+    },
+    {
+      "gate": "ADR-001 item 12: the fixtures directory meets item 3 and the items for its kind, checked by reading until the replay tool exists.",
+      "status": "pass",
+      "note": "Every guarantee covered or listed not executable (G38, G39); one reject library per type-level guarantee with a covers header and markers; every case name begins with its id; both bindings listed. The structure prototype agrees (T1)."
+    },
+    {
+      "gate": "node docs/auto-run/tools/gate.mjs --skill hsdd-contract --contracts-pending",
+      "status": "pass",
+      "note": "0 errors, 68 warnings (all pre-existing forward references to flutter-binding@v1, topic-codegen@v1, nidana-checks@v1)."
+    }
+  ],
+  "notes_for_orchestrator": [
+    "Compatibility verification: the orchestrator's search for explicit type arguments was correct (only bus-api@v1's own surface/bus.dart and reject/no_publisherless_state_publish.dart pass them; both changed here), but it was not the only way (b) breaks a fixture. The named form publish<T, V extends T> leaves T uninferred for a state topic, and strict-inference adds inference_failure_on_function_invocation on lines 10 and 12 of navigation-api@v1's reject/current_route_is_claimed_by_the_executor.dart, which fails its exact (line, code) match (experiment T10). The contract therefore declares publish<T extends Object?, V extends T>, the same type relation with the bound written out, under which every fixture outside bus-api@v1 passes unchanged. If the orchestrator reads the bound as a different change from the one it authorized, the named form is a run-stop-candidate (breaking amendment of navigation-api@v1's fixture) with T10 as evidence. The real package must keep the bound: a phase that simplifies it fails navigation-api@v1's gate.",
+    "(a) goes one clause beyond S12's request (decision at 19:42:48Z, would_have_asked): a read the connection reached receives each later delivery during that delivery, so start()'s queue reaches a topology's reads in queue order across topics. The navigation-api-fixtures runtime does not meet this (a queued state publish reaches a withLatestFrom read after a later-queued event); this experiment's stand-in does, with topology reads on a synchronous broadcast controller per cell instead of the RxDart subject. nidana.runtime's design must give topology reads a non-replaying synchronous path, emit the connection from the subject's current value or buffer before activate returns, and defer the publishes the connection causes to a provider-zone microtask; observed subscriptions keep G17's microtask first delivery.",
+    "S14 (flutter-binding@v1), bootstrap order after (a): the bootstrap may activate the APPLICATION topologies (the nav-resolver), construct the NavigationExecutor and call bus.start() in one synchronous block with no pump or microtask between; a deep link queued before start(), even before the resolver's activation, is resolved and guarded, and a state written before start() (a restored session) reaches the resolver before any event queued after it. What (a) does not change: NavigationExecutor reads router.stack at construction (S12 note 4), so the Navigator must be mounted, or the router must accept calls before mount, before the executor is constructed, and start() follows that; connection-caused publishes and observed first values still wait for a provider-zone microtask, which under testWidgets on a production-provider bus runs on the next pump, so widgets take their first frame from getCurrentValue (G17). S12's observation that pumpWidget hid the gap no longer matters for correctness. The widget-test recorder attaches before start() and records in attachment order before observers (delivery rule, (d)).",
+    "navigation-api@v1 can now take compatible, editorial follow-ups (not made here): (1) a G1 reject line on nav.resolved-intent, pages.publish(NavigationTopics.resolvedIntent, DeepLink(uri)), which reports could_not_infer alone (probe P19); (2) Refinement 8 can cite bus-api@v1 G22 and G34 directly and drop 'bus-api@v1's fixtures do not pin it', and G24's 'as Refinement 8 reads them'; (3) Refinement 9 can cite bus-api@v1 G40; (4) its Validation sentence about the patched runtime can point at docs/auto-run/experiments/bus-api-amendment/. A hsdd-contract touch of navigation-api@v1 or hsdd-reconcile can sweep them.",
+    "topic-model@v1 G27 and its fixtures' comments say a publish path typed over MultiWriterTopic<T>, 'as bus-api@v1's publisher-less publish and Publisher.publish are'; still true. Its own publishTo<T>(MultiWriterTopic<T>, T) stand-in shape no longer equals bus-api@v1's signature, which needs no change because those fixtures declare their own function.",
+    "bus-testing@v1 G12 and G20 already state the settle exception; G38 now agrees, so no bus-testing@v1 change is needed.",
+    "Residual recorded in G40: explicit type arguments can widen T through covariance (publish<num, double> on an EventTopic<int> compiles, probe P16, P26). A nidana-checks@v1 check against explicit type arguments on publish would close it statically; candidate for nidana.tooling's contract step.",
+    "Spec §3.3 says cross-topic ordering is not guaranteed in general; bus-api@v1 G22 now guarantees queue order at one topology's reads for synchronous deliveries on a Dart bus. Not marked would_upstream (a platform strengthening, not a Specification change); S11's note that Spec Appendix A.7 limits recording to a TestBus applies to (d) as well.",
+    "Timestamps: 19:32:33Z was taken when the signature probe settled the form; 19:35:21Z when the guarantee edits began, and the G22 deferral, case design, G40, G38 and delivery-rule decisions taken in that edit carry it; 19:42:48Z when the T10-style failure of the navigation-api-fixtures read stage settled the stricter clause; 19:49:38Z just after the Versioning and Validation lines were written."
+  ]
+}

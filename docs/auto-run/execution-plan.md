@@ -167,9 +167,10 @@ tree. Done when `node docs/auto-run/tools/gate.mjs --final` passes.
 | S10 | 4 | hsdd-contract | topic-model@v1 amendment: sealed MultiWriterTopic (for bus-api@v1 G11, G19) | done | ef0dead |
 | S11 | 4 | hsdd-contract | bus-testing@v1 | done | 9f64d62 |
 | S12 | 4 | hsdd-contract | navigation-api@v1 | done | 9371c72 |
-| S13 | 4 | hsdd-contract | bus-api@v1 amendment: pre-start connection guarantee, publish typing, S11 wording fixes | running | |
+| S13 | 4 | hsdd-contract | bus-api@v1 amendment: pre-start connection guarantee, publish typing, S11 wording fixes | done | 5727b7d |
+| S14 | 4 | hsdd-contract | flutter-binding@v1 | running | |
 | S10..S14 | 4 | hsdd-contract | bus-api, bus-testing, navigation-api, flutter-binding, topic-codegen, nidana-checks (all @v1), in that order | planned | |
-| after S16 | 4 | hsdd-contract (if any), hsdd-adr, then hsdd-spec (root touch) | governance touch-up: remaining compatible contract fixes (navigation-api@v1's G1 reject line once publish typing lands); ADR affects and Governed-by links; root prose fixes | planned | |
+| after S16 | 4 | hsdd-contract (if any), hsdd-adr, then hsdd-spec (root touch) | governance touch-up: remaining compatible contract fixes (navigation-api@v1: a G1 reject line for a DeepLink published to nav.resolved-intent, and citing bus-api@v1 G22, G34, G40); ADR affects and Governed-by links; root prose fixes | planned | |
 | next | 5 | hsdd-spec | nidana.runtime, then nidana.tooling (each followed by its ADRs and internal contracts) | planned | |
 
 ## Change log
@@ -231,3 +232,9 @@ tree. Done when `node docs/auto-run/tools/gate.mjs --final` passes.
   `T`. Both, with S11's two wording fixes, go into a bus-api@v1 amendment run now as S13, before
   flutter-binding@v1, which depends on the bootstrap guarantee; the remaining root contracts shift to
   S14..S16.
+- 2026-10-18, after S13: bus-api@v1 amended within v1 (connection before `activate` returns and queue
+  order across topics at `start()`; `publish<T extends Object?, V extends T>` with new G40; G38 and the
+  recorder wording). The bound is written out because the bare form breaks a navigation-api@v1 reject
+  fixture under strict inference. nidana.runtime's decomposition must give topology reads a synchronous
+  path that does not go through RxDart's replay. nidana-checks@v1 may add a check against explicit type
+  arguments on `publish` (closes G40's gap).
