@@ -1,0 +1,456 @@
+{
+  "step_ref": "S12",
+  "skill": "hsdd-contract",
+  "target": "navigation-api@v1 (producer nidana.navigation, package nidana_dart_navigation)",
+  "status": "completed",
+  "stop": null,
+  "artifacts": [
+    "hsdd/contract/navigation-api.md",
+    "hsdd/contract/fixture/navigation-api/surface/routes_and_intents.dart",
+    "hsdd/contract/fixture/navigation-api/surface/access_and_resolver.dart",
+    "hsdd/contract/fixture/navigation-api/surface/executor.dart",
+    "hsdd/contract/fixture/navigation-api/reject/intents_are_closed.dart",
+    "hsdd/contract/fixture/navigation-api/reject/resolved_intent_is_never_a_deep_link.dart",
+    "hsdd/contract/fixture/navigation-api/reject/route_arguments_are_typed.dart",
+    "hsdd/contract/fixture/navigation-api/reject/navigation_types_are_closed.dart",
+    "hsdd/contract/fixture/navigation-api/reject/navigation_values_are_immutable.dart",
+    "hsdd/contract/fixture/navigation-api/reject/current_route_is_claimed_by_the_executor.dart",
+    "hsdd/contract/fixture/navigation-api/behavior/navigation_conformance.dart",
+    "hsdd/contract/fixture/navigation-api/behavior/nidana_dart_navigation_test.dart",
+    "hsdd/contract/fixture/navigation-api/behavior/navigation_executor_conformance.dart",
+    "hsdd/contract/fixture/navigation-api/behavior/in_memory_router_test.dart",
+    "hsdd/contract/INDEX.md",
+    "docs/auto-run/experiments/navigation-api-fixtures/",
+    "docs/auto-run/steps/S12.json"
+  ],
+  "decisions": [
+    {
+      "at": "2026-10-17T18:47:47Z",
+      "artifact": "hsdd/contract/navigation-api.md",
+      "question": "OQ-N2: Do routes carry typed arguments (Route<Args>) or untyped maps?",
+      "options": [
+        { "label": "typed NavRoute<A>, arguments optional A?", "consequence": "compile-time checking of an intent's arguments against its route; RouteState equality and nav.current-route dedup work through the app's value types; deep-link resolvers and redirects build typed arguments; arguments are not required at the call, as the Guide's are not" },
+        { "label": "untyped Map<String, Object?> arguments", "consequence": "the Guide §3.2 sketch; no checking; Dart maps have no value equality, so equal RouteStates compare unequal and the topic's default dedup never fires; destinations cast" },
+        { "label": "typed and required arguments, separate classes for routes with and without arguments", "consequence": "presence is checked too, at the cost of two route types and the registry complexity Guide §3.2 warns about" }
+      ],
+      "chosen": "typed NavRoute<A>, arguments optional A?",
+      "why": "Owner's standing preference for types and ADTs, Spec §4.2's compile-time typing for topics as the analogue, and a Dart-specific reason the Guide does not weigh: map arguments break RouteState equality (Spec §3.12 dedup is Dart ==). Guide §3.6's own example already passes a typed request as args. Optional rather than required because deep links and platform routes can arrive without arguments. Signal that would change it: an app whose routes are all argument-free, or one generated from routes.yaml where codegen could make presence checkable cheaply.",
+      "evidence": ["Guide §3.2", "Guide §3.6", "Spec §3.12", "Spec §4.2", "docs/auto-run/experiments/navigation-api-fixtures/probe/widening.dart"],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T18:47:47Z",
+      "artifact": "hsdd/contract/navigation-api.md",
+      "question": "How are GoTo, Replace and ShowModal built so that their arguments are checked against the route?",
+      "options": [
+        { "label": "built only by route methods (route.go(args)), no public constructor", "consequence": "the receiver fixes A, so a wrong argument is argument_type_not_assignable; reads route-first rather than as the Guide's constructor" },
+        { "label": "public generic constructors GoTo<A>(route, args)", "consequence": "the Guide's spelling, but Dart infers A from both arguments and widens it, so GoTo(order, 'seven') compiles" }
+      ],
+      "chosen": "built only by route methods (route.go(args)), no public constructor",
+      "why": "The probe shows the generic constructor widens (W6 compiles; W6b with a typed context does not), the same inference topology-dsl@v1 G3 had to work around. Back, BackTo, DismissModal and DeepLink keep public const constructors because they carry no arguments.",
+      "evidence": ["docs/auto-run/experiments/navigation-api-fixtures/probe/widening.dart", "docs/auto-run/experiments/topology-dsl-typing/"],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T18:47:47Z",
+      "artifact": "hsdd/contract/navigation-api.md",
+      "question": "OQ-N1: How does the library's resolver template bind to an app's own auth state type, which Guide §3.4's resolver reads directly?",
+      "options": [
+        { "label": "generic template over the app's auth StateTopic<S> with a pure projection to a library AccessPrincipal", "consequence": "the resolver reads the app's auth topic directly as Guide §3.4 and Appendix A draw; one pure guard over library types; apps with richer guards project facts into roles or a CustomAccess test, or write their own resolver from the public pure functions" },
+        { "label": "template takes a guard function and the topics it reads", "consequence": "maximum flexibility, but the topology DSL's withLatestFrom arities fix how many topics a guard can read, the template becomes a thin wrapper, and applyAuthGuard is only a default" },
+        { "label": "a library topic nav.access-principal the app writes from its auth state", "consequence": "no generic template, but a sixth navigation topic the node spec and Guide §3.3 do not list, and one more state topic with an owner the app must provide" }
+      ],
+      "chosen": "generic template over the app's auth StateTopic<S> with a pure projection to a library AccessPrincipal",
+      "why": "It keeps the Guide's graph (nav-resolver reads auth.state), keeps the app's auth type the app's, and keeps the guard a pure function, which the owner's functional-first preference favors. The other two remain open to an app because every piece of the template is public. Signal that would change it: a v1 app whose guard needs several app topics that cannot be combined into one state topic.",
+      "evidence": ["Guide §3.4", "Guide Appendix A", "Guide §3.3", "hsdd/spec/nidana.navigation.md"],
+      "blast_radius": "contract",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T18:47:47Z",
+      "artifact": "hsdd/contract/navigation-api.md",
+      "question": "What does the guard do while the app's auth state is still initializing at a cold-start deep link?",
+      "options": [
+        { "label": "a PendingPrincipal variant with its own redirect, defaulting to the unauthenticated one", "consequence": "a three-state principal; the app can send a protected cold-start deep link to a splash that waits, rather than flashing login" },
+        { "label": "two-state principal, the projection maps initializing to anonymous", "consequence": "simpler; every authenticated cold-start deep link to a protected route goes through login first" },
+        { "label": "hold intents in the resolver until auth is known", "consequence": "needs a buffering stage the topology DSL expresses only through switchMap or rawEngine; switchMap would cancel queued intents" }
+      ],
+      "chosen": "a PendingPrincipal variant with its own redirect, defaulting to the unauthenticated one",
+      "why": "Spec §7.6's Initializing variant and Guide §3.5's cold-start deep link meet exactly at the guard; a guard that cannot tell not-yet-known from signed-out forces a login flash. Holding is deferred (Versioning) because the DSL has no safe buffering combinator. Signal: an app that wants holding semantics in the library.",
+      "evidence": ["Spec §7.6", "Guide §3.5", "hsdd/contract/topology-dsl.md"],
+      "blast_radius": "contract",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T18:47:47Z",
+      "artifact": "hsdd/contract/navigation-api.md",
+      "question": "Where does a refused intent go, given that a library guard cannot name the app's login and unauthorized routes (Guide §3.4 hardcodes AuthRoutes.login with a returnTo map)?",
+      "options": [
+        { "label": "AccessRedirects: app-provided pure functions from the attempted intent to the intent to perform", "consequence": "typed, so a login route can carry the attempted intent as its argument; the redirect's result is not guarded again" },
+        { "label": "the policy carries redirect routes and the guard builds GoTo(route, returnTo)", "consequence": "less app code, but fixes the redirect's argument shape and puts functions or routes into a state-topic value" }
+      ],
+      "chosen": "AccessRedirects: app-provided pure functions from the attempted intent to the intent to perform",
+      "why": "Keeps RouteAccessPolicy the Spec Appendix A.6 map from route to requirement and lets the app type its redirect arguments. No evidence beyond the typing argument.",
+      "evidence": ["Spec Appendix A.6", "Guide §3.4"],
+      "blast_radius": "contract",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T18:47:47Z",
+      "artifact": "hsdd/contract/navigation-api.md",
+      "question": "In which order does the resolver guard and resolve deep links?",
+      "options": [
+        { "label": "resolve first, then guard the resolved intent", "consequence": "a deep link to a protected route is guarded; applyAuthGuard takes and returns ResolvedNavIntent" },
+        { "label": "guard first, then resolve, as Guide §3.4 writes", "consequence": "a DeepLink has no target route before resolution, passes the guard, and its resolved target is never checked: a guard bypass" }
+      ],
+      "chosen": "resolve first, then guard the resolved intent",
+      "why": "The Guide's order lets any deep link bypass the auth guard; the conformance case G14 'resolves a deep link before it guards it' and the executor case G24 'guarded after it is resolved' pin the fix on both platforms.",
+      "evidence": ["Guide §3.4"],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": true
+    },
+    {
+      "at": "2026-10-17T18:47:47Z",
+      "artifact": "hsdd/contract/navigation-api.md",
+      "question": "How is ResolvedNavIntent declared so that a deep link is impossible by construction?",
+      "options": [
+        { "label": "a sealed subfamily of NavIntent: NavIntent = DeepLink | ResolvedNavIntent", "consequence": "six variants declared once; resolveDeepLinks passes resolved intents through; a resolved intent can be published to nav.intent" },
+        { "label": "two parallel sealed families, as Guide §3.2 sketches", "consequence": "each variant declared twice and mapped one by one in resolveDeepLinks" }
+      ],
+      "chosen": "a sealed subfamily of NavIntent: NavIntent = DeepLink | ResolvedNavIntent",
+      "why": "Spec Appendix A.6 defines the resolved type as identical to NavIntent except DeepLink, which a subfamily states exactly; topic-model@v1's MultiWriterTopic is the precedent in this tree. Reject codes confirmed against the stand-in.",
+      "evidence": ["Spec Appendix A.6", "hsdd/contract/topic-model.md", "docs/auto-run/experiments/navigation-api-fixtures/"],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T18:47:47Z",
+      "artifact": "hsdd/contract/navigation-api.md",
+      "question": "The Specification and the Guide name the route type Route, which package:flutter/widgets.dart also exports. Keep the name or rename it?",
+      "options": [
+        { "label": "NavRoute", "consequence": "no collision in Flutter pages; consistent with NavIntent; deviates from the glossary name" },
+        { "label": "Route, with apps hiding Flutter's", "consequence": "the glossary name; every Flutter file importing both libraries writes hide Route or a prefix, or gets ambiguous_import" }
+      ],
+      "chosen": "NavRoute",
+      "why": "The probe shows ambiguous_import on Route and no collision for any other navigation-api name with package:flutter/material.dart. Every page that publishes intents also builds widgets. nidana.navigation's Owns list says Route; the contract's name is the binding one.",
+      "evidence": ["Spec Appendix A.6", "Guide §3.2", "docs/auto-run/experiments/navigation-api-fixtures/probe/flutter_names.dart"],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": true,
+      "stop_class": "upstream",
+      "would_upstream": true
+    },
+    {
+      "at": "2026-10-17T18:47:47Z",
+      "artifact": "hsdd/contract/navigation-api.md",
+      "question": "What does the executor protocol consist of, and what does a platform implement?",
+      "options": [
+        { "label": "a final NavigationExecutor in this package over a NavigationRouter port the platform implements", "consequence": "claim, observe, planning, BackTo synthesis, paired writes, timestamps, diagnostics and disposal written once; a platform implements four stack calls, its stack and its confirmations; flutter-binding@v1's FlutterNavigationExecutor is a Flutter router with wiring, not a subclass" },
+        { "label": "an abstract base executor each platform subclasses", "consequence": "the Guide's FlutterNavigationExecutor-is-a-NavigationExecutor shape; template-method inheritance the owner's composition preference disfavors" },
+        { "label": "an interface only; each platform writes the whole executor", "consequence": "Guide §3.4 literally; every platform reimplements the bus logic, and the suite tests each copy" }
+      ],
+      "chosen": "a final NavigationExecutor in this package over a NavigationRouter port the platform implements",
+      "why": "nidana.navigation's spec already owns the bus-facing duties (claim, paired writes, BackTo synthesis) and nidana.flutter's spec owns only the implementation against its router, so the split follows the node specs; composition over inheritance per the owner. Node set and contract set unchanged, so not a tree-shape stop.",
+      "evidence": ["hsdd/spec/nidana.navigation.md", "hsdd/spec/nidana.flutter.md", "Guide §3.4", "Spec Appendix A.6"],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T18:47:47Z",
+      "artifact": "hsdd/contract/navigation-api.md",
+      "question": "What does each intent do to the stack (the Specification is silent; Guide §3.4 maps GoTo to go_router's location-based go)?",
+      "options": [
+        { "label": "GoTo pushes; Replace replaces the top; Back pops; BackTo pops to the topmost entry of its route; ShowModal pushes modal; DismissModal pops a modal", "consequence": "one meaning every router can realize, so one suite checks every platform; BackTo and Replace stay distinct; no reset-the-stack intent in v1; flutter-binding must map GoTo to push" },
+        { "label": "GoTo resets the stack to the route (go semantics)", "consequence": "matches the Guide's go_router mapping on flat routes; stack contents depend on the router's route tree; Back after GoTo is usually at the root, which leaves BackTo nearly useless" }
+      ],
+      "chosen": "GoTo pushes; Replace replaces the top; Back pops; BackTo pops to the topmost entry of its route; ShowModal pushes modal; DismissModal pops a modal",
+      "why": "A portable conformance suite needs one stack meaning, and BackTo's presence in the vocabulary implies stacks grown by GoTo. Close call against go semantics; the signal that would change it is an owner preference for URL-location navigation on web, which would add a reset intent rather than redefine GoTo.",
+      "evidence": ["Guide §3.2", "Guide §3.4", "Spec Appendix A.6"],
+      "blast_radius": "contract",
+      "confidence": "medium",
+      "would_have_asked": true,
+      "stop_class": "upstream",
+      "would_upstream": true
+    },
+    {
+      "at": "2026-10-17T18:47:47Z",
+      "artifact": "hsdd/contract/navigation-api.md",
+      "question": "What does the executor do with an intent the stack does not admit (Back at the root, BackTo a route not on the stack, DismissModal with no modal on top)?",
+      "options": [
+        { "label": "refuse: nothing navigates or is written; dev mode reports NavigationRefused", "consequence": "uniform across routers; a Flutter pop of the last route cannot happen through intents" },
+        { "label": "pass the call to the platform", "consequence": "router-defined results, such as an empty Navigator" }
+      ],
+      "chosen": "refuse: nothing navigates or is written; dev mode reports NavigationRefused",
+      "why": "Keeps behavior the same on every router and the suite router-neutral; uses bus-api@v1's ShellDiagnostic extension point (root D8). The diagnostic holds the reason and BackTo's route, never arguments (bus-api@v1 G4). BackTo to the route already on top is a no-op, not a refusal.",
+      "evidence": ["hsdd/contract/bus-api.md", "Guide §3.2"],
+      "blast_radius": "contract",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T18:47:47Z",
+      "artifact": "hsdd/contract/navigation-api.md",
+      "question": "How does a router report transitions, and how many history entries does a synthesized BackTo produce?",
+      "options": [
+        { "label": "one perform per intent, validated before acting, confirmed once with the stack it left and the intent; platform transitions confirmed with const Back()", "consequence": "a synthesized BackTo (k pops) and a native popUntil both yield one transition; routers must suppress their own observer events during a perform" },
+        { "label": "one confirmation per platform pop", "consequence": "a synthesized BackTo writes k transitions and a native popUntil also k (Flutter observers see each pop), so history differs from the intent stream" }
+      ],
+      "chosen": "one perform per intent, validated before acting, confirmed once with the stack it left and the intent; platform transitions confirmed with const Back()",
+      "why": "Guide §3.4 requires history and currentRoute to agree and the intent to come from the platform's confirmation; one transition per intent makes BackTo identical whether native or synthesized, which the VM binding checks by running every case on both capabilities. The stand-in Flutter router shows the suppression is small.",
+      "evidence": ["Guide §3.2", "Guide §3.4", "docs/auto-run/experiments/navigation-api-fixtures/packages/flutter_navigation_standin/"],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T18:47:47Z",
+      "artifact": "hsdd/contract/navigation-api.md",
+      "question": "Does the executor write the router's initial route at construction, and does it report a construction after start()?",
+      "options": [
+        { "label": "write the initial top to nav.current-route (no history entry) and report LateExecutorConstruction in dev mode", "consequence": "nav.current-route is truthful from start(); the bootstrap mistake that loses a queued deep link is visible" },
+        { "label": "leave RouteState.initial until the first navigation, no diagnostic", "consequence": "less code; nav.current-route reads NavRoute.none until the user navigates" }
+      ],
+      "chosen": "write the initial top to nav.current-route (no history entry) and report LateExecutorConstruction in dev mode",
+      "why": "Guide §3.5 makes construction before start() part of the bootstrap order; bus-api@v1's LateApplicationActivation is the analogous runtime diagnostic. No history entry because no transition was confirmed.",
+      "evidence": ["Guide §3.5", "Spec §3.13", "hsdd/contract/bus-api.md"],
+      "blast_radius": "contract",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T18:47:47Z",
+      "artifact": "hsdd/contract/navigation-api.md",
+      "question": "Whether this contract declares the in-memory router publicly, and where its binding lives.",
+      "options": [
+        { "label": "public InMemoryRouter in package:nidana_dart_navigation/testing.dart; its binding in this contract's fixture directory", "consequence": "apps and nidana.integration get a VM router for navigation tests without Flutter; ADR-001 item 4 puts the binding here because this Interface declares it" },
+        { "label": "a private stand-in inside the fixtures only", "consequence": "no public test double; every consumer writes its own, each needing its own binding (ADR-001 item 11)" },
+        { "label": "in the main library", "consequence": "test infrastructure in the production import" }
+      ],
+      "chosen": "public InMemoryRouter in package:nidana_dart_navigation/testing.dart; its binding in this contract's fixture directory",
+      "why": "Mirrors the runtime's testing.dart (ADR-002 item 3: other public libraries named by their contract); nidana.navigation's isolation strategy already names an in-memory router; G26 keeps testing.dart free of test and flutter_test imports.",
+      "evidence": ["hsdd/adr/001-executable-contract-validation.md", "hsdd/adr/002-package-workspace-layout.md", "hsdd/spec/nidana.navigation.md"],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T18:47:47Z",
+      "artifact": "hsdd/contract/fixture/navigation-api/behavior/",
+      "question": "How are the conformance cases split between libraries and bindings?",
+      "options": [
+        { "label": "two libraries: a VM-only navigation suite on TestBus (one implementation) and a runner-neutral executor suite (one per platform), the VM binding registering each executor case on both pop-until capabilities", "consequence": "resolver cases can assert with TestBus, stub, input and recorder literals; the executor harness names no bus-testing type; synthesized BackTo runs end to end on the VM" },
+        { "label": "one library with a harness abstracting the bus for everything", "consequence": "resolver cases lose TestBus's deterministic recorder and must run under testWidgets too" }
+      ],
+      "chosen": "two libraries: a VM-only navigation suite on TestBus (one implementation) and a runner-neutral executor suite (one per platform), the VM binding registering each executor case on both pop-until capabilities",
+      "why": "bus-testing@v1's note: resolver tests run on a TestBus, while the executor harness must not name TestBus or settle; topology-dsl@v1's recording and live split is the precedent. The second registration keeps the guarantee-id prefix so --guarantee selects both (T8 in the experiment).",
+      "evidence": ["hsdd/contract/bus-testing.md", "hsdd/contract/topology-dsl.md", "hsdd/adr/001-executable-contract-validation.md"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T18:47:47Z",
+      "artifact": "hsdd/contract/navigation-api.md",
+      "question": "Is the app's deep-link mapping total or may it return nothing?",
+      "options": [
+        { "label": "total: DeepLinkResolver returns a ResolvedNavIntent", "consequence": "every intent yields exactly one resolved intent; an unknown link maps to a route the app chooses" },
+        { "label": "nullable: null drops the link", "consequence": "silent drops; one more filter stage in the template" }
+      ],
+      "chosen": "total: DeepLinkResolver returns a ResolvedNavIntent",
+      "why": "Keeps G14's one-to-one mapping and makes unknown links observable as navigations (Guide §3.1 'unobservable transitions'). Signal: an app that must ignore unknown links silently.",
+      "evidence": ["Guide §3.1", "Guide §3.4"],
+      "blast_radius": "contract",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T18:47:47Z",
+      "artifact": "hsdd/contract/navigation-api.md",
+      "question": "Does the contract pin the resolver template's stages and ids, and the access-requirement spelling?",
+      "options": [
+        { "label": "pin id nav-resolver, APPLICATION scope, reads, writes and the stage order; requirement variants PublicAccess, AuthenticatedAccess, RoleAccess, CustomAccess with a fallback on the policy", "consequence": "the IR (Spec §6.5) shows resolve-before-guard and is checkable; equal configurations record equal definitions (idempotent activation); names do not collide with app ADT variants such as AuthState.Authenticated" },
+        { "label": "pin only reads and writes; variants named Public, Authenticated, Role, Custom", "consequence": "freer implementation; the ordering fix is not visible in the IR; Authenticated collides with the Guide's own AuthState.Authenticated in an app that imports both" }
+      ],
+      "chosen": "pin id nav-resolver, APPLICATION scope, reads, writes and the stage order; requirement variants PublicAccess, AuthenticatedAccess, RoleAccess, CustomAccess with a fallback on the policy",
+      "why": "Guide §3.4 fixes the id and scope; pinning the stages makes Refinement 3 checkable from the recorded IR. The fallback lets an app close unlisted routes. No experiment for the variant collision beyond the Guide's naming.",
+      "evidence": ["Guide §3.4", "Spec §6.5", "Spec Appendix A.6"],
+      "blast_radius": "contract",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T18:47:47Z",
+      "artifact": "hsdd/contract/navigation-api.md",
+      "question": "How does the contract own result handling (Guide §3.6)?",
+      "options": [
+        { "label": "a resultsFor helper over the topology DSL (withLatestFrom, filter, map) plus the stated pattern", "consequence": "the Guide's pattern once, recordable and testable; matching on payloads only" },
+        { "label": "pattern only, no declaration", "consequence": "nothing to test; each app rewrites the three stages" }
+      ],
+      "chosen": "a resultsFor helper over the topology DSL (withLatestFrom, filter, map) plus the stated pattern",
+      "why": "nidana.navigation's Owns list includes result handling; a helper gives G16 a target. No evidence that apps need more.",
+      "evidence": ["Guide §3.6", "hsdd/spec/nidana.navigation.md"],
+      "blast_radius": "contract",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T18:47:47Z",
+      "artifact": "hsdd/contract/navigation-api.md",
+      "question": "Names and defaults: executor default name, resolver id, history buffer, testing library name.",
+      "options": [
+        { "label": "ExecutorSource('navigation') by default; resolver id 'nav-resolver', not configurable; nav.history buffer 20; testing.dart", "consequence": "Guide §3.3 and §3.4 values; Flutter passes its own name such as 'flutter-navigation'; one resolver per bus" },
+        { "label": "name required, id configurable", "consequence": "more ceremony at every construction; two resolvers on one bus would race on nav.resolved-intent anyway" }
+      ],
+      "chosen": "ExecutorSource('navigation') by default; resolver id 'nav-resolver', not configurable; nav.history buffer 20; testing.dart",
+      "why": "Guide values where it gives them; no evidence otherwise.",
+      "evidence": ["Guide §3.3", "Guide §3.4"],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T18:59:35Z",
+      "artifact": "hsdd/contract/navigation-api.md",
+      "question": "The S11 stand-in runtime delivers an activation's connection one microtask after activate, so a deep link queued before start() reaches the resolver's withLatestFrom before its auth read has a value and is dropped. Do the fixtures pin the real bootstrap (activate; start; with nothing between) or let microtasks run between activation and start()?",
+      "options": [
+        { "label": "pin the real bootstrap and read bus-api@v1 G22 with G34 as requiring the connection before the queue (Refinement 8)", "consequence": "G14 and G24 fail against a runtime that does not deliver the connection first; bus-api@v1 needs its statement and fixtures sharpened; the experiment's runtime copy carries the change and still passes every bus-api@v1 and bus-testing@v1 case" },
+        { "label": "flush between activation and start() in the cases", "consequence": "passes on the S11 stand-in, but tests a bootstrap no app writes (Guide §3.5 calls start() right after activation), so a real deep-link drop would pass the gate" }
+      ],
+      "chosen": "pin the real bootstrap and read bus-api@v1 G22 with G34 as requiring the connection before the queue (Refinement 8)",
+      "why": "Spec §3.13 and Guide §3.5 promise that a deep link published before start() is delivered once the resolver is subscribed; bus-api@v1 G22 already says the connection reaches reads before later values, but no bus-api case pins it and its G34 case flushes before start(). The probe shows the drop on the S11 runtime and the fix keeping bus-api's 86, 43 and bus-testing's 45 cases green. Under testWidgets the drop is hidden because pumpWidget runs the microtask before start().",
+      "evidence": ["Spec §3.13", "Guide §3.5", "hsdd/contract/bus-api.md", "docs/auto-run/experiments/navigation-api-fixtures/tool/connection_probe.dart", "docs/auto-run/experiments/navigation-api-fixtures/output.txt"],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T18:52:33Z",
+      "artifact": "hsdd/contract/navigation-api.md",
+      "question": "bus-api@v1's publish<T>(MultiWriterTopic<T>, T) widens T, so publishing a DeepLink to nav.resolved-intent compiles. Does this contract carry a reject line for it now?",
+      "options": [
+        { "label": "state G1 for this contract's own declarations and record the gap (Refinement 9)", "consequence": "every navigation-api fixture passes against bus-api@v1 as written; the publish hole is closed by an amendment of bus-api@v1, after which a reject line can be added here compatibly" },
+        { "label": "add a reject line expecting could_not_infer now", "consequence": "the line fails until bus-api@v1 is amended, so nidana.navigation's gate would depend on another contract's pending change" }
+      ],
+      "chosen": "state G1 for this contract's own declarations and record the gap (Refinement 9)",
+      "why": "The probe shows W1 and W2 compile today and that the bounded form publish<T, V extends T> rejects both with could_not_infer while accepting well-typed publishes (W5); at run time the stand-in throws TypeError at delivery. The gap violates Spec §4.2 for every topic, so it belongs to bus-api@v1.",
+      "evidence": ["Spec §4.2", "docs/auto-run/experiments/navigation-api-fixtures/probe/widening.dart", "docs/auto-run/experiments/navigation-api-fixtures/tool/publish_runtime_probe.dart"],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T19:13:47Z",
+      "artifact": "hsdd/contract/fixture/navigation-api/behavior/",
+      "question": "Seeded defects survived (from read off the bus, argsOf with a same-typed other route, query-parameter equality). Add cases or accept the gaps?",
+      "options": [
+        { "label": "add the three assertions", "consequence": "G21 gains a case for confirmations made inside one delivery chain; G5 and G8 cases tighten" },
+        { "label": "accept", "consequence": "an executor that reads from via getCurrentValue, and two equality defects, would pass the suite" }
+      ],
+      "chosen": "add the three assertions",
+      "why": "Each was a real defect the suite let through in the experiment's mutation runs.",
+      "evidence": ["docs/auto-run/experiments/navigation-api-fixtures/output.txt"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    }
+  ],
+  "experiments": [
+    {
+      "path": "docs/auto-run/experiments/navigation-api-fixtures/",
+      "question": "Do the navigation-api@v1 fixtures hold against an implementation of the Interface: surface clean, reject codes exact, both suites passing, the executor suite binding under dart test and under testWidgets on a production-provider bus, and every suite case non-vacuous?",
+      "finding": "Surface clean; all six reject files pass with confirmed codes (one pattern_never_matches_value_type warning); structure 27 guarantees, 66 cases, 2 bindings; navigation suite 40/40; executor suite 52/52 on InMemoryRouter (both capabilities) and 26/26 under fvm flutter test with testWidgets against a stand-in Flutter router over Navigator on a production-provider bus; 33 seeded defects each fail the cases of their guarantee."
+    },
+    {
+      "path": "docs/auto-run/experiments/navigation-api-fixtures/tool/connection_probe.dart",
+      "question": "When does an activation's connection reach its reads relative to a value published right after activate (bus-api@v1 G22) and to the queue start() delivers (G34)?",
+      "finding": "On the S11 stand-in runtime one microtask later: a withLatestFrom over a state read drops a value published right after activate and a value queued before an immediate start(). With the connection made synchronous and its outputs deferred to a provider-zone microtask, both reach the read first, and bus-api@v1 (86 + 43) and bus-testing@v1 (45) cases still pass unchanged. On the S11 runtime the navigation suites fail exactly one G14 case and the G24 cases on the VM; under testWidgets pumpWidget hides it."
+    },
+    {
+      "path": "docs/auto-run/experiments/navigation-api-fixtures/probe/widening.dart",
+      "question": "Does bus-api@v1's publish signature, or a generic intent constructor, check the value against the topic or route type?",
+      "finding": "Neither: publish(NavigationTopics.resolvedIntent, DeepLink) and publish(EventTopic<int>, 'one') compile; GenericGoTo(route, 'one') compiles unless the context fixes the type. publish<T, V extends T> rejects both with could_not_infer and accepts well-typed calls; route.go('one') is argument_type_not_assignable. At run time the stand-in throws TypeError at delivery."
+    },
+    {
+      "path": "docs/auto-run/experiments/navigation-api-fixtures/probe/flutter_names.dart",
+      "question": "Which navigation-api names collide with what a Flutter page imports?",
+      "finding": "Only the Specification's Route (ambiguous_import with package:flutter/widgets.dart); every declaration of this contract, testing.dart included, coexists with package:flutter/material.dart."
+    }
+  ],
+  "self_check": [
+    { "gate": "Frontmatter has id, version, status, kind, owner, compatibility, produced_by, consumers; external_consumers when any exist.", "status": "pass", "note": "id navigation-api, v1, draft, api, owner nidana.navigation, versioned, produced_by [nidana.navigation], consumers [nidana.flutter, nidana.integration], four external consumers." },
+    { "gate": "`consumers` lists phase ids that actually consume this contract.", "status": "pass", "note": "Node ids with phase_ids: provisional, as every earlier contract; no phase plans exist yet. nidana.flutter implements the router port and binds the executor suite; nidana.integration composes." },
+    { "gate": "The Interface section is concrete enough to mock against.", "status": "pass", "note": "Full Dart declarations; a stand-in implementing them passes every fixture, and the surface set implements NavigationRouter." },
+    { "gate": "At least one guarantee/invariant is stated.", "status": "pass", "note": "G1 to G27, each with an id per ADR-001 item 3." },
+    { "gate": "A breaking change bumped the version and added a migration note.", "status": "n/a", "note": "New contract at v1." },
+    { "gate": "The registry was regenerated.", "status": "pass", "note": "node hsdd/scripts/gen-registry.mjs; navigation-api row added; adr/INDEX.md unchanged." },
+    { "gate": "`phase_ids` is present (`provisional` until `hsdd-reconcile` finalizes it).", "status": "pass", "note": "phase_ids: provisional." },
+    { "gate": "Every code-level artifact both sides consume (types file, fixtures, shared package) names its canonical path and its owner in the Interface or Validation section: the owning phase for code, `hsdd-contract` for validation artifacts.", "status": "pass", "note": "Libraries at packages/nidana_dart_navigation/ owned by nidana.navigation's first phase; fixtures at hsdd/contract/fixture/navigation-api/ owned by hsdd-contract; the Flutter binding's location and owner (flutter-binding@v1) named in Validation." },
+    { "gate": "A contract or version created by this run has its schema and its kind's fixtures written at the canonical paths.", "status": "pass", "note": "api contract without serialized form: surface, reject and behavior sets per ADR-001 item 4, no schema." },
+    { "gate": "Open questions are cited by ID only, never defined here; prose justifying behavior as \"pending OQ-x\" is swept when the OQ resolves (hsdd-reconcile).", "status": "pass", "note": "The skill text has an em-dash after \"ID only\"; it is rewritten here under the run's prose rule. OQ-N1 and OQ-N2 are cited as decided by Refinements 1 and 2, G2 and G13; no question is redefined and nothing is justified as pending." },
+    { "gate": "A `stable` contract names a schema or a fixtures directory at the canonical paths and the artifact exists, or it carries `validation: grandfathered` (never on a contract authored after the upgrade).", "status": "n/a", "note": "status draft; the fixtures directory exists and meets ADR-001 item 12 by reading and by the structure prototype." },
+    { "gate": "No version is `retired` while a consumer or an external consumer still names it.", "status": "n/a", "note": "Nothing retired." },
+    { "gate": "A `v0` contract carries `## Observed completeness`, and the block changed in any commit that added fixtures to it.", "status": "n/a", "note": "v1, not adopted." },
+    { "gate": "ADR-001 item 12 minimum by reading: item 3 coverage and item 4 sets for an api contract", "status": "pass", "note": "Every G has a reject file or behavior case, or a not-executable line (G26, G27); surface, reject (covers headers, line markers) and behavior (harness, ConformanceCase values, G-prefixed names, no test or flutter_test import in conformance libraries) present; both bindings listed in Validation." },
+    { "gate": "node docs/auto-run/tools/gate.mjs --skill hsdd-contract --contracts-pending", "status": "pass", "note": "0 errors; warnings are forward references to flutter-binding@v1, topic-codegen@v1 and nidana-checks@v1." }
+  ],
+  "notes_for_orchestrator": [
+    "OQ-N1 decided in navigation-api@v1 Refinement 2 and G13: navResolver<S> takes the app's StateTopic<S> and a pure AccessPrincipal Function(S); applyAuthGuard decides over the library's sealed AccessPrincipal (Pending, Anonymous, Authenticated with roles) with app-provided AccessRedirects. nidana.navigation's phase planning marks OQ-N1 RESOLVED pointing at navigation-api@v1.",
+    "OQ-N2 decided in navigation-api@v1 Refinement 1 and G2: typed NavRoute<A>; GoTo, Replace and ShowModal are built only by route.go/replace/showModal with an optional A? argument; RouteState.args is Object?, read typed through route.argsOf(state); path and query parameters stay Map<String, String>. nidana.navigation's phase planning marks OQ-N2 RESOLVED; OQ-F1's dependency on it is settled (the Flutter router passes the NavigationEntry, args included, through RouteSettings.arguments or its own table).",
+    "S13 (flutter-binding@v1) must: (1) declare a Flutter NavigationRouter (inside FlutterNavigationExecutor) meeting navigation-api@v1 G18: stack synchronous after perform, validate a whole perform before touching the Navigator (StateError, nothing done), apply PushRoute/ReplaceRoute/PopRoute/PopUntilRoute, confirm exactly once per perform with the resulting stack and the intent while suppressing its observer's pops during the perform, confirm a platform pop with const Back(), never pop the root on a system back; map GoTo to push (Refinement 7), not go_router's go; declare supportsPopUntil truthfully (Navigator.popUntil: true). (2) Bind hsdd/contract/fixture/navigation-api/behavior/navigation_executor_conformance.dart from hsdd/contract/fixture/flutter-binding/behavior/{implementation}_test.dart, importing it by the relative path ../../navigation-api/behavior/navigation_executor_conformance.dart, under testWidgets: bus() constructs Bus(config) in the body (production provider), executor() pumps the widget that hosts the router and then constructs NavigationExecutor(bus, router, name: name), platformBack() performs a system back (the stand-in uses navigatorKey.currentState!.maybePop(); tester.binding.handlePopRoute() is protected) then pumpAndSettle, elapse() is tester.pump(duration), settle() is tester.pumpAndSettle(), and the testWidgets body shuts every bus down and unmounts in a finally before it ends (ADR-003 item 7). A working template, 26/26 passing, is docs/auto-run/experiments/navigation-api-fixtures/standin_bindings/flutter_navigation_standin_test.dart with packages/flutter_navigation_standin/. (3) List that binding in flutter-binding@v1's Validation. (4) Settle the Flutter bootstrap: NavigationExecutor reads router.stack at construction, so either the Navigator is mounted before construction and start() runs after the first frame, or the router accepts calls before mount; G24 and LateExecutorConstruction assume construction before start(). (5) The module-scope RouteObserver can read NavRoute paths from the NavigationEntry the router puts in RouteSettings.arguments.",
+    "bus-api@v1 needs an amendment step (compatible statement sharpening plus fixtures; no consumer code exists yet): (a) G22/G34: state that the connection of a topology activated before start() reaches its reads before start() delivers the queue, while the publishes it causes wait for a provider-zone microtask, and add cases for both G22's 'published right after activate' clause and an activate-then-start bootstrap with no flush, for example a withLatestFrom gate over a state read (tool/connection_probe.dart). The S11 stand-in fails both; the experiment's patched copy (marked 'navigation-api-fixtures patch' in packages/nidana_dart_runtime/lib/src/interpreter.dart and bus.dart) shows a runtime can satisfy them while passing every existing bus-api@v1 and bus-testing@v1 case. nidana.runtime's design (OQ-R1 first delivery) must honour this. (b) Bus.publish and Publisher.publish should be publish<T, V extends T>(MultiWriterTopic<T> topic, V value) to meet Spec §4.2's compile-time typing; today publish(EventTopic<int>, 'one') and publish(NavigationTopics.resolvedIntent, DeepLink(uri)) compile (probe/widening.dart W1, W2). The type-parameter change breaks only callers that pass explicit type arguments. After (b), navigation-api@v1 can gain a compatible reject line for G1 on nav.resolved-intent.",
+    "Upstream items (would_upstream): Spec Appendix A.6 and Guide §3.2 name the route type Route, which collides with Flutter's Route; Guide §3.4 guards before resolving deep links, which lets a deep link bypass the guard; the Specification does not give intents stack semantics, and Guide §3.4 maps GoTo to go_router's location-based go.",
+    "Sweep for nidana.navigation's planning or reconcile: its spec's Owns list names `Route`; the contract's name is `NavRoute` (Refinement 5). Its isolation strategy (in-memory router, no Flutter) matches InMemoryRouter in testing.dart.",
+    "nidana.integration's guarded-navigation and bootstrap slices rest on Refinement 8; its gate (--all) will run both navigation bindings and flutter-binding@v1's binding of the executor suite.",
+    "Decision timestamps are file-evidence times: the design decisions were taken in one pass before the experiment workspace was created and carry its creation time (pubspec.yaml, 2026-10-17T18:47:47Z); later decisions carry the time of the probe or fixture change that settled them."
+  ]
+}

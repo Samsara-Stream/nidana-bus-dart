@@ -1,0 +1,25 @@
+{
+  "step_ref": "S12",
+  "skill": "none",
+  "target": "follow-ups of navigation-api@v1",
+  "status": "completed",
+  "decisions": [
+    {
+      "at": "2026-10-18T02:20:40Z",
+      "artifact": "docs/auto-run/execution-plan.md",
+      "question": "S12 asks for a bus-api@v1 amendment: (a) a topology activated before start() is connected to its reads before start() delivers the queue, with cases that catch a runtime dropping a queued deep link (the S11 stand-in passes every current case and still drops it); (b) Bus.publish and Publisher.publish become publish<T, V extends T>(MultiWriterTopic<T> topic, V value), so publishing a String to an EventTopic<int>, or a DeepLink to nav.resolved-intent, no longer compiles. S11 asked for two wording fixes to the same contract. When does the amendment run, and is (b) a breaking amendment that stops the run?",
+      "options": [
+        { "label": "Amend bus-api@v1 now, before flutter-binding@v1, all four changes in one step", "consequence": "flutter-binding@v1 is authored against the corrected bootstrap guarantee it depends on; the root contracts after it shift by one step; the batched wording fixes leave the post-S15 touch-up list." },
+        { "label": "Batch into the post-S15 touch-up", "consequence": "flutter-binding@v1 would bind its executor suite against a bus-api@v1 whose bootstrap guarantee is known to be too weak, and might encode the workaround S12 found (mount first, start after the first frame) as its own guarantee." },
+        { "label": "Treat (b) as breaking and stop", "consequence": "The owner decides a signature change that touches only bus-api@v1's own fixtures." }
+      ],
+      "chosen": "Amend bus-api@v1 now, before flutter-binding@v1, all four changes in one step",
+      "why": "Change (a) is a missing guarantee that the next contract depends on, so it must land first. Change (b) is a signature change, but the stop condition is an amendment that would break an existing consumer, and none exists: no code, every contract draft, and a search of every fixture under hsdd/contract/fixture/ finds explicit type arguments to publish only in bus-api@v1's own surface and reject files, which the amendment rewrites (the other matches declare harness methods). It restores Spec §4.2 (writing a value of the wrong type to a typed topic is a compile error). One step for all four changes keeps bus-api@v1 touched once.",
+      "evidence": ["docs/auto-run/steps/S12.json (notes_for_orchestrator)", "docs/auto-run/experiments/navigation-api-fixtures/ (tool/connection_probe.dart)", "Spec §4.2", "Spec §3.13", "grep 'publish<' hsdd/contract/fixture"],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "would_upstream": false
+    }
+  ]
+}

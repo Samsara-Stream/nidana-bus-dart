@@ -166,9 +166,10 @@ tree. Done when `node docs/auto-run/tools/gate.mjs --final` passes.
 | S09 | 4 | hsdd-contract | bus-api@v1 | done | f5ad95c |
 | S10 | 4 | hsdd-contract | topic-model@v1 amendment: sealed MultiWriterTopic (for bus-api@v1 G11, G19) | done | ef0dead |
 | S11 | 4 | hsdd-contract | bus-testing@v1 | done | 9f64d62 |
-| S12 | 4 | hsdd-contract | navigation-api@v1 | running | |
+| S12 | 4 | hsdd-contract | navigation-api@v1 | done | 9371c72 |
+| S13 | 4 | hsdd-contract | bus-api@v1 amendment: pre-start connection guarantee, publish typing, S11 wording fixes | running | |
 | S10..S14 | 4 | hsdd-contract | bus-api, bus-testing, navigation-api, flutter-binding, topic-codegen, nidana-checks (all @v1), in that order | planned | |
-| after S15 | 4 | hsdd-contract (bus-api@v1 wording), hsdd-adr, then hsdd-spec (root touch) | governance touch-up: compatible contract wording the later contracts exposed; ADR affects and Governed-by links; root prose fixes | planned | |
+| after S16 | 4 | hsdd-contract (if any), hsdd-adr, then hsdd-spec (root touch) | governance touch-up: remaining compatible contract fixes (navigation-api@v1's G1 reject line once publish typing lands); ADR affects and Governed-by links; root prose fixes | planned | |
 | next | 5 | hsdd-spec | nidana.runtime, then nidana.tooling (each followed by its ADRs and internal contracts) | planned | |
 
 ## Change log
@@ -223,3 +224,10 @@ tree. Done when `node docs/auto-run/tools/gate.mjs --final` passes.
   event-loop turns (bus-testing@v1 G12), and its delivery rule should name recorders attached to the
   bus rather than "the recorder of a TestBus". The runtime decomposition should give one child both the
   main library and `testing.dart` (they share the `lib/src/` library that declares `Bus`).
+- 2026-10-18, after S12: navigation-api@v1 decided OQ-N1 (generic resolver over the app's auth
+  `StateTopic<S>` and a pure principal mapping) and OQ-N2 (typed `NavRoute<A>`; `Route` renamed because
+  Flutter's widgets library declares one). It found that bus-api@v1 lacks a guarantee that a topology
+  activated before `start()` is connected before the queue is delivered, and that `publish<T>` widens
+  `T`. Both, with S11's two wording fixes, go into a bus-api@v1 amendment run now as S13, before
+  flutter-binding@v1, which depends on the bootstrap guarantee; the remaining root contracts shift to
+  S14..S16.
