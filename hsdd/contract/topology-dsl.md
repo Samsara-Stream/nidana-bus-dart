@@ -13,7 +13,7 @@ phase_ids: provisional
 
 # Contract: topology-dsl
 
-- **Governed by:** [ADR-001, ADR-002]
+- **Governed by:** [ADR-001, ADR-002, ADR-003]
 
 The topology declaration API (Spec §2.2, §6.1 to §6.5): the class and builder forms of a topology, the builder, the opaque stream handle and every combinator, the per-read dedup opt-out, the typed topology identifier, and the plan a declaration records. A declaration runs once against the builder and produces a `TopologyPlan`: an immutable value whose stages hold the functions the declaration passed. Two things are done with a plan. Recording projects it to the IR, `TopologyDefinition` (topology-ir@v1), which holds no function. Live activation interprets it into subscriptions; that interpretation is nidana.runtime's, and bus-api@v1 declares its entry point. This contract fixes both: what a plan records, and what a live implementation must do with each stage.
 

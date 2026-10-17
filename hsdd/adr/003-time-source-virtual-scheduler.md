@@ -1,7 +1,7 @@
 ---
 id: ADR-003
 status: accepted
-affects: [nidana.model, nidana.runtime, nidana.navigation, nidana.flutter, nidana.integration, bus-api@v1, bus-testing@v1, navigation-api@v1, flutter-binding@v1]
+affects: [nidana.model, nidana.runtime, nidana.navigation, nidana.flutter, nidana.integration, topology-dsl@v1, bus-api@v1, bus-testing@v1, navigation-api@v1, flutter-binding@v1]
 date: 2026-10-17
 ---
 
@@ -102,3 +102,7 @@ Resolves OQ7 and the clock-control part of OQ2.
 - **RxDart's `switchMap` unchanged, with the settle operation after every publish.** Its resubscription would still miss every virtual instant that `advanceTimeBy` reaches before the next real turn, and would never run inside a `testWidgets` body.
 - **A TestBus inside widget tests.** It works, but its clock is independent of `tester.pump`, so every such test would drive two clocks.
 - **An open `SchedulerProvider` interface** that applications implement. Constructing the bus inside a custom zone already gives an application its own timers and clock through the production provider, while a hand-written provider could break the quiescence and cancellation rules the bus relies on.
+
+## Amendments
+
+- 2026-10-17, links amended in place; the Decision and the Consequences are unchanged. `affects` gains topology-dsl@v1, and that contract's header gains `Governed by: [ADR-003]`. Item 3 fixes the live `switchMap` and item 4 the time-dependent combinators, and item 4 already names the contract. The accepted text left topology-dsl@v1 out because the live topology builder was then to be declared by bus-api@v1; topology-dsl@v1, written later, took the live semantics of every combinator into its own guarantees (G6, G22 and G23 cite items 3 and 4) and left bus-api@v1 the activation entry point and the binding of the live suite. Every other contract was checked against the same rule: a contract belongs in `affects` when this decision constrains a guarantee its consumers rely on. topic-model@v1 stays out, because what this decision asks of it, a package that reads no clock and takes timestamps and ids as arguments (its G12 and G25, item 8), binds only its producer, nidana.model, which `affects` already names. topology-ir@v1, topic-codegen@v1 and nidana-checks@v1 carry no guarantee this decision constrains. bus-api@v1, bus-testing@v1, navigation-api@v1 and flutter-binding@v1 were already linked both ways.
