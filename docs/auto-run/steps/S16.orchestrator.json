@@ -1,0 +1,25 @@
+{
+  "step_ref": "S16",
+  "skill": "none",
+  "target": "governance touch-up batch after the root contracts",
+  "status": "completed",
+  "decisions": [
+    {
+      "at": "2026-10-18T05:28:30Z",
+      "artifact": "docs/auto-run/execution-plan.md",
+      "question": "With all nine root contracts written, which accumulated follow-ups run now, before the runtime and tooling decompositions, and which wait?",
+      "options": [
+        { "label": "ADR and contract touches now; root prose in one root refresh after stage 5", "consequence": "Five small steps now (ADR-001, ADR-003, navigation-api@v1, bus-api@v1, topic-codegen@v1) so the decompositions read consistent governance; root D1's check table, OQ2, OQ5 and the embedded child summaries are fixed once, after both mid-level decompositions have also touched the root." },
+        { "label": "Everything now, including a root refresh", "consequence": "The root is refreshed twice, because each mid-level decomposition rewrites its embedded summary in the root anyway." },
+        { "label": "Defer everything to reconcile", "consequence": "The decompositions would read ADR-001 wording that no longer matches the contracts (the 'live topology builder', the fixture directories its structure set does not name) and ADR-003 without its link to topology-dsl@v1." }
+      ],
+      "chosen": "ADR and contract touches now; root prose in one root refresh after stage 5",
+      "why": "The mid-level decompositions inject ADRs and cut against contracts, so those should be consistent first. Root prose is read by nobody downstream before reconcile and is rewritten by the decompositions anyway. Left out on purpose: a nidana-declared Sensitive annotation (nidana-checks@v1 lists it as a later candidate, and apps can declare their own class) and the sensitivity keyword list (not configurable through analysis_server_plugin 0.3.18). ADR-001's file cases with expected exit codes go to the ADR-001 step to decide, since it changes the ADR's decision rather than its wording.",
+      "evidence": ["docs/auto-run/execution-plan.md (change log)", "docs/auto-run/steps/S16.json (notes_for_orchestrator)", "docs/auto-run/steps/S15.json (notes_for_orchestrator)"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "would_upstream": false
+    }
+  ]
+}

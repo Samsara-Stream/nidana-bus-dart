@@ -1,0 +1,661 @@
+{
+  "step_ref": "S16",
+  "skill": "hsdd-contract",
+  "target": "nidana-checks@v1",
+  "status": "completed",
+  "stop": null,
+  "artifacts": [
+    "hsdd/contract/nidana-checks.md",
+    "hsdd/contract/fixture/nidana-checks/invocation/ (17 recorded invocations: 8 analyze-*, 9 scan-*)",
+    "hsdd/contract/INDEX.md",
+    "docs/auto-run/experiments/nidana-checks-fixtures/",
+    "docs/auto-run/steps/S16.json"
+  ],
+  "decisions": [
+    {
+      "at": "2026-10-17T21:43:39Z",
+      "artifact": "hsdd/contract/nidana-checks.md",
+      "question": "Which v1 checks are plugin rules and which are scan checks?",
+      "options": [
+        {
+          "label": "ADR-002 split",
+          "consequence": "per-library checks (raw-string topic, global accessor, sensitive flag, explicit type arguments) report in the IDE and dart analyze; aggregate checks (uniqueness, single-writer, cycles, self-reference, scope) run in the scan over the IR"
+        },
+        {
+          "label": "everything in the scan",
+          "consequence": "one host and one output format, but no IDE feedback for per-library misuse, and ADR-002 item 7 already places those checks in the plugin"
+        }
+      ],
+      "chosen": "ADR-002 split",
+      "why": "ADR-002 items 7 and 8 fix the split: a plugin rule sees one library, the aggregate checks need the model's analyses, which the plugin cannot depend on. The contract restates it as Refinement 1 so consumers need not read the ADR.",
+      "evidence": [
+        "ADR-002 items 7, 8",
+        "root D1",
+        "Spec §3.11",
+        "Guide C.1"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T21:43:39Z",
+      "artifact": "hsdd/contract/nidana-checks.md",
+      "question": "What severity does each plugin rule report at by default?",
+      "options": [
+        {
+          "label": "blocking rules WARNING, sensitivity INFO",
+          "consequence": "plain fvm dart analyze fails (exit 2) on raw-string topics, global accessors and explicit type arguments, and only --fatal-infos fails it on an unflagged sensitive type, matching root D1's 'as a warning'"
+        },
+        {
+          "label": "all INFO (LintCode default)",
+          "consequence": "app CI running plain dart analyze never fails on any nidana rule; only --fatal-infos blocks, and then the sensitivity warning blocks too"
+        },
+        {
+          "label": "blocking rules ERROR",
+          "consequence": "red squiggles and exit 3 for lint-like checks; WARNING already fails dart analyze by default"
+        }
+      ],
+      "chosen": "blocking rules WARNING, sensitivity INFO",
+      "why": "analyzer 13.3.0's LintCode takes a severity and the plugin server reports the declared severity unless the diagnostics section overrides it (read in analysis_server_plugin 0.3.18 plugin_server.dart, confirmed by the experiment's analyze-* cases). WARNING is how the analyzer marks blocking static problems; INFO is the only default that keeps a check informative under plain dart analyze. Apps can raise the sensitivity rule to error per diagnostic, which is Guide C.1's v2 configurable error, already available.",
+      "evidence": [
+        "root D1",
+        "Guide C.1",
+        "Spec §9.2",
+        "docs/auto-run/experiments/nidana-checks-fixtures/ (analyze-unflagged-sensitive-topic, analyze-sensitive-fatal-infos, analyze-configuration)"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T21:43:39Z",
+      "artifact": "hsdd/contract/nidana-checks.md",
+      "question": "How are diagnostic codes named, and what do the messages say?",
+      "options": [
+        {
+          "label": "unprefixed snake case",
+          "consequence": "raw_string_topic, global_bus_accessor, explicit_topic_type_arguments, unflagged_sensitive_topic; suppression reads // ignore: nidana_dart_lint/raw_string_topic"
+        },
+        {
+          "label": "nidana_ prefix",
+          "consequence": "codes identifiable in dart analyze output without the plugin name, but suppression reads nidana_dart_lint/nidana_raw_string_topic"
+        }
+      ],
+      "chosen": "unprefixed snake case",
+      "why": "the analysis server qualifies plugin codes by plugin name in ignore comments, so a prefix repeats it. Messages name the offending literal, name, method or type and give one correction each; the scan's codes follow the same style. Close call: the signal for the prefix would be a second plugin in app CI with clashing codes.",
+      "evidence": [
+        "analysis_server_plugin 0.3.18 doc/using_plugins.md (Suppressing diagnostics)",
+        "docs/auto-run/experiments/nidana-checks-fixtures/ (analyze-configuration, analyze-human)"
+      ],
+      "blast_radius": "contract",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T21:43:39Z",
+      "artifact": "hsdd/contract/nidana-checks.md",
+      "question": "What is a raw-string topic use on Dart, where no bus method takes a string?",
+      "options": [
+        {
+          "label": "literal name outside a static-field initializer",
+          "consequence": "reports topic creations named by a string literal anywhere but as the whole initializer of a static field; top-level variables are reported; non-literal names pass"
+        },
+        {
+          "label": "any creation outside a registry",
+          "consequence": "also catches names passed through variables, but reports the tree's own generic helpers and decoders, which ADR-002 says the rules must accept"
+        },
+        {
+          "label": "accept top-level variables too",
+          "consequence": "small apps may declare topics top-level, but Spec §4.4 asks for registry classes and the uniqueness scan is the only remaining guard"
+        }
+      ],
+      "chosen": "literal name outside a static-field initializer",
+      "why": "Spec §4.2 and §4.4 forbid naming a topic by string at a use site and organize topics in registry classes; topic-model@v1 says registries are static members. Restricting to literal names keeps every legitimate construction in the tree's own lib code clean (ADR-002 Consequences). The signal that would have changed it: an owner preference for top-level registries.",
+      "evidence": [
+        "Spec §4.2",
+        "Spec §4.4",
+        "topic-model@v1 Topics",
+        "ADR-002 Consequences",
+        "docs/auto-run/experiments/nidana-checks-fixtures/ (analyze-raw-string-topic, T0)"
+      ],
+      "blast_radius": "contract",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T21:43:39Z",
+      "artifact": "hsdd/contract/nidana-checks.md",
+      "question": "What counts as a global bus accessor?",
+      "options": [
+        {
+          "label": "variables, static fields and getters",
+          "consequence": "top-level variables, static fields, top-level getters and static getters of type Bus or a subclass, nullable or not"
+        },
+        {
+          "label": "variables and static fields only",
+          "consequence": "bus-api@v1's wording; a static getter returning a cached bus would pass"
+        }
+      ],
+      "chosen": "variables, static fields and getters",
+      "why": "Spec §3.1's example is Bus.instance, which on Dart is as often a static getter as a field; a getter reaches a bus without a reference exactly as a field does. Functions that create a bus are not accessors and pass.",
+      "evidence": [
+        "Spec §3.1",
+        "Guide C.5",
+        "bus-api@v1 For static analysis",
+        "docs/auto-run/experiments/nidana-checks-fixtures/ (analyze-global-bus-accessor)"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T21:43:39Z",
+      "artifact": "hsdd/contract/nidana-checks.md",
+      "question": "Is a check against explicit type arguments on publish a v1 rule (S13's suggestion)?",
+      "options": [
+        {
+          "label": "v1 rule over four sinks",
+          "consequence": "explicit_topic_type_arguments reports explicit type arguments on Bus.publish, Publisher.publish, TopologyBuilder.write and reduceInto, closing bus-api@v1 G40's stated gap and the same gap in topology-dsl@v1; root D1's check list and nidana.tooling's Owns line need a matching touch"
+        },
+        {
+          "label": "defer",
+          "consequence": "Spec §4.2's compile-time type check keeps a covariance hole on Dart that no v1 package or check enforces, which root's first success criterion requires to be listed as deferred in D1"
+        }
+      ],
+      "chosen": "v1 rule over four sinks",
+      "why": "root's first success criterion requires every normative Dart-applicable rule to be implemented, enforced or deferred in D1; G40 records that the package does not fully implement Spec §4.2. The rule is per-library, trivial and cheaper than an amendment to D1. Extending it to write and reduceInto follows the same covariance (topology-dsl@v1 G3). Would have asked: it adds a check beyond the owner-approved D1 list.",
+      "evidence": [
+        "Spec §4.2",
+        "bus-api@v1 G40",
+        "topology-dsl@v1 G3",
+        "root success criteria",
+        "docs/auto-run/experiments/nidana-checks-fixtures/ (analyze-explicit-topic-type-arguments)"
+      ],
+      "blast_radius": "contract",
+      "confidence": "medium",
+      "would_have_asked": true,
+      "stop_class": "axis",
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T21:43:39Z",
+      "artifact": "hsdd/contract/nidana-checks.md",
+      "question": "What is a known-sensitive type, and where is Spec §9.2's configurable list?",
+      "options": [
+        {
+          "label": "suffixes plus a Sensitive annotation on types and aliases",
+          "consequence": "Token, Credential, Credentials, PaymentInfo suffixes, any annotation whose class is named Sensitive, on the type or the alias it is written through, at any depth of type arguments and record fields; apps mark third-party types through an annotated typedef; no options file"
+        },
+        {
+          "label": "a list file the plugin reads",
+          "consequence": "a true keyword list, but analysis_server_plugin 0.3.18 gives rules no options, the file would sit outside the analysis server's invalidation, and IDE results would go stale"
+        },
+        {
+          "label": "a Sensitive declaration in nidana_dart_contracts",
+          "consequence": "one canonical annotation, but a topic-model@v1 amendment before this contract stands"
+        }
+      ],
+      "chosen": "suffixes plus a Sensitive annotation on types and aliases",
+      "why": "Spec §9.2 names the suffixes *Token, *Credential, *PaymentInfo and @Sensitive types plus a configurable list; Spec §4.5's own example flags LoginCredentials, hence the plural suffix. The plugin API has no plugin options (read in analysis_server_plugin 0.3.18 plugin_server.dart: only per-diagnostic severities are configurable), so the configurable list is expressed in code, which the IDE re-analyzes live. Recognizing Sensitive by class name from any library needs no contract amendment now and keeps working if topic-model@v1 later declares one. Would have asked: the form of the configurable list is an owner preference.",
+      "evidence": [
+        "Spec §9.2",
+        "Spec §4.5",
+        "Guide C.1",
+        "docs/auto-run/experiments/nidana-checks-fixtures/ (analyze-unflagged-sensitive-topic)"
+      ],
+      "blast_radius": "contract",
+      "confidence": "medium",
+      "would_have_asked": true,
+      "stop_class": "axis",
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T21:43:39Z",
+      "artifact": "hsdd/contract/nidana-checks.md",
+      "question": "Which code do the checks read?",
+      "options": [
+        {
+          "label": "outside test directories",
+          "consequence": "every library outside test/, integration_test/, test_driver/ and testing/ (RuleContext.isInTestDirectory), in both hosts; test code may claim, stub and declare ad hoc topics"
+        },
+        {
+          "label": "lib/ only",
+          "consequence": "misses bin/, tool/ and example/ code that wires a bus"
+        },
+        {
+          "label": "everything",
+          "consequence": "every test's TestBus stub claim and ad hoc topic is reported, and the tree's own tests fail the root analyze gate"
+        }
+      ],
+      "chosen": "outside test directories",
+      "why": "bus-api@v1 already speaks of 'application code'; the analyzer's own test-directory definition makes the plugin and the scan agree, and test code claims topics on purpose (bus-testing@v1, flutter-binding@v1 G17).",
+      "evidence": [
+        "analyzer 13.3.0 RuleContext.isInTestDirectory and workspace.dart test directory names",
+        "docs/auto-run/experiments/nidana-checks-fixtures/ (analyze-clean, scan-clean, seeded defects D1 and D4)"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T21:46:58Z",
+      "artifact": "hsdd/contract/nidana-checks.md",
+      "question": "Which constructs in application code are claim sites?",
+      "options": [
+        {
+          "label": "four sites",
+          "consequence": "Bus.publisher, PageScope(writes:), NavigationExecutor and FlutterNavigationExecutor; an app topology writing nav.current-route is caught at merge"
+        },
+        {
+          "label": "Bus.publisher and PageScope",
+          "consequence": "the executors' claims sit inside library code the app does not scan, so a second writer of nav.current-route surfaces only at activation"
+        },
+        {
+          "label": "Bus.publisher only",
+          "consequence": "the Spec's wording, but flutter-binding@v1 G7 makes PageScope a claim in app code"
+        }
+      ],
+      "chosen": "four sites",
+      "why": "S14 found PageScope(writes:) to be a second claim site; navigation-api@v1 G19 and flutter-binding@v1 G14 fix the executors' claim (nav.current-route, application scope, executor source with a default name), which Spec §3.11 names as the canonical shell-owned state topic.",
+      "evidence": [
+        "Spec §3.11",
+        "bus-api@v1 For static analysis",
+        "flutter-binding@v1 G7, G14",
+        "navigation-api@v1 G19",
+        "docs/auto-run/experiments/nidana-checks-fixtures/ (scan-writer-conflict, seeded defect D5)"
+      ],
+      "blast_radius": "contract",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T21:46:58Z",
+      "artifact": "hsdd/contract/nidana-checks.md",
+      "question": "When does a claim's write set or scope resolve statically, and what happens otherwise?",
+      "options": [
+        {
+          "label": "set literal of declared state topics; else warning and left out",
+          "consequence": "a set literal whose elements reference top-level variables or static fields initialized by StateTopic creations with literal names; an unresolved write set or scope is an unresolved_claim warning and the claim takes no part, as Spec §3.11 says"
+        },
+        {
+          "label": "constant evaluation",
+          "consequence": "generated registries use static final members, which are not constants, so most real claims would not resolve"
+        }
+      ],
+      "chosen": "set literal of declared state topics; else warning and left out",
+      "why": "Spec §3.11: 'A write set the scan cannot resolve statically is reported as a warning and left to Layer 1'. topic-codegen@v1 generates static final members, so the rule reads declarations' initializers instead of constant values. An unresolved scope is treated like an unresolved write set because the scope check would otherwise misjudge the owner.",
+      "evidence": [
+        "Spec §3.11",
+        "topic-codegen@v1 The registry library",
+        "docs/auto-run/experiments/nidana-checks-fixtures/ (scan-unresolved-claim)"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T21:46:58Z",
+      "artifact": "hsdd/contract/nidana-checks.md",
+      "question": "What source does a claim get when its source argument does not resolve (a parameter, a PageScope without route)?",
+      "options": [
+        {
+          "label": "stand-in named by the site",
+          "consequence": "the claim keeps its place in single-writer and scope checks; reports and catalog's document show e.g. page:app/lib/cart_page.dart:42:10"
+        },
+        {
+          "label": "leave the claim out with a warning",
+          "consequence": "most PageScope claims, whose route is derived at run time, and every generic helper's claim escape the merge-time checks"
+        }
+      ],
+      "chosen": "stand-in named by the site",
+      "why": "Spec §3.11 limits the warning to unresolvable write sets; a source only labels a writer, and flutter-binding@v1 G7 derives a page's route at run time by design. Close call: the signal against it would be the owner finding site-named sources in topics.md confusing.",
+      "evidence": [
+        "Spec §3.11",
+        "flutter-binding@v1 G7",
+        "topic-model@v1 G17",
+        "docs/auto-run/experiments/nidana-checks-fixtures/ (scan-writer-conflict: profile.current)"
+      ],
+      "blast_radius": "contract",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T21:59:37Z",
+      "artifact": "hsdd/contract/nidana-checks.md",
+      "question": "What does the scan read (OQ-T2's residual: workspace AST scan, catalog IR plus AST claims, or both with the plugin surfacing verdicts)?",
+      "options": [
+        {
+          "label": "graph topologies plus own source walk",
+          "consequence": "topologies from catalog's topology-graph.json via --graph, claims and topic declarations resolved from source by the recognizer catalog shares; the document's claims ignored so none counts twice; no dependency on OQ-T1's registration mechanism"
+        },
+        {
+          "label": "the whole graph document",
+          "consequence": "one graph exactly, but claim recognition and its warnings live only in catalog, and no recorded invocation could exercise the recognizer"
+        },
+        {
+          "label": "build the graph in-process",
+          "consequence": "one command for apps, but the scan inherits OQ-T1 (registration, constructor configuration, Flutter-importing libraries under dart run) and its fixtures could not be fixed now"
+        },
+        {
+          "label": "AST-only topology scan",
+          "consequence": "re-implements the DSL's meaning in the analyzer, cannot see state-bearing edges for self-reference"
+        }
+      ],
+      "chosen": "graph topologies plus own source walk",
+      "why": "Spec §3.11 has the scan and the graph generator share infrastructure and Spec §6.5 has CI lint the catalog's static graph; topic-codegen@v1 already makes the graph document the seam and has catalog take its claims from this contract's recognizer. Reading only the document's topologies keeps the scan executable over hand-made documents in fixtures while the recognizer stays executable here. OQ-T2's third option (plugin surfacing verdicts) is not taken in v1.",
+      "evidence": [
+        "Spec §3.11",
+        "Spec §6.5",
+        "Guide C.3",
+        "topic-codegen@v1 Refinement 2, G20",
+        "hsdd/spec/nidana.tooling.md OQ-T2",
+        "docs/auto-run/experiments/nidana-checks-fixtures/ (scan-clean, seeded defect D3)"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T21:59:37Z",
+      "artifact": "hsdd/contract/nidana-checks.md",
+      "question": "What are the scan command's name, output format and exit codes?",
+      "options": [
+        {
+          "label": "scan, pipe-separated lines, 0/1/2",
+          "consequence": "nidana_dart_codegen:scan prints {severity}|{code}|{location}|{message} lines, errors then warnings; exit 1 only for error lines, 2 for usage and unreadable or undecodable graphs"
+        },
+        {
+          "label": "check, JSON report with a schema",
+          "consequence": "easier for tools, but a schema, valid and invalid cases, and a less readable recording; the line form is already parseable"
+        }
+      ],
+      "chosen": "scan, pipe-separated lines, 0/1/2",
+      "why": "'workspace scan' is ADR-002's and the root's term, so the executable takes it. topic-codegen@v1's 0/1/2 convention is kept, but an undecodable graph exits 2, not 1, so that exit 1 always means the checks found a violation. The line form mirrors dart analyze --format=machine (one diagnostic per line, escaped separators). A JSON report is a compatible later addition.",
+      "evidence": [
+        "ADR-002 item 8",
+        "topic-codegen@v1 generate and catalog exit codes",
+        "docs/auto-run/experiments/nidana-checks-fixtures/ (scan-* cases)"
+      ],
+      "blast_radius": "contract",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T21:59:37Z",
+      "artifact": "hsdd/contract/nidana-checks.md",
+      "question": "Must the scan report duplicate topology ids itself (S08's note)?",
+      "options": [
+        {
+          "label": "no, the document cannot hold them",
+          "consequence": "catalog exits 1 on two unequal definitions with one id (topic-codegen@v1 G21) and the decoder rejects duplicate ids (topology-ir@v1 G21), so the scan's input never has them"
+        },
+        {
+          "label": "yes, a duplicate_topology_id check",
+          "consequence": "a check that can never fire on a decodable document"
+        }
+      ],
+      "chosen": "no, the document cannot hold them",
+      "why": "S08's note applied to whatever builds the graph from definitions, which is catalog; the scan reads a decoded document.",
+      "evidence": [
+        "topic-codegen@v1 G21",
+        "topology-ir@v1 G11, G21"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T22:02:39Z",
+      "artifact": "hsdd/contract/nidana-checks.md",
+      "question": "How does the scan render a TopicRef's typeName, so that a claim and a topology writing one topic compare equal?",
+      "options": [
+        {
+          "label": "as the VM renders '$T'",
+          "consequence": "equal to the analyzer's display string for interface, generic, nullable, enum, record and aliased types; function types render (String) => int"
+        },
+        {
+          "label": "the analyzer's display string",
+          "consequence": "a function-typed topic's claim would never meet the topology writing it (int Function(String) against (String) => int)"
+        }
+      ],
+      "chosen": "as the VM renders '$T'",
+      "why": "Probe P1 compared both renderings for nine type forms on the pinned SDK; only function types differ. The graph document's TopicRefs come from the VM (topology-ir@v1, topic-model@v1 TopicRef).",
+      "evidence": [
+        "docs/auto-run/experiments/nidana-checks-fixtures/ (P1)",
+        "topic-model@v1 TopicRef"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T22:05:03Z",
+      "artifact": "hsdd/contract/fixture/nidana-checks/",
+      "question": "How are recorded invocations laid out so that test directories exist and dart run works?",
+      "options": [
+        {
+          "label": "plugin cases: files/ is the package root; scan cases: packages under files/",
+          "consequence": "follows ADR-001 item 7 literally (the plugin enabled in files/analysis_options.yaml, seven levels up to the root); scan cases keep files/ free of pubspec.yaml, because dart run from a pubspec directory runs an implicit pub get that writes a lockfile there"
+        },
+        {
+          "label": "every case under files/app/",
+          "consequence": "uniform, but enables the plugin outside files/analysis_options.yaml, against ADR-001 item 7's wording"
+        }
+      ],
+      "chosen": "plugin cases: files/ is the package root; scan cases: packages under files/",
+      "why": "A plugin is honored only in the options at a package root (a probe with the options one level above the pubspec reported nothing), the test-directory exemption needs a package root, and a probe showed dart run creating .dart_tool and pubspec.lock in a nested package, which ADR-002 item 1 forbids.",
+      "evidence": [
+        "ADR-001 item 7",
+        "ADR-002 item 1",
+        "docs/auto-run/experiments/nidana-checks-fixtures/ (T1)"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T22:07:23Z",
+      "artifact": "hsdd/contract/nidana-checks.md",
+      "question": "Where must dart analyze run for the plugin to report?",
+      "options": [
+        {
+          "label": "at the enabling root or on files",
+          "consequence": "the contract tells app CI to run dart analyze at the package or workspace root; the plugin cases run on '.'"
+        },
+        {
+          "label": "any path",
+          "consequence": "untrue on the pinned SDK: dart analyze lib reports no plugin diagnostic and exits 0"
+        }
+      ],
+      "chosen": "at the enabling root or on files",
+      "why": "Probe P2: on one package, '.' and lib/app.dart report all four rules, lib reports nothing and exits 0. A CI step that analyzes a subdirectory would pass silently.",
+      "evidence": [
+        "docs/auto-run/experiments/nidana-checks-fixtures/ (P2)"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T22:12:34Z",
+      "artifact": "hsdd/contract/nidana-checks.md",
+      "question": "Frontmatter: kind, compatibility, producers, consumers, schema",
+      "options": [
+        {
+          "label": "cli, versioned, node ids, no schema",
+          "consequence": "kind cli as the root matrix recommends; produced_by nidana.tooling, consumers nidana.integration with phase_ids provisional, as topic-codegen@v1; external consumers app CI (analyze and scan) and IDEs; recorded invocations are the artifact, and the graph documents are validated by topology-ir@v1's schema"
+        },
+        {
+          "label": "cli plus a report schema",
+          "consequence": "only useful with a JSON report, which v1 does not have"
+        }
+      ],
+      "chosen": "cli, versioned, node ids, no schema",
+      "why": "Root contract matrix and ADR-001 item 7 (recorded invocations for cli); node ids stand until hsdd-reconcile confirms phase ids.",
+      "evidence": [
+        "hsdd/spec/nidana.md contract matrix",
+        "ADR-001 items 1, 7",
+        "hsdd-contract skill: Provisional Phase Ids"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T22:12:34Z",
+      "artifact": "hsdd/contract/nidana-checks.md",
+      "question": "Which guarantees are not executable, and is stderr recorded?",
+      "options": [
+        {
+          "label": "three not-executable lines, no stderr",
+          "consequence": "G9's no-write clause, G17's environment independence and G18 (catalog's use of the recognizer) are checked by nidana.tooling's gates; stderr text stays out of the contract, as topic-codegen@v1 keeps it"
+        },
+        {
+          "label": "record stderr",
+          "consequence": "pins usage texts and FormatException messages that the decoder's implementation words"
+        }
+      ],
+      "chosen": "three not-executable lines, no stderr",
+      "why": "ADR-001 item 7 compares streams and exit codes only, so file writes and catalog's output are out of its reach; usage and decoder messages are implementation text.",
+      "evidence": [
+        "ADR-001 items 3, 7",
+        "topic-codegen@v1 generate (stderr not part of the contract)"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    }
+  ],
+  "experiments": [
+    {
+      "path": "docs/auto-run/experiments/nidana-checks-fixtures/",
+      "question": "Do the recorded invocations replay as ADR-001 item 7 describes against a stand-in plugin on the pinned analyzer 13.3.0 and analysis_server_plugin 0.3.18 and a stand-in scan over stand-in packages; is every seeded violation reported and no clean case; does the {files}/{root} replacement make the recordings machine-independent; and which runtime facts do the rules rest on?",
+      "finding": "T1: 17 of 17 invocations pass (run.sh, output.txt). T0: the stand-in members (copied from flutter-binding-fixtures) and the plugin's own sources analyze clean under the root lint set, strict modes and the root-enabled plugin with --fatal-infos. T2: every graph document validates against topology-ir@v1's schema (json_schema 5.2.2) and decodes, except scan-graph-undecodable's. T3: a raw machine-format run names the absolute files/ path on 6 lines, which the recording writes {files}. T4: the whole workspace rsynced to another absolute path replays 17 of 17. T5: five seeded defects each fail exactly the cases of the guarantee they break while control cases pass (rules in test/: analyze-clean; sensitivity at WARNING: three sensitive cases; scan reading the document's claims: scan-clean; scan reading test/: scan-clean, scan-topic-name-collision; PageScope unrecognized: writer-conflict, scope-violation, unresolved-claim). P1: the analyzer's display string equals the VM's '$T' for interface, generic, nullable, enum, record, named-record, aliased and map types; function types differ ((String) => int against int Function(String)). P2: dart analyze on a package root or a file reports the plugin's diagnostics; on a subdirectory (lib) it reports none and exits 0. Probes during authoring also showed: a plugin is honored only in the options at a package root; dart run from a directory holding pubspec.yaml runs an implicit pub get that writes .dart_tool and pubspec.lock there; dart run prints no build message on a non-terminal stdout; plugin severities follow LintCode's declared severity or the diagnostics section; // ignore: nidana_dart_lint/{code} and ignore_for_file suppress."
+    }
+  ],
+  "self_check": [
+    {
+      "gate": "Frontmatter has id, version, status, kind, owner, compatibility, produced_by, consumers; external_consumers when any exist.",
+      "status": "pass",
+      "note": "all present; three external consumers"
+    },
+    {
+      "gate": "`consumers` lists phase ids that actually consume this contract.",
+      "status": "pass",
+      "note": "node ids (nidana.integration, producer nidana.tooling) with phase_ids: provisional, as every other contract before phase planning; hsdd-reconcile confirms them"
+    },
+    {
+      "gate": "The Interface section is concrete enough to mock against.",
+      "status": "pass",
+      "note": "codes, severities, messages, placeholders, report nodes, the scan's arguments, inputs, recognizer rules, line form, ordering and exit codes are all fixed, and a stand-in built from them replays every case"
+    },
+    {
+      "gate": "At least one guarantee/invariant is stated.",
+      "status": "pass",
+      "note": "G1 to G18"
+    },
+    {
+      "gate": "A breaking change bumped the version and added a migration note.",
+      "status": "n/a",
+      "note": "new contract at v1"
+    },
+    {
+      "gate": "The registry was regenerated.",
+      "status": "pass",
+      "note": "node hsdd/scripts/gen-registry.mjs; INDEX.md lists nidana-checks"
+    },
+    {
+      "gate": "`phase_ids` is present (`provisional` until `hsdd-reconcile` finalizes it).",
+      "status": "pass",
+      "note": "phase_ids: provisional"
+    },
+    {
+      "gate": "Every code-level artifact both sides consume (types file, fixtures, shared package) names its canonical path and its owner in the Interface or Validation section: the owning phase for code, `hsdd-contract` for validation artifacts.",
+      "status": "pass",
+      "note": "packages/nidana_dart_lint and packages/nidana_dart_codegen owned by nidana.tooling; hsdd/contract/fixture/nidana-checks/ owned by hsdd-contract"
+    },
+    {
+      "gate": "A contract or version created by this run has its schema and its kind's fixtures written at the canonical paths.",
+      "status": "pass",
+      "note": "kind cli: recorded invocations under hsdd/contract/fixture/nidana-checks/invocation/; no schema, because the report is a line format and the graph documents are topology-ir@v1's"
+    },
+    {
+      "gate": "Open questions are cited by ID only, never defined here; prose justifying behavior as \"pending OQ-x\" is swept when the OQ resolves (hsdd-reconcile).",
+      "status": "pass",
+      "note": "OQ-T1 and OQ-T2 cited by id only (the skill's em-dash in this gate's text is rendered as a comma here)"
+    },
+    {
+      "gate": "A `stable` contract names a schema or a fixtures directory at the canonical paths and the artifact exists, or it carries `validation: grandfathered` (never on a contract authored after the upgrade).",
+      "status": "n/a",
+      "note": "status draft; the fixtures directory exists and is named"
+    },
+    {
+      "gate": "No version is `retired` while a consumer or an external consumer still names it.",
+      "status": "n/a",
+      "note": "nothing retired"
+    },
+    {
+      "gate": "A `v0` contract carries `## Observed completeness`, and the block changed in any commit that added fixtures to it.",
+      "status": "n/a",
+      "note": "v1, not adopted"
+    },
+    {
+      "gate": "ADR-001 item 12: a fixtures directory counts only when it meets item 3 and the items for its kind (checked by reading)",
+      "status": "pass",
+      "note": "every guarantee has a G id; each is covered by a named invocation in the Validation table or listed as not executable (G9's no-write clause, G17's environment clause, G18); every case has args, exit_code and stdout, files/ where it needs a working tree, and the plugin cases enable the plugin in files/analysis_options.yaml by a relative path (item 7)"
+    },
+    {
+      "gate": "node docs/auto-run/tools/gate.mjs --skill hsdd-contract",
+      "status": "pass",
+      "note": "0 errors, 0 warnings"
+    }
+  ],
+  "notes_for_orchestrator": [
+    "OQ-T2 (hsdd/spec/nidana.tooling.md): decided by nidana-checks@v1 Refinement 2. The scan reads topology reads and writes from the graph document catalog writes (--graph, topologies only, never the document's claims), and resolves shell claims and topic declarations from source with one recognizer that catalog also uses; OQ-T2's third option (the plugin surfacing scan verdicts in the IDE) is not taken in v1 (Versioning lists it). nidana.tooling's next hsdd-spec step, or hsdd-reconcile's sweep, marks the row RESOLVED citing nidana-checks@v1. What remains for the decomposition: placing the recognizer (claims and declarations) in one library of nidana_dart_codegen that both catalog and scan call, and which child owns the plugin and which the scan.",
+    "OQ-T1: stays PARTIAL. This contract adds nothing to its answer and removes the scan's dependence on it, because the scan reads the document catalog writes. Residual unchanged from topic-codegen@v1: how a package registers its topologies, the build-time configuration for constructor arguments (Spec §6.5), and how catalog loads Flutter-importing topology libraries on the VM.",
+    "Scope addition for the root and nidana.tooling (decided, would_have_asked axis): a fourth plugin rule, explicit_topic_type_arguments (Refinement 4), enforces Spec §4.2 against bus-api@v1 G40's covariance gap and topology-dsl@v1's write and reduceInto. Root D1's v1 check table and nidana.tooling.md's Owns line list the checks; a root hsdd-spec touch or a reconcile sweep should add it. No contract change follows.",
+    "Optional compatible follow-ups, none blocking: (1) topic-codegen@v1's catalog bullet says a claim 'whose write set the scan cannot resolve' is left out; this contract also leaves out claims whose scope does not resolve and gives unresolved sources a stand-in named by the site (G11, G12). An editorial amendment could cite nidana-checks@v1 G11, G12 and G18 and say catalog prints unresolved_claim lines in this contract's line form on stderr. (2) bus-api@v1 'For static analysis' defines a global accessor as a top-level variable or static field; nidana-checks@v1 G5 adds top-level and static getters; that paragraph could cite G5. (3) topic-model@v1 could later declare a Sensitive annotation class; the rule already recognizes any class named Sensitive, so the addition stays compatible.",
+    "ADR-001 follow-ups (an hsdd-adr touch, not blocking): S03's report gave the plugin path from invocation/{case}/files/ as six levels up; it is seven (../../../../../../../packages/nidana_dart_lint), confirmed by T1; ADR-001 itself gives no count. Item 3's coverage wording names reject fixtures and behavior cases only; as S15 noted for file contracts, cli coverage is mapped per case in Validation, and an ADR touch could say recorded invocations and file replays cover guarantees as their contract's Validation maps them. Item 7 could also say a case without files/ runs from the workspace root, which this contract's scan-usage-no-package relies on.",
+    "For nidana.model's replay tool (its first phase, cli set): run `dart` and `flutter` cases with cwd files/ and `{package}:{executable}` cases as `dart run {package}:{executable}` with cwd files/ (or the workspace root when files/ is absent); replace both files/'s absolute path and its symlink-resolved path, then the root's; compare stdout only when recorded (every case here records it) and stderr only when recorded (none here); docs/auto-run/experiments/nidana-checks-fixtures/tool/replay.dart is the prototype. Each plugin case starts an analysis server whose first run sets up the plugin's synthetic package (pub cache or network); the full set took several minutes on this machine.",
+    "For nidana.tooling's phases: the plugin's rules run over every workspace member through the root options (ADR-002 item 7), so a rule change can fail other nodes' gates; T0 shows the contract's rules accept the stand-in members. The recognizer must render TopicRef.typeName as the VM does (P1: function types differ from the analyzer's display string). App-facing docs must say dart analyze runs at the root (P2: a subdirectory reports no plugin diagnostic). G18 is checked by running catalog over the scan cases' packages and comparing its claims with the scan's.",
+    "For nidana.integration: its gate runs fvm dart analyze --fatal-infos at the workspace root (plugin enabled there), build_runner in packages/nidana_integration, catalog then scan --graph over packages/nidana_integration (pass packages/nidana_dart_navigation too if NavigationTopics' names should join the uniqueness check), and nidana_contract_check --all, whose nidana-checks cases are the seeded violations of root's success criterion.",
+    "Decision timestamps are the file times of the experiment sources in which each decision landed (rules.dart 21:43:39Z, claims.dart 21:46:58Z, scan.dart 21:59:37Z, the type-name probe 22:02:39Z, the restructured fixtures 22:05:03Z and 22:07:23Z); the frontmatter and validation decisions were taken at 22:12:34Z, when they were written.",
+    "Side effects outside the repository, all machine-local: synthetic plugin packages under ~/.dartServer/.plugin_manager/ (one per plugin path: the experiment, its moved copy and two seeded-defect copies). Experiment lockfiles and .dart_tool are ignored by .gitignore; run.sh removes its copy of the fixtures when it ends.",
+    "Upstream candidates: none new. Spec §4.4's raw-string lint example (bus.read(\"string\")) has no Dart form because every bus method takes a typed topic; the Dart rule targets topic creations named by a literal outside a registry, a platform mapping rather than a Specification change, so not marked would_upstream."
+  ]
+}

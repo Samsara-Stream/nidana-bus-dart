@@ -171,8 +171,13 @@ tree. Done when `node docs/auto-run/tools/gate.mjs --final` passes.
 | S14 | 4 | hsdd-contract | flutter-binding@v1 | done | cd3b670 |
 | S15 | 4 | hsdd-contract | topic-codegen@v1 | done | 4e8031f |
 | S10..S14 | 4 | hsdd-contract | bus-api, bus-testing, navigation-api, flutter-binding, topic-codegen, nidana-checks (all @v1), in that order | planned | |
-| after S16 | 4 | hsdd-contract (if any), hsdd-adr, then hsdd-spec (root touch) | governance touch-up: remaining compatible contract fixes (navigation-api@v1: a G1 reject line for a DeepLink published to nav.resolved-intent, citing bus-api@v1 G22, G34, G40, and naming flutter-binding@v1's executor binding; bus-api@v1: a case for one topic reached through a `Topic<Object?>` reference and at its declared type); ADR affects and Governed-by links; root prose fixes | planned | |
+| S17 | 4 | hsdd-adr | ADR-001 update: plan-interpretation wording, data directories in the structure set, coverage wording for file and cli contracts, cases without files/ | running | |
+| S18 | 4 | hsdd-adr | ADR-003 update: affects gains topology-dsl@v1 (and its Governed by) | planned | |
+| S19 | 4 | hsdd-contract | navigation-api@v1 touch: G1 reject line, citations of bus-api@v1 G22, G34, G40, the Flutter executor binding name | planned | |
+| S20 | 4 | hsdd-contract | bus-api@v1 touch: widened Topic<Object?> reference case, cite nidana-checks@v1 G5 | planned | |
+| S21 | 4 | hsdd-contract | topic-codegen@v1 touch: catalog's claim rule aligned with nidana-checks@v1's recognizer | planned | |
 | next | 5 | hsdd-spec | nidana.runtime, then nidana.tooling (each followed by its ADRs and internal contracts) | planned | |
+| end of 5 | 5 | hsdd-spec (root refresh) | root D1 check table (adds explicit_topic_type_arguments), OQ2 and OQ5, embedded child summaries | planned | |
 
 ## Change log
 
@@ -249,3 +254,8 @@ tree. Done when `node docs/auto-run/tools/gate.mjs --final` passes.
   catalog, the graph page and `topology-graph.json` (command `catalog`); OQ-T1 becomes PARTIAL (only
   the graph's content and source are fixed). The ADR touch-up gains ADR-001 item 3's coverage wording for
   `file` and `cli` contracts and item 6's lack of expected exit codes for file cases.
+- 2026-10-18, after S16: all nine root contracts exist; the strict gate (no `--contracts-pending`)
+  passes. nidana-checks@v1 decided OQ-T2 (the scan reads catalog's topologies and resolves claims
+  itself) and added an `explicit_topic_type_arguments` rule; OQ-T1 stays PARTIAL. The touch-up batch is
+  fixed as S17..S21 (two ADR updates, three compatible contract touches); root prose waits for one root
+  hsdd-spec refresh at the end of stage 5.
