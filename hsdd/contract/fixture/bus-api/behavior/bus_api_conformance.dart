@@ -90,6 +90,36 @@ List<T> _listen<T>(Bus bus, Topic<T> topic) {
   return got;
 }
 
+// Generic shell code, such as a widget or a logging service over a list of
+// topics, holds a topic through a widened reference (G41). Each helper takes
+// one, so inference gives its call the reference's type argument, Object?.
+
+List<Object?> _listenAny(Bus bus, Topic<Object?> topic) {
+  final List<Object?> got = <Object?>[];
+  bus.observe(topic).listen(got.add);
+  return got;
+}
+
+Object? _currentAny(Bus bus, StateTopic<Object?> topic) =>
+    bus.getCurrentValue(topic);
+
+List<Object?> _bufferedAny(Bus bus, ReplayTopic<Object?> topic) =>
+    bus.getBufferedValues(topic);
+
+void _publishAny(Bus bus, MultiWriterTopic<Object?> topic, Object? value) =>
+    bus.publish(topic, value);
+
+void _publishThroughAny(
+        Publisher publisher, MultiWriterTopic<Object?> topic, Object? value) =>
+    publisher.publish(topic, value);
+
+StateWriter<Object?> _writerAny(Publisher publisher, StateTopic<Object?> topic) =>
+    publisher.writer(topic);
+
+/// A topology a generic factory declares over widened references.
+Topology _relayAny(String id, Topic<Object?> from, Topic<Object?> to) =>
+    _t(id, (TopologyBuilder b) => b.write(to, b.read(from)));
+
 final class _Observer implements BusObserver {
   _Observer({
     this.capabilities = const <ObserverCapability>{ObserverCapability.observeAll},
@@ -1837,6 +1867,179 @@ final List<ConformanceCase<BusApiHarness>> busApiConformance =
       handle.deactivate();
       p.dispose();
       expect(bus.toGraph(), TopologyGraph());
+    },
+  ),
+  // ------------------------------------------------------------ G41
+  (
+    name: 'G41 a state topic observed and read through a StateTopic<Object?> reference and at its value type is one subject, whichever is reached first',
+    body: (BusApiHarness h) async {
+      for (final bool widenedFirst in <bool>[true, false]) {
+        final Bus bus = h.bus();
+        bus.start();
+        final StateWriter<int> w =
+            bus.publisher(_svc, writes: <StateTopic<Object?>>{_s}).writer(_s);
+        final List<Object?> any;
+        final List<int> typed;
+        if (widenedFirst) {
+          any = _listenAny(bus, _s);
+          expect(_currentAny(bus, _s), 1);
+          typed = _listen(bus, _s);
+          expect(bus.getCurrentValue(_s), 1);
+        } else {
+          typed = _listen(bus, _s);
+          expect(bus.getCurrentValue(_s), 1);
+          any = _listenAny(bus, _s);
+          expect(_currentAny(bus, _s), 1);
+        }
+        h.flush(bus);
+        w.publish(4);
+        w.publish(4);
+        final String order = widenedFirst ? 'widened first' : 'typed first';
+        expect(any, <Object?>[1, 4], reason: order);
+        expect(typed, <int>[1, 4], reason: order);
+        expect(bus.getCurrentValue(_s), 4, reason: order);
+        expect(_currentAny(bus, _s), 4, reason: order);
+      }
+    },
+  ),
+  (
+    name: 'G41 a replay topic read through a ReplayTopic<Object?> reference and at its value type is one subject with one buffer, whichever is reached first',
+    body: (BusApiHarness h) async {
+      for (final bool widenedFirst in <bool>[true, false]) {
+        final Bus bus = h.bus();
+        bus.start();
+        final Publisher p = bus.publisher(_svc);
+        if (widenedFirst) {
+          expect(_bufferedAny(bus, _r), isEmpty);
+          p.publish(_r, 1);
+        } else {
+          p.publish(_r, 1);
+          expect(_bufferedAny(bus, _r), <Object?>[1]);
+        }
+        p.publish(_r, 2);
+        p.publish(_r, 3);
+        final List<Object?> any = _listenAny(bus, _r);
+        final List<int> typed = _listen(bus, _r);
+        h.flush(bus);
+        final String order = widenedFirst ? 'widened first' : 'typed first';
+        expect(any, <Object?>[2, 3], reason: order);
+        expect(typed, <int>[2, 3], reason: order);
+        final List<int> buffered = bus.getBufferedValues(_r);
+        expect(buffered, <int>[2, 3], reason: order);
+        final List<Object?> bufferedAny = _bufferedAny(bus, _r);
+        expect(bufferedAny, <Object?>[2, 3], reason: order);
+        expect(() => bufferedAny.add(4), throwsUnsupportedError);
+      }
+    },
+  ),
+  (
+    name: 'G41 an event topic published through MultiWriterTopic<Object?> references and at its value type reaches the observers and the subscriptions at both types, whichever is reached first',
+    body: (BusApiHarness h) async {
+      for (final bool widenedFirst in <bool>[true, false]) {
+        final Bus bus = h.bus();
+        bus.start();
+        final _Observer o = _Observer();
+        bus.addObserver(o);
+        final Publisher p = bus.publisher(_svc);
+        final List<Object?> any;
+        final List<int> typed;
+        if (widenedFirst) {
+          any = _listenAny(bus, _e);
+          _publishThroughAny(p, _e, 1);
+          typed = _listen(bus, _e);
+        } else {
+          typed = _listen(bus, _e);
+          p.publish(_e, 1);
+          any = _listenAny(bus, _e);
+        }
+        _publishThroughAny(p, _e, 2);
+        p.publish(_e, 3);
+        _publishAny(bus, _e, 4);
+        bus.publish(_e, 5);
+        final String order = widenedFirst ? 'widened first' : 'typed first';
+        expect(any, widenedFirst ? <Object?>[1, 2, 3, 4, 5] : <Object?>[2, 3, 4, 5],
+            reason: order);
+        expect(typed, widenedFirst ? <int>[2, 3, 4, 5] : <int>[1, 2, 3, 4, 5],
+            reason: order);
+        expect(o.payloads, <Object?>[1, 2, 3, 4, 5], reason: order);
+        expect(<TopicRef>{for (final s in o.seen) s.topic}, <TopicRef>{_e.ref},
+            reason: order);
+        expect(_e.ref.typeName, 'int');
+        expect(<MessageSource>[for (final s in o.seen) s.envelope.source], <MessageSource>[
+          _svc, _svc, _svc, const UnknownSource(), const UnknownSource(),
+        ], reason: order);
+      }
+    },
+  ),
+  (
+    name: 'G41 writers obtained through a StateTopic<Object?> reference and at the value type publish to one subject, each the same handle on every call with its type argument, whichever is obtained first',
+    body: (BusApiHarness h) async {
+      for (final bool widenedFirst in <bool>[true, false]) {
+        final Bus bus = h.bus();
+        bus.start();
+        final Publisher p =
+            bus.publisher(_svc, writes: <StateTopic<Object?>>{_s});
+        final StateWriter<Object?> any;
+        final StateWriter<int> typed;
+        if (widenedFirst) {
+          any = _writerAny(p, _s);
+          typed = p.writer(_s);
+        } else {
+          typed = p.writer(_s);
+          any = _writerAny(p, _s);
+        }
+        final String order = widenedFirst ? 'widened first' : 'typed first';
+        expect(identical(_writerAny(p, _s), any), isTrue, reason: order);
+        expect(identical(p.writer(_s), typed), isTrue, reason: order);
+        expect(any.topic, _s, reason: order);
+        final List<int> got = _listen(bus, _s);
+        h.flush(bus);
+        any.publish(5);
+        typed.publish(6);
+        expect(got, <int>[1, 5, 6], reason: order);
+        expect(bus.getCurrentValue(_s), 6, reason: order);
+      }
+    },
+  ),
+  (
+    name: 'G41 a topology that reads and writes through widened references connects to and delivers what typed access reads, whichever is reached first',
+    body: (BusApiHarness h) async {
+      for (final bool widenedFirst in <bool>[true, false]) {
+        final Bus bus = h.bus();
+        final List<int> typed;
+        if (widenedFirst) {
+          bus.activate(_relayAny('relay-any', _s, _out));
+          typed = _listen(bus, _out);
+          expect(bus.getCurrentValue(_s), 1);
+        } else {
+          expect(bus.getCurrentValue(_s), 1);
+          typed = _listen(bus, _out);
+          bus.activate(_relayAny('relay-any', _s, _out));
+        }
+        final StateWriter<int> w =
+            bus.publisher(_svc, writes: <StateTopic<Object?>>{_s}).writer(_s);
+        bus.start();
+        h.flush(bus);
+        w.publish(2);
+        h.flush(bus);
+        expect(typed, <int>[1, 2],
+            reason: widenedFirst ? 'widened first' : 'typed first');
+      }
+    },
+  ),
+  (
+    name: 'G41 the registry compares the value type a topic was declared with, never the type argument of the reference that reaches it',
+    body: (BusApiHarness h) async {
+      final Bus bus = h.bus();
+      expect(_currentAny(bus, _s), 1);
+      expect(bus.getCurrentValue(_s), 1);
+      expect(
+          () => bus.getCurrentValue(
+              const StateTopic<Object?>(name: 'bus.s', initial: 1)),
+          throwsA(isA<TopicCollision>()
+              .having((TopicCollision c) => c.registered, 'registered', _s)));
+      expect(() => _currentAny(bus, const StateTopic<num>(name: 'bus.s', initial: 1)),
+          throwsA(isA<TopicCollision>()));
     },
   ),
 ];

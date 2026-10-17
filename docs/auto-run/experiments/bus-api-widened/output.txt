@@ -1,0 +1,199 @@
+
+### setup: copy the contracts and the fixtures from the repository, resolve
+pub get exit: 0
+Flutter 3.47.7 • channel stable • https://github.com/flutter/flutter.git
+Dart SDK version: 3.13.5 (stable) (Tue Sep 29 01:00:52 2026 -0700) on "macos_arm64"
+-- the patch in the stand-in runtime
+packages/nidana_dart_runtime/lib/src/bus.dart:235:  // bus-api-widened patch: a subject is keyed by the topic's name and holds
+packages/nidana_dart_runtime/lib/src/bus.dart:264:  // bus-api-widened patch: values converted at the access's type argument.
+packages/nidana_dart_runtime/lib/src/bus.dart:654:        // bus-api-widened patch: the cell is a _Cell<Object?>; the payload is
+packages/nidana_dart_runtime/lib/src/bus.dart:682:  // bus-api-widened patch: one writer per topic and type argument, because a
+packages/nidana_dart_runtime/lib/src/interpreter.dart:146:      // bus-api-widened patch: the cell is a _Cell<Object?> (Bus._cell);
+packages/nidana_dart_runtime/lib/src/interpreter.dart:414:    // bus-api-widened patch: converted at the sink's type argument.
+-- the stand-in packages other than nidana_dart_runtime equal those of ../flutter-binding-fixtures/
+nidana_dart_contracts: same
+nidana_contract_check: same
+nidana_dart_navigation: same
+nidana_dart_runtime_flutter: same
+-- s13_runtime/ equals the runtime of ../bus-api-amendment/
+bus.dart: same
+interpreter.dart: same
+
+### P1 S14's probe: a topic reached through a Topic<Object?> reference and at its value type, on the S13 runtime and on the patched one
+-- S13 runtime
+typed read, then widened observe: TypeError: type '_SyncStreamController<Object?>' is not a subtype of type 'StreamController<int>' of 'key'
+widened observe, then typed read: TypeError: type '_Cell<Object?>' is not a subtype of type '_Cell<int>' in type cast
+typed observe, then typed read: ok
+-- patched runtime
+typed read, then widened observe: ok
+widened observe, then typed read: ok
+typed observe, then typed read: ok
+
+### P2, P3 on the patched runtime: the envelope of a widened publish and bus-testing@v1's recorder; what Topic.valueType offers generic code
+P2 typed subscription received: [1, 2]
+P2 payload 1: is MessageEnvelope<int> true, runtimeType MessageEnvelope<int>, topic int
+P2 payload 2: is MessageEnvelope<int> false, runtimeType MessageEnvelope<Object?>, topic int
+P2 recorder.envelopesOf(taps): TypeError: type 'MessageEnvelope<Object?>' is not a subtype of type 'MessageEnvelope<int>' in type cast
+P2 recorder.payloadsOf(taps): TypeError: type 'MessageEnvelope<Object?>' is not a subtype of type 'MessageEnvelope<int>' in type cast
+P3 isValueType<int>(taps): true
+P3 isValueType<Object?>(taps): false
+P3 isValueType<List<int>>(rows): true
+P3 isValueType<Object?>(rows): false
+
+### T0 the stand-in packages are clean under the root lint set and --fatal-infos
+Analyzing packages...
+No issues found!
+exit: 0
+
+### T1 structure: headers, markers, guarantee coverage, listed bindings, no src/ imports
+-- bus-api
+guarantees: 41; cases: 95; bindings: 2; fixture files: 15
+exit: 0
+-- bus-testing
+guarantees: 20; cases: 45; bindings: 1; fixture files: 7
+exit: 0
+-- navigation-api
+guarantees: 27; cases: 66; bindings: 2; fixture files: 13
+exit: 0
+-- flutter-binding
+guarantees: 19; cases: 52; bindings: 2; fixture files: 13
+exit: 0
+-- bus-api, every guarantee
+PASS G1 2 fixture(s) PASS G2 1 fixture(s) PASS G3 3 fixture(s) PASS G4 4 fixture(s) PASS G5 5 fixture(s) PASS G6 2 fixture(s) PASS G7 2 fixture(s) PASS G8 4 fixture(s) PASS G9 5 fixture(s) PASS G10 3 fixture(s) PASS G11 2 fixture(s) PASS G12 1 fixture(s) PASS G13 2 fixture(s) PASS G14 3 fixture(s) PASS G15 1 fixture(s) PASS G16 3 fixture(s) PASS G17 2 fixture(s) PASS G18 3 fixture(s) PASS G19 3 fixture(s) PASS G20 4 fixture(s) PASS G21 3 fixture(s) PASS G22 5 fixture(s) PASS G23 4 fixture(s) PASS G24 4 fixture(s) PASS G25 1 fixture(s) PASS G26 1 fixture(s) PASS G27 1 fixture(s) PASS G28 6 fixture(s) PASS G29 2 fixture(s) PASS G30 2 fixture(s) PASS G31 1 fixture(s) PASS G32 1 fixture(s) PASS G33 3 fixture(s) PASS G34 4 fixture(s) PASS G35 1 fixture(s) PASS G36 3 fixture(s) PASS G37 1 fixture(s) PASS G38 not executable PASS G39 not executable PASS G40 1 fixture(s) PASS G41 6 fixture(s) 
+
+### T1b structure under amended ADR-001 (items 3 and 9), S17's prototype, over the repository's nine contracts
+bus-api (api): 41 guarantees; covered by reject 10, behavior 37; not executable 2; in part 0; data directories none
+bus-testing (api): 20 guarantees; covered by reject 2, behavior 17; not executable 1; in part 0; data directories none
+flutter-binding (api): 19 guarantees; covered by reject 7, behavior 15; not executable 2; in part 0; data directories none
+navigation-api (api): 27 guarantees; covered by reject 5, behavior 23; not executable 2; in part 0; data directories none
+nidana-checks (cli): 18 guarantees; covered by cli 17; not executable 1; in part 2; data directories none
+topic-codegen (file): 21 guarantees; covered by schema 1, file 12; not executable 8; in part 0; data directories rejected
+topic-model (shared-model): 27 guarantees; covered by reject 10, behavior 18; not executable 2; in part 0; data directories none
+topology-dsl (api): 29 guarantees; covered by reject 8, behavior 21; not executable 0; in part 0; data directories none
+topology-ir (api): 22 guarantees; covered by reject 3, behavior 21; not executable 0; in part 0; data directories render
+9 contracts, 0 problem(s)
+
+### T2 surface: every surface library analyzes with no diagnostic under --fatal-infos
+Analyzing surface, surface, surface, surface...
+No issues found!
+exit: 0
+
+### T3 reject: the (line, code) pairs reported in each file equal the pairs its markers name
+-- bus-api
+PASS config_is_immutable.dart [7:assignment_to_final 9:assignment_to_final 11:assignment_to_final 13:assignment_to_final]
+PASS current_value_is_state_only.dart [14:argument_type_not_assignable 16:argument_type_not_assignable 18:argument_type_not_assignable 20:argument_type_not_assignable]
+PASS diagnostics_are_closed.dart [7:invalid_use_of_type_outside_library 10:invalid_use_of_type_outside_library]
+PASS no_global_accessor.dart [8:undefined_getter 10:undefined_getter 12:undefined_method]
+PASS no_publisherless_state_publish.dart [11:argument_type_not_assignable 13:argument_type_not_assignable]
+PASS publish_value_matches_topic.dart [16:could_not_infer 18:could_not_infer 21:could_not_infer 23:could_not_infer 26:could_not_infer 29:could_not_infer 32:type_argument_not_matching_bounds]
+PASS publisher_reaches_state_through_writer.dart [15:argument_type_not_assignable 17:set_element_type_not_assignable 19:set_element_type_not_assignable 21:argument_type_not_assignable 24:argument_type_not_assignable]
+PASS runtime_types_are_closed.dart [8:invalid_use_of_type_outside_library 11:invalid_use_of_type_outside_library 14:invalid_use_of_type_outside_library 17:invalid_use_of_type_outside_library 20:invalid_use_of_type_outside_library 23:invalid_use_of_type_outside_library 26:invalid_use_of_type_outside_library 29:invalid_use_of_type_outside_library 32:invalid_use_of_type_outside_library 35:invalid_use_of_type_outside_library 39:new_with_undefined_constructor_default 41:new_with_undefined_constructor_default 43:new_with_undefined_constructor_default 45:new_with_undefined_constructor_default 47:new_with_undefined_constructor_default]
+PASS scheduler_providers_are_closed.dart [7:invalid_use_of_type_outside_library 10:invalid_use_of_type_outside_library 13:invalid_use_of_type_outside_library]
+exit: 0
+-- bus-testing
+PASS testing_exports_only_its_own.dart [10:undefined_class 13:undefined_class 16:undefined_class]
+PASS testing_types_are_closed.dart [8:invalid_use_of_type_outside_library 11:invalid_use_of_type_outside_library 14:invalid_use_of_type_outside_library 17:invalid_use_of_type_outside_library 20:invalid_use_of_type_outside_library 23:invalid_use_of_type_outside_library 26:invalid_use_of_type_outside_library 30:new_with_undefined_constructor_default 32:new_with_undefined_constructor_default 34:new_with_undefined_constructor_default]
+exit: 0
+-- navigation-api
+PASS current_route_is_claimed_by_the_executor.dart [10:argument_type_not_assignable 12:argument_type_not_assignable 14:undefined_getter 16:undefined_getter]
+PASS intents_are_closed.dart [8:invalid_use_of_type_outside_library 11:invalid_use_of_type_outside_library 14:invalid_use_of_type_outside_library 17:invalid_use_of_type_outside_library 20:non_exhaustive_switch_expression 29:non_exhaustive_switch_expression]
+PASS navigation_types_are_closed.dart [8:invalid_use_of_type_outside_library 11:invalid_use_of_type_outside_library 14:invalid_use_of_type_outside_library 17:invalid_use_of_type_outside_library 20:invalid_use_of_type_outside_library 23:invalid_use_of_type_outside_library 28:invalid_use_of_type_outside_library 31:invalid_use_of_type_outside_library 34:non_exhaustive_switch_expression 41:non_exhaustive_switch_expression 47:non_exhaustive_switch_expression 54:non_exhaustive_switch_expression]
+PASS navigation_values_are_immutable.dart [8:assignment_to_final 10:assignment_to_final 12:assignment_to_final 14:assignment_to_final 16:assignment_to_final 18:assignment_to_final]
+PASS resolved_intent_is_never_a_deep_link.dart [11:invalid_assignment 13:argument_type_not_assignable 18:argument_type_not_assignable 21:return_of_invalid_type_from_closure 23:argument_type_not_assignable 25:could_not_infer 27:could_not_infer 33:pattern_never_matches_value_type]
+PASS route_arguments_are_typed.dart [11:argument_type_not_assignable 13:argument_type_not_assignable 15:argument_type_not_assignable 17:new_with_undefined_constructor_default 19:new_with_undefined_constructor_default 21:new_with_undefined_constructor_default 23:invalid_assignment]
+exit: 0
+-- flutter-binding
+PASS adapter_exports_only_its_own.dart [10:undefined_class 13:undefined_class 16:undefined_class 19:undefined_class 22:undefined_class]
+PASS binding_types_are_closed.dart [9:invalid_use_of_type_outside_library 12:invalid_use_of_type_outside_library 15:invalid_use_of_type_outside_library 18:invalid_use_of_type_outside_library 21:invalid_use_of_type_outside_library 24:invalid_use_of_type_outside_library 27:invalid_use_of_type_outside_library 30:invalid_use_of_type_outside_library 33:invalid_use_of_type_outside_library]
+PASS no_global_bus_accessor.dart [9:undefined_getter 11:undefined_getter 13:static_access_to_instance_member 15:not_enough_positional_arguments]
+PASS page_writes_are_state_topics.dart [13:set_element_type_not_assignable 15:set_element_type_not_assignable]
+PASS testing_exports_only_its_own.dart [10:undefined_class 13:undefined_class 16:undefined_class]
+PASS topic_builders_are_typed.dart [17:argument_type_not_assignable 19:argument_type_not_assignable 21:argument_type_not_assignable 23:argument_type_not_assignable 25:argument_type_not_assignable 27:argument_type_not_assignable]
+PASS widget_test_bus_has_no_virtual_time.dart [10:undefined_getter 12:undefined_method 14:invalid_assignment]
+exit: 0
+
+### T4 the conformance libraries and the bindings analyze clean (warnings included)
+Analyzing behavior, behavior, behavior, behavior...
+No issues found!
+exit: 0
+
+### T5 behavior: every suite that touches bus-api@v1, on the patched stand-in
+-- hsdd/contract/fixture/bus-api/behavior/nidana_dart_runtime_test.dart
+00:00 +95: All tests passed!
+exit: 0
+-- hsdd/contract/fixture/bus-api/behavior/bus_activation_test.dart
+00:00 +43: All tests passed!
+exit: 0
+-- hsdd/contract/fixture/bus-testing/behavior/nidana_dart_runtime_test.dart
+00:00 +45: All tests passed!
+exit: 0
+-- hsdd/contract/fixture/navigation-api/behavior/nidana_dart_navigation_test.dart
+00:00 +40: All tests passed!
+exit: 0
+-- hsdd/contract/fixture/navigation-api/behavior/in_memory_router_test.dart
+00:00 +52: All tests passed!
+exit: 0
+-- hsdd/contract/fixture/flutter-binding/behavior/nidana_dart_runtime_flutter_test.dart (fvm flutter test, testWidgets)
+00:00 +52: All tests passed!
+exit: 0
+-- hsdd/contract/fixture/flutter-binding/behavior/flutter_navigation_executor_test.dart (fvm flutter test, testWidgets)
+00:00 +26: All tests passed!
+exit: 0
+
+### T6 behavior: the G41 cases of bus-api@v1, by name prefix (--guarantee bus-api/G41), on the patched stand-in
+G41 a state topic observed and read through a StateTopic<Object?> reference and at its value type is one subject, whichever is reached first
+G41 a replay topic read through a ReplayTopic<Object?> reference and at its value type is one subject with one buffer, whichever is reached first
+G41 an event topic published through MultiWriterTopic<Object?> references and at its value type reaches the observers and the subscriptions at both types, whichever is reached first
+PublisherlessPublish(bus.e)
+PublisherlessPublish(bus.e)
+PublisherlessPublish(bus.e)
+PublisherlessPublish(bus.e)
+G41 writers obtained through a StateTopic<Object?> reference and at the value type publish to one subject, each the same handle on every call with its type argument, whichever is obtained first
+G41 a topology that reads and writes through widened references connects to and delivers what typed access reads, whichever is reached first
+G41 the registry compares the value type a topic was declared with, never the type argument of the reference that reaches it
+All tests passed!
+exit: 0
+
+### T7 the S13 runtime: the G41 cases fail, every other case of every suite passes
+-- bus-api suite: the failing cases
+G41 a replay topic read through a ReplayTopic<Object?> reference and at its value type is one subject with one buffer, whichever is reached first [E]
+G41 a state topic observed and read through a StateTopic<Object?> reference and at its value type is one subject, whichever is reached first [E]
+G41 a topology that reads and writes through widened references connects to and delivers what typed access reads, whichever is reached first [E]
+G41 an event topic published through MultiWriterTopic<Object?> references and at its value type reaches the observers and the subscriptions at both types, whichever is reached first [E]
+G41 the registry compares the value type a topic was declared with, never the type argument of the reference that reaches it [E]
+G41 writers obtained through a StateTopic<Object?> reference and at the value type publish to one subject, each the same handle on every call with its type argument, whichever is obtained first [E]
+Some tests failed.
+-- what the G41 cases throw there (first line of each error)
+   5   type '_Cell<Object?>' is not a subtype of type '_Cell<int>' in type cast
+   1   type 'StateWriter<Object?>' is not a subtype of type 'StateWriter<int>' in type cast
+-- hsdd/contract/fixture/bus-api/behavior/bus_activation_test.dart
+00:00 +43: All tests passed!
+-- hsdd/contract/fixture/bus-testing/behavior/nidana_dart_runtime_test.dart
+00:00 +45: All tests passed!
+-- hsdd/contract/fixture/navigation-api/behavior/nidana_dart_navigation_test.dart
+00:00 +40: All tests passed!
+-- hsdd/contract/fixture/navigation-api/behavior/in_memory_router_test.dart
+00:00 +52: All tests passed!
+-- hsdd/contract/fixture/flutter-binding/behavior/nidana_dart_runtime_flutter_test.dart (fvm flutter test)
+00:00 +52: All tests passed!
+-- hsdd/contract/fixture/flutter-binding/behavior/flutter_navigation_executor_test.dart (fvm flutter test)
+00:00 +26: All tests passed!
+
+### T8 seeded defects in the patched stand-in fail the cases of the guarantee they break
+-- writers kept per topic only, as before the patch (G20, G41)
+G41 writers obtained through a StateTopic<Object?> reference and at the value type publish to one subject, each the same handle on every call with its type argument, whichever is obtained first [E]
+Some tests failed.
+-- getBufferedValues returns a modifiable copy at the access's type argument (G8, G41)
+G41 a replay topic read through a ReplayTopic<Object?> reference and at its value type is one subject with one buffer, whichever is reached first [E]
+G8 getBufferedValues holds the most recent values up to the buffer size, oldest first, unmodifiable [E]
+Some tests failed.
+-- the collision check ignores the value type (G7, G41)
+G41 the registry compares the value type a topic was declared with, never the type argument of the reference that reaches it [E]
+G7 a name already registered with another variant or value type throws TopicCollision [E]
+Some tests failed.
+-- an observed stream at a nullable type argument, Object? among them, applies no dedup (G16, G41)
+G41 a state topic observed and read through a StateTopic<Object?> reference and at its value type is one subject, whichever is reached first [E]
+Some tests failed.
+
+### cleanup: remove the copied tree and the Flutter build output; the repository's hsdd/contract/ stays the only copy
+removed

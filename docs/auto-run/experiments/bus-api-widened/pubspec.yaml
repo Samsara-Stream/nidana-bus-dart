@@ -1,0 +1,19 @@
+# bus-api-widened: replays the fixtures of bus-api@v1, as amended within v1
+# for widened references (G41) and the global-accessor citation, and of every
+# contract whose fixtures import nidana_dart_runtime (topology-dsl@v1's live
+# suite, bus-testing@v1, navigation-api@v1, flutter-binding@v1), against the
+# stand-in runtime of ../bus-api-amendment/ before and after a patch that
+# meets G41 (see run.sh). Its own pub workspace, never a member of the
+# repository's workspace.
+name: baw_root
+publish_to: none
+environment:
+  sdk: ^3.13.0
+workspace:
+  - packages/nidana_dart_contracts
+  - packages/nidana_contract_check
+  - packages/nidana_dart_runtime
+  - packages/nidana_dart_navigation
+  - packages/nidana_dart_runtime_flutter
+dev_dependencies:
+  lints: ^6.1.0
