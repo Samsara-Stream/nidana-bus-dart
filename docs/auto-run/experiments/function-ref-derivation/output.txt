@@ -1,0 +1,79 @@
+Dart SDK version: 3.13.5 (stable) (Tue Sep 29 01:00:52 2026 -0700) on "macos_arm64"
+### JIT (fvm dart run)
+top-level tear-off         | Closure: (int, int) => int from Function 'buildTotal': static.      | vm buildTotal  | +js buildTotal
+static method tear-off     | Closure: (int, String) => int from Function 'reduceCount': static.  | vm reduceCount | +js reduceCount
+instance method tear-off   | Closure: (int) => String from Function 'format':.                   | vm format      | +js format
+local named function       | Closure: (int) => int                                               | vm null        | +js null
+inline closure             | Closure: (int) => int                                               | vm null        | +js null
+closure in a variable      | Closure: (int) => int                                               | vm null        | +js null
+generic, uninstantiated    | Closure: <Y0>(Y0) => Y0 from Function 'identity': static.           | vm identity    | +js identity
+generic, instantiated      | Closure: (int) => int from Function 'identity': static.             | vm identity    | +js identity
+constructor tear-off       | Closure: (int) => Box from Function 'Box.': static.                 | vm Box.        | +js Box.
+implicit call tear-off     | Closure: (int) => int from Function 'call':.                        | vm call        | +js call
+extension method tear-off  | Closure: () => int                                                  | vm null        | +js null
+same tear-off identical: true; two closure evaluations equal: false
+### AOT (fvm dart compile exe)
+top-level tear-off         | Closure: (int, int) => int from Function 'buildTotal': static.      | vm buildTotal  | +js buildTotal
+static method tear-off     | Closure: (int, String) => int from Function 'reduceCount': static.  | vm reduceCount | +js reduceCount
+instance method tear-off   | Closure: (int) => String from Function 'format':.                   | vm format      | +js format
+local named function       | Closure: (int) => int                                               | vm null        | +js null
+inline closure             | Closure: (int) => int                                               | vm null        | +js null
+closure in a variable      | Closure: (int) => int                                               | vm null        | +js null
+generic, uninstantiated    | Closure: <Y0>(Y0) => Y0 from Function 'identity': static.           | vm identity    | +js identity
+generic, instantiated      | Closure: (int) => int from Function 'identity': static.             | vm identity    | +js identity
+constructor tear-off       | Closure: (int) => Box from Function 'Box.': static.                 | vm Box.        | +js Box.
+implicit call tear-off     | Closure: (int) => int from Function 'call':.                        | vm call        | +js call
+extension method tear-off  | Closure: () => int                                                  | vm null        | +js null
+same tear-off identical: true; two closure evaluations equal: false
+### AOT obfuscated (fvm dart compile exe --extra-gen-snapshot-options=--obfuscate)
+top-level tear-off         | Closure: (int, int) => int from Function 'mF': static.              | vm mF          | +js mF
+static method tear-off     | Closure: (int, String) => int from Function 'lF': static.           | vm lF          | +js lF
+instance method tear-off   | Closure: (int) => String from Function 'kF':.                       | vm kF          | +js kF
+local named function       | Closure: (int) => int                                               | vm null        | +js null
+inline closure             | Closure: (int) => int                                               | vm null        | +js null
+closure in a variable      | Closure: (int) => int                                               | vm null        | +js null
+generic, uninstantiated    | Closure: <Y0>(Y0) => Y0 from Function 'nF': static.                 | vm nF          | +js nF
+generic, instantiated      | Closure: (int) => int from Function 'nF': static.                   | vm nF          | +js nF
+constructor tear-off       | Closure: (int) => Li from Function 'Li.': static.                   | vm Li.         | +js Li.
+implicit call tear-off     | Closure: (int) => int from Function 'call':.                        | vm call        | +js call
+extension method tear-off  | Closure: () => int                                                  | vm null        | +js null
+same tear-off identical: true; two closure evaluations equal: false
+### dart2js -O1 (fvm dart compile js), run by node v24.18.0
+top-level tear-off         | Closure 'buildTotal'                                                | vm null        | +js buildTotal
+static method tear-off     | Closure 'Reducers_reduceCount'                                      | vm null        | +js Reducers_reduceCount
+instance method tear-off   | Closure 'format$1' of Instance of 'Formatter'                       | vm null        | +js format$1
+local named function       | Closure 'main_localHelper'                                          | vm null        | +js main_localHelper
+inline closure             | Closure 'main_closure'                                              | vm null        | +js main_closure
+closure in a variable      | Closure 'main_closure0'                                             | vm null        | +js main_closure0
+generic, uninstantiated    | Closure 'identity'                                                  | vm null        | +js identity
+generic, instantiated      | Closure 'identity' with <int>                                       | vm null        | +js identity
+constructor tear-off       | Closure 'Box___new_tearOff'                                         | vm null        | +js Box___new_tearOff
+implicit call tear-off     | Closure 'call$1' of Instance of 'Adder'                             | vm null        | +js call$1
+extension method tear-off  | Closure '_extension_0_get_twice_closure'                            | vm null        | +js _extension_0_get_twice_closure
+same tear-off identical: true; two closure evaluations equal: false
+### dart2js -O4 (fvm dart compile js), run by node v24.18.0
+top-level tear-off         | Closure 'minified:ct'                                               | vm null        | +js minified:ct
+static method tear-off     | Closure 'minified:bw'                                               | vm null        | +js minified:bw
+instance method tear-off   | Closure 'D' of Instance of 'minified:P'                             | vm null        | +js D
+local named function       | Closure 'minified:at'                                               | vm null        | +js minified:at
+inline closure             | Closure 'minified:ar'                                               | vm null        | +js minified:ar
+closure in a variable      | Closure 'minified:as'                                               | vm null        | +js minified:as
+generic, uninstantiated    | Closure 'minified:b8'                                               | vm null        | +js minified:b8
+generic, instantiated      | Closure 'minified:b8' with <int>                                    | vm null        | +js minified:b8
+constructor tear-off       | Closure 'minified:bk'                                               | vm null        | +js minified:bk
+implicit call tear-off     | Closure '$1' of Instance of 'minified:L'                            | vm null        | +js $1
+extension method tear-off  | Closure 'minified:am'                                               | vm null        | +js minified:am
+same tear-off identical: true; two closure evaluations equal: false
+### dart2wasm (fvm dart compile wasm), run by node v24.18.0
+top-level tear-off         | Closure: (int, int) => int                                          | vm null        | +js null
+static method tear-off     | Closure: (int, String) => int                                       | vm null        | +js null
+instance method tear-off   | Closure: (int) => String                                            | vm null        | +js null
+local named function       | Closure: (int) => int                                               | vm null        | +js null
+inline closure             | Closure: (int) => int                                               | vm null        | +js null
+closure in a variable      | Closure: (int) => int                                               | vm null        | +js null
+generic, uninstantiated    | Closure: <X0>(X0) => X0                                             | vm null        | +js null
+generic, instantiated      | Closure: (int) => int                                               | vm null        | +js null
+constructor tear-off       | Closure: (int) => Box                                               | vm null        | +js null
+implicit call tear-off     | Closure: (int) => int                                               | vm null        | +js null
+extension method tear-off  | Closure: () => int                                                  | vm null        | +js null
+same tear-off identical: true; two closure evaluations equal: false

@@ -1,0 +1,29 @@
+digraph topologies {
+  rankdir=LR;
+  t0 [shape=ellipse, label="forms.claimed\nstate int"];
+  t1 [shape=ellipse, label="forms.event\nevent int"];
+  t2 [shape=ellipse, label="forms.out\nevent int"];
+  t3 [shape=ellipse, label="forms.state\nstate int"];
+  t4 [shape=ellipse, label="forms.total\nstate int"];
+  subgraph cluster_p0 {
+    label="forms\npage";
+    p0e0 [shape=box, label="map\ninc"];
+    p0e1 [shape=box, label="withLatestFrom\nadd"];
+    p0e2 [shape=box, label="merge"];
+    p0e3 [shape=box, label="debounce 5ms"];
+    p0e4 [shape=box, label="write"];
+    p0e5 [shape=box, label="reduceInto\nreduceCount"];
+  }
+  s0 [shape=box, style=rounded, label="service:forms\napplication"];
+  t1 -> p0e0;
+  p0e0 -> p0e1;
+  t3 -> p0e1 [label="dedup none"];
+  p0e1 -> p0e2;
+  t1 -> p0e2;
+  p0e2 -> p0e3;
+  p0e3 -> p0e4;
+  p0e4 -> t2;
+  t1 -> p0e5;
+  p0e5 -> t4;
+  s0 -> t0;
+}

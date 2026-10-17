@@ -1,0 +1,7 @@
+# function-ref-derivation: what a function value's toString() carries, per
+# function form and per compiler, for topology-ir@v1's FunctionRef.of
+# (OQ-M1). Standalone; never a workspace member.
+name: function_ref_derivation
+publish_to: none
+environment:
+  sdk: ^3.13.0

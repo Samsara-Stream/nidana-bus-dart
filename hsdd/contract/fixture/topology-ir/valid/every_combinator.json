@@ -1,0 +1,459 @@
+{
+  "format": "topology-ir@v1",
+  "topologies": [
+    {
+      "topologyId": "every-combinator",
+      "scope": "page",
+      "reads": [
+        {
+          "name": "every.count",
+          "variant": "state",
+          "typeName": "int"
+        },
+        {
+          "name": "every.flag",
+          "variant": "state",
+          "typeName": "bool"
+        },
+        {
+          "name": "every.log",
+          "variant": "replay",
+          "typeName": "int"
+        },
+        {
+          "name": "every.taps",
+          "variant": "event",
+          "typeName": "int"
+        },
+        {
+          "name": "every.total",
+          "variant": "state",
+          "typeName": "int"
+        }
+      ],
+      "writes": [
+        {
+          "name": "every.count",
+          "variant": "state",
+          "typeName": "int"
+        },
+        {
+          "name": "every.label",
+          "variant": "state",
+          "typeName": "String"
+        },
+        {
+          "name": "every.log",
+          "variant": "replay",
+          "typeName": "int"
+        },
+        {
+          "name": "every.names",
+          "variant": "event",
+          "typeName": "String"
+        },
+        {
+          "name": "every.out",
+          "variant": "event",
+          "typeName": "int"
+        },
+        {
+          "name": "every.sizes",
+          "variant": "event",
+          "typeName": "int"
+        },
+        {
+          "name": "every.total",
+          "variant": "state",
+          "typeName": "int"
+        }
+      ],
+      "transforms": [
+        {
+          "combinator": "map",
+          "inputs": [
+            {
+              "topic": {
+                "name": "every.count",
+                "variant": "state",
+                "typeName": "int"
+              }
+            }
+          ],
+          "transformer": {
+            "name": "twice"
+          }
+        },
+        {
+          "combinator": "filter",
+          "inputs": [
+            {
+              "edge": 0
+            }
+          ],
+          "transformer": {
+            "name": "isPositive"
+          }
+        },
+        {
+          "combinator": "combine",
+          "inputs": [
+            {
+              "topic": {
+                "name": "every.count",
+                "variant": "state",
+                "typeName": "int"
+              }
+            },
+            {
+              "topic": {
+                "name": "every.taps",
+                "variant": "event",
+                "typeName": "int"
+              }
+            }
+          ],
+          "transformer": {
+            "name": "add"
+          }
+        },
+        {
+          "combinator": "combine",
+          "inputs": [
+            {
+              "edge": 2
+            },
+            {
+              "edge": 1
+            }
+          ],
+          "transformer": {
+            "name": "sum"
+          }
+        },
+        {
+          "combinator": "withLatestFrom",
+          "inputs": [
+            {
+              "topic": {
+                "name": "every.taps",
+                "variant": "event",
+                "typeName": "int"
+              }
+            },
+            {
+              "topic": {
+                "name": "every.count",
+                "variant": "state",
+                "typeName": "int"
+              }
+            },
+            {
+              "topic": {
+                "name": "every.flag",
+                "variant": "state",
+                "typeName": "bool"
+              },
+              "dedup": "none"
+            }
+          ],
+          "transformer": {
+            "name": "pick"
+          }
+        },
+        {
+          "combinator": "merge",
+          "inputs": [
+            {
+              "edge": 4
+            },
+            {
+              "edge": 3
+            },
+            {
+              "topic": {
+                "name": "every.log",
+                "variant": "replay",
+                "typeName": "int"
+              }
+            }
+          ]
+        },
+        {
+          "combinator": "switchMap",
+          "inputs": [
+            {
+              "edge": 5
+            }
+          ],
+          "transformer": {
+            "name": "ticks"
+          },
+          "retry": {
+            "name": "retryTwice"
+          }
+        },
+        {
+          "combinator": "scan",
+          "inputs": [
+            {
+              "edge": 6
+            }
+          ],
+          "transformer": {
+            "name": "add"
+          }
+        },
+        {
+          "combinator": "pairwise",
+          "inputs": [
+            {
+              "edge": 7
+            }
+          ]
+        },
+        {
+          "combinator": "distinctUntilChanged",
+          "inputs": [
+            {
+              "edge": 7
+            }
+          ]
+        },
+        {
+          "combinator": "debounce",
+          "inputs": [
+            {
+              "edge": 9
+            }
+          ],
+          "durationMicros": 300000
+        },
+        {
+          "combinator": "throttle",
+          "inputs": [
+            {
+              "edge": 10
+            }
+          ],
+          "durationMicros": 1000000
+        },
+        {
+          "combinator": "delay",
+          "inputs": [
+            {
+              "edge": 11
+            }
+          ],
+          "durationMicros": 0
+        },
+        {
+          "combinator": "sample",
+          "inputs": [
+            {
+              "edge": 12
+            }
+          ],
+          "durationMicros": 1500
+        },
+        {
+          "combinator": "buffer",
+          "inputs": [
+            {
+              "edge": 13
+            }
+          ],
+          "durationMicros": 2000000
+        },
+        {
+          "combinator": "timeout",
+          "inputs": [
+            {
+              "edge": 13
+            }
+          ],
+          "durationMicros": 5000000
+        },
+        {
+          "combinator": "catchError",
+          "inputs": [
+            {
+              "edge": 15
+            }
+          ],
+          "transformer": {
+            "name": "recoverZero"
+          }
+        },
+        {
+          "combinator": "rawEngine",
+          "inputs": [
+            {
+              "edge": 16
+            }
+          ],
+          "transformer": {
+            "name": "passThrough"
+          }
+        },
+        {
+          "combinator": "map",
+          "inputs": [
+            {
+              "edge": 14
+            }
+          ],
+          "transformer": {
+            "name": null
+          }
+        },
+        {
+          "combinator": "map",
+          "inputs": [
+            {
+              "edge": 8
+            }
+          ],
+          "transformer": {
+            "name": "describePair"
+          }
+        },
+        {
+          "combinator": "map",
+          "inputs": [
+            {
+              "topic": {
+                "name": "every.count",
+                "variant": "state",
+                "typeName": "int"
+              }
+            }
+          ],
+          "transformer": {
+            "name": "label"
+          }
+        },
+        {
+          "combinator": "merge",
+          "inputs": [
+            {
+              "topic": {
+                "name": "every.total",
+                "variant": "state",
+                "typeName": "int"
+              }
+            },
+            {
+              "topic": {
+                "name": "every.taps",
+                "variant": "event",
+                "typeName": "int"
+              }
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "edge": 17
+            }
+          ],
+          "output": {
+            "name": "every.out",
+            "variant": "event",
+            "typeName": "int"
+          }
+        },
+        {
+          "inputs": [
+            {
+              "edge": 18
+            }
+          ],
+          "output": {
+            "name": "every.sizes",
+            "variant": "event",
+            "typeName": "int"
+          }
+        },
+        {
+          "inputs": [
+            {
+              "edge": 19
+            }
+          ],
+          "output": {
+            "name": "every.label",
+            "variant": "state",
+            "typeName": "String"
+          }
+        },
+        {
+          "inputs": [
+            {
+              "edge": 20
+            }
+          ],
+          "output": {
+            "name": "every.names",
+            "variant": "event",
+            "typeName": "String"
+          }
+        },
+        {
+          "combinator": "reduceInto",
+          "inputs": [
+            {
+              "topic": {
+                "name": "every.taps",
+                "variant": "event",
+                "typeName": "int"
+              }
+            }
+          ],
+          "output": {
+            "name": "every.count",
+            "variant": "state",
+            "typeName": "int"
+          },
+          "transformer": {
+            "name": "reduceCount"
+          }
+        },
+        {
+          "combinator": "reduceInto",
+          "inputs": [
+            {
+              "edge": 21
+            }
+          ],
+          "output": {
+            "name": "every.total",
+            "variant": "state",
+            "typeName": "int"
+          },
+          "transformer": {
+            "name": "reduceTotal"
+          }
+        },
+        {
+          "inputs": [
+            {
+              "topic": {
+                "name": "every.taps",
+                "variant": "event",
+                "typeName": "int"
+              }
+            }
+          ],
+          "output": {
+            "name": "every.log",
+            "variant": "replay",
+            "typeName": "int"
+          }
+        }
+      ]
+    }
+  ],
+  "claims": []
+}

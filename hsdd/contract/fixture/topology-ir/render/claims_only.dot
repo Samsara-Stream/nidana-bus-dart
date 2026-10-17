@@ -1,0 +1,19 @@
+digraph topologies {
+  rankdir=LR;
+  t0 [shape=ellipse, label="auth.session\nstate String"];
+  t1 [shape=ellipse, label="nav.current-route\nstate String"];
+  t2 [shape=ellipse, label="nav.depth\nstate int"];
+  t3 [shape=ellipse, label="profile.draft\nstate String"];
+  t4 [shape=ellipse, label="wizard.open\nstate bool"];
+  s0 [shape=box, style=rounded, label="executor:flutter-navigation\napplication"];
+  s1 [shape=box, style=rounded, label="executor:wizard\nmodule"];
+  s2 [shape=box, style=rounded, label="page:settings/profile\npage"];
+  s3 [shape=box, style=rounded, label="service:auth\napplication"];
+  s4 [shape=box, style=rounded, label="service:auth\napplication"];
+  s0 -> t1;
+  s0 -> t2;
+  s1 -> t4;
+  s2 -> t3;
+  s3 -> t0;
+  s4 -> t0;
+}

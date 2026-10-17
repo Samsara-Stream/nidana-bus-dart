@@ -1,0 +1,139 @@
+{
+  "format": "topology-ir@v1",
+  "topologies": [
+    {
+      "topologyId": "forms",
+      "scope": "page",
+      "reads": [
+        {
+          "name": "forms.event",
+          "variant": "event",
+          "typeName": "int",
+          "sensitive": true
+        },
+        {
+          "name": "forms.state",
+          "variant": "state",
+          "typeName": "int"
+        }
+      ],
+      "writes": [
+        {
+          "name": "forms.out",
+          "variant": "event",
+          "typeName": "int"
+        },
+        {
+          "name": "forms.total",
+          "variant": "state",
+          "typeName": "int"
+        }
+      ],
+      "transforms": [
+        {
+          "combinator": "map",
+          "inputs": [
+            {
+              "topic": {
+                "name": "forms.event",
+                "variant": "event",
+                "typeName": "int"
+              }
+            }
+          ],
+          "transformer": {
+            "name": "inc"
+          }
+        },
+        {
+          "combinator": "withLatestFrom",
+          "inputs": [
+            {
+              "edge": 0
+            },
+            {
+              "topic": {
+                "name": "forms.state",
+                "variant": "state",
+                "typeName": "int"
+              },
+              "dedup": "none"
+            }
+          ],
+          "transformer": {
+            "name": "add"
+          }
+        },
+        {
+          "combinator": "merge",
+          "inputs": [
+            {
+              "edge": 1
+            },
+            {
+              "topic": {
+                "name": "forms.event",
+                "variant": "event",
+                "typeName": "int"
+              }
+            }
+          ]
+        },
+        {
+          "combinator": "debounce",
+          "inputs": [
+            {
+              "edge": 2
+            }
+          ],
+          "durationMicros": 5000
+        },
+        {
+          "inputs": [
+            {
+              "edge": 3
+            }
+          ],
+          "output": {
+            "name": "forms.out",
+            "variant": "event",
+            "typeName": "int"
+          }
+        },
+        {
+          "combinator": "reduceInto",
+          "inputs": [
+            {
+              "topic": {
+                "name": "forms.event",
+                "variant": "event",
+                "typeName": "int"
+              }
+            }
+          ],
+          "output": {
+            "name": "forms.total",
+            "variant": "state",
+            "typeName": "int"
+          },
+          "transformer": {
+            "name": "reduceCount"
+          }
+        }
+      ]
+    }
+  ],
+  "claims": [
+    {
+      "source": "service:forms",
+      "scope": "application",
+      "writes": [
+        {
+          "name": "forms.claimed",
+          "variant": "state",
+          "typeName": "int"
+        }
+      ]
+    }
+  ]
+}

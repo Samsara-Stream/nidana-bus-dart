@@ -1,0 +1,55 @@
+digraph topologies {
+  rankdir=LR;
+  t0 [shape=ellipse, label="auth.state\nstate AuthState"];
+  t1 [shape=ellipse, label="checkout.cart-events\nevent CartEvent"];
+  t2 [shape=ellipse, label="checkout.cart-items\nstate CartItems"];
+  t3 [shape=ellipse, label="checkout.submit-order\nevent SubmitOrder"];
+  t4 [shape=ellipse, label="checkout.ui-state\nstate CheckoutUi"];
+  t5 [shape=ellipse, label="nav.current-route\nstate String"];
+  t6 [shape=ellipse, label="order.request\nevent OrderRequest"];
+  t7 [shape=ellipse, label="payment.result\nstate PaymentResult"];
+  t8 [shape=ellipse, label="payment.sdk-state\nstate PaymentSdkState"];
+  t9 [shape=ellipse, label="payment.ui-state\nstate PaymentUi"];
+  t10 [shape=ellipse, label="settings.theme\nstate Theme"];
+  t11 [shape=ellipse, label="settings.theme-requested\nevent Theme"];
+  subgraph cluster_p0 {
+    label="checkout-cart-reducer\nmodule";
+    p0e0 [shape=box, label="reduceInto\nreduceCart"];
+  }
+  subgraph cluster_p1 {
+    label="checkout-flow\nmodule";
+    p1e0 [shape=box, label="combine\nbuildCheckoutUi"];
+    p1e1 [shape=box, label="map\ntoOrderRequest"];
+    p1e2 [shape=box, label="write"];
+    p1e3 [shape=box, label="write"];
+  }
+  subgraph cluster_p2 {
+    label="payment-flow\napplication";
+    p2e0 [shape=box, label="combine\nbuildPaymentUi"];
+    p2e1 [shape=box, label="write"];
+  }
+  subgraph cluster_p3 {
+    label="theme-owner\napplication";
+    p3e0 [shape=box, label="write"];
+  }
+  s0 [shape=box, style=rounded, label="executor:flutter-navigation\napplication"];
+  s1 [shape=box, style=rounded, label="service:payment-sdk\napplication"];
+  t1 -> p0e0;
+  p0e0 -> t2;
+  t2 -> p1e0;
+  t0 -> p1e0;
+  t3 -> p1e1;
+  p1e0 -> p1e2;
+  p1e2 -> t4;
+  p1e1 -> p1e3;
+  p1e3 -> t6;
+  t8 -> p2e0;
+  t7 -> p2e0;
+  p2e0 -> p2e1;
+  p2e1 -> t9;
+  t11 -> p3e0;
+  p3e0 -> t10;
+  s0 -> t5;
+  s1 -> t7;
+  s1 -> t8;
+}

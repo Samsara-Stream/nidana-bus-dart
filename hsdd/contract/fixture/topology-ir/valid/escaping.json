@@ -1,0 +1,136 @@
+{
+  "format": "topology-ir@v1",
+  "topologies": [
+    {
+      "topologyId": "idle",
+      "scope": "page",
+      "reads": [],
+      "writes": [],
+      "transforms": []
+    },
+    {
+      "topologyId": "odd \"quoted\" #1 <tag> back\\slash café",
+      "scope": "module",
+      "reads": [
+        {
+          "name": "odd.<record>",
+          "variant": "event",
+          "typeName": "({int a, String b})"
+        },
+        {
+          "name": "odd.café\nline",
+          "variant": "state",
+          "typeName": "int?"
+        },
+        {
+          "name": "odd.table \"x\" #1",
+          "variant": "state",
+          "typeName": "List<Map<String, int>>"
+        }
+      ],
+      "writes": [
+        {
+          "name": "odd.<record>",
+          "variant": "event",
+          "typeName": "({int a, String b})"
+        },
+        {
+          "name": "odd.back\\slash",
+          "variant": "event",
+          "typeName": "String"
+        },
+        {
+          "name": "odd.café\nline",
+          "variant": "state",
+          "typeName": "int?"
+        }
+      ],
+      "transforms": [
+        {
+          "combinator": "map",
+          "inputs": [
+            {
+              "topic": {
+                "name": "odd.table \"x\" #1",
+                "variant": "state",
+                "typeName": "List<Map<String, int>>"
+              }
+            }
+          ],
+          "transformer": {
+            "name": "to$Label"
+          }
+        },
+        {
+          "combinator": "filter",
+          "inputs": [
+            {
+              "topic": {
+                "name": "odd.<record>",
+                "variant": "event",
+                "typeName": "({int a, String b})"
+              }
+            }
+          ],
+          "transformer": {
+            "name": null
+          }
+        },
+        {
+          "inputs": [
+            {
+              "edge": 0
+            }
+          ],
+          "output": {
+            "name": "odd.back\\slash",
+            "variant": "event",
+            "typeName": "String"
+          }
+        },
+        {
+          "inputs": [
+            {
+              "edge": 1
+            }
+          ],
+          "output": {
+            "name": "odd.<record>",
+            "variant": "event",
+            "typeName": "({int a, String b})"
+          }
+        },
+        {
+          "inputs": [
+            {
+              "topic": {
+                "name": "odd.café\nline",
+                "variant": "state",
+                "typeName": "int?"
+              },
+              "dedup": "equality"
+            }
+          ],
+          "output": {
+            "name": "odd.café\nline",
+            "variant": "state",
+            "typeName": "int?"
+          }
+        }
+      ]
+    }
+  ],
+  "claims": [
+    {
+      "source": "page:checkout/cart?step=\"2\"",
+      "scope": "module",
+      "writes": [
+        {
+          "name": "odd.table \"x\" #1",
+          "variant": "state",
+          "typeName": "List<Map<String, int>>"
+        }
+      ]
+    }
+  ]
+}

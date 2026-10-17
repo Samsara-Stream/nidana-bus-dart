@@ -1,0 +1,66 @@
+{
+  "format": "topology-ir@v1",
+  "topologies": [],
+  "claims": [
+    {
+      "source": "executor:flutter-navigation",
+      "scope": "application",
+      "writes": [
+        {
+          "name": "nav.current-route",
+          "variant": "state",
+          "typeName": "String"
+        },
+        {
+          "name": "nav.depth",
+          "variant": "state",
+          "typeName": "int"
+        }
+      ]
+    },
+    {
+      "source": "executor:wizard",
+      "scope": "module",
+      "writes": [
+        {
+          "name": "wizard.open",
+          "variant": "state",
+          "typeName": "bool"
+        }
+      ]
+    },
+    {
+      "source": "page:settings/profile",
+      "scope": "page",
+      "writes": [
+        {
+          "name": "profile.draft",
+          "variant": "state",
+          "typeName": "String"
+        }
+      ]
+    },
+    {
+      "source": "service:auth",
+      "scope": "application",
+      "writes": [
+        {
+          "name": "auth.session",
+          "variant": "state",
+          "typeName": "String"
+        }
+      ]
+    },
+    {
+      "source": "service:auth",
+      "scope": "application",
+      "writes": [
+        {
+          "name": "auth.session",
+          "variant": "state",
+          "typeName": "String"
+        }
+      ]
+    }
+  ]
+}

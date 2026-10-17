@@ -1,0 +1,242 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:nidana:schema:topology-ir:v1",
+  "title": "topology-ir@v1 graph document",
+  "description": "The JSON form of a TopologyGraph (hsdd/contract/topology-ir.md): topology definitions and shell claims. topology-graph.json is a document of this form. Rules the schema cannot state (edge references, edge order, consumed stages, reads and writes matching the edges, unique topology ids, one sink per state topic) are the decoder's.",
+  "type": "object",
+  "properties": {
+    "format": { "const": "topology-ir@v1" },
+    "topologies": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/topologyDefinition" },
+      "uniqueItems": true
+    },
+    "claims": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/shellClaim" }
+    }
+  },
+  "required": ["format", "topologies", "claims"],
+  "additionalProperties": false,
+  "$defs": {
+    "scope": {
+      "description": "Scope (topic-model@v1), by name.",
+      "enum": ["application", "module", "page"]
+    },
+    "topicRef": {
+      "description": "TopicRef (topic-model@v1).",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "variant": { "enum": ["state", "event", "replay"] },
+        "typeName": { "type": "string", "minLength": 1 }
+      },
+      "required": ["name", "variant", "typeName"],
+      "additionalProperties": false
+    },
+    "stateTopicRef": {
+      "description": "A TopicRef of a state topic.",
+      "$ref": "#/$defs/topicRef",
+      "type": "object",
+      "properties": { "variant": { "const": "state" } }
+    },
+    "functionRef": {
+      "description": "FunctionRef: a name, or null for an anonymous function.",
+      "type": "object",
+      "properties": {
+        "name": {
+          "oneOf": [{ "type": "string", "minLength": 1 }, { "type": "null" }]
+        }
+      },
+      "required": ["name"],
+      "additionalProperties": false
+    },
+    "edgeInput": {
+      "description": "EdgeInput: a TopicInput, with dedup only on a state topic read that gave one, or a StageInput by edge index.",
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": { "topic": { "$ref": "#/$defs/topicRef" } },
+          "required": ["topic"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "topic": { "$ref": "#/$defs/stateTopicRef" },
+            "dedup": { "enum": ["equality", "none"] }
+          },
+          "required": ["topic", "dedup"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": { "edge": { "type": "integer", "minimum": 0 } },
+          "required": ["edge"],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "oneInput": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/edgeInput" },
+      "minItems": 1,
+      "maxItems": 1
+    },
+    "someInputs": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/edgeInput" },
+      "minItems": 1
+    },
+    "transformEdge": {
+      "description": "TransformEdge: a write (no combinator), a reduceInto, or a stage of one combinator kind.",
+      "oneOf": [
+        { "$ref": "#/$defs/writeEdge" },
+        { "$ref": "#/$defs/reduceIntoEdge" },
+        { "$ref": "#/$defs/functionStage" },
+        { "$ref": "#/$defs/switchMapStage" },
+        { "$ref": "#/$defs/combineStage" },
+        { "$ref": "#/$defs/withLatestFromStage" },
+        { "$ref": "#/$defs/mergeStage" },
+        { "$ref": "#/$defs/plainStage" },
+        { "$ref": "#/$defs/timeStage" }
+      ]
+    },
+    "writeEdge": {
+      "type": "object",
+      "properties": {
+        "inputs": { "$ref": "#/$defs/oneInput" },
+        "output": { "$ref": "#/$defs/topicRef" }
+      },
+      "required": ["inputs", "output"],
+      "additionalProperties": false
+    },
+    "reduceIntoEdge": {
+      "type": "object",
+      "properties": {
+        "combinator": { "const": "reduceInto" },
+        "inputs": { "$ref": "#/$defs/oneInput" },
+        "output": { "$ref": "#/$defs/stateTopicRef" },
+        "transformer": { "$ref": "#/$defs/functionRef" }
+      },
+      "required": ["combinator", "inputs", "output", "transformer"],
+      "additionalProperties": false
+    },
+    "functionStage": {
+      "type": "object",
+      "properties": {
+        "combinator": { "enum": ["map", "filter", "scan", "catchError", "rawEngine"] },
+        "inputs": { "$ref": "#/$defs/oneInput" },
+        "transformer": { "$ref": "#/$defs/functionRef" }
+      },
+      "required": ["combinator", "inputs", "transformer"],
+      "additionalProperties": false
+    },
+    "switchMapStage": {
+      "type": "object",
+      "properties": {
+        "combinator": { "const": "switchMap" },
+        "inputs": { "$ref": "#/$defs/oneInput" },
+        "transformer": { "$ref": "#/$defs/functionRef" },
+        "retry": { "$ref": "#/$defs/functionRef" }
+      },
+      "required": ["combinator", "inputs", "transformer"],
+      "additionalProperties": false
+    },
+    "combineStage": {
+      "type": "object",
+      "properties": {
+        "combinator": { "const": "combine" },
+        "inputs": { "$ref": "#/$defs/someInputs" },
+        "transformer": { "$ref": "#/$defs/functionRef" }
+      },
+      "required": ["combinator", "inputs", "transformer"],
+      "additionalProperties": false
+    },
+    "withLatestFromStage": {
+      "type": "object",
+      "properties": {
+        "combinator": { "const": "withLatestFrom" },
+        "inputs": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/edgeInput" },
+          "minItems": 2,
+          "maxItems": 4
+        },
+        "transformer": { "$ref": "#/$defs/functionRef" }
+      },
+      "required": ["combinator", "inputs", "transformer"],
+      "additionalProperties": false
+    },
+    "mergeStage": {
+      "type": "object",
+      "properties": {
+        "combinator": { "const": "merge" },
+        "inputs": { "$ref": "#/$defs/someInputs" }
+      },
+      "required": ["combinator", "inputs"],
+      "additionalProperties": false
+    },
+    "plainStage": {
+      "type": "object",
+      "properties": {
+        "combinator": { "enum": ["pairwise", "distinctUntilChanged"] },
+        "inputs": { "$ref": "#/$defs/oneInput" }
+      },
+      "required": ["combinator", "inputs"],
+      "additionalProperties": false
+    },
+    "timeStage": {
+      "type": "object",
+      "properties": {
+        "combinator": {
+          "enum": ["debounce", "throttle", "delay", "sample", "buffer", "timeout"]
+        },
+        "inputs": { "$ref": "#/$defs/oneInput" },
+        "durationMicros": { "type": "integer", "minimum": 0 }
+      },
+      "required": ["combinator", "inputs", "durationMicros"],
+      "additionalProperties": false
+    },
+    "topologyDefinition": {
+      "description": "TopologyDefinition: reads and writes list the topics the edges read and the sink edges write; transforms are the stage edges in stage order, then the sink edges.",
+      "type": "object",
+      "properties": {
+        "topologyId": { "type": "string", "minLength": 1 },
+        "scope": { "$ref": "#/$defs/scope" },
+        "reads": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/topicRef" },
+          "uniqueItems": true
+        },
+        "writes": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/topicRef" },
+          "uniqueItems": true
+        },
+        "transforms": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/transformEdge" }
+        }
+      },
+      "required": ["topologyId", "scope", "reads", "writes", "transforms"],
+      "additionalProperties": false
+    },
+    "shellClaim": {
+      "description": "ShellClaim: a service, page or executor source rendering (topic-model@v1 MessageSource), its scope, the state topics it claims.",
+      "type": "object",
+      "properties": {
+        "source": { "type": "string", "pattern": "^(service|page|executor):[\\s\\S]+$" },
+        "scope": { "$ref": "#/$defs/scope" },
+        "writes": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/stateTopicRef" },
+          "minItems": 1,
+          "uniqueItems": true
+        }
+      },
+      "required": ["source", "scope", "writes"],
+      "additionalProperties": false
+    }
+  }
+}

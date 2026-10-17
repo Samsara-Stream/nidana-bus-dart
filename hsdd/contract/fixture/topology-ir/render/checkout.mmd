@@ -1,0 +1,49 @@
+flowchart LR
+  t0(["auth.state<br/>state AuthState"])
+  t1(["checkout.cart-events<br/>event CartEvent"])
+  t2(["checkout.cart-items<br/>state CartItems"])
+  t3(["checkout.submit-order<br/>event SubmitOrder"])
+  t4(["checkout.ui-state<br/>state CheckoutUi"])
+  t5(["nav.current-route<br/>state String"])
+  t6(["order.request<br/>event OrderRequest"])
+  t7(["payment.result<br/>state PaymentResult"])
+  t8(["payment.sdk-state<br/>state PaymentSdkState"])
+  t9(["payment.ui-state<br/>state PaymentUi"])
+  t10(["settings.theme<br/>state Theme"])
+  t11(["settings.theme-requested<br/>event Theme"])
+  subgraph p0["checkout-cart-reducer<br/>module"]
+    p0e0["reduceInto<br/>reduceCart"]
+  end
+  subgraph p1["checkout-flow<br/>module"]
+    p1e0["combine<br/>buildCheckoutUi"]
+    p1e1["map<br/>toOrderRequest"]
+    p1e2["write"]
+    p1e3["write"]
+  end
+  subgraph p2["payment-flow<br/>application"]
+    p2e0["combine<br/>buildPaymentUi"]
+    p2e1["write"]
+  end
+  subgraph p3["theme-owner<br/>application"]
+    p3e0["write"]
+  end
+  s0["executor:flutter-navigation<br/>application"]
+  s1["service:payment-sdk<br/>application"]
+  t1 --> p0e0
+  p0e0 --> t2
+  t2 --> p1e0
+  t0 --> p1e0
+  t3 --> p1e1
+  p1e0 --> p1e2
+  p1e2 --> t4
+  p1e1 --> p1e3
+  p1e3 --> t6
+  t8 --> p2e0
+  t7 --> p2e0
+  p2e0 --> p2e1
+  p2e1 --> t9
+  t11 --> p3e0
+  p3e0 --> t10
+  s0 --> t5
+  s1 --> t7
+  s1 --> t8

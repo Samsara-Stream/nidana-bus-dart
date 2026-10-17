@@ -1,0 +1,3 @@
+digraph topologies {
+  rankdir=LR;
+}

@@ -1,0 +1,35 @@
+{
+  "format": "topology-ir@v1",
+  "topologies": [
+    {
+      "topologyId": "search",
+      "scope": "page",
+      "reads": [{ "name": "search.query", "variant": "state", "typeName": "String" }],
+      "writes": [{ "name": "search.results", "variant": "state", "typeName": "Results" }],
+      "transforms": [
+        {
+          "combinator": "debounce",
+          "inputs": [{ "topic": { "name": "search.query", "variant": "state", "typeName": "String" }, "dedup": "none" }],
+          "durationMicros": 300000
+        },
+        {
+          "combinator": "switchMap",
+          "inputs": [{ "edge": 0 }],
+          "transformer": { "name": "searchApi" },
+          "retry": { "name": null }
+        },
+        {
+          "inputs": [{ "edge": 1 }],
+          "output": { "name": "search.results", "variant": "state", "typeName": "Results" }
+        }
+      ]
+    }
+  ],
+  "claims": [
+    {
+      "source": "service:search-history",
+      "scope": "application",
+      "writes": [{ "name": "search.history", "variant": "state", "typeName": "History" }]
+    }
+  ]
+}

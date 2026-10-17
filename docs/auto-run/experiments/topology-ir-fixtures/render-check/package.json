@@ -1,0 +1,12 @@
+{
+  "name": "topology-ir-render-check",
+  "private": true,
+  "description": "Parses the topology-ir@v1 render/ goldens with Mermaid's parser and lays out the DOT ones with Graphviz compiled to wasm (experiment only).",
+  "type": "module",
+  "dependencies": {
+    "@hpcc-js/wasm-graphviz": "^1.13.0",
+    "ajv": "^8.17.1",
+    "jsdom": "^26.1.0",
+    "mermaid": "^11.12.0"
+  }
+}

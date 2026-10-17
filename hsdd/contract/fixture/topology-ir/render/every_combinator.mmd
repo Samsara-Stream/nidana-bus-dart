@@ -1,0 +1,84 @@
+flowchart LR
+  t0(["every.count<br/>state int"])
+  t1(["every.flag<br/>state bool"])
+  t2(["every.label<br/>state String"])
+  t3(["every.log<br/>replay int"])
+  t4(["every.names<br/>event String"])
+  t5(["every.out<br/>event int"])
+  t6(["every.sizes<br/>event int"])
+  t7(["every.taps<br/>event int"])
+  t8(["every.total<br/>state int"])
+  subgraph p0["every-combinator<br/>page"]
+    p0e0["map<br/>twice"]
+    p0e1["filter<br/>isPositive"]
+    p0e2["combine<br/>add"]
+    p0e3["combine<br/>sum"]
+    p0e4["withLatestFrom<br/>pick"]
+    p0e5["merge"]
+    p0e6["switchMap<br/>ticks<br/>retry retryTwice"]
+    p0e7["scan<br/>add"]
+    p0e8["pairwise"]
+    p0e9["distinctUntilChanged"]
+    p0e10["debounce 300ms"]
+    p0e11["throttle 1s"]
+    p0e12["delay 0s"]
+    p0e13["sample 1500us"]
+    p0e14["buffer 2s"]
+    p0e15["timeout 5s"]
+    p0e16["catchError<br/>recoverZero"]
+    p0e17["rawEngine<br/>passThrough"]
+    p0e18["map<br/>(anonymous)"]
+    p0e19["map<br/>describePair"]
+    p0e20["map<br/>label"]
+    p0e21["merge"]
+    p0e22["write"]
+    p0e23["write"]
+    p0e24["write"]
+    p0e25["write"]
+    p0e26["reduceInto<br/>reduceCount"]
+    p0e27["reduceInto<br/>reduceTotal"]
+    p0e28["write"]
+  end
+  t0 --> p0e0
+  p0e0 --> p0e1
+  t0 --> p0e2
+  t7 --> p0e2
+  p0e2 --> p0e3
+  p0e1 --> p0e3
+  t7 --> p0e4
+  t0 --> p0e4
+  t1 -->|dedup none| p0e4
+  p0e4 --> p0e5
+  p0e3 --> p0e5
+  t3 --> p0e5
+  p0e5 --> p0e6
+  p0e6 --> p0e7
+  p0e7 --> p0e8
+  p0e7 --> p0e9
+  p0e9 --> p0e10
+  p0e10 --> p0e11
+  p0e11 --> p0e12
+  p0e12 --> p0e13
+  p0e13 --> p0e14
+  p0e13 --> p0e15
+  p0e15 --> p0e16
+  p0e16 --> p0e17
+  p0e14 --> p0e18
+  p0e8 --> p0e19
+  t0 --> p0e20
+  t8 --> p0e21
+  t7 --> p0e21
+  p0e17 --> p0e22
+  p0e22 --> t5
+  p0e18 --> p0e23
+  p0e23 --> t6
+  p0e19 --> p0e24
+  p0e24 --> t2
+  p0e20 --> p0e25
+  p0e25 --> t4
+  t7 --> p0e26
+  p0e26 --> t0
+  p0e21 --> p0e27
+  p0e27 --> t8
+  t7 --> p0e28
+  p0e28 --> t3

@@ -1,0 +1,405 @@
+{
+  "format": "topology-ir@v1",
+  "topologies": [
+    {
+      "topologyId": "banner",
+      "scope": "page",
+      "reads": [
+        {
+          "name": "banner.source",
+          "variant": "event",
+          "typeName": "String"
+        }
+      ],
+      "writes": [
+        {
+          "name": "banner.text",
+          "variant": "state",
+          "typeName": "String"
+        }
+      ],
+      "transforms": [
+        {
+          "inputs": [
+            {
+              "topic": {
+                "name": "banner.source",
+                "variant": "event",
+                "typeName": "String"
+              }
+            }
+          ],
+          "output": {
+            "name": "banner.text",
+            "variant": "state",
+            "typeName": "String"
+          }
+        }
+      ]
+    },
+    {
+      "topologyId": "echo",
+      "scope": "module",
+      "reads": [
+        {
+          "name": "echo.value",
+          "variant": "state",
+          "typeName": "int"
+        }
+      ],
+      "writes": [
+        {
+          "name": "echo.value",
+          "variant": "state",
+          "typeName": "int"
+        }
+      ],
+      "transforms": [
+        {
+          "combinator": "map",
+          "inputs": [
+            {
+              "topic": {
+                "name": "echo.value",
+                "variant": "state",
+                "typeName": "int"
+              }
+            }
+          ],
+          "transformer": {
+            "name": "inc"
+          }
+        },
+        {
+          "inputs": [
+            {
+              "edge": 0
+            }
+          ],
+          "output": {
+            "name": "echo.value",
+            "variant": "state",
+            "typeName": "int"
+          }
+        }
+      ]
+    },
+    {
+      "topologyId": "header",
+      "scope": "application",
+      "reads": [
+        {
+          "name": "banner.text",
+          "variant": "state",
+          "typeName": "String"
+        }
+      ],
+      "writes": [
+        {
+          "name": "header.title",
+          "variant": "event",
+          "typeName": "String"
+        }
+      ],
+      "transforms": [
+        {
+          "combinator": "map",
+          "inputs": [
+            {
+              "topic": {
+                "name": "banner.text",
+                "variant": "state",
+                "typeName": "String"
+              }
+            }
+          ],
+          "transformer": {
+            "name": "upper"
+          }
+        },
+        {
+          "inputs": [
+            {
+              "edge": 0
+            }
+          ],
+          "output": {
+            "name": "header.title",
+            "variant": "event",
+            "typeName": "String"
+          }
+        }
+      ]
+    },
+    {
+      "topologyId": "ping",
+      "scope": "application",
+      "reads": [
+        {
+          "name": "loop.a",
+          "variant": "event",
+          "typeName": "int"
+        }
+      ],
+      "writes": [
+        {
+          "name": "loop.b",
+          "variant": "event",
+          "typeName": "int"
+        }
+      ],
+      "transforms": [
+        {
+          "combinator": "map",
+          "inputs": [
+            {
+              "topic": {
+                "name": "loop.a",
+                "variant": "event",
+                "typeName": "int"
+              }
+            }
+          ],
+          "transformer": {
+            "name": "inc"
+          }
+        },
+        {
+          "inputs": [
+            {
+              "edge": 0
+            }
+          ],
+          "output": {
+            "name": "loop.b",
+            "variant": "event",
+            "typeName": "int"
+          }
+        }
+      ]
+    },
+    {
+      "topologyId": "pong",
+      "scope": "application",
+      "reads": [
+        {
+          "name": "loop.b",
+          "variant": "event",
+          "typeName": "int"
+        }
+      ],
+      "writes": [
+        {
+          "name": "loop.a",
+          "variant": "event",
+          "typeName": "int"
+        }
+      ],
+      "transforms": [
+        {
+          "combinator": "map",
+          "inputs": [
+            {
+              "topic": {
+                "name": "loop.b",
+                "variant": "event",
+                "typeName": "int"
+              }
+            }
+          ],
+          "transformer": {
+            "name": "inc"
+          }
+        },
+        {
+          "inputs": [
+            {
+              "edge": 0
+            }
+          ],
+          "output": {
+            "name": "loop.a",
+            "variant": "event",
+            "typeName": "int"
+          }
+        }
+      ]
+    },
+    {
+      "topologyId": "quiet",
+      "scope": "module",
+      "reads": [
+        {
+          "name": "quiet.value",
+          "variant": "state",
+          "typeName": "int"
+        }
+      ],
+      "writes": [
+        {
+          "name": "quiet.value",
+          "variant": "state",
+          "typeName": "int"
+        }
+      ],
+      "transforms": [
+        {
+          "combinator": "debounce",
+          "inputs": [
+            {
+              "topic": {
+                "name": "quiet.value",
+                "variant": "state",
+                "typeName": "int"
+              }
+            }
+          ],
+          "durationMicros": 0
+        },
+        {
+          "combinator": "delay",
+          "inputs": [
+            {
+              "topic": {
+                "name": "quiet.value",
+                "variant": "state",
+                "typeName": "int"
+              }
+            }
+          ],
+          "durationMicros": 10000
+        },
+        {
+          "combinator": "merge",
+          "inputs": [
+            {
+              "edge": 0
+            },
+            {
+              "edge": 1
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "edge": 2
+            }
+          ],
+          "output": {
+            "name": "quiet.value",
+            "variant": "state",
+            "typeName": "int"
+          }
+        }
+      ]
+    },
+    {
+      "topologyId": "settings-owner",
+      "scope": "module",
+      "reads": [
+        {
+          "name": "settings.requested",
+          "variant": "event",
+          "typeName": "int"
+        }
+      ],
+      "writes": [
+        {
+          "name": "settings.value",
+          "variant": "state",
+          "typeName": "int"
+        }
+      ],
+      "transforms": [
+        {
+          "inputs": [
+            {
+              "topic": {
+                "name": "settings.requested",
+                "variant": "event",
+                "typeName": "int"
+              }
+            }
+          ],
+          "output": {
+            "name": "settings.value",
+            "variant": "state",
+            "typeName": "int"
+          }
+        }
+      ]
+    },
+    {
+      "topologyId": "summary",
+      "scope": "module",
+      "reads": [
+        {
+          "name": "form.draft",
+          "variant": "state",
+          "typeName": "String"
+        }
+      ],
+      "writes": [
+        {
+          "name": "summary.text",
+          "variant": "event",
+          "typeName": "String"
+        }
+      ],
+      "transforms": [
+        {
+          "combinator": "map",
+          "inputs": [
+            {
+              "topic": {
+                "name": "form.draft",
+                "variant": "state",
+                "typeName": "String"
+              }
+            }
+          ],
+          "transformer": {
+            "name": "upper"
+          }
+        },
+        {
+          "inputs": [
+            {
+              "edge": 0
+            }
+          ],
+          "output": {
+            "name": "summary.text",
+            "variant": "event",
+            "typeName": "String"
+          }
+        }
+      ]
+    }
+  ],
+  "claims": [
+    {
+      "source": "page:checkout/cart",
+      "scope": "page",
+      "writes": [
+        {
+          "name": "form.draft",
+          "variant": "state",
+          "typeName": "String"
+        }
+      ]
+    },
+    {
+      "source": "service:settings-sync",
+      "scope": "application",
+      "writes": [
+        {
+          "name": "settings.value",
+          "variant": "state",
+          "typeName": "int"
+        }
+      ]
+    }
+  ]
+}

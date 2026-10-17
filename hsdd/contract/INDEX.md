@@ -6,3 +6,4 @@
 |----|---------|------|--------|-------|-----------|
 | `topic-model` | v1 | shared-model | draft | `nidana.model` | 5 |
 | `topology-dsl` | v1 | api | draft | `nidana.model` | 5 |
+| `topology-ir` | v1 | api | draft | `nidana.model` | 3 |

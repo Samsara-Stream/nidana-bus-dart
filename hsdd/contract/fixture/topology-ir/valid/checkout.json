@@ -1,0 +1,265 @@
+{
+  "format": "topology-ir@v1",
+  "topologies": [
+    {
+      "topologyId": "checkout-cart-reducer",
+      "scope": "module",
+      "reads": [
+        {
+          "name": "checkout.cart-events",
+          "variant": "event",
+          "typeName": "CartEvent"
+        }
+      ],
+      "writes": [
+        {
+          "name": "checkout.cart-items",
+          "variant": "state",
+          "typeName": "CartItems"
+        }
+      ],
+      "transforms": [
+        {
+          "combinator": "reduceInto",
+          "inputs": [
+            {
+              "topic": {
+                "name": "checkout.cart-events",
+                "variant": "event",
+                "typeName": "CartEvent"
+              }
+            }
+          ],
+          "output": {
+            "name": "checkout.cart-items",
+            "variant": "state",
+            "typeName": "CartItems"
+          },
+          "transformer": {
+            "name": "reduceCart"
+          }
+        }
+      ]
+    },
+    {
+      "topologyId": "checkout-flow",
+      "scope": "module",
+      "reads": [
+        {
+          "name": "auth.state",
+          "variant": "state",
+          "typeName": "AuthState"
+        },
+        {
+          "name": "checkout.cart-items",
+          "variant": "state",
+          "typeName": "CartItems"
+        },
+        {
+          "name": "checkout.submit-order",
+          "variant": "event",
+          "typeName": "SubmitOrder"
+        }
+      ],
+      "writes": [
+        {
+          "name": "checkout.ui-state",
+          "variant": "state",
+          "typeName": "CheckoutUi"
+        },
+        {
+          "name": "order.request",
+          "variant": "event",
+          "typeName": "OrderRequest"
+        }
+      ],
+      "transforms": [
+        {
+          "combinator": "combine",
+          "inputs": [
+            {
+              "topic": {
+                "name": "checkout.cart-items",
+                "variant": "state",
+                "typeName": "CartItems"
+              }
+            },
+            {
+              "topic": {
+                "name": "auth.state",
+                "variant": "state",
+                "typeName": "AuthState"
+              }
+            }
+          ],
+          "transformer": {
+            "name": "buildCheckoutUi"
+          }
+        },
+        {
+          "combinator": "map",
+          "inputs": [
+            {
+              "topic": {
+                "name": "checkout.submit-order",
+                "variant": "event",
+                "typeName": "SubmitOrder"
+              }
+            }
+          ],
+          "transformer": {
+            "name": "toOrderRequest"
+          }
+        },
+        {
+          "inputs": [
+            {
+              "edge": 0
+            }
+          ],
+          "output": {
+            "name": "checkout.ui-state",
+            "variant": "state",
+            "typeName": "CheckoutUi"
+          }
+        },
+        {
+          "inputs": [
+            {
+              "edge": 1
+            }
+          ],
+          "output": {
+            "name": "order.request",
+            "variant": "event",
+            "typeName": "OrderRequest"
+          }
+        }
+      ]
+    },
+    {
+      "topologyId": "payment-flow",
+      "scope": "application",
+      "reads": [
+        {
+          "name": "payment.result",
+          "variant": "state",
+          "typeName": "PaymentResult"
+        },
+        {
+          "name": "payment.sdk-state",
+          "variant": "state",
+          "typeName": "PaymentSdkState"
+        }
+      ],
+      "writes": [
+        {
+          "name": "payment.ui-state",
+          "variant": "state",
+          "typeName": "PaymentUi"
+        }
+      ],
+      "transforms": [
+        {
+          "combinator": "combine",
+          "inputs": [
+            {
+              "topic": {
+                "name": "payment.sdk-state",
+                "variant": "state",
+                "typeName": "PaymentSdkState"
+              }
+            },
+            {
+              "topic": {
+                "name": "payment.result",
+                "variant": "state",
+                "typeName": "PaymentResult"
+              }
+            }
+          ],
+          "transformer": {
+            "name": "buildPaymentUi"
+          }
+        },
+        {
+          "inputs": [
+            {
+              "edge": 0
+            }
+          ],
+          "output": {
+            "name": "payment.ui-state",
+            "variant": "state",
+            "typeName": "PaymentUi"
+          }
+        }
+      ]
+    },
+    {
+      "topologyId": "theme-owner",
+      "scope": "application",
+      "reads": [
+        {
+          "name": "settings.theme-requested",
+          "variant": "event",
+          "typeName": "Theme"
+        }
+      ],
+      "writes": [
+        {
+          "name": "settings.theme",
+          "variant": "state",
+          "typeName": "Theme"
+        }
+      ],
+      "transforms": [
+        {
+          "inputs": [
+            {
+              "topic": {
+                "name": "settings.theme-requested",
+                "variant": "event",
+                "typeName": "Theme"
+              }
+            }
+          ],
+          "output": {
+            "name": "settings.theme",
+            "variant": "state",
+            "typeName": "Theme"
+          }
+        }
+      ]
+    }
+  ],
+  "claims": [
+    {
+      "source": "executor:flutter-navigation",
+      "scope": "application",
+      "writes": [
+        {
+          "name": "nav.current-route",
+          "variant": "state",
+          "typeName": "String"
+        }
+      ]
+    },
+    {
+      "source": "service:payment-sdk",
+      "scope": "application",
+      "writes": [
+        {
+          "name": "payment.result",
+          "variant": "state",
+          "typeName": "PaymentResult"
+        },
+        {
+          "name": "payment.sdk-state",
+          "variant": "state",
+          "typeName": "PaymentSdkState"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+flowchart LR
+  t0(["auth.session<br/>state String"])
+  t1(["nav.current-route<br/>state String"])
+  t2(["nav.depth<br/>state int"])
+  t3(["profile.draft<br/>state String"])
+  t4(["wizard.open<br/>state bool"])
+  s0["executor:flutter-navigation<br/>application"]
+  s1["executor:wizard<br/>module"]
+  s2["page:settings/profile<br/>page"]
+  s3["service:auth<br/>application"]
+  s4["service:auth<br/>application"]
+  s0 --> t1
+  s0 --> t2
+  s1 --> t4
+  s2 --> t3
+  s3 --> t0
+  s4 --> t0

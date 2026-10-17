@@ -1,0 +1,375 @@
+
+### setup: copy the contracts, fixtures and schema from the repository, resolve
+hsdd/contract/fixture/analysis_options.yaml
+hsdd/contract/fixture/topology-dsl/behavior/live_conformance.dart
+hsdd/contract/fixture/topology-dsl/behavior/recording_conformance.dart
+hsdd/contract/fixture/topology-dsl/behavior/topology_builder_test.dart
+hsdd/contract/fixture/topology-dsl/reject/dsl_types_are_closed.dart
+hsdd/contract/fixture/topology-dsl/reject/handle_is_opaque.dart
+hsdd/contract/fixture/topology-dsl/reject/plan_is_a_separate_library.dart
+hsdd/contract/fixture/topology-dsl/reject/reduce_into_targets_state.dart
+hsdd/contract/fixture/topology-dsl/reject/time_takes_duration.dart
+hsdd/contract/fixture/topology-dsl/reject/topology_declares_id_and_scope.dart
+hsdd/contract/fixture/topology-dsl/reject/topology_is_a_base_class.dart
+hsdd/contract/fixture/topology-dsl/reject/transformers_see_payloads.dart
+... 84 files
+pub get exit: 0
+resolved json_schema: "5.2.2"
+resolved lints: "6.1.0"
+resolved matcher: "0.12.20"
+resolved meta: "1.19.0"
+resolved test: "1.33.0"
+npm ci exit: 0
+npm mermaid 11.12.0
+npm @hpcc-js/wasm-graphviz 1.13.0
+npm ajv 8.17.1
+npm jsdom 26.1.0
+
+### T0 the stand-in packages are clean under the root lint set and --fatal-infos
+Analyzing packages...
+No issues found!
+exit: 0
+
+### T1 workspace-wide analyze at the root skips hsdd/** (reject fixtures hold deliberate errors) and the experiment scripts
+Analyzing topology-ir-fixtures...
+No issues found!
+exit: 0
+
+### T2 structure: headers, markers, guarantee coverage, listed bindings, no src/ imports
+PASS G1 1 fixture(s)
+PASS G2 1 fixture(s)
+PASS G3 3 fixture(s)
+PASS G4 2 fixture(s)
+PASS G5 3 fixture(s)
+PASS G6 2 fixture(s)
+PASS G7 2 fixture(s)
+PASS G8 3 fixture(s)
+PASS G9 2 fixture(s)
+PASS G10 1 fixture(s)
+PASS G11 3 fixture(s)
+PASS G12 1 fixture(s)
+PASS G13 2 fixture(s)
+PASS G14 2 fixture(s)
+PASS G15 1 fixture(s)
+PASS G16 1 fixture(s)
+PASS G17 2 fixture(s)
+PASS G18 1 fixture(s)
+PASS G19 2 fixture(s)
+PASS G20 3 fixture(s)
+PASS G21 3 fixture(s)
+PASS G22 3 fixture(s)
+guarantees: 22; cases: 41; bindings: 1; fixture files: 7
+exit: 0
+
+### T3 surface: every surface library analyzes with no diagnostic under --fatal-infos
+Analyzing surface...
+No issues found!
+exit: 0
+
+### T4 reject: the (line, code) pairs reported in each file equal the pairs its markers name
+PASS ir_families_are_closed.dart [11:invalid_use_of_type_outside_library 14:invalid_use_of_type_outside_library 17:invalid_use_of_type_outside_library 20:invalid_use_of_type_outside_library 23:invalid_use_of_type_outside_library 26:invalid_use_of_type_outside_library 29:invalid_use_of_type_outside_library 32:invalid_use_of_type_outside_library 35:invalid_use_of_type_outside_library 38:non_exhaustive_switch_expression 43:non_exhaustive_switch_expression 50:non_exhaustive_switch_expression]
+PASS ir_holds_no_function.dart [11:argument_type_not_assignable 13:invocation_of_non_function_expression 15:undefined_getter 17:undefined_getter 19:argument_type_not_assignable]
+PASS ir_values_are_immutable.dart [19:assignment_to_final 21:assignment_to_final 23:assignment_to_final 25:assignment_to_final 27:assignment_to_final 29:assignment_to_final 31:assignment_to_final 33:assignment_to_final 35:assignment_to_final 37:assignment_to_final]
+exit: 0
+
+### T5 reject: the raw diagnostics behind T4, one line each (line severity code)
+-- ir_families_are_closed.dart
+11 ERROR invalid_use_of_type_outside_library
+14 ERROR invalid_use_of_type_outside_library
+17 ERROR invalid_use_of_type_outside_library
+20 ERROR invalid_use_of_type_outside_library
+23 ERROR invalid_use_of_type_outside_library
+26 ERROR invalid_use_of_type_outside_library
+29 ERROR invalid_use_of_type_outside_library
+32 ERROR invalid_use_of_type_outside_library
+35 ERROR invalid_use_of_type_outside_library
+38 ERROR non_exhaustive_switch_expression
+43 ERROR non_exhaustive_switch_expression
+50 ERROR non_exhaustive_switch_expression
+-- ir_holds_no_function.dart
+11 ERROR argument_type_not_assignable
+13 ERROR invocation_of_non_function_expression
+15 ERROR undefined_getter
+17 ERROR undefined_getter
+19 ERROR argument_type_not_assignable
+-- ir_values_are_immutable.dart
+19 ERROR assignment_to_final
+21 ERROR assignment_to_final
+23 ERROR assignment_to_final
+25 ERROR assignment_to_final
+27 ERROR assignment_to_final
+29 ERROR assignment_to_final
+31 ERROR assignment_to_final
+33 ERROR assignment_to_final
+35 ERROR assignment_to_final
+37 ERROR assignment_to_final
+
+### T6 schema (package:json_schema 5.2.2, draft 2020-12): every valid/ file validates, no invalid/ file does
+PASS valid/checkout.json
+PASS valid/claims_only.json
+PASS valid/empty.json
+PASS valid/escaping.json
+PASS valid/every_combinator.json
+PASS valid/findings.json
+PASS valid/forms.json
+PASS invalid/claim_event_topic.json (/claims/0/writes/0/variant: const violated event)
+PASS invalid/claim_scope_missing.json (/claims/0: required prop missing: scope from {source: service:forms, writes: [{name: forms.claimed, variant: state, typeName: int}]})
+PASS invalid/claim_topology_source.json (/claims/0/source: pattern violated (topology:x vs RegExp: pattern=^(service|page|executor):[\s\S]+$ flags=u))
+PASS invalid/claim_unknown_source.json (/claims/0/source: pattern violated (unknown vs RegExp: pattern=^(service|page|executor):[\s\S]+$ flags=u))
+PASS invalid/claim_without_writes.json (/claims/0/writes: minItems violated (0 vs 1))
+PASS invalid/claims_missing.json (: required prop missing: claims from {format: topology-ir@v1, topologies: [{topologyId: forms, scope: page, reads: [{name: forms.event, variant: event, typeName: int}, {name: forms.state, variant: state, typeName: int}], writes: [{name: forms.out, variant: event, typeName: int}, {name: forms.total, variant: state, typeName: int}], transforms: [{combinator: map, inputs: [{topic: {name: forms.event, variant: event, typeName: int}}], transformer: {name: inc}}, {combinator: withLatestFrom, inputs: [{edge: 0}, {topic: {name: forms.state, variant: state, typeName: int}, dedup: none}], transformer: {name: add}}, {combinator: merge, inputs: [{edge: 1}, {topic: {name: forms.event, variant: event, typeName: int}}]}, {combinator: debounce, inputs: [{edge: 2}], durationMicros: 5000}, {inputs: [{edge: 3}], output: {name: forms.out, variant: event, typeName: int}}, {combinator: reduceInto, inputs: [{topic: {name: forms.event, variant: event, typeName: int}}], output: {name: forms.total, variant: state, typeName: int}, transformer: {name: reduceCount}}]}]})
+PASS invalid/combinator_unknown.json (/topologies/0/transforms/0: #/$defs/transformEdge/oneOf: violated No element)
+PASS invalid/dedup_on_event_read.json (/topologies/0/transforms/2: #/$defs/transformEdge/oneOf: violated No element)
+PASS invalid/dedup_unknown.json (/topologies/0/transforms/1: #/$defs/transformEdge/oneOf: violated No element)
+PASS invalid/duration_fractional.json (/topologies/0/transforms/3: #/$defs/transformEdge/oneOf: violated No element)
+PASS invalid/duration_negative.json (/topologies/0/transforms/3: #/$defs/transformEdge/oneOf: violated No element)
+PASS invalid/format_missing.json (: required prop missing: format from {topologies: [{topologyId: forms, scope: page, reads: [{name: forms.event, variant: event, typeName: int}, {name: forms.state, variant: state, typeName: int}], writes: [{name: forms.out, variant: event, typeName: int}, {name: forms.total, variant: state, typeName: int}], transforms: [{combinator: map, inputs: [{topic: {name: forms.event, variant: event, typeName: int}}], transformer: {name: inc}}, {combinator: withLatestFrom, inputs: [{edge: 0}, {topic: {name: forms.state, variant: state, typeName: int}, dedup: none}], transformer: {name: add}}, {combinator: merge, inputs: [{edge: 1}, {topic: {name: forms.event, variant: event, typeName: int}}]}, {combinator: debounce, inputs: [{edge: 2}], durationMicros: 5000}, {inputs: [{edge: 3}], output: {name: forms.out, variant: event, typeName: int}}, {combinator: reduceInto, inputs: [{topic: {name: forms.event, variant: event, typeName: int}}], output: {name: forms.total, variant: state, typeName: int}, transformer: {name: reduceCount}}]}], claims: [{source: service:forms, scope: application, writes: [{name: forms.claimed, variant: state, typeName: int}]}]})
+PASS invalid/format_v2.json (/format: const violated topology-ir@v2)
+PASS invalid/function_ref_empty_name.json (/topologies/0/transforms/0: #/$defs/transformEdge/oneOf: violated No element)
+PASS invalid/function_ref_missing_name.json (/topologies/0/transforms/0: #/$defs/transformEdge/oneOf: violated No element)
+PASS invalid/input_edge_negative.json (/topologies/0/transforms/3: #/$defs/transformEdge/oneOf: violated No element)
+PASS invalid/input_topic_and_edge.json (/topologies/0/transforms/0: #/$defs/transformEdge/oneOf: violated No element)
+PASS invalid/map_with_two_inputs.json (/topologies/0/transforms/0: #/$defs/transformEdge/oneOf: violated No element)
+PASS invalid/map_without_transformer.json (/topologies/0/transforms/0: #/$defs/transformEdge/oneOf: violated No element)
+PASS invalid/merge_with_transformer.json (/topologies/0/transforms/2: #/$defs/transformEdge/oneOf: violated No element)
+PASS invalid/merge_without_inputs.json (/topologies/0/transforms/2: #/$defs/transformEdge/oneOf: violated No element)
+PASS invalid/reads_repeat_topic.json (/topologies/0/reads: uniqueItems violated: [{name: forms.event, variant: event, typeName: int}, {name: forms.state, variant: state, typeName: int}, {name: forms.event, variant: event, typeName: int}] [0]==[2])
+PASS invalid/reduce_into_event_output.json (/topologies/0/transforms/5: #/$defs/transformEdge/oneOf: violated No element)
+PASS invalid/reduce_into_without_transformer.json (/topologies/0/transforms/5: #/$defs/transformEdge/oneOf: violated No element)
+PASS invalid/retry_on_map.json (/topologies/0/transforms/0: #/$defs/transformEdge/oneOf: violated No element)
+PASS invalid/scope_unknown.json (/topologies/0/scope: enum violated session)
+PASS invalid/stage_with_output.json (/topologies/0/transforms/0: #/$defs/transformEdge/oneOf: violated No element)
+PASS invalid/time_stage_without_duration.json (/topologies/0/transforms/3: #/$defs/transformEdge/oneOf: violated No element)
+PASS invalid/topic_ref_extra_key.json (/topologies/0/reads/0: unallowed additional property sensitive)
+PASS invalid/topic_ref_without_type_name.json (/topologies/0/reads/0: required prop missing: typeName from {name: forms.event, variant: event})
+PASS invalid/topic_variant_unknown.json (/topologies/0/reads/0/variant: enum violated stream)
+PASS invalid/topologies_repeat.json (/topologies: uniqueItems violated: [{topologyId: forms, scope: page, reads: [{name: forms.event, variant: event, typeName: int}, {name: forms.state, variant: state, typeName: int}], writes: [{name: forms.out, variant: event, typeName: int}, {name: forms.total, variant: state, typeName: int}], transforms: [{combinator: map, inputs: [{topic: {name: forms.event, variant: event, typeName: int}}], transformer: {name: inc}}, {combinator: withLatestFrom, inputs: [{edge: 0}, {topic: {name: forms.state, variant: state, typeName: int}, dedup: none}], transformer: {name: add}}, {combinator: merge, inputs: [{edge: 1}, {topic: {name: forms.event, variant: event, typeName: int}}]}, {combinator: debounce, inputs: [{edge: 2}], durationMicros: 5000}, {inputs: [{edge: 3}], output: {name: forms.out, variant: event, typeName: int}}, {combinator: reduceInto, inputs: [{topic: {name: forms.event, variant: event, typeName: int}}], output: {name: forms.total, variant: state, typeName: int}, transformer: {name: reduceCount}}]}, {topologyId: forms, scope: page, reads: [{name: forms.event, variant: event, typeName: int}, {name: forms.state, variant: state, typeName: int}], writes: [{name: forms.out, variant: event, typeName: int}, {name: forms.total, variant: state, typeName: int}], transforms: [{combinator: map, inputs: [{topic: {name: forms.event, variant: event, typeName: int}}], transformer: {name: inc}}, {combinator: withLatestFrom, inputs: [{edge: 0}, {topic: {name: forms.state, variant: state, typeName: int}, dedup: none}], transformer: {name: add}}, {combinator: merge, inputs: [{edge: 1}, {topic: {name: forms.event, variant: event, typeName: int}}]}, {combinator: debounce, inputs: [{edge: 2}], durationMicros: 5000}, {inputs: [{edge: 3}], output: {name: forms.out, variant: event, typeName: int}}, {combinator: reduceInto, inputs: [{topic: {name: forms.event, variant: event, typeName: int}}], output: {name: forms.total, variant: state, typeName: int}, transformer: {name: reduceCount}}]}] [0]==[1])
+PASS invalid/topology_id_empty.json (/topologies/0/topologyId: minLength violated ( vs 1))
+PASS invalid/unknown_top_level_key.json (: unallowed additional property generatedAt)
+PASS invalid/with_latest_from_five_inputs.json (/topologies/0/transforms/1: #/$defs/transformEdge/oneOf: violated No element)
+PASS invalid/with_latest_from_one_input.json (/topologies/0/transforms/1: #/$defs/transformEdge/oneOf: violated No element)
+PASS invalid/write_with_transformer.json (/topologies/0/transforms/4: #/$defs/transformEdge/oneOf: violated No element)
+PASS invalid/write_without_output.json (/topologies/0/transforms/4: #/$defs/transformEdge/oneOf: violated No element)
+exit: 0
+
+### T7 schema cross-check (Ajv, draft 2020-12, strict): the same verdicts
+45
+exit: 0
+
+### T8 behavior: the binding under dart test, run from the root
+G2 CombinatorKind has exactly the eighteen values, in order
+G3 every collection the IR, graphs, claims and findings expose is unmodifiable
+G3 the IR copies the lists it is given; later changes to them do not reach it
+G4 every definition a plan projects to is pure data: it encodes to JSON and decodes back equal
+G5 a stage edge takes the input count its combinator allows
+G5 a stage edge carries a transformer, a duration and a retry exactly where its combinator holds one
+G5 a write and a reduceInto are sink edges; a reduceInto targets a state topic
+G6 a definition derives reads and writes from its edges, in canonical order
+G6 a definition rejects an empty id and ill-formed edges
+G7 IR values are equal, with equal hash codes, exactly when their fields are
+G7 graphs, claims, declarations and findings are equal, with equal hash codes, exactly when their fields are
+G8 a plan projects one stage edge per non-read stage, in stage order, then one sink edge per sink, in sink order
+G8 every combinator projects to its kind, its inputs in input order, its function, duration and retry
+G8 recording one declaration twice projects equal definitions, inline closures included
+G9 FunctionRef.of names a top-level function, a static method and a method tear-off, as the VM renders them
+G9 FunctionRef.of is anonymous for a closure and a local function, and never calls the function
+G10 scan and reduceInto bear state; debounce, delay, sample and buffer bear it only with a positive duration; nothing else does
+G11 a graph orders its topologies by id, keeps one of equal duplicates and lists every topic in canonical order
+G11 a graph rejects two different definitions with one id
+G11 a graph orders its claims by source, scope and topics, and keeps equal claims as separate claimants
+G12 a shell claim takes a service, page or executor source, application scope by default, and one or more state topics
+G13 findTopologyCycles reports each strongly connected set of two or more topologies, with the topics between them
+G13 shell claims take no part in cycles, and a graph without feedback has none
+G14 findSelfReferences reports a self-written topic read through no state-bearing edge, with every edge on such a path
+G14 a self-read mediated by scan, reduceInto or a positive time stage, or never reaching its write, is not reported
+G15 findWriterConflicts reports each state topic with two or more writers, topologies and claims alike
+G16 findScopeViolations reports each owner of a state topic that a longer-lived topology reads
+G17 analyzeTopologyGraph lists cycles, then self-references by topology, then writer conflicts, then scope violations
+G17 a graph with no finding stays without one when topologies or claims are removed
+G18 findTopicNameCollisions reports each name with two or more distinct declarations, whatever their types
+G19 the encoding of every sample graph matches the schema and equals its valid/ file
+G19 a definition encodes to the object its graph document lists
+G20 every valid/ file decodes and re-encodes to an equal JSON value
+G20 decoding the encoding of a graph gives the graph back
+G20 the decoder accepts topologies, claims, reads, writes and claimed topics in any order
+G21 every invalid/ file fails the schema and the decoder rejects it with a FormatException
+G21 the decoder rejects a schema-valid document that breaks a rule the schema cannot state
+G21 the decoder rejects any other value with a FormatException and no other error
+G22 the Mermaid and Graphviz renderings of every sample equal its render/ files
+G22 the JSON rendering of every sample is its valid/ file, byte for byte
+G22 render passes the graph to the renderer, and renderers are pure
+All tests passed!
+exit: 0
+
+### T9 behavior: a guarantee restriction by test-name prefix (--guarantee topology-ir/G14)
+00:00 +0: G14 findSelfReferences reports a self-written topic read through no state-bearing edge, with every edge on such a path
+00:00 +1: G14 a self-read mediated by scan, reduceInto or a positive time stage, or never reaching its write, is not reported
+00:00 +2: All tests passed!
+exit: 0
+
+### T10 behavior: the binding runs from a member's directory too (workspace root found by walking up)
+00:00 +41: All tests passed!
+exit: 0
+
+### T11 the conformance library and the binding analyze clean (warnings included)
+Analyzing behavior...
+No issues found!
+exit: 0
+
+### T12 the render/ goldens parse: Mermaid's parser and Graphviz's layout
+PASS checkout.dot graphviz 14.0.1 nodes=22 clusters=4
+PASS checkout.mmd mermaid flowchart-v2
+PASS claims_only.dot graphviz 14.0.1 nodes=10 clusters=0
+PASS claims_only.mmd mermaid flowchart-v2
+PASS empty.dot graphviz 14.0.1 nodes=0 clusters=0
+PASS empty.mmd mermaid flowchart-v2
+PASS escaping.dot graphviz 14.0.1 nodes=10 clusters=1
+PASS escaping.mmd mermaid flowchart-v2
+PASS every_combinator.dot graphviz 14.0.1 nodes=38 clusters=1
+PASS every_combinator.mmd mermaid flowchart-v2
+PASS findings.dot graphviz 14.0.1 nodes=29 clusters=8
+PASS findings.mmd mermaid flowchart-v2
+PASS forms.dot graphviz 14.0.1 nodes=12 clusters=1
+PASS forms.mmd mermaid flowchart-v2
+exit: 0
+-- not vacuous: the escaping goldens with their escapes undone
+FAIL unescaped.dot: syntax error in line 6 near '"'
+FAIL unescaped.mmd: Parse error on line 5:
+exit: 1
+
+### T13 the Interface's example document validates and round-trips
+PASS interface-example.json validates, decodes and re-encodes equal
+exit: 0
+
+### T14 the goldens are what the stand-in writes (valid/ and render/ regenerated and compared)
+identical
+invalid/ identical
+
+### T15 topology-dsl@v1's fixtures against this stand-in's projection: structure, surface, reject, recording
+guarantees: 29; cases: 66; bindings: 1; fixture files: 14
+exit: 0
+Analyzing surface...
+No issues found!
+exit: 0
+PASS dsl_types_are_closed.dart [9:invalid_use_of_type_outsid
+PASS handle_is_opaque.dart [56:undefined_getter 60:undefined
+PASS plan_is_a_separate_library.dart [9:undefined_class 12:u
+PASS reduce_into_targets_state.dart [41:argument_type_not_as
+PASS time_takes_duration.dart [16:argument_type_not_assignab
+PASS topology_declares_id_and_scope.dart [8:not_enough_posit
+PASS topology_is_a_base_class.dart [20:invalid_override_of_n
+PASS transformers_see_payloads.dart [32:argument_type_not_as
+PASS write_type_checks.dart [38:could_not_infer 40:could_not
+exit: 0
+00:00 +23: All tests passed!
+exit: 0
+
+### T16 the suite is not vacuous: each seeded defect in the stand-in fails the cases of its guarantee
+-- withLatestFrom projects its latest inputs before the primary (G8)
+G19 the encoding of every sample graph matches the schema and equals its valid/ file [E]
+G22 the JSON rendering of every sample is its valid/ file, byte for byte [E]
+G22 the Mermaid and Graphviz renderings of every sample equal its render/ files [E]
+G8 every combinator projects to its kind, its inputs in input order, its function, duration and retry [E]
+Some tests failed.
+-- a read's dedup argument is dropped (G8)
+G19 the encoding of every sample graph matches the schema and equals its valid/ file [E]
+G22 the JSON rendering of every sample is its valid/ file, byte for byte [E]
+G22 the Mermaid and Graphviz renderings of every sample equal its render/ files [E]
+G8 every combinator projects to its kind, its inputs in input order, its function, duration and retry [E]
+Some tests failed.
+-- FunctionRef.of names a closure by its signature (G9)
+G19 the encoding of every sample graph matches the schema and equals its valid/ file [E]
+G22 the JSON rendering of every sample is its valid/ file, byte for byte [E]
+G22 the Mermaid and Graphviz renderings of every sample equal its render/ files [E]
+G8 every combinator projects to its kind, its inputs in input order, its function, duration and retry [E]
+G9 FunctionRef.of is anonymous for a closure and a local function, and never calls the function [E]
+Some tests failed.
+-- a zero-duration time stage bears state (G10, G14, G17)
+G10 scan and reduceInto bear state; debounce, delay, sample and buffer bear it only with a positive duration; nothing else does [E]
+G14 findSelfReferences reports a self-written topic read through no state-bearing edge, with every edge on such a path [E]
+G17 analyzeTopologyGraph lists cycles, then self-references by topology, then writer conflicts, then scope violations [E]
+Some tests failed.
+-- a stage edge after a sink edge is accepted (G6, G21)
+G21 the decoder rejects a schema-valid document that breaks a rule the schema cannot state [E]
+G6 a definition rejects an empty id and ill-formed edges [E]
+Some tests failed.
+-- edges ignore their duration in equality (G7)
+G7 IR values are equal, with equal hash codes, exactly when their fields are [E]
+Some tests failed.
+-- reads keep edge order instead of canonical order (G6, G19, G22)
+G19 the encoding of every sample graph matches the schema and equals its valid/ file [E]
+G20 every valid/ file decodes and re-encodes to an equal JSON value [E]
+G20 the decoder accepts topologies, claims, reads, writes and claimed topics in any order [E]
+G22 the JSON rendering of every sample is its valid/ file, byte for byte [E]
+G6 a definition derives reads and writes from its edges, in canonical order [E]
+Some tests failed.
+-- a graph keeps the later of two definitions with one id (G11)
+G11 a graph rejects two different definitions with one id [E]
+Some tests failed.
+-- a graph exposes a modifiable topology list (G3)
+G3 every collection the IR, graphs, claims and findings expose is unmodifiable [E]
+Some tests failed.
+-- a claim accepts event topics (G12)
+G12 a shell claim takes a service, page or executor source, application scope by default, and one or more state topics [E]
+G21 every invalid/ file fails the schema and the decoder rejects it with a FormatException [E]
+Some tests failed.
+-- a single topology counts as a cycle (G13)
+G13 findTopologyCycles reports each strongly connected set of two or more topologies, with the topics between them [E]
+G13 shell claims take no part in cycles, and a graph without feedback has none [E]
+G17 a graph with no finding stays without one when topologies or claims are removed [E]
+G17 analyzeTopologyGraph lists cycles, then self-references by topology, then writer conflicts, then scope violations [E]
+Some tests failed.
+-- self-reference search ignores state-bearing edges (G14)
+G14 a self-read mediated by scan, reduceInto or a positive time stage, or never reaching its write, is not reported [E]
+Some tests failed.
+-- event topics have owners (G15)
+G15 findWriterConflicts reports each state topic with two or more writers, topologies and claims alike [E]
+G16 findScopeViolations reports each owner of a state topic that a longer-lived topology reads [E]
+Some tests failed.
+-- scope compatibility compares the wrong way round (G16)
+G16 findScopeViolations reports each owner of a state topic that a longer-lived topology reads [E]
+G17 analyzeTopologyGraph lists cycles, then self-references by topology, then writer conflicts, then scope violations [E]
+Some tests failed.
+-- analyzeTopologyGraph puts cycles last (G17)
+G17 analyzeTopologyGraph lists cycles, then self-references by topology, then writer conflicts, then scope violations [E]
+Some tests failed.
+-- name collisions require different types (G18)
+G18 findTopicNameCollisions reports each name with two or more distinct declarations, whatever their types [E]
+Some tests failed.
+-- a write encodes combinator: null (G19, G20, G22)
+G19 the encoding of every sample graph matches the schema and equals its valid/ file [E]
+G20 decoding the encoding of a graph gives the graph back [E]
+G20 every valid/ file decodes and re-encodes to an equal JSON value [E]
+G20 the decoder accepts topologies, claims, reads, writes and claimed topics in any order [E]
+G22 render passes the graph to the renderer, and renderers are pure [E]
+G22 the JSON rendering of every sample is its valid/ file, byte for byte [E]
+G4 every definition a plan projects to is pure data: it encodes to JSON and decodes back equal [E]
+Some tests failed.
+-- the decoder skips the reads check (G21)
+G21 every invalid/ file fails the schema and the decoder rejects it with a FormatException [E]
+G21 the decoder rejects a schema-valid document that breaks a rule the schema cannot state [E]
+Some tests failed.
+-- the decoder casts instead of checking (G21)
+     Which: threw _TypeError:<type 'double' is not a subtype of type 'int' in type cast>
+     Which: threw _TypeError:<type 'String' is not a subtype of type 'int' in type cast>
+G21 every invalid/ file fails the schema and the decoder rejects it with a FormatException [E]
+G21 the decoder rejects any other value with a FormatException and no other error [E]
+Some tests failed.
+-- Mermaid does not escape quotes (G22)
+G22 the Mermaid and Graphviz renderings of every sample equal its render/ files [E]
+Some tests failed.
+-- Graphviz does not escape backslashes (G22)
+G22 the Mermaid and Graphviz renderings of every sample equal its render/ files [E]
+Some tests failed.
+-- the JSON rendering has no final newline (G22)
+G22 the JSON rendering of every sample is its valid/ file, byte for byte [E]
+Some tests failed.
+
+### T17 a CombinatorKind value added to the Interface fails the surface set (exhaustive switch)
+1
+NON_EXHAUSTIVE_SWITCH_EXPRESSION|/Users/mohamad.purbo/gitx/nidana-bus-dart/docs/auto-run/experiments/topology-ir-fixtures/hsdd/contract/fixture/topology-ir/surface/definitions.dart|77|34
+exit: 3
+stand-in restored
+
+### cleanup: remove the copied tree and the scratch output; the repository's hsdd/contract/ stays the only copy
+removed

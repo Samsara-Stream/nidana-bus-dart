@@ -1,0 +1,83 @@
+digraph topologies {
+  rankdir=LR;
+  t0 [shape=ellipse, label="banner.source\nevent String"];
+  t1 [shape=ellipse, label="banner.text\nstate String"];
+  t2 [shape=ellipse, label="echo.value\nstate int"];
+  t3 [shape=ellipse, label="form.draft\nstate String"];
+  t4 [shape=ellipse, label="header.title\nevent String"];
+  t5 [shape=ellipse, label="loop.a\nevent int"];
+  t6 [shape=ellipse, label="loop.b\nevent int"];
+  t7 [shape=ellipse, label="quiet.value\nstate int"];
+  t8 [shape=ellipse, label="settings.requested\nevent int"];
+  t9 [shape=ellipse, label="settings.value\nstate int"];
+  t10 [shape=ellipse, label="summary.text\nevent String"];
+  subgraph cluster_p0 {
+    label="banner\npage";
+    p0e0 [shape=box, label="write"];
+  }
+  subgraph cluster_p1 {
+    label="echo\nmodule";
+    p1e0 [shape=box, label="map\ninc"];
+    p1e1 [shape=box, label="write"];
+  }
+  subgraph cluster_p2 {
+    label="header\napplication";
+    p2e0 [shape=box, label="map\nupper"];
+    p2e1 [shape=box, label="write"];
+  }
+  subgraph cluster_p3 {
+    label="ping\napplication";
+    p3e0 [shape=box, label="map\ninc"];
+    p3e1 [shape=box, label="write"];
+  }
+  subgraph cluster_p4 {
+    label="pong\napplication";
+    p4e0 [shape=box, label="map\ninc"];
+    p4e1 [shape=box, label="write"];
+  }
+  subgraph cluster_p5 {
+    label="quiet\nmodule";
+    p5e0 [shape=box, label="debounce 0s"];
+    p5e1 [shape=box, label="delay 10ms"];
+    p5e2 [shape=box, label="merge"];
+    p5e3 [shape=box, label="write"];
+  }
+  subgraph cluster_p6 {
+    label="settings-owner\nmodule";
+    p6e0 [shape=box, label="write"];
+  }
+  subgraph cluster_p7 {
+    label="summary\nmodule";
+    p7e0 [shape=box, label="map\nupper"];
+    p7e1 [shape=box, label="write"];
+  }
+  s0 [shape=box, style=rounded, label="page:checkout/cart\npage"];
+  s1 [shape=box, style=rounded, label="service:settings-sync\napplication"];
+  t0 -> p0e0;
+  p0e0 -> t1;
+  t2 -> p1e0;
+  p1e0 -> p1e1;
+  p1e1 -> t2;
+  t1 -> p2e0;
+  p2e0 -> p2e1;
+  p2e1 -> t4;
+  t5 -> p3e0;
+  p3e0 -> p3e1;
+  p3e1 -> t6;
+  t6 -> p4e0;
+  p4e0 -> p4e1;
+  p4e1 -> t5;
+  t7 -> p5e0;
+  t7 -> p5e1;
+  p5e0 -> p5e2;
+  p5e1 -> p5e2;
+  p5e2 -> p5e3;
+  p5e3 -> t7;
+  t8 -> p6e0;
+  p6e0 -> t9;
+  t3 -> p7e0;
+  p7e0 -> p7e1;
+  p7e1 -> t10;
+  s0 -> t3;
+  s1 -> t9;
+}

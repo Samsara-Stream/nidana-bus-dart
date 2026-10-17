@@ -1,0 +1,13 @@
+# topology-ir-fixtures: replays the topology-ir@v1 fixtures, and the
+# topology-dsl@v1 fixtures again, against a stand-in of
+# nidana_dart_contracts that implements topology-ir@v1 (see run.sh). Its own
+# pub workspace, never a member of the repository's workspace.
+name: tif_root
+publish_to: none
+environment:
+  sdk: ^3.13.0
+workspace:
+  - packages/nidana_dart_contracts
+  - packages/nidana_contract_check
+dev_dependencies:
+  lints: ^6.1.0

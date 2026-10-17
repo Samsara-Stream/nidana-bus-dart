@@ -1,0 +1,73 @@
+flowchart LR
+  t0(["banner.source<br/>event String"])
+  t1(["banner.text<br/>state String"])
+  t2(["echo.value<br/>state int"])
+  t3(["form.draft<br/>state String"])
+  t4(["header.title<br/>event String"])
+  t5(["loop.a<br/>event int"])
+  t6(["loop.b<br/>event int"])
+  t7(["quiet.value<br/>state int"])
+  t8(["settings.requested<br/>event int"])
+  t9(["settings.value<br/>state int"])
+  t10(["summary.text<br/>event String"])
+  subgraph p0["banner<br/>page"]
+    p0e0["write"]
+  end
+  subgraph p1["echo<br/>module"]
+    p1e0["map<br/>inc"]
+    p1e1["write"]
+  end
+  subgraph p2["header<br/>application"]
+    p2e0["map<br/>upper"]
+    p2e1["write"]
+  end
+  subgraph p3["ping<br/>application"]
+    p3e0["map<br/>inc"]
+    p3e1["write"]
+  end
+  subgraph p4["pong<br/>application"]
+    p4e0["map<br/>inc"]
+    p4e1["write"]
+  end
+  subgraph p5["quiet<br/>module"]
+    p5e0["debounce 0s"]
+    p5e1["delay 10ms"]
+    p5e2["merge"]
+    p5e3["write"]
+  end
+  subgraph p6["settings-owner<br/>module"]
+    p6e0["write"]
+  end
+  subgraph p7["summary<br/>module"]
+    p7e0["map<br/>upper"]
+    p7e1["write"]
+  end
+  s0["page:checkout/cart<br/>page"]
+  s1["service:settings-sync<br/>application"]
+  t0 --> p0e0
+  p0e0 --> t1
+  t2 --> p1e0
+  p1e0 --> p1e1
+  p1e1 --> t2
+  t1 --> p2e0
+  p2e0 --> p2e1
+  p2e1 --> t4
+  t5 --> p3e0
+  p3e0 --> p3e1
+  p3e1 --> t6
+  t6 --> p4e0
+  p4e0 --> p4e1
+  p4e1 --> t5
+  t7 --> p5e0
+  t7 --> p5e1
+  p5e0 --> p5e2
+  p5e1 --> p5e2
+  p5e2 --> p5e3
+  p5e3 --> t7
+  t8 --> p6e0
+  p6e0 --> t9
+  t3 --> p7e0
+  p7e0 --> p7e1
+  p7e1 --> t10
+  s0 --> t3
+  s1 --> t9
