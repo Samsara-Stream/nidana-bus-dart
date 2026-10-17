@@ -1,0 +1,12 @@
+# topic-model-fixtures: replays the topic-model@v1 fixtures against a
+# stand-in of nidana_dart_contracts (see run.sh). Its own pub workspace,
+# never a member of the repository's workspace.
+name: tmf_root
+publish_to: none
+environment:
+  sdk: ^3.13.0
+workspace:
+  - packages/nidana_dart_contracts
+  - packages/nidana_contract_check
+dev_dependencies:
+  lints: ^6.1.0

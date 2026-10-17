@@ -1,0 +1,239 @@
+
+### setup: copy the fixtures and the contract from the repository, resolve
+hsdd/contract/fixture/analysis_options.yaml
+hsdd/contract/fixture/topic-model/behavior/nidana_dart_contracts_test.dart
+hsdd/contract/fixture/topic-model/behavior/topic_model_conformance.dart
+hsdd/contract/fixture/topic-model/reject/envelope_requires_metadata.dart
+hsdd/contract/fixture/topic-model/reject/no_dispatcher_hint.dart
+hsdd/contract/fixture/topic-model/reject/observer_has_no_publish_path.dart
+hsdd/contract/fixture/topic-model/reject/only_state_topics_carry_values.dart
+hsdd/contract/fixture/topic-model/reject/replay_buffer_is_positive.dart
+hsdd/contract/fixture/topic-model/reject/source_family_is_closed.dart
+hsdd/contract/fixture/topic-model/reject/state_topic_requires_initial.dart
+hsdd/contract/fixture/topic-model/reject/topic_family_is_closed.dart
+hsdd/contract/fixture/topic-model/reject/values_are_immutable.dart
+hsdd/contract/fixture/topic-model/surface/envelopes.dart
+hsdd/contract/fixture/topic-model/surface/observers.dart
+hsdd/contract/fixture/topic-model/surface/topics.dart
+hsdd/contract/topic-model.md
+pub get exit: 0
+resolved lints: "6.1.0"
+resolved matcher: "0.12.20"
+resolved meta: "1.19.0"
+resolved test: "1.33.0"
+
+### T0 the stand-in package is clean under the root lint set and --fatal-infos
+Analyzing packages...
+No issues found!
+exit: 0
+
+### T1 workspace-wide analyze at the root skips hsdd/** (reject fixtures hold deliberate errors)
+Analyzing topic-model-fixtures...
+No issues found!
+exit: 0
+
+### T2 structure: headers, markers, guarantee coverage, listed bindings, no src/ imports
+PASS G1 1 fixture(s)
+PASS G2 1 fixture(s)
+PASS G3 1 fixture(s)
+PASS G4 3 fixture(s)
+PASS G5 1 fixture(s)
+PASS G6 2 fixture(s)
+PASS G7 2 fixture(s)
+PASS G8 2 fixture(s)
+PASS G9 2 fixture(s)
+PASS G10 2 fixture(s)
+PASS G11 3 fixture(s)
+PASS G12 1 fixture(s)
+PASS G13 2 fixture(s)
+PASS G14 3 fixture(s)
+PASS G15 3 fixture(s)
+PASS G16 1 fixture(s)
+PASS G17 4 fixture(s)
+PASS G18 2 fixture(s)
+PASS G19 7 fixture(s)
+PASS G20 1 fixture(s)
+PASS G21 1 fixture(s)
+PASS G22 1 fixture(s)
+PASS G23 1 fixture(s)
+PASS G24 2 fixture(s)
+PASS G25 not executable
+PASS G26 not executable
+guarantees: 26; cases: 40; bindings: 1; fixture files: 14
+exit: 0
+
+### T2b structure, negative control: a guarantee with no fixture and no not-executable line fails
+FAIL G27 
+PROBLEM G27 is not covered
+exit: 1
+
+### T3 surface: every surface library analyzes with no diagnostic under --fatal-infos
+Analyzing surface...
+No issues found!
+exit: 0
+
+### T4 reject: the (line, code) pairs reported in each file equal the pairs its markers name
+PASS envelope_requires_metadata.dart [11:missing_required_argument 14:missing_required_argument 17:missing_required_argument 20:missing_required_argument 23:missing_required_argument 26:missing_required_argument 29:missing_required_argument 32:missing_required_argument]
+PASS no_dispatcher_hint.dart [7:undefined_named_parameter 10:undefined_named_parameter 13:undefined_named_parameter]
+PASS observer_has_no_publish_path.dart [19:undefined_method 21:undefined_getter 23:undefined_method 25:undefined_method 27:undefined_method]
+PASS only_state_topics_carry_values.dart [11:undefined_method 13:undefined_method 15:undefined_getter 17:undefined_getter 19:argument_type_not_assignable 21:invalid_assignment 26:undefined_named_parameter 29:undefined_named_parameter]
+PASS replay_buffer_is_positive.dart [7:const_eval_throws_exception]
+PASS source_family_is_closed.dart [8:invalid_use_of_type_outside_library 11:invalid_use_of_type_outside_library 16:non_exhaustive_switch_expression]
+PASS state_topic_requires_initial.dart [8:missing_required_argument 11:missing_required_argument 14:argument_type_not_assignable 17:argument_type_not_assignable]
+PASS topic_family_is_closed.dart [8:invalid_use_of_type_outside_library 13:invalid_use_of_type_outside_library 19:non_exhaustive_switch_expression]
+PASS values_are_immutable.dart [16:assignment_to_final 18:assignment_to_final 20:assignment_to_final 22:assignment_to_final 24:assignment_to_final 26:assignment_to_final 28:assignment_to_final 30:assignment_to_final]
+exit: 0
+
+### T5 reject: the raw diagnostics behind T4, one line each (line severity code)
+-- envelope_requires_metadata.dart
+11 ERROR missing_required_argument
+14 ERROR missing_required_argument
+17 ERROR missing_required_argument
+20 ERROR missing_required_argument
+23 ERROR missing_required_argument
+26 ERROR missing_required_argument
+29 ERROR missing_required_argument
+32 ERROR missing_required_argument
+-- no_dispatcher_hint.dart
+7 ERROR undefined_named_parameter
+10 ERROR undefined_named_parameter
+13 ERROR undefined_named_parameter
+-- observer_has_no_publish_path.dart
+19 ERROR undefined_method
+21 ERROR undefined_getter
+23 ERROR undefined_method
+25 ERROR undefined_method
+27 ERROR undefined_method
+-- only_state_topics_carry_values.dart
+11 ERROR undefined_method
+13 ERROR undefined_method
+15 ERROR undefined_getter
+17 ERROR undefined_getter
+19 ERROR argument_type_not_assignable
+21 ERROR invalid_assignment
+26 ERROR undefined_named_parameter
+29 ERROR undefined_named_parameter
+-- replay_buffer_is_positive.dart
+7 ERROR const_eval_throws_exception
+-- source_family_is_closed.dart
+8 ERROR invalid_use_of_type_outside_library
+11 ERROR invalid_use_of_type_outside_library
+16 ERROR non_exhaustive_switch_expression
+-- state_topic_requires_initial.dart
+8 ERROR missing_required_argument
+11 ERROR missing_required_argument
+14 ERROR argument_type_not_assignable
+17 ERROR argument_type_not_assignable
+-- topic_family_is_closed.dart
+8 ERROR invalid_use_of_type_outside_library
+13 ERROR invalid_use_of_type_outside_library
+19 ERROR non_exhaustive_switch_expression
+-- values_are_immutable.dart
+16 ERROR assignment_to_final
+18 ERROR assignment_to_final
+20 ERROR assignment_to_final
+22 ERROR assignment_to_final
+24 ERROR assignment_to_final
+26 ERROR assignment_to_final
+28 ERROR assignment_to_final
+30 ERROR assignment_to_final
+
+### T6 behavior: the binding under dart test, run from the root
+00:00 +0: loading hsdd/contract/fixture/topic-model/behavior/nidana_dart_contracts_test.dart
+00:00 +0: G4 an envelope keeps an unmodifiable copy of its parent correlation ids
+00:00 +1: G4 a lineage keeps unmodifiable parent correlation ids
+00:00 +2: G6 a state topic defaults to equality dedup, not sensitive, traced
+00:00 +3: G6 event and replay topics default to not sensitive and traced
+00:00 +4: G7 topics with the same variant, name and value type are equal
+00:00 +5: G7 topics differing in variant, name or value type are not equal
+00:00 +6: G8 a topic reference carries the name, the variant and the type name
+00:00 +7: G8 topic references are equal exactly when all three fields are
+00:00 +8: G9 a constant initial value is returned as declared
+00:00 +9: G9 a computed initial value is computed on each createInitial call, never at construction
+00:00 +10: G10 a replay topic with a buffer smaller than one value fails an assertion
+00:00 +11: G11 well-formed topic names have two or three lowercase kebab segments
+00:00 +12: G11 other names are not well formed
+00:00 +13: G11 topic constructors accept any name
+00:00 +14: G13 envelopes with equal fields are equal and hash alike
+00:00 +15: G13 envelopes differing in any field are not equal
+00:00 +16: G14 a published envelope mirrors the destination topic sensitive flag
+00:00 +17: G14 a published envelope takes its metadata from its arguments and its lineage
+00:00 +18: G14 a lineage without a correlation id takes exactly one fresh id at publish
+00:00 +19: G15 a sensitive envelope renders its payload redacted
+00:00 +20: G15 redacted() replaces a sensitive payload and keeps every other field
+00:00 +21: G15 redacted() leaves a non-sensitive envelope equal to itself
+00:00 +22: G17 a source renders in the Spec 2.4 format
+00:00 +23: G17 tryParse reads back every rendered source
+00:00 +24: G17 tryParse returns null for text that is not a source
+00:00 +25: G17 sources are equal exactly when variant and name are
+00:00 +26: G18 a lineage caused by an envelope points at it and keeps its flow
+00:00 +27: G18 a root lineage has no cause and no parents
+00:00 +28: G19 a same-correlation combine keeps the correlation and takes the trigger as cause
+00:00 +29: G19 a cross-correlation combine takes one fresh correlation and records the inputs
+00:00 +30: G19 a cross-correlation combine records each distinct input correlation once, in input order
+00:00 +31: G19 a same-correlation combine unites the inputs parent correlation ids in input order
+00:00 +32: G19 inputs without a correlation id contribute none
+00:00 +33: G19 a combine is sensitive when any input is
+00:00 +34: G19 a combine rejects an empty input list and a trigger out of range
+00:00 +35: G20 withLatestFrom keeps the primary cause and flow and unites sensitivity
+00:00 +36: G21 scopes are ordered application, module, page by lifetime
+00:00 +37: G23 observeAll admits non-sensitive envelopes only, observeSensitive sensitive ones only
+00:00 +38: G24 a redacted payload shows the runtime type and eight hex digits of the hash code
+00:00 +39: G24 equal payloads redact to equal values
+00:00 +40: All tests passed!
+exit: 0
+
+### T7 behavior: a guarantee restriction by test-name prefix (--guarantee topic-model/G19)
+00:00 +0: loading hsdd/contract/fixture/topic-model/behavior/nidana_dart_contracts_test.dart
+00:00 +0: G19 a same-correlation combine keeps the correlation and takes the trigger as cause
+00:00 +1: G19 a cross-correlation combine takes one fresh correlation and records the inputs
+00:00 +2: G19 a cross-correlation combine records each distinct input correlation once, in input order
+00:00 +3: G19 a same-correlation combine unites the inputs parent correlation ids in input order
+00:00 +4: G19 inputs without a correlation id contribute none
+00:00 +5: G19 a combine is sensitive when any input is
+00:00 +6: G19 a combine rejects an empty input list and a trigger out of range
+00:00 +7: All tests passed!
+exit: 0
+
+### T8 the binding is analyzed clean too (warnings included)
+Analyzing behavior...
+No issues found!
+exit: 0
+
+### T9 the suite is not vacuous: each seeded defect in the stand-in fails the cases of its guarantee
+-- taint at publish (G14)
+G14 a published envelope mirrors the destination topic sensitive flag [E]
+Some tests failed.
+-- fresh correlation for a shared one (G19)
+G19 a same-correlation combine keeps the correlation and takes the trigger as cause [E]
+G19 a same-correlation combine unites the inputs parent correlation ids in input order [E]
+G19 inputs without a correlation id contribute none [E]
+Some tests failed.
+-- observeAll admits sensitive envelopes (G23)
+G23 observeAll admits non-sensitive envelopes only, observeSensitive sensitive ones only [E]
+Some tests failed.
+-- sensitive flag in topic identity (G7)
+G7 topics with the same variant, name and value type are equal [E]
+Some tests failed.
+-- parents kept by reference (G4)
+G4 an envelope keeps an unmodifiable copy of its parent correlation ids [E]
+Some tests failed.
+-- four-segment names accepted (G11)
+G11 other names are not well formed [E]
+Some tests failed.
+-- sensitive payload rendered in toString (G15)
+G15 a sensitive envelope renders its payload redacted [E]
+Some tests failed.
+-- factory called twice per call (G9)
+G9 a computed initial value is computed on each createInitial call, never at construction [E]
+Some tests failed.
+stand-in restored
+
+### T10 a member added to an observer interface fails the surface set (the 'declares only' half of G22)
+1
+NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER|/Users/mohamad.purbo/gitx/nidana-bus-dart/docs/auto-run/experiments/topic-model-fixtures/hsdd/contract/fixture/topic-model/surface/observers.dart|79|13
+exit: 3
+stand-in restored
+
+### cleanup: remove the copied tree; the repository's hsdd/contract/ stays the only copy
+removed

@@ -1,0 +1,11 @@
+name: nidana_dart_contracts
+description: Stand-in for the topic-model@v1 part of nidana_dart_contracts (experiment only).
+version: 0.1.0
+publish_to: none
+environment:
+  sdk: ^3.13.0
+resolution: workspace
+dependencies:
+  meta: ^1.16.0
+dev_dependencies:
+  test: ^1.25.0
