@@ -1,0 +1,49 @@
+9 ERROR invalid_use_of_type_outside_library | The class 'Bus' can't be extended outside of its library because it's a final class.
+10 ERROR non_abstract_class_inherits_abstract_member | Missing concrete implementations of 'Bus.activate', 'Bus.addObserver', 'Bus.getBufferedValues', 'Bus
+10 ERROR invalid_use_of_type_outside_library | The class 'Bus' can't be implemented outside of its library because it's a final class.
+11 ERROR non_abstract_class_inherits_abstract_member | Missing concrete implementations of 'Publisher.dispose', 'Publisher.publish', 'Publisher.writer', 'g
+11 ERROR invalid_use_of_type_outside_library | The class 'Publisher' can't be implemented outside of its library because it's a final class.
+12 ERROR non_abstract_class_inherits_abstract_member | Missing concrete implementations of 'StateWriter.publish' and 'getter StateWriter.topic'.
+12 ERROR invalid_use_of_type_outside_library | The class 'StateWriter' can't be implemented outside of its library because it's a final class.
+13 ERROR non_abstract_class_inherits_abstract_member | Missing concrete implementations of 'TopologyHandle.deactivate', 'getter TopologyHandle.definition',
+13 ERROR invalid_use_of_type_outside_library | The class 'TopologyHandle' can't be implemented outside of its library because it's a final class.
+14 ERROR non_abstract_class_inherits_abstract_member | Missing concrete implementations of 'ModuleScope.acquire', 'getter ModuleScope.gracePeriod', 'getter
+14 ERROR invalid_use_of_type_outside_library | The class 'ModuleScope' can't be implemented outside of its library because it's a final class.
+15 ERROR non_abstract_class_inherits_abstract_member | Missing concrete implementations of 'ModuleReference.release', 'getter ModuleReference.isReleased', 
+15 ERROR invalid_use_of_type_outside_library | The class 'ModuleReference' can't be implemented outside of its library because it's a final class.
+16 ERROR invalid_use_of_type_outside_library | The class 'BusConfig' can't be extended outside of its library because it's a final class.
+17 ERROR invalid_use_of_type_outside_library | The class 'SchedulerProvider' can't be extended, implemented, or mixed in outside of its library bec
+18 ERROR invalid_use_of_type_outside_library | The class 'SchedulerProvider' can't be extended, implemented, or mixed in outside of its library bec
+19 ERROR invalid_use_of_type_outside_library | The class 'ProductionSchedulerProvider' can't be extended outside of its library because it's a fina
+20 ERROR invalid_use_of_type_outside_library | The class 'BusDiagnostic' can't be extended, implemented, or mixed in outside of its library because
+21 ERROR invalid_use_of_type_outside_library | The class 'ShellDiagnostic' can't be implemented outside of its library because it's a base class.
+30 ERROR invalid_use_of_type_outside_library | The class 'BusError' can't be extended, implemented, or mixed in outside of its library because it's
+31 ERROR no_default_super_constructor | The superclass 'ActivationRejected' doesn't have a zero argument constructor.
+31 ERROR invalid_use_of_type_outside_library | The class 'ActivationRejected' can't be extended outside of its library because it's a final class.
+32 ERROR invalid_use_of_type_outside_library | The class 'TelemetryObserver' can't be extended outside of its library because it's a final class.
+35 ERROR undefined_getter | The getter 'instance' isn't defined for the type 'Bus'.
+36 ERROR undefined_getter | The getter 'current' isn't defined for the type 'Bus'.
+37 ERROR undefined_method | The method 'of' isn't defined for the type 'Bus'.
+38 ERROR new_with_undefined_constructor_default | The class 'Publisher' doesn't have an unnamed constructor.
+39 ERROR new_with_undefined_constructor_default | The class 'TopologyHandle' doesn't have an unnamed constructor.
+40 ERROR new_with_undefined_constructor_default | The class 'ModuleScope' doesn't have an unnamed constructor.
+41 ERROR new_with_undefined_constructor_default | The class 'StateWriter' doesn't have an unnamed constructor.
+42 ERROR argument_type_not_assignable | The argument type 'StateTopic<int>' can't be assigned to the parameter type 'MultiWriterTopic<int>'.
+43 ERROR argument_type_not_assignable | The argument type 'StateTopic<int>' can't be assigned to the parameter type 'MultiWriterTopic<int>'.
+44 ERROR argument_type_not_assignable | The argument type 'EventTopic<int>' can't be assigned to the parameter type 'StateTopic<dynamic>'. 
+45 ERROR argument_type_not_assignable | The argument type 'ReplayTopic<int>' can't be assigned to the parameter type 'StateTopic<dynamic>'. 
+46 ERROR argument_type_not_assignable | The argument type 'StateTopic<int>' can't be assigned to the parameter type 'ReplayTopic<dynamic>'. 
+47 ERROR argument_type_not_assignable | The argument type 'EventTopic<int>' can't be assigned to the parameter type 'ReplayTopic<dynamic>'. 
+48 ERROR set_element_type_not_assignable | The element type 'EventTopic<int>' can't be assigned to the set type 'StateTopic<Object?>'.
+49 ERROR set_element_type_not_assignable | The element type 'EventTopic<int>' can't be assigned to the set type 'StateTopic<Object?>'.
+50 ERROR argument_type_not_assignable | The argument type 'String' can't be assigned to the parameter type 'int'. 
+51 ERROR argument_type_not_assignable | The argument type 'EventTopic<int>' can't be assigned to the parameter type 'StateTopic<dynamic>'. 
+52 ERROR assignment_to_final | 'maxTopics' can't be used as a setter because it's final.
+54 ERROR assignment_to_final | 'config' can't be used as a setter because it's final.
+55 ERROR assignment_to_final | 'devMode' can't be used as a setter because it's final.
+56 ERROR assignment_to_final | 'source' can't be used as a setter because it's final.
+44 WARNING inference_failure_on_function_invocation | The type argument(s) of the function 'getCurrentValue' can't be inferred.
+45 WARNING inference_failure_on_function_invocation | The type argument(s) of the function 'getCurrentValue' can't be inferred.
+46 WARNING inference_failure_on_function_invocation | The type argument(s) of the function 'getBufferedValues' can't be inferred.
+47 WARNING inference_failure_on_function_invocation | The type argument(s) of the function 'getBufferedValues' can't be inferred.
+51 WARNING inference_failure_on_function_invocation | The type argument(s) of the function 'writer' can't be inferred.

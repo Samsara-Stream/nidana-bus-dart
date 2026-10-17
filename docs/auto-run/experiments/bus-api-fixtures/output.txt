@@ -1,0 +1,526 @@
+
+### setup: copy the contract and the fixtures from the repository, resolve
+hsdd/contract/bus-api.md
+hsdd/contract/fixture/bus-api/behavior/bus_activation_test.dart
+hsdd/contract/fixture/bus-api/behavior/bus_api_conformance.dart
+hsdd/contract/fixture/bus-api/behavior/nidana_dart_runtime_test.dart
+hsdd/contract/fixture/bus-api/reject/config_is_immutable.dart
+hsdd/contract/fixture/bus-api/reject/current_value_is_state_only.dart
+hsdd/contract/fixture/bus-api/reject/diagnostics_are_closed.dart
+hsdd/contract/fixture/bus-api/reject/no_global_accessor.dart
+hsdd/contract/fixture/bus-api/reject/no_publisherless_state_publish.dart
+hsdd/contract/fixture/bus-api/reject/publisher_reaches_state_through_writer.dart
+hsdd/contract/fixture/bus-api/reject/runtime_types_are_closed.dart
+hsdd/contract/fixture/bus-api/reject/scheduler_providers_are_closed.dart
+hsdd/contract/fixture/bus-api/surface/bus.dart
+hsdd/contract/fixture/bus-api/surface/observation.dart
+hsdd/contract/fixture/bus-api/surface/topologies.dart
+pub get exit: 0
+resolved clock: "1.1.3"
+resolved lints: "6.1.0"
+resolved matcher: "0.12.20"
+resolved meta: "1.19.0"
+resolved rxdart: "0.28.0"
+resolved test: "1.33.0"
+
+### T0 the stand-in packages are clean under the root lint set and --fatal-infos
+Analyzing packages...
+No issues found!
+exit: 0
+
+### T1 workspace-wide analyze at the root skips hsdd/** (reject fixtures hold deliberate errors)
+Analyzing bus-api-fixtures...
+No issues found!
+exit: 0
+
+### T2 structure: headers, markers, guarantee coverage, listed bindings, no src/ imports
+PASS G1 2 fixture(s)
+PASS G2 1 fixture(s)
+PASS G3 3 fixture(s)
+PASS G4 4 fixture(s)
+PASS G5 5 fixture(s)
+PASS G6 2 fixture(s)
+PASS G7 2 fixture(s)
+PASS G8 4 fixture(s)
+PASS G9 5 fixture(s)
+PASS G10 3 fixture(s)
+PASS G11 2 fixture(s)
+PASS G12 1 fixture(s)
+PASS G13 2 fixture(s)
+PASS G14 3 fixture(s)
+PASS G15 1 fixture(s)
+PASS G16 3 fixture(s)
+PASS G17 2 fixture(s)
+PASS G18 3 fixture(s)
+PASS G19 3 fixture(s)
+PASS G20 4 fixture(s)
+PASS G21 3 fixture(s)
+PASS G22 3 fixture(s)
+PASS G23 4 fixture(s)
+PASS G24 4 fixture(s)
+PASS G25 1 fixture(s)
+PASS G26 1 fixture(s)
+PASS G27 1 fixture(s)
+PASS G28 6 fixture(s)
+PASS G29 2 fixture(s)
+PASS G30 2 fixture(s)
+PASS G31 1 fixture(s)
+PASS G32 1 fixture(s)
+PASS G33 3 fixture(s)
+PASS G34 3 fixture(s)
+PASS G35 1 fixture(s)
+PASS G36 3 fixture(s)
+PASS G37 1 fixture(s)
+PASS G38 not executable
+PASS G39 not executable
+guarantees: 39; cases: 86; bindings: 2; fixture files: 14
+exit: 0
+
+### T3 surface: every surface library analyzes with no diagnostic under --fatal-infos
+Analyzing surface...
+No issues found!
+exit: 0
+
+### T4 reject: the (line, code) pairs reported in each file equal the pairs its markers name
+PASS config_is_immutable.dart [7:assignment_to_final 9:assignment_to_final 11:assignment_to_final 13:assignment_to_final]
+PASS current_value_is_state_only.dart [14:argument_type_not_assignable 16:argument_type_not_assignable 18:argument_type_not_assignable 20:argument_type_not_assignable]
+PASS diagnostics_are_closed.dart [7:invalid_use_of_type_outside_library 10:invalid_use_of_type_outside_library]
+PASS no_global_accessor.dart [8:undefined_getter 10:undefined_getter 12:undefined_method]
+PASS no_publisherless_state_publish.dart [11:argument_type_not_assignable 13:argument_type_not_assignable]
+PASS publisher_reaches_state_through_writer.dart [15:argument_type_not_assignable 17:set_element_type_not_assignable 19:set_element_type_not_assignable 21:argument_type_not_assignable 24:argument_type_not_assignable]
+PASS runtime_types_are_closed.dart [8:invalid_use_of_type_outside_library 11:invalid_use_of_type_outside_library 14:invalid_use_of_type_outside_library 17:invalid_use_of_type_outside_library 20:invalid_use_of_type_outside_library 23:invalid_use_of_type_outside_library 26:invalid_use_of_type_outside_library 29:invalid_use_of_type_outside_library 32:invalid_use_of_type_outside_library 35:invalid_use_of_type_outside_library 39:new_with_undefined_constructor_default 41:new_with_undefined_constructor_default 43:new_with_undefined_constructor_default 45:new_with_undefined_constructor_default 47:new_with_undefined_constructor_default]
+PASS scheduler_providers_are_closed.dart [7:invalid_use_of_type_outside_library 10:invalid_use_of_type_outside_library 13:invalid_use_of_type_outside_library]
+exit: 0
+
+### T5 reject: the raw diagnostics behind T4, one line each (line severity code)
+-- config_is_immutable.dart
+7 ERROR assignment_to_final
+9 ERROR assignment_to_final
+11 ERROR assignment_to_final
+13 ERROR assignment_to_final
+-- current_value_is_state_only.dart
+14 ERROR argument_type_not_assignable
+16 ERROR argument_type_not_assignable
+18 ERROR argument_type_not_assignable
+20 ERROR argument_type_not_assignable
+-- diagnostics_are_closed.dart
+7 ERROR invalid_use_of_type_outside_library
+10 ERROR invalid_use_of_type_outside_library
+-- no_global_accessor.dart
+8 ERROR undefined_getter
+10 ERROR undefined_getter
+12 ERROR undefined_method
+-- no_publisherless_state_publish.dart
+11 ERROR argument_type_not_assignable
+13 ERROR argument_type_not_assignable
+-- publisher_reaches_state_through_writer.dart
+15 ERROR argument_type_not_assignable
+17 ERROR set_element_type_not_assignable
+19 ERROR set_element_type_not_assignable
+21 ERROR argument_type_not_assignable
+24 ERROR argument_type_not_assignable
+-- runtime_types_are_closed.dart
+8 ERROR invalid_use_of_type_outside_library
+11 ERROR invalid_use_of_type_outside_library
+14 ERROR invalid_use_of_type_outside_library
+17 ERROR invalid_use_of_type_outside_library
+20 ERROR invalid_use_of_type_outside_library
+23 ERROR invalid_use_of_type_outside_library
+26 ERROR invalid_use_of_type_outside_library
+29 ERROR invalid_use_of_type_outside_library
+32 ERROR invalid_use_of_type_outside_library
+35 ERROR invalid_use_of_type_outside_library
+39 ERROR new_with_undefined_constructor_default
+41 ERROR new_with_undefined_constructor_default
+43 ERROR new_with_undefined_constructor_default
+45 ERROR new_with_undefined_constructor_default
+47 ERROR new_with_undefined_constructor_default
+-- scheduler_providers_are_closed.dart
+7 ERROR invalid_use_of_type_outside_library
+10 ERROR invalid_use_of_type_outside_library
+13 ERROR invalid_use_of_type_outside_library
+
+### T6 the conformance library and both bindings analyze clean (warnings included)
+Analyzing behavior...
+No issues found!
+exit: 0
+
+### T7 behavior: the bus-api suite on the stand-in TestBus, under dart test from the root
+00:00 +0: loading hsdd/contract/fixture/bus-api/behavior/nidana_dart_runtime_test.dart
+00:00 +0: G1 two buses keep their own subjects, values, claims and observers, sharing only the topic values
+00:00 +1: G3 BusConfig defaults to the production provider, dev mode from assertions, the default sinks, the Specification limits, a 100 ms grace period and a 5 s startup window
+00:00 +2: G3 constructing a bus with a limit below one or a negative duration throws ArgumentError
+00:00 +3: G4 dev mode is the configured value, or whether assertions are enabled when the config leaves it unset
+00:00 +4: G4 in dev mode a diagnostic is a value delivered to the configured sink, never thrown; outside dev mode none is delivered
+00:00 +5: G4 a ShellDiagnostic another package defines reaches the sink through reportDiagnostic, in dev mode only
+00:00 +6: G5 an observed stream delivers in the bus zone, whatever zone listens to it or publishes
+00:00 +7: G5 observers are called in the bus zone
+00:00 +8: G5 a production-provider bus keeps the zone and the clock current where it was constructed
+00:00 +9: G5 the bus clock is the provider clock and stamps every envelope at its publish
+00:00 +10: G6 a computed initial value is created once, by the first runtime access that creates the subject, and never by a claim
+00:00 +11: G6 activation creates the subjects of the topics a topology reads and writes
+00:00 +12: G7 a name already registered with another variant or value type throws TopicCollision
+00:00 +13: G7 equal declarations share one subject, and a declaration that differs in its sensitive flag collides
+00:00 +14: G8 getCurrentValue is the declared initial value on a fresh bus, then the last value delivered
+00:00 +15: G8 getBufferedValues holds the most recent values up to the buffer size, oldest first, unmodifiable
+00:00 +16: G8 getCurrentValue never throws for a topic without a subject, and after shutdown it answers with the last value held
+00:00 +17: G9 removeTopic refuses a topic that has subscribers unless forced, and changes nothing when it refuses
+00:00 +18: G9 a forced removal ends every subscription with TopicRemoved and done before it returns, and the next access starts from the initial value
+00:00 +19: G9 a forced removal delivers TopicRemoved to the reads of active topologies, which ends their sinks
+00:00 +20: G9 removing a topic that has no subject, or a subject and no subscriber, succeeds
+00:00 +21: G9 removeTopic called during a delivery throws StateError
+00:00 +22: G10 an activation beyond maxActiveTopologies or maxTopics throws BusLimitExceeded and activates nothing
+00:00 +23: G10 addObserver beyond maxObservers throws BusLimitExceeded
+00:00 +24: G10 a subject created beyond maxTopics outside activation is created and reported in dev mode
+00:00 +25: G11 a publisher-less publish reaches an event or replay topic with the unknown source and is reported in dev mode
+00:00 +26: G12 a shell publish starts a new flow: fresh id and correlation, no causation or parents, the publisher source and the topic sensitive flag
+00:00 +27: G13 every subscriber and observer of a topic receives its deliveries in one order, reentrant publishes included
+00:00 +28: G13 after start a publish made outside any delivery reaches the established subscribers before publish returns
+00:00 +29: G14 a publish made during a delivery is delivered after that delivery completes, in the next bus microtask, in the order made
+00:00 +30: G14 a subscriber that publishes to the topic it is receiving does not fail, and its publish follows the current delivery
+00:00 +31: G14 a topology publish a delivery causes is reentrant, and one value written by several sinks is delivered consecutively in sink declaration order
+00:00 +32: G15 a reentrant chain deeper than maxReentrancyDepth is reported once in dev mode with its topics, and delivery goes on
+00:00 +33: G16 a subscription to a state topic skips a value equal to the last it received; a Dedup.none topic delivers every publish
+00:00 +34: G16 observers, the current value and a Dedup.none read see a publish that dedup suppresses for default subscribers (decides OQ-R3)
+00:00 +35: G16 event and replay topics never deduplicate
+00:00 +36: G17 a state topic subscription receives the value current when it listened in the first bus microtask, then the values delivered meanwhile, in order (decides OQ-R1)
+00:00 +37: G17 a replay topic subscription receives its buffer first, in the first bus microtask; an event topic subscription receives only what is published after it listened, at once
+00:00 +38: G18 an observed stream is a broadcast stream, each listen a subscription with its own first value
+00:00 +39: G18 a subscriber that throws does not stop delivery to the others, and its error reaches the zone the bus was built in
+00:00 +40: G18 a cancelled subscription receives nothing more; shutdown ends every subscription before it returns, and observe then throws StateError
+00:00 +41: G19 a publisher takes a service, page or executor source; a topology or unknown source throws ArgumentError
+00:00 +42: G19 a publisher publishes to event and replay topics with its own source, and is bound to the application scope unless given another
+00:00 +43: G20 a claim on a state topic that a live publisher or an active topology owns is rejected with ClaimRejected naming the owner
+00:00 +44: G20 a claim bound to a shorter scope than a topology that reads the topic is rejected with ClaimRejected
+00:00 +45: G20 a writer exists only for a claimed topic, is the same handle on every call, and publishes with the publisher source
+00:00 +46: G21 disposing a publisher releases its claims, and the publisher and its writers then throw StateError
+00:00 +47: G21 a publish not yet delivered when its publisher is disposed is discarded
+00:00 +48: G21 deactivating a topology releases its writes, so another claimant can take them
+00:00 +49: G22 activation interprets the topology, and its sinks publish on the bus with the topology source, observed like any publish
+00:00 +50: G22 the outputs of an activation connection are delivered once the bus microtasks queued by activate have run
+00:00 +51: G22 an APPLICATION topology activated after start is reported in dev mode; one activated before start is not
+00:00 +52: G23 activating an equal definition under an active id returns the same handle, running declare once more for the check
+00:00 +53: G23 activating a different definition or scope under an active id throws TopologyConflict
+00:00 +54: G23 after deactivation the same topology activates again with a fresh handle
+00:00 +55: G23 two declarations with equal definitions count as one, even when they differ where a definition does not look
+00:00 +56: G24 an activation that would close an inter-topology cycle is rejected with ActivationRejected, and nothing of it is activated
+00:00 +57: G24 a second writer of a state topic is rejected at activation, whether the owner is a topology or a claim
+00:00 +58: G24 a state topic owner with a shorter scope than a topology reading it is rejected at activation
+00:00 +59: G24 a topology reading what it writes through no state-bearing stage is rejected at activation, and one mediated by scan is not
+00:00 +60: G25 deactivation is synchronous and idempotent, cancels the pipeline and its timers at once, and discards its publishes not yet delivered
+00:00 +61: G26 a pipeline an error ends is reported in dev mode with its topology, sink and error, and is not restarted
+00:00 +62: G27 module returns the one scope declared under an id, rejects another declaration under it, and takes module-scoped topologies only
+00:00 +63: G28 the first reference activates the module topologies in order, and balanced references never tear them down
+00:00 +64: G28 the last release starts the grace period; a reference taken before it ends keeps the topologies, and its end deactivates them
+00:00 +65: G28 with a zero grace period the last release tears the module down synchronously, with no timer
+00:00 +66: G28 releasing one reference twice counts once
+00:00 +67: G28 re-entering a module after its teardown activates its topologies again, and their state resumes
+00:00 +68: G28 a reference fails as a whole when one of the module topologies cannot activate
+00:00 +69: G29 observers are called in registration order, before any subscriber, with the topic reference, the envelope and the configured ObserveContext
+00:00 +70: G29 a removed observer is no longer called, and adding the same observer twice throws ArgumentError
+00:00 +71: G30 an observer without observeSensitive never receives a sensitive envelope, and one with it does
+00:00 +72: G30 no observer receives an envelope of a Tracing.disabled topic, while its subscribers receive its values
+00:00 +73: G31 an observer that throws is reported in dev mode, and delivery to later observers and subscribers goes on
+00:00 +74: G32 an ActivationObserver is told of each new activation with its id and scope, and not of a repeat that returns the same handle
+00:00 +75: G33 the telemetry observer opens and ends one span per publish, named after the topic, with the envelope attributes and a link to its cause
+00:00 +76: G33 the telemetry observer marks a sensitive envelope, records no payload, and sees sensitive topics only when granted
+00:00 +77: G33 the telemetry observer opens and ends a span for each new activation, with its topology id and scope
+00:00 +78: G34 before start every publish is queued, unseen by subscribers, observers and current values, and start delivers the queue in publication order
+00:00 +79: G34 topology publishes before start are queued too, so the order of the activations before start does not change what is delivered
+00:00 +80: G34 start is idempotent, and after it a publish is delivered at once
+00:00 +81: G35 a publish queued without start within the startup window is reported once in dev mode, and start cancels the window
+00:00 +82: G36 shutdown delivers the pending reentrant publishes, then deactivates every topology and module, disposes every publisher and leaves no timer pending
+00:00 +83: G36 after shutdown every new operation throws StateError, while deactivate, release, dispose and shutdown itself do nothing
+00:00 +84: G36 shutdown runs the shutdown callbacks in reverse registration order and reports one that throws in dev mode
+00:00 +85: G37 toGraph is the graph of the active definitions and the live claims
+00:00 +86: All tests passed!
+exit: 0
+
+### T8 behavior: a guarantee restriction by test-name prefix (--guarantee bus-api/G17)
+00:00 +0: loading hsdd/contract/fixture/bus-api/behavior/nidana_dart_runtime_test.dart
+00:00 +0: G17 a state topic subscription receives the value current when it listened in the first bus microtask, then the values delivered meanwhile, in order (decides OQ-R1)
+00:00 +1: G17 a replay topic subscription receives its buffer first, in the first bus microtask; an event topic subscription receives only what is published after it listened, at once
+00:00 +2: All tests passed!
+exit: 0
+
+### T9 behavior: topology-dsl@v1's live suite bound to Bus.activate on the stand-in TestBus
+00:00 +0: loading hsdd/contract/fixture/bus-api/behavior/bus_activation_test.dart
+00:00 +0: G18 activation runs declare once and a sink publishes with the topology as its source
+00:00 +1: G19 a state topic read delivers the current value at activation, then each later value
+00:00 +2: G19 a default read skips a value equal to the previous one it delivered; a Dedup.none read delivers every publish
+00:00 +3: G19 a replay topic read delivers the buffer at activation; an event topic read delivers later values only
+00:00 +4: G20 map transforms and filter passes the values its test accepts
+00:00 +5: G20 scan emits each accumulated value and never its seed
+00:00 +6: G20 pairwise emits each value with the one before it, from the second value on
+00:00 +7: G20 distinctUntilChanged drops a value equal to the one before it
+00:00 +8: G21 combine emits once every input has a value, then on each input value
+00:00 +9: G21 the combine forms pass the latest values in input order
+00:00 +10: G21 withLatestFrom emits only on a primary value, once every latest input has a value
+00:00 +11: G21 withLatestFrom2 combines the primary with a state topic and an event topic
+00:00 +12: G21 merge emits the values of every input in arrival order
+00:00 +13: G22 switchMap listens to the next inner stream within the outer delivery, without waiting for the previous cancel
+00:00 +14: G22 switchMap calls toStream once per outer value and delivers the current inner values
+00:00 +15: G22 a retry policy calls toStream again after its delay on the run clock, numbering the attempts
+00:00 +16: G22 without a retry policy, or when the policy returns null, an inner error goes downstream
+00:00 +17: G23 debounce emits a value once its duration passes without a newer value
+00:00 +18: G23 throttle emits a value and drops the values that follow it within its duration
+00:00 +19: G23 delay shifts each value by its duration
+00:00 +20: G23 sample emits the most recent value once per period that received one, counting from the first value
+00:00 +21: G23 buffer emits the values of each period as one batch, counting from the first value, and never an empty batch
+00:00 +22: G23 timeout raises one TimeoutException per silence of its duration, counted from activation or the last value
+00:00 +23: G24 reduceInto seeds its fold with the current value and publishes nothing at activation
+00:00 +24: G24 after re-activation reduceInto resumes from the retained value
+00:00 +25: G25 a single-input stage passes its input lineage: the input envelope is the cause, correlation and parents are kept
+00:00 +26: G25 combine takes the trigger as cause and keeps a shared correlation
+00:00 +27: G25 combine of different correlations takes a fresh one and records the inputs as parents
+00:00 +28: G25 withLatestFrom keeps the lineage of the primary value
+00:00 +29: G25 switchMap inner values carry the lineage of the outer value that created them
+00:00 +30: G25 debounce passes the lineage of the value that survives, buffer that of the last value of its batch
+00:00 +31: G25 scan and reduceInto pass the lineage of the input that triggered them
+00:00 +32: G25 merge passes the lineage of each input value
+00:00 +33: G25 an untraced read and the initial value of a state topic start a new flow
+00:00 +34: G25 a catchError value carries the lineage the failing stage would have passed; a timeout recovers as a new flow
+00:00 +35: G26 catchError replaces an error with a value and the pipeline goes on
+00:00 +36: G26 an error that reaches a sink ends that sink for the activation, and the other sinks go on
+00:00 +37: G26 a reducer that throws ends its reduceInto and the state keeps its last value
+00:00 +38: G27 a stage that feeds several consumers runs once per input value
+00:00 +39: G27 one value written by several sinks is delivered in sink declaration order
+00:00 +40: G28 the raw operator is called once per activation and its values and lineages go downstream
+00:00 +41: G28 a raw operator that builds a lineage, with the fresh correlation it is given, has it published
+00:00 +42: G29 a deactivated topology publishes nothing and has cancelled its inner subscriptions and timers
+00:00 +43: All tests passed!
+exit: 0
+
+### T10 the bus-api suite is not vacuous: each seeded defect in the stand-in fails the cases of its guarantee
+-- a limit below 1 accepted (G3)
+G3 constructing a bus with a limit below one or a negative duration throws ArgumentError [E]
+Some tests failed.
+-- diagnostics delivered outside dev mode (G4)
+G4 a ShellDiagnostic another package defines reaches the sink through reportDiagnostic, in dev mode only [E]
+G4 in dev mode a diagnostic is a value delivered to the configured sink, never thrown; outside dev mode none is delivered [E]
+Some tests failed.
+-- an observed stream subscribes in the listener's zone (G5)
+G13 after start a publish made outside any delivery reaches the established subscribers before publish returns [E]
+G16 a subscription to a state topic skips a value equal to the last it received; a Dedup.none topic delivers every publish [E]
+G16 observers, the current value and a Dedup.none read see a publish that dedup suppresses for default subscribers (decides OQ-R3) [E]
+G17 a replay topic subscription receives its buffer first, in the first bus microtask; an event topic subscription receives only what is published after it listened, at once [E]
+G17 a state topic subscription receives the value current when it listened in the first bus microtask, then the values delivered meanwhile, in order (decides OQ-R1) [E]
+G18 a cancelled subscription receives nothing more; shutdown ends every subscription before it returns, and observe then throws StateError [E]
+G18 a subscriber that throws does not stop delivery to the others, and its error reaches the zone the bus was built in [E]
+G18 an observed stream is a broadcast stream, each listen a subscription with its own first value [E]
+G5 a production-provider bus keeps the zone and the clock current where it was constructed [E]
+G5 an observed stream delivers in the bus zone, whatever zone listens to it or publishes [E]
+Some tests failed.
+-- a delivery runs in the publisher's zone (G5)
+G5 observers are called in the bus zone [E]
+Some tests failed.
+-- a different sensitive flag shares the subject (G7)
+G7 equal declarations share one subject, and a declaration that differs in its sensitive flag collides [E]
+Some tests failed.
+-- the buffer is handed out modifiable (G8)
+G8 getBufferedValues holds the most recent values up to the buffer size, oldest first, unmodifiable [E]
+Some tests failed.
+-- removal ignores live subscribers (G9)
+G9 a forced removal delivers TopicRemoved to the reads of active topologies, which ends their sinks [E]
+G9 removeTopic refuses a topic that has subscribers unless forced, and changes nothing when it refuses [E]
+Some tests failed.
+-- the active topology limit is not checked (G10)
+G10 an activation beyond maxActiveTopologies or maxTopics throws BusLimitExceeded and activates nothing [E]
+Some tests failed.
+-- a publisher-less publish is not reported (G11)
+G11 a publisher-less publish reaches an event or replay topic with the unknown source and is reported in dev mode [E]
+G4 in dev mode a diagnostic is a value delivered to the configured sink, never thrown; outside dev mode none is delivered [E]
+Some tests failed.
+-- shell publishes share one correlation (G12)
+G12 a shell publish starts a new flow: fresh id and correlation, no causation or parents, the publisher source and the topic sensitive flag [E]
+Some tests failed.
+-- a reentrant publish is delivered at once, depth first (G14)
+G13 every subscriber and observer of a topic receives its deliveries in one order, reentrant publishes included [E]
+G14 a publish made during a delivery is delivered after that delivery completes, in the next bus microtask, in the order made [E]
+G14 a subscriber that publishes to the topic it is receiving does not fail, and its publish follows the current delivery [E]
+G14 a topology publish a delivery causes is reentrant, and one value written by several sinks is delivered consecutively in sink declaration order [E]
+G15 a reentrant chain deeper than maxReentrancyDepth is reported once in dev mode with its topics, and delivery goes on [E]
+G21 a publish not yet delivered when its publisher is disposed is discarded [E]
+G25 deactivation is synchronous and idempotent, cancels the pipeline and its timers at once, and discards its publishes not yet delivered [E]
+Some tests failed.
+-- reentrant publishes are delivered newest first (G14)
+G14 a publish made during a delivery is delivered after that delivery completes, in the next bus microtask, in the order made [E]
+G14 a topology publish a delivery causes is reentrant, and one value written by several sinks is delivered consecutively in sink declaration order [E]
+Some tests failed.
+-- a deep reentrant chain is not reported (G15)
+G15 a reentrant chain deeper than maxReentrancyDepth is reported once in dev mode with its topics, and delivery goes on [E]
+Some tests failed.
+-- an observed subscription ignores dedup (G16)
+G16 a subscription to a state topic skips a value equal to the last it received; a Dedup.none topic delivers every publish [E]
+G16 observers, the current value and a Dedup.none read see a publish that dedup suppresses for default subscribers (decides OQ-R3) [E]
+Some tests failed.
+-- an equal publish is dropped before observers and Dedup.none reads (G16)
+G16 observers, the current value and a Dedup.none read see a publish that dedup suppresses for default subscribers (decides OQ-R3) [E]
+Some tests failed.
+-- an observed subscription drops its first value (G17)
+G13 after start a publish made outside any delivery reaches the established subscribers before publish returns [E]
+G13 every subscriber and observer of a topic receives its deliveries in one order, reentrant publishes included [E]
+G14 a publish made during a delivery is delivered after that delivery completes, in the next bus microtask, in the order made [E]
+G14 a subscriber that publishes to the topic it is receiving does not fail, and its publish follows the current delivery [E]
+G15 a reentrant chain deeper than maxReentrancyDepth is reported once in dev mode with its topics, and delivery goes on [E]
+G16 a subscription to a state topic skips a value equal to the last it received; a Dedup.none topic delivers every publish [E]
+G16 event and replay topics never deduplicate [E]
+G16 observers, the current value and a Dedup.none read see a publish that dedup suppresses for default subscribers (decides OQ-R3) [E]
+G17 a replay topic subscription receives its buffer first, in the first bus microtask; an event topic subscription receives only what is published after it listened, at once [E]
+G17 a state topic subscription receives the value current when it listened in the first bus microtask, then the values delivered meanwhile, in order (decides OQ-R1) [E]
+G18 a cancelled subscription receives nothing more; shutdown ends every subscription before it returns, and observe then throws StateError [E]
+G18 a subscriber that throws does not stop delivery to the others, and its error reaches the zone the bus was built in [E]
+G18 an observed stream is a broadcast stream, each listen a subscription with its own first value [E]
+G22 activation interprets the topology, and its sinks publish on the bus with the topology source, observed like any publish [E]
+G23 activating an equal definition under an active id returns the same handle, running declare once more for the check [E]
+G26 a pipeline an error ends is reported in dev mode with its topology, sink and error, and is not restarted [E]
+G29 observers are called in registration order, before any subscriber, with the topic reference, the envelope and the configured ObserveContext [E]
+G30 no observer receives an envelope of a Tracing.disabled topic, while its subscribers receive its values [E]
+G31 an observer that throws is reported in dev mode, and delivery to later observers and subscribers goes on [E]
+G34 before start every publish is queued, unseen by subscribers, observers and current values, and start delivers the queue in publication order [E]
+G34 start is idempotent, and after it a publish is delivered at once [E]
+G36 shutdown delivers the pending reentrant publishes, then deactivates every topology and module, disposes every publisher and leaves no timer pending [E]
+G5 a production-provider bus keeps the zone and the clock current where it was constructed [E]
+G5 an observed stream delivers in the bus zone, whatever zone listens to it or publishes [E]
+G7 equal declarations share one subject, and a declaration that differs in its sensitive flag collides [E]
+G9 removeTopic called during a delivery throws StateError [E]
+G9 removeTopic refuses a topic that has subscribers unless forced, and changes nothing when it refuses [E]
+Some tests failed.
+-- a topology or unknown source is accepted (G19)
+G19 a publisher takes a service, page or executor source; a topology or unknown source throws ArgumentError [E]
+Some tests failed.
+-- a conflicting claim is accepted (G20)
+G20 a claim bound to a shorter scope than a topology that reads the topic is rejected with ClaimRejected [E]
+G20 a claim on a state topic that a live publisher or an active topology owns is rejected with ClaimRejected naming the owner [E]
+G21 deactivating a topology releases its writes, so another claimant can take them [E]
+Some tests failed.
+-- dispose keeps the publisher's queued publishes (G21)
+G21 a publish not yet delivered when its publisher is disposed is discarded [E]
+Some tests failed.
+-- a late APPLICATION activation is not reported (G22)
+G22 an APPLICATION topology activated after start is reported in dev mode; one activated before start is not [E]
+Some tests failed.
+-- an equal definition is not recognized (G23)
+G23 activating an equal definition under an active id returns the same handle, running declare once more for the check [E]
+G23 two declarations with equal definitions count as one, even when they differ where a definition does not look [E]
+G32 an ActivationObserver is told of each new activation with its id and scope, and not of a repeat that returns the same handle [E]
+Some tests failed.
+-- activation findings are ignored (G24)
+G24 a second writer of a state topic is rejected at activation, whether the owner is a topology or a claim [E]
+G24 a state topic owner with a shorter scope than a topology reading it is rejected at activation [E]
+G24 a topology reading what it writes through no state-bearing stage is rejected at activation, and one mediated by scan is not [E]
+G24 an activation that would close an inter-topology cycle is rejected with ActivationRejected, and nothing of it is activated [E]
+G28 a reference fails as a whole when one of the module topologies cannot activate [E]
+Some tests failed.
+-- a module accepts a page-scoped topology (G27)
+G27 module returns the one scope declared under an id, rejects another declaration under it, and takes module-scoped topologies only [E]
+Some tests failed.
+-- the grace period is ignored (G28)
+G28 the last release starts the grace period; a reference taken before it ends keeps the topologies, and its end deactivates them [E]
+G5 a production-provider bus keeps the zone and the clock current where it was constructed [E]
+Some tests failed.
+-- a release below the last tears the module down (G28)
+G28 the first reference activates the module topologies in order, and balanced references never tear them down [E]
+Some tests failed.
+-- subscribers are served before observers (G29)
+G13 after start a publish made outside any delivery reaches the established subscribers before publish returns [E]
+G13 every subscriber and observer of a topic receives its deliveries in one order, reentrant publishes included [E]
+G14 a publish made during a delivery is delivered after that delivery completes, in the next bus microtask, in the order made [E]
+G14 a subscriber that publishes to the topic it is receiving does not fail, and its publish follows the current delivery [E]
+G14 a topology publish a delivery causes is reentrant, and one value written by several sinks is delivered consecutively in sink declaration order [E]
+G15 a reentrant chain deeper than maxReentrancyDepth is reported once in dev mode with its topics, and delivery goes on [E]
+G16 a subscription to a state topic skips a value equal to the last it received; a Dedup.none topic delivers every publish [E]
+G16 event and replay topics never deduplicate [E]
+G16 observers, the current value and a Dedup.none read see a publish that dedup suppresses for default subscribers (decides OQ-R3) [E]
+G17 a replay topic subscription receives its buffer first, in the first bus microtask; an event topic subscription receives only what is published after it listened, at once [E]
+G18 a cancelled subscription receives nothing more; shutdown ends every subscription before it returns, and observe then throws StateError [E]
+G18 a subscriber that throws does not stop delivery to the others, and its error reaches the zone the bus was built in [E]
+G21 a publish not yet delivered when its publisher is disposed is discarded [E]
+G22 activation interprets the topology, and its sinks publish on the bus with the topology source, observed like any publish [E]
+G23 activating an equal definition under an active id returns the same handle, running declare once more for the check [E]
+G26 a pipeline an error ends is reported in dev mode with its topology, sink and error, and is not restarted [E]
+G28 re-entering a module after its teardown activates its topologies again, and their state resumes [E]
+G29 observers are called in registration order, before any subscriber, with the topic reference, the envelope and the configured ObserveContext [E]
+G30 no observer receives an envelope of a Tracing.disabled topic, while its subscribers receive its values [E]
+G31 an observer that throws is reported in dev mode, and delivery to later observers and subscribers goes on [E]
+G33 the telemetry observer opens and ends one span per publish, named after the topic, with the envelope attributes and a link to its cause [E]
+G34 before start every publish is queued, unseen by subscribers, observers and current values, and start delivers the queue in publication order [E]
+G34 start is idempotent, and after it a publish is delivered at once [E]
+G5 an observed stream delivers in the bus zone, whatever zone listens to it or publishes [E]
+G7 equal declarations share one subject, and a declaration that differs in its sensitive flag collides [E]
+G8 getBufferedValues holds the most recent values up to the buffer size, oldest first, unmodifiable [E]
+G9 removeTopic refuses a topic that has subscribers unless forced, and changes nothing when it refuses [E]
+Some tests failed.
+-- observers see sensitive envelopes without the grant (G30)
+G30 an observer without observeSensitive never receives a sensitive envelope, and one with it does [E]
+G33 the telemetry observer marks a sensitive envelope, records no payload, and sees sensitive topics only when granted [E]
+Some tests failed.
+-- observers see untraced topics (G30)
+G30 no observer receives an envelope of a Tracing.disabled topic, while its subscribers receive its values [E]
+Some tests failed.
+-- an observer exception is not reported (G31)
+G31 an observer that throws is reported in dev mode, and delivery to later observers and subscribers goes on [E]
+Some tests failed.
+-- activation observers are never told (G32)
+G32 an ActivationObserver is told of each new activation with its id and scope, and not of a repeat that returns the same handle [E]
+G33 the telemetry observer opens and ends a span for each new activation, with its topology id and scope [E]
+Some tests failed.
+-- telemetry spans are not linked to their cause (G33)
+G33 the telemetry observer opens and ends one span per publish, named after the topic, with the envelope attributes and a link to its cause [E]
+Some tests failed.
+-- publishes before start are delivered at once (G34)
+G21 a publish not yet delivered when its publisher is disposed is discarded [E]
+G34 before start every publish is queued, unseen by subscribers, observers and current values, and start delivers the queue in publication order [E]
+G34 topology publishes before start are queued too, so the order of the activations before start does not change what is delivered [E]
+G35 a publish queued without start within the startup window is reported once in dev mode, and start cancels the window [E]
+Some tests failed.
+-- the startup window is never armed (G35)
+G35 a publish queued without start within the startup window is reported once in dev mode, and start cancels the window [E]
+Some tests failed.
+-- shutdown does not drain the pending reentrant publishes (G36)
+G36 shutdown delivers the pending reentrant publishes, then deactivates every topology and module, disposes every publisher and leaves no timer pending [E]
+Some tests failed.
+-- shutdown callbacks run in registration order (G36)
+G36 shutdown runs the shutdown callbacks in reverse registration order and reports one that throws in dev mode [E]
+Some tests failed.
+-- the live graph leaves out the claims (G37)
+G20 a claim on a state topic that a live publisher or an active topology owns is rejected with ClaimRejected naming the owner [E]
+G24 a second writer of a state topic is rejected at activation, whether the owner is a topology or a claim [E]
+G37 toGraph is the graph of the active definitions and the live claims [E]
+Some tests failed.
+-- deactivation keeps the topology's queued publishes (G25)
+G25 deactivation is synchronous and idempotent, cancels the pipeline and its timers at once, and discards its publishes not yet delivered [E]
+Some tests failed.
+-- a terminated sink is not reported (G26)
+G26 a pipeline an error ends is reported in dev mode with its topology, sink and error, and is not restarted [E]
+G9 a forced removal delivers TopicRemoved to the reads of active topologies, which ends their sinks [E]
+Some tests failed.
+
+### T11 the live binding is not vacuous: seeded defects in the stand-in's interpreter and recorder fail the live cases
+-- a read ignores its Dedup.none (live G19)
+G19 a default read skips a value equal to the previous one it delivered; a Dedup.none read delivers every publish [E]
+Some tests failed.
+-- reduceInto seeds from the declared initial value (live G24)
+G24 after re-activation reduceInto resumes from the retained value [E]
+Some tests failed.
+-- switchMap waits for the previous inner cancel future (live G22)
+G22 switchMap listens to the next inner stream within the outer delivery, without waiting for the previous cancel [E]
+Some tests failed.
+-- the recorder leaves out untraced topics (live G25, a bus-testing@v1 requirement)
+G25 an untraced read and the initial value of a state topic start a new flow [E]
+Some tests failed.
+
+### T12 a diagnostic variant added to the Interface fails the surface set (exhaustive switch)
+NON_EXHAUSTIVE_SWITCH_EXPRESSION|/Users/mohamad.purbo/gitx/nidana-bus-dart/docs/auto-run/experiments/bus-api-fixtures/hsdd/contract/fixture/bus-api/surface/observation.dart|48|46
+exit: 3
+stand-in restored
+
+### T13 close timing of RxDart sync subjects (tool/close_probe.dart, also in output-close.txt)
+BehaviorSubject sync: [v1, err, after close (sync), done, microtask after close]
+PublishSubject sync: [err, done, after close (sync), microtask after close]
+ReplaySubject sync: [err, done, after close (sync), microtask after close]
+StreamController sync: [err, done, after close (sync), microtask after close]
+StreamController.broadcast sync: [err, done, after close (sync), microtask after close]
+
+### cleanup: remove the copied tree; the repository's hsdd/contract/ stays the only copy
+removed

@@ -1,0 +1,14 @@
+# bus-api-fixtures: replays the bus-api@v1 fixtures, and the binding of
+# topology-dsl@v1's live suite, against a stand-in of nidana_dart_runtime
+# (see run.sh). Its own pub workspace, never a member of the repository's
+# workspace.
+name: baf_root
+publish_to: none
+environment:
+  sdk: ^3.13.0
+workspace:
+  - packages/nidana_dart_contracts
+  - packages/nidana_contract_check
+  - packages/nidana_dart_runtime
+dev_dependencies:
+  lints: ^6.1.0

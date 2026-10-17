@@ -1,0 +1,5 @@
+BehaviorSubject sync: [v1, err, after close (sync), done, microtask after close]
+PublishSubject sync: [err, done, after close (sync), microtask after close]
+ReplaySubject sync: [err, done, after close (sync), microtask after close]
+StreamController sync: [err, done, after close (sync), microtask after close]
+StreamController.broadcast sync: [err, done, after close (sync), microtask after close]
