@@ -173,15 +173,16 @@ the summary table do not depend on it.
   `docs/auto-run/experiments/flutter-reconcile-amends/`, T9)
 - A gate of a phase that produces a contract runs that contract's replay
   (ADR-001)
-- The replay tool lands by set, in nidana.model's phases (nidana.model D1):
+- The replay tool lands by set, in nidana.model's phases (nidana.model D1;
+  ADR-001 item 9 states this list):
   `structure` at nidana.model.1; `surface`, `reject`, `schema`,
   `package:nidana_contract_check/fixture.dart` and PENDING detection at
   nidana.model.2; `behavior` at nidana.model.6; `file` and `cli` at
   nidana.model.7. A phase of another node whose gate runs a set, or whose
   tests import `fixture.dart`, depends on the phase that lands it, beside its
-  contract edges; no contract carries these edges. Where root D10, ADR-001 or
-  a contract says the replay tool or `fixture.dart` comes with nidana.model's
-  first phase, read this list
+  contract edges; no contract carries these edges. Where a contract says the
+  replay tool or `fixture.dart` comes with nidana.model's first phase, read
+  this list
 
 ## Teams
 **Teams:** single-team
