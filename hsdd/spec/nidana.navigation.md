@@ -4,14 +4,14 @@
 - **Purpose:** navigation as a cross-cutting concern on the bus (Guide §3): the intent vocabulary, typed routes, the nav-resolver topology template with its pure guard and deep-link resolution, and the platform-neutral executor protocol
 - **Owns:**
   - package `nidana_dart_navigation`, pure Dart with no Flutter dependency (ADR-002)
-  - `NavIntent` and `ResolvedNavIntent`, in which a deep link is impossible by construction (Guide §3.2, Spec Appendix A.6)
-  - `Route` and `RouteRegistry` (Guide §3.2)
+  - `NavIntent`, `DeepLink` and the sealed `ResolvedNavIntent`, in which a deep link is impossible by construction (Guide §3.2, Spec Appendix A.6; navigation-api@v1 Refinement 4)
+  - `NavRoute` and `RouteRegistry`, routes typed by their argument type; the Specification's and the Guide's `Route` is `NavRoute` here, because Flutter's widgets library exports a `Route` (Guide §3.2; navigation-api@v1 Refinements 1 and 5)
   - `RouteState` and `RouteTransition` (Guide §3.2)
-  - `RouteAccessRequirement` and `RouteAccessPolicy`, static or reactive (Guide §3.2, §3.4)
+  - `RouteAccessRequirement` and `RouteAccessPolicy`, static or reactive, and the `AccessPrincipal` the guard decides over, projected from the app's auth state (Guide §3.2, §3.4; navigation-api@v1 Refinement 2)
   - `NavigationTopics`: `nav.intent`, `nav.resolved-intent`, `nav.current-route`, `nav.history`, `nav.access-policy` (Guide §3.3)
-  - the nav-resolver topology template at `APPLICATION` scope, with `applyAuthGuard` and `resolveDeepLinks` as pure functions; the two-topology split that keeps the read/write graph acyclic (Guide §3.4, Spec §3.8)
-  - the `NavigationExecutor` protocol: subscribe to resolved intents, claim `nav.current-route` as its shell owner (Spec §3.11), write `currentRoute` and `history` together on each confirmed transition with the intent taken from the platform's confirmation (Guide §3.4); `BackTo` synthesis for routers without a native pop-until (Guide §3.2)
-  - the executor protocol's conformance suite, delivered as the `behavior/` fixtures of navigation-api@v1 that every platform executor binds (ADR-001)
+  - the nav-resolver topology template at `APPLICATION` scope, with `resolveDeepLinks` and `applyAuthGuard` as pure functions, resolving before guarding; the two-topology split that keeps the read/write graph acyclic (Guide §3.4, Spec §3.8; navigation-api@v1 Refinement 3)
+  - `NavigationExecutor`, written once for every platform, over the `NavigationRouter` port each platform implements: it observes resolved intents, plans them into router calls with the pure `planNavigation`, `BackTo` synthesis included for routers without a native pop-until (Guide §3.2), claims `nav.current-route` as its shell owner (Spec §3.11), and writes `currentRoute` and `history` together on each confirmed transition with the intent taken from the router's confirmation (Guide §3.4; navigation-api@v1 Refinement 6)
+  - `InMemoryRouter`, a `NavigationRouter` in the package's `testing.dart`, and the executor's conformance suite, delivered as the `behavior/` fixtures of navigation-api@v1 that every platform router binds (ADR-001)
   - the deep-link bootstrap order: the resolver is active and the executor constructed before `start()` (Guide §3.5, Spec §3.13)
   - result handling through typed result topics, matched on payload, never on envelope metadata (Guide §3.6)
 - **Does not own:** platform router calls and route observation (nidana.flutter); the app's auth state type, roles and route table (app code); bus mechanics (nidana.runtime)
@@ -22,7 +22,7 @@
   - `ref/nidana-docs/arch/nidana-bus-ref-arch-spec-v0_15_0.md` §2.4, §3.8, §3.11, §3.13, Appendix A.6
   - `ref/nidana-docs/arch/nidana-bus-ref-arch-guide-v0_15_0.md` §2, §3.1 to §3.7, Appendix A
 - **Decomposes into:** phases (see hsdd-phase-plan)
-- **Isolation strategy:** `applyAuthGuard` and `resolveDeepLinks` are pure functions tested directly; the resolver topology is tested structurally through its recorded IR (model only) and live on `TestBus`; the executor protocol and its conformance suite are exercised with an in-memory router, so no Flutter is needed
+- **Isolation strategy:** `applyAuthGuard`, `resolveDeepLinks` and `planNavigation` are pure functions tested directly; the resolver topology is tested structurally through its recorded IR (model only) and live on `TestBus`; `NavigationExecutor` and its conformance suite are exercised with `InMemoryRouter`, so no Flutter is needed
 
 ## Overview
 

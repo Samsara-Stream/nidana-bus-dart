@@ -9,9 +9,9 @@
   - page publishers whose `source` is derived from the route, `page:{route}` (Spec §2.4)
   - page-scope binding: a widget that activates its `PAGE` topologies on mount and deactivates them on unmount (Spec §7.1, §7.2)
   - module-scope binding: a route observer that matches route prefixes and acquires and releases the runtime's module scope references on push, pop and replace (Spec §7.3)
-  - `FlutterNavigationExecutor`, implementing the navigation-api@v1 protocol against the router OQ-F1 selects (Guide §3.4)
+  - `FlutterNavigationRouter`, navigation-api@v1's `NavigationRouter` port over Flutter's own `Navigator`, and `FlutterNavigationExecutor`, which wires it to that contract's `NavigationExecutor` and turns platform routes into intents (Guide §3.4, §3.5; flutter-binding@v1 Refinements 1, 2 and 7)
   - bus shutdown when the coordination domain ends (Spec §11.2)
-  - a widget-test library for apps: helpers that run a real bus under `testWidgets` with the production scheduler provider, so `tester.pump` drives time; they construct the bus inside the test body and shut it down when the tree unmounts, so no bus timer is pending when the body ends (ADR-003); the library imports neither `flutter_test` nor `test` (ADR-002 item 4)
+  - a widget-test library for apps, `WidgetTestBus` in the package's `testing.dart`: helpers that run a real bus under `testWidgets` with the production scheduler provider, so `tester.pump` drives time; they construct the bus inside the test body and shut it down when the tree unmounts, so no bus timer is pending when the body ends (ADR-003); the library imports neither `flutter_test` nor `test` (ADR-002 item 4)
 - **Does not own:** reference counting arithmetic and the grace timer (nidana.runtime); intent vocabulary, guard and resolution (nidana.navigation); the app's routes, widgets and auth state
 - **Consumes:** [topic-model@v1, topology-dsl@v1, bus-api@v1, bus-testing@v1, navigation-api@v1]
 - **Produces:** [flutter-binding@v1]
@@ -21,7 +21,7 @@
   - `ref/nidana-docs/arch/nidana-bus-ref-arch-guide-v0_15_0.md` §3.4, §3.5, §6.4, §9.3, Appendix B.1
   - `ref/nidana-docs/arch/nidana-bus-ref-arch-rationale-v0_15_0.md` §5.1 to §5.4
 - **Decomposes into:** phases (see hsdd-phase-plan)
-- **Isolation strategy:** widget tests with `flutter_test` on the real runtime, time driven by `tester.pump` (ADR-003); the executor binds the navigation-api@v1 conformance suite and runs it against a test router; nothing needs a device
+- **Isolation strategy:** widget tests with `flutter_test` on the real runtime, time driven by `tester.pump` (ADR-003); navigation-api@v1's executor conformance suite is bound to `FlutterNavigationExecutor` and its router under `testWidgets`; nothing needs a device
 
 ## Overview
 

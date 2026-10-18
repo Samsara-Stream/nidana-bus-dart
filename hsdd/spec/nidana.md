@@ -23,7 +23,7 @@ Nidana Bus is a typed, lifecycle-managed reactive substrate for application data
 1. Declare topics in a registry, written by hand or generated from `topics.yaml`, and topologies as pure declarations over them (Spec §2.1, §2.2, §4, §6).
 2. Bootstrap one bus per coordination domain: activate the `APPLICATION` topologies, construct the services whose publishers claim the state topics they own, register observers, call `start()` (Spec §3.13, §11.2).
 3. Bind the bus into the widget tree. Pages render from state topics and publish events; modules and pages activate and release their topologies with the route lifecycle (Spec §5.6, §7.1 to §7.3).
-4. Navigate through intents that the nav-resolver topology guards and resolves and the Flutter executor performs (Guide §3).
+4. Navigate through intents that the nav-resolver topology resolves and guards and the Flutter executor performs (Guide §3; navigation-api@v1 Refinement 3 resolves deep links before the guard, the reverse of Guide §3.4's order).
 5. Test topologies on a `TestBus` with virtual time and envelope recording (Spec §3.6, Appendix A.7).
 6. In CI, generate registries and the topic catalog, and run the static checks that move single-writer, uniqueness, cycle and scope failures from first run to merge (Spec §3.8, §3.11, §4.3, §7.2).
 
@@ -54,75 +54,75 @@ Nidana Bus is a typed, lifecycle-managed reactive substrate for application data
 |------|------|-------------------|----------------|----------|
 | nidana.model | leaf-parent | `nidana_dart_contracts` | pure core: topics, envelope and lineage rules, observer interfaces, topology DSL interface and recorder, IR, graphs, pure analyses | topic-model@v1, topology-dsl@v1, topology-ir@v1 |
 | nidana.runtime | leaf-parent | `nidana_dart_runtime` | the bus on RxDart: subjects, publish path, ownership, activation, lifecycle, observers, scheduler provider, TestBus | bus-api@v1, bus-testing@v1 |
-| nidana.navigation | leaf-parent | `nidana_dart_navigation` | intent vocabulary, typed routes, nav-resolver template, executor protocol | navigation-api@v1 |
+| nidana.navigation | leaf-parent | `nidana_dart_navigation` | intent vocabulary, typed routes, nav-resolver template, the platform-neutral executor over a router port | navigation-api@v1 |
 | nidana.flutter | leaf-parent | `nidana_dart_runtime_flutter` | Flutter UI adapter: bus provider, topic widgets, page and module scope binding, Flutter navigation executor | flutter-binding@v1 |
-| nidana.tooling | internal | `nidana_dart_codegen`, `nidana_dart_lint` | codegen, topic catalog, topology catalog and graph emission, v1 static checks | topic-codegen@v1, nidana-checks@v1 |
+| nidana.tooling | internal | `nidana_dart_codegen`, `nidana_dart_lint` | codegen, topic catalog, topology catalog and graph emission, v1 static checks, in two leaf-parent children, nidana.tooling.codegen and nidana.tooling.lint (nidana.tooling D1) | topic-codegen@v1, nidana-checks@v1 |
 | nidana.integration | leaf-parent | `nidana_integration` (not published) | example app, live contract replays, end-to-end slices of the primary flows | none |
 
 ### nidana.model: Model
 
 - **Kind:** leaf-parent
 - **Purpose:** the pure, effect-free core every other package builds on: typed topics, the message envelope and its lineage rules, observer interfaces, the topology DSL interface with its recording builder, the TopologyDefinition IR, graphs and renderers, and the pure analyses over the IR
-- **Owns:** package `nidana_dart_contracts`; the topic variants, `TopicRef`, `Dedup`, `Tracing`, the sensitive flag; `MessageEnvelope` and the lineage rules as pure functions; `Scope`; `BusObserver`, `ObserveContext`, `ObserverCapability`; sensitive-payload redaction; `Topology`, `TopologyBuilder` and the opaque stream handle with the Spec §6.3 combinators (D6); the recording builder and `buildDefinition()`; the IR and its JSON form; `TopologyGraph` with Mermaid, Graphviz and JSON renderers; cycle, self-reference, scope-compatibility and name-uniqueness analyses; the contract replay tool (ADR-001)
+- **Owns:** package `nidana_dart_contracts`; the topic variants with the sealed `MultiWriterTopic` over event and replay topics, `TopicRef`, `Dedup`, `Tracing`, the sensitive flag; `MessageEnvelope` and the lineage rules as pure functions; `Scope`; `BusObserver`, `ObserveContext`, `ObserverCapability`; sensitive-payload redaction; `Topology`, `TopologyBuilder` and the opaque stream handle with the Spec §6.3 combinators (D6); the recording builder, the `TopologyPlan` with `planOf`, and `buildDefinition()`; the IR and its JSON form; `TopologyGraph` and `ShellClaim` with Mermaid, Graphviz and JSON renderers; cycle, self-reference, single-writer, scope-compatibility and name-uniqueness analyses; the contract replay tool (ADR-001)
 - **Does not own:** subjects, subscriptions, timers, zones or the live interpretation of the DSL (nidana.runtime); source scanning and catalog runs (nidana.tooling); navigation types (nidana.navigation)
 - **Consumes:** none
 - **Produces:** [topic-model@v1, topology-dsl@v1, topology-ir@v1]
 - **Governed by:** [ADR-001, ADR-002, ADR-003]
-- **Sources:** Spec §1, §2.1 to §2.5, §3.5, §3.8, §3.12, §4.1, §4.2, §4.4, §4.6, §6.1 to §6.5, §7.1, §7.2, §8, §9.2, Appendix A.1 to A.4; Guide §1.1, §1.4, §6.3, §8.1, Appendix B.1 to B.3; Rationale §3.1 to §3.3, §4.1
+- **Sources:** Spec §1, §2.1 to §2.5, §3.5, §3.7, §3.8, §3.11, §3.12, §4.1 to §4.4, §4.6, §6.1 to §6.5, §7.1, §7.2, §8, §9.2, Appendix A.1 to A.4; Guide §1.1, §1.4, §6.3, §8.1, Appendix B.1 to B.3; Rationale §3.1 to §3.3, §4.1
 - **Decomposes into:** phases (see hsdd-phase-plan)
-- **Isolation strategy:** depends on nothing beyond the SDK and `meta`; functions are tested by direct calls and property tests; topologies are tested by recording them and asserting on the IR; the node replays its contracts' surface, reject and schema fixtures
+- **Isolation strategy:** depends on nothing beyond the SDK and `meta`; functions are tested by direct calls and property tests; topologies are tested by recording them and asserting on the IR; the node replays its three contracts, behavior through its own bindings, while topology-dsl@v1's live suite is bound and run by nidana.runtime
 
 ### nidana.runtime: Bus Runtime
 
 - **Kind:** leaf-parent
 - **Purpose:** the bus: turns topic declarations and topology definitions into live RxDart subjects and subscriptions and enforces the Bus Runtime Contract (Spec §3), lifecycle (Spec §7), observation (Spec §9), the error model (Spec §10) and runtime operations (Spec §11)
-- **Owns:** package `nidana_dart_runtime`; `Bus` and `BusConfig`; the topic registry and subject lifecycle; the publish path (dedup, ordering, reentrancy normalization, observers, sensitive gating, startup barrier); publishers, writer handles and the ownership table; the live DSL with envelope threading; activation checks; scopes and module reference counting with grace; `bus.toGraph()`; shutdown and resource limits; dev-mode diagnostics (D8); the scheduler provider, virtual scheduler, `TestBus` and envelope recorder (ADR-003); the per-topic ordering regression test; an SDK-neutral telemetry observer (D1)
+- **Owns:** package `nidana_dart_runtime` with its two public libraries, the runtime and `testing.dart`; `Bus` and `BusConfig`; the topic registry and subject lifecycle, with values held at `Object?` (nidana.runtime D4, D5); the publish path (dedup, ordering, reentrancy normalization, observers, sensitive gating, startup barrier); publishers, writer handles and the ownership table; the live interpretation of topology-dsl@v1 with envelope threading, a live `switchMap` of its own (ADR-003) and topology reads on a synchronous path (nidana.runtime D3); activation checks; scopes and module reference counting with grace; `bus.toGraph()`; start, shutdown and resource limits; dev-mode diagnostics (D8); the scheduler provider, virtual scheduler, `TestBus` and envelope recorder (ADR-003); the per-topic ordering regression test; an SDK-neutral telemetry observer (D1)
 - **Does not own:** pure types, lineage rules, the IR and analyses (nidana.model); routes and widgets (nidana.flutter); navigation semantics (nidana.navigation); static checks (nidana.tooling)
 - **Consumes:** [topic-model@v1, topology-dsl@v1, topology-ir@v1]
 - **Produces:** [bus-api@v1, bus-testing@v1]
 - **Governed by:** [ADR-001, ADR-002, ADR-003]
 - **Sources:** Spec §1, §2.3 to §2.5, §3.1 to §3.13, §5.3, §5.5, §6.1, §6.3, §6.5, §7.1 to §7.5, §9, §10, §11, Appendix A.5, A.7; Guide §2, §4, §6.1, §6.5, §8.1, §8.2, §8.4, §8.5, §10.1; Rationale §2.1, §2.2, §3.2
 - **Decomposes into:** phases (see hsdd-phase-plan)
-- **Isolation strategy:** builds against the model's contracts only; runs on the Dart VM with `TestBus` and the virtual scheduler, no Flutter; replays bus-api@v1 and bus-testing@v1 fixtures and binds the behavior fixtures of topology-dsl@v1, whose live semantics it implements
+- **Isolation strategy:** builds against the model's contracts only; runs on the Dart VM with `TestBus` and the virtual scheduler, no Flutter; replays bus-api@v1 and bus-testing@v1, behavior restricted to what its phases have delivered (ADR-001 item 10), and binds topology-dsl@v1's live suite, whose semantics it implements; a slice behind a package-internal seam is unit-tested against that seam (nidana.runtime D2)
 
 ### nidana.navigation: Navigation
 
 - **Kind:** leaf-parent
 - **Purpose:** navigation as a cross-cutting concern on the bus (Guide §3): the intent vocabulary, typed routes, the nav-resolver topology template with its pure guard and deep-link resolution, and the platform-neutral executor protocol
-- **Owns:** package `nidana_dart_navigation` (pure Dart); `NavIntent`, `ResolvedNavIntent`, `Route`, `RouteRegistry`, `RouteState`, `RouteTransition`, `RouteAccessRequirement`, `RouteAccessPolicy`; `NavigationTopics`; the nav-resolver template; `applyAuthGuard` and `resolveDeepLinks`; the `NavigationExecutor` protocol and its conformance suite (D7)
+- **Owns:** package `nidana_dart_navigation` (pure Dart); `NavIntent`, `DeepLink`, `ResolvedNavIntent`, `NavRoute` (the Specification's `Route`, renamed by navigation-api@v1), `RouteRegistry`, `RouteState`, `RouteTransition`, `RouteAccessRequirement`, `RouteAccessPolicy`, `AccessPrincipal`; `NavigationTopics`; the nav-resolver template, which resolves deep links before it guards; `resolveDeepLinks` and `applyAuthGuard`; `NavigationExecutor`, written once over the `NavigationRouter` port each platform implements, with the pure `planNavigation`; `InMemoryRouter` and the executor's conformance suite (D7)
 - **Does not own:** platform router calls (nidana.flutter); the app's auth state type and route table (app code); bus mechanics (nidana.runtime)
 - **Consumes:** [topic-model@v1, topology-dsl@v1, bus-api@v1, bus-testing@v1]
 - **Produces:** [navigation-api@v1]
 - **Governed by:** [ADR-001, ADR-002, ADR-003]
 - **Sources:** Spec §2.4, §3.8, §3.11, §3.13, Appendix A.6; Guide §2, §3.1 to §3.7, Appendix A
 - **Decomposes into:** phases (see hsdd-phase-plan)
-- **Isolation strategy:** guard and resolution are pure functions tested directly; the resolver is tested through its recorded IR and live on `TestBus`; the executor protocol is exercised with an in-memory router
+- **Isolation strategy:** guard, resolution and planning are pure functions tested directly; the resolver is tested through its recorded IR and live on `TestBus`; `NavigationExecutor` and its conformance suite are exercised with `InMemoryRouter`, so no Flutter is needed
 
 ### nidana.flutter: Flutter Binding
 
 - **Kind:** leaf-parent
 - **Purpose:** the Flutter UI runtime adapter (Guide Appendix B layer 6, Spec Appendix A.8): bus reference acquisition, topic-driven widgets, page publishers, page and module scope binding, and the Flutter navigation executor
-- **Owns:** package `nidana_dart_runtime_flutter`; `BusProvider` and its `BuildContext` access; topic widgets that render the first frame from `getCurrentValue`; page publishers with route-derived source; page-scope and module-scope binding (route observer, route prefix, release into the runtime's reference count); `FlutterNavigationExecutor`; shutdown at the end of the coordination domain; a widget-test library
+- **Owns:** package `nidana_dart_runtime_flutter`; `BusProvider` and its `BuildContext` access; topic widgets that render the first frame from `getCurrentValue`; page publishers with route-derived source; page-scope and module-scope binding (route observer, route prefix, release into the runtime's reference count); `FlutterNavigationRouter` over Flutter's own `Navigator` and `FlutterNavigationExecutor`, which wires it to navigation-api@v1's `NavigationExecutor`; shutdown at the end of the coordination domain; the widget-test library `WidgetTestBus`
 - **Does not own:** reference counting arithmetic and grace timers (nidana.runtime); intent semantics (nidana.navigation); the app's routes
 - **Consumes:** [topic-model@v1, topology-dsl@v1, bus-api@v1, bus-testing@v1, navigation-api@v1]
 - **Produces:** [flutter-binding@v1]
 - **Governed by:** [ADR-001, ADR-002, ADR-003]
 - **Sources:** Spec §2.4, §2.5, §3.1, §5.2, §5.6, §7.1 to §7.4, §11.1, §11.2, Appendix A.8; Guide §3.4, §3.5, §6.4, §9.3, Appendix B.1; Rationale §5.1 to §5.4
 - **Decomposes into:** phases (see hsdd-phase-plan)
-- **Isolation strategy:** widget tests with `flutter_test` on the real runtime, time driven by `tester.pump` (ADR-003); the executor runs the navigation-api@v1 conformance suite against a test router; no device
+- **Isolation strategy:** widget tests with `flutter_test` on the real runtime, time driven by `tester.pump` (ADR-003); navigation-api@v1's executor conformance suite is bound to `FlutterNavigationExecutor` under `testWidgets`; no device
 
 ### nidana.tooling: Build and CI Tooling
 
 - **Kind:** internal
-- **Purpose:** the static half of the architecture's enforcement and its build-time artifacts (Guide Appendix C, planned v1 for Dart): topic registry generation and catalog, the topology catalog scan and graph emission, and the CI checks
-- **Owns:** packages `nidana_dart_codegen` and `nidana_dart_lint`; the `topics.yaml` format and generated registries through build_runner; the topic catalog; `Catalog.scanTopologies` for Dart and `topology-graph.json`; the build-time HTML graph; the v1 checks of D1, run as analysis server plugin rules and a workspace scan (ADR-002)
-- **Does not own:** the analyses' algorithms (pure functions in nidana.model; tooling runs them over what it scans); runtime enforcement (nidana.runtime)
-- **Consumes:** [topic-model@v1, topology-dsl@v1, topology-ir@v1, bus-api@v1]
+- **Purpose:** the static half of the architecture's enforcement and its build-time artifacts (Guide Appendix C, planned v1 for Dart): topic registry generation and catalog, the topology catalog scan and graph emission, and the CI checks that move runtime failures to merge time
+- **Owns:** packages `nidana_dart_codegen` and `nidana_dart_lint`, one per child (nidana.tooling D1); the `topics.yaml` format and generated registries through build_runner; the topic catalog; `Catalog.scanTopologies` for Dart and `topology-graph.json`, with the registration library the catalog loads (nidana.tooling.codegen D1); the build-time HTML graph; the v1 checks of D1, explicit type arguments on a topic sink included, run as analysis server plugin rules and a workspace scan (ADR-002 items 7 and 8)
+- **Does not own:** the analyses' algorithms (pure functions in nidana.model; tooling runs them over what it scans); runtime enforcement of the same rules (nidana.runtime); the checks D1 defers to v2
+- **Consumes:** [topic-model@v1, topology-dsl@v1, topology-ir@v1, bus-api@v1, bus-testing@v1, navigation-api@v1, flutter-binding@v1]
 - **Produces:** [topic-codegen@v1, nidana-checks@v1]
 - **Governed by:** [ADR-001, ADR-002]
-- **Sources:** Spec §3.8, §3.11, §4.3 to §4.6, §6.3, §6.4, §6.5, §7.2, §7.6, §9.2; Guide §5, Appendix C.1 to C.5
+- **Sources:** Spec §3.1, §3.8, §3.11, §4.2 to §4.6, §6.3, §6.4, §6.5, §7.2, §7.6, §9.2; Guide §5.1, §5.2, Appendix C.1 to C.5
 - **Decomposes into:** nidana.tooling.codegen, nidana.tooling.lint
-- **Isolation strategy:** analyzer-based checks run over source fixtures and never execute a bus; codegen runs against golden input and expected trees; catalog and graph checks run over fixture topologies through the model's recorder
+- **Isolation strategy:** the two children share no code and exchange no contract (nidana.tooling D1), so each builds alone against the contracts it consumes; analyzer-based checks run over source fixtures and never execute a bus, recognizing nidana API by package and element name; codegen runs against golden input and expected trees; catalog and graph checks run over fixture topologies through the model's recorder; each child replays its share of nidana-checks@v1 (nidana.tooling D2)
 
 ### nidana.integration: Integration
 
@@ -155,8 +155,10 @@ flowchart LR
     model -- "topic-model@v1 (shared-model)<br/>topology-dsl@v1 (contract)<br/>topology-ir@v1 (contract)" --> tooling
     runtime -- "bus-api@v1 (contract)<br/>bus-testing@v1 (hard)" --> navigation
     runtime -- "bus-api@v1 (hard)<br/>bus-testing@v1 (hard)" --> flutter
-    runtime -- "bus-api@v1 (contract)" --> tooling
+    runtime -- "bus-api@v1 (contract)<br/>bus-testing@v1 (contract)" --> tooling
     navigation -- "navigation-api@v1 (contract)" --> flutter
+    navigation -- "navigation-api@v1 (contract)" --> tooling
+    flutter -- "flutter-binding@v1 (contract)" --> tooling
     model -- "all produced (hard)" --> integration
     runtime -- "all produced (hard)" --> integration
     navigation -- "all produced (hard)" --> integration
@@ -183,30 +185,33 @@ flowchart LR
 | nidana.model | nidana.tooling | topic-model@v1 | shared-model | generated registries declare topic-model values |
 | nidana.model | nidana.tooling | topology-dsl@v1 | contract | the catalog calls `buildDefinition()` |
 | nidana.model | nidana.tooling | topology-ir@v1 | contract | the checks run the model's analyses over scanned IR |
-| nidana.runtime | nidana.navigation | bus-api@v1 | contract | the executor base compiles against the publisher and observe surface |
+| nidana.runtime | nidana.navigation | bus-api@v1 | contract | `NavigationExecutor` compiles against the publisher and observe surface |
 | nidana.runtime | nidana.navigation | bus-testing@v1 | hard | resolver wiring tests run on a real `TestBus` |
 | nidana.runtime | nidana.flutter | bus-api@v1 | hard | widget tests need real delivery and real reference counting |
 | nidana.runtime | nidana.flutter | bus-testing@v1 | hard | widget tests record envelopes on a real bus |
 | nidana.runtime | nidana.tooling | bus-api@v1 | contract | the checks recognize `bus.publisher(...)` claims in source; nothing runs a bus |
-| nidana.navigation | nidana.flutter | navigation-api@v1 | contract | the Flutter executor implements the protocol and replays its conformance suite |
+| nidana.runtime | nidana.tooling | bus-testing@v1 | contract | the plugin's `Bus` recognition covers `TestBus`, and its recorded invocations import `testing.dart` (nidana.tooling D3) |
+| nidana.navigation | nidana.flutter | navigation-api@v1 | contract | the Flutter router implements the `NavigationRouter` port, and `FlutterNavigationExecutor` replays the executor's conformance suite |
+| nidana.navigation | nidana.tooling | navigation-api@v1 | contract | the scan's recognizer matches `NavigationExecutor` claim sites, and its cases import the package (nidana.tooling D3) |
+| nidana.flutter | nidana.tooling | flutter-binding@v1 | contract | the recognizer matches `PageScope` and `FlutterNavigationExecutor` claim sites, and the scan's cases import the package (nidana.tooling D3) |
 | every other child | nidana.integration | every contract it produces | hard | integration composes live components |
 
-D10 fixes what `contract` and `shared-model` mean between Dart packages.
+D10 fixes what `contract` and `shared-model` mean between Dart packages. The three edges from nidana.runtime (bus-testing@v1), nidana.navigation and nidana.flutter into nidana.tooling were added on 2026-10-18 from nidana.tooling D3: tooling consumes those contracts by name, never by behavior, and within it only nidana.tooling.codegen's workspace scan and nidana.tooling.lint's recorded invocations wait on them.
 
 ## Development flow
 
 1. **nidana.model first.** Every edge starts there. Its first phase lands the type-level skeleton of its three contracts (the ordering policy is `fp-progression`) and the contract replay tool every producing gate calls (ADR-001).
 2. **Two lanes once the model's skeleton has merged.**
    - Lane A, the critical path: nidana.runtime, a leaf-parent phase-planned directly (nidana.runtime D1).
-   - Lane B, parallel: nidana.tooling's two leaf-parent children, nidana.tooling.codegen and nidana.tooling.lint (nidana.tooling D1), each phase-planned directly and side by side. Neither runs a bus; what each waits on is in nidana.tooling's Development flow.
+   - Lane B, parallel: nidana.tooling's two leaf-parent children, nidana.tooling.codegen and nidana.tooling.lint (nidana.tooling D1), each phase-planned directly and side by side. Neither runs a bus. nidana.tooling.lint also waits on nidana.runtime's first phase. nidana.tooling.codegen's registry lane needs only the model's first phase; the replays of its workspace scan resolve `nidana_dart_navigation` and `nidana_dart_runtime_flutter`, so they wait on the first phases of nidana.navigation and nidana.flutter, which start after the runtime ships (nidana.tooling D3). The details are in nidana.tooling's Development flow.
 3. **After the runtime ships bus-api@v1 and bus-testing@v1:** nidana.navigation, then the executor part of nidana.flutter. The binding part of nidana.flutter needs only the runtime, so it can start as soon as the runtime ships and run in parallel with nidana.navigation; its executor phases wait for the skeleton of navigation-api@v1.
 4. **nidana.integration last,** after every producer ships.
 
-Critical path: nidana.model, nidana.runtime, nidana.flutter, nidana.integration. No child is left to decompose: nidana.tooling's children are leaf-parents (nidana.tooling D1).
+Critical path: nidana.model, nidana.runtime, nidana.flutter, nidana.integration. nidana.tooling.codegen's workspace lane runs beside nidana.flutter once nidana.flutter's first phase merges, and it joins the critical path if it outlasts the rest of nidana.flutter; the two phase plans settle which. No node is left to decompose: nidana.runtime is a leaf-parent (nidana.runtime D1) and nidana.tooling's children are leaf-parents (nidana.tooling D1).
 
 ## Contract matrix
 
-Contract bodies, fixtures and schemas are written by later hsdd-contract steps in the format ADR-001 fixes. The kinds below are this decomposition's recommendation for those steps.
+All nine contracts exist under `hsdd/contract/`, written by hsdd-contract in the format ADR-001 fixes, each `draft` with provisional phase ids until hsdd-reconcile confirms them. The kinds below are the ones they carry. The tooling consumers of bus-testing@v1, navigation-api@v1 and flutter-binding@v1 (nidana.tooling D3) and the two tooling children as producers (nidana.tooling D2) reach those contracts' frontmatter through the children's `confirm` entries at reconcile.
 
 | Contract | Kind | Producer | Consumers in the tree | External consumers |
 |----------|------|----------|-----------------------|--------------------|
@@ -214,11 +219,11 @@ Contract bodies, fixtures and schemas are written by later hsdd-contract steps i
 | topology-dsl@v1 | api | nidana.model | runtime (implements it live), navigation, flutter, tooling, integration | app code declaring topologies |
 | topology-ir@v1 | api, with a serialized form | nidana.model | runtime, tooling, integration | CI tools reading `topology-graph.json` |
 | bus-api@v1 | api | nidana.runtime | navigation, flutter, tooling (surface only), integration | app bootstrap, services, pages |
-| bus-testing@v1 | api | nidana.runtime | navigation, flutter, integration | app tests |
-| navigation-api@v1 | api | nidana.navigation | flutter (implements the executor protocol), integration | app code publishing intents |
-| flutter-binding@v1 | api | nidana.flutter | integration | Flutter app code |
-| topic-codegen@v1 | file | nidana.tooling | integration | app builds (`topics.yaml` in, registries and catalog out) |
-| nidana-checks@v1 | cli | nidana.tooling | integration | app CI (`dart analyze` diagnostics and the workspace scan) |
+| bus-testing@v1 | api | nidana.runtime | navigation, flutter, tooling (surface only), integration | app tests |
+| navigation-api@v1 | api | nidana.navigation | flutter (implements the `NavigationRouter` port and binds the executor suite), tooling (surface only), integration | app code publishing intents |
+| flutter-binding@v1 | api | nidana.flutter | tooling (surface only), integration | Flutter app code |
+| topic-codegen@v1 | file | nidana.tooling (nidana.tooling.codegen) | integration | app builds (`topics.yaml` in, registries and catalog out) |
+| nidana-checks@v1 | cli | nidana.tooling (nidana.tooling.lint for the plugin, nidana.tooling.codegen for the scan; nidana.tooling D2) | integration | app CI (`dart analyze` diagnostics and the workspace scan) |
 
 ## Decisions
 
@@ -237,9 +242,12 @@ The v1 scope follows the Guide's own v1 plan for Dart/Flutter (Guide Appendix B 
 | SDK-neutral telemetry observer implementing the Guide §8.2 mapping onto `ObserveContext.span` | Guide §8.2, C.4 (OpenTelemetry exporter, planned v1) | nidana.runtime |
 | Navigation: intents, routes, resolver template, executor protocol | Guide B.1 layer 4, §3; Spec Appendix A.6 | nidana.navigation |
 | Flutter UI adapter, including `FlutterNavigationExecutor` | Guide B.1 layer 6; Spec Appendix A.8 | nidana.flutter |
-| Codegen: topic registries from `topics.yaml`, topic catalog, topology graph emission, build_runner integration | Guide C.2 (planned v1), C.3; Spec §4.5 | nidana.tooling |
-| v1 checks: topic name uniqueness, single-writer workspace scan, inter-topology cycles, intra-topology self-cycle, scope compatibility, raw-string topic use, global bus accessor, sensitive flag (warning) | Guide C.1, C.2, C.5; Spec §3.8, §3.11, §4.3, §4.4, §7.2, §9.2 | nidana.tooling |
-| Build-time topology graph visualizer (static HTML) | Guide C.4 (planned v1) | nidana.tooling |
+| Codegen: topic registries from `topics.yaml`, topic catalog, topology graph emission, build_runner integration | Guide C.2 (planned v1), C.3; Spec §4.5 | nidana.tooling.codegen |
+| v1 checks in the workspace scan: topic name uniqueness, single-writer, inter-topology cycles, intra-topology self-cycle, scope compatibility | Guide C.1, C.2, C.5; Spec §3.8, §3.11, §4.3, §7.2 | nidana.tooling.codegen |
+| v1 checks as plugin rules: raw-string topic use, global bus accessor, explicit type arguments on a topic sink (`explicit_topic_type_arguments`), the sensitive flag on known-sensitive types (non-blocking) | Guide C.1, C.2, C.5; Spec §3.1, §4.2, §4.4, §9.2 | nidana.tooling.lint |
+| Build-time topology graph visualizer (static HTML) | Guide C.4 (planned v1) | nidana.tooling.codegen |
+
+The tooling rows name nidana.tooling's children (nidana.tooling D1); the hosts of the checks follow nidana-checks@v1 Refinement 1. `explicit_topic_type_arguments` joined this list on 2026-10-18. nidana-checks@v1 Refinement 4 added it on 2026-10-17 to enforce Spec §4.2 where Dart's covariant generics let explicit type arguments widen a topic's type (bus-api@v1 G40), a gap this table did not foresee. "Non-blocking" is nidana-checks@v1 Refinement 3's reading of Guide C.1's "v1 (warning)": the rule reports at INFO and fails the analysis only under `--fatal-infos`, while the other three plugin rules report at WARNING.
 
 **Out of v1 (deferred):**
 
@@ -262,7 +270,7 @@ The v1 scope follows the Guide's own v1 plan for Dart/Flutter (Guide Appendix B 
 
 ### D2: Package consumers
 
-1. Flutter application developers: GoTo Financial app teams first, any pub.dev adopter later. They depend on `nidana_dart_contracts`, `nidana_dart_runtime`, `nidana_dart_navigation` and `nidana_dart_runtime_flutter` at run time and on the runtime's `testing.dart` library in tests.
+1. Flutter application developers: GoTo Financial app teams first, any pub.dev adopter later. They depend on `nidana_dart_contracts`, `nidana_dart_runtime`, `nidana_dart_navigation` and `nidana_dart_runtime_flutter` at run time, and in tests on the `testing.dart` libraries of the runtime (`TestBus`, bus-testing@v1), the navigation package (`InMemoryRouter`, navigation-api@v1) and the Flutter adapter (`WidgetTestBus`, flutter-binding@v1).
 2. The same teams' builds and CI: they run the codegen through build_runner, enable the analyzer plugin in `analysis_options.yaml`, and run the workspace scan.
 3. Pure Dart code with no Flutter: domain modules that declare topics and topologies depend on `nidana_dart_contracts` alone; services and VM tests add `nidana_dart_runtime`.
 4. The tree's own packages, along the DAG above.
@@ -275,15 +283,19 @@ The owner's facts answer hsdd-spec's "who builds what?": one owner with coding a
 
 ### D4: Child set and kinds
 
-Six children: nidana.model (leaf-parent), nidana.runtime (internal), nidana.navigation (leaf-parent), nidana.flutter (leaf-parent), nidana.tooling (internal), nidana.integration (leaf-parent).
+Six children: nidana.model (leaf-parent), nidana.runtime (leaf-parent), nidana.navigation (leaf-parent), nidana.flutter (leaf-parent), nidana.tooling (internal, with two leaf-parent children), nidana.integration (leaf-parent).
 
-- nidana.model holds the DSL interface, the recording builder and the IR analyses, not only data types: topology modules then depend on a pure package, and the activation-time checks (Spec §3.8, §7.2) and the CI checks run the same functions.
+- nidana.model holds the DSL interface, the recording builder and the IR analyses, not only data types: topology modules then depend on a pure package, and the activation-time checks (Spec §3.8, §3.11, §7.2) and the CI checks run the same functions.
 - `TestBus`, `VirtualScheduler` and the envelope recorder live in nidana.runtime, not in a separate test-utilities node. The Specification defines `TestBus` as a bus constructed with a virtual scheduler provider (Spec §3.6, Appendix A.7), and the runtime's own tests need the virtual scheduler, so the two could not be tested independently (hsdd-spec: merge when two nodes cannot be tested independently).
-- nidana.runtime and nidana.tooling are internal: each spans several mechanisms (runtime: registry, publish path, activation, lifecycle, testing support; tooling: build_runner builders, an analyzer plugin, a workspace scan) and will not fit one phase plan. The leaf-parents each hold one coherent scope that one owner can keep in mind and that splits into review-window phases.
+- The leaf-parents each hold one coherent scope that one owner can keep in mind and that splits into review-window phases.
+- **Kinds restated on 2026-10-18.** As first written on 2026-10-17, this decision marked nidana.runtime and nidana.tooling internal, because each spans several mechanisms (runtime: registry, publish path, activation, lifecycle, testing support; tooling: build_runner builders, an analyzer plugin, a workspace scan) and seemed too large for one phase plan. Each node's own decomposition, run on 2026-10-18 once its contracts were written, tested that reason against them:
+  - nidana.runtime D1 made nidana.runtime a leaf-parent with no children. `TestBus` extends `Bus`, so the declarations of bus-api@v1 and bus-testing@v1 share one library and land in one first phase; every behavior replay of both runs on the virtual scheduler that node lands; and any child boundary inside the package would need an internal contract whose fixtures import `lib/src/`, which ADR-001 item 2 forbids, so that contract could never become `stable`. Its mechanisms are slices of one phase plan of about twelve phases (nidana.runtime D2).
+  - nidana.tooling D1 kept nidana.tooling internal and split it into nidana.tooling.codegen (`nidana_dart_codegen`) and nidana.tooling.lint (`nidana_dart_lint`), one leaf-parent per package. The two packages share no code (ADR-002 item 4), so no internal contract joins the children, and nidana-checks@v1 has a producer in each (nidana.tooling D2; ADR-001 item 10).
+- Unchanged by the restatement: the six children, their packages (ADR-002 item 3), and every contract id on the root's edges. The child table, the embedded blocks, the DAG and the development flow above carry the restated kinds.
 
 ### D5: Integration node
 
-The children exchange contracts, so nidana.integration exists as a leaf-parent with `hard` edges to every producing sibling. One team owns it, as it owns everything else.
+The children exchange contracts, so nidana.integration exists as a leaf-parent with `hard` edges to every producing sibling. One team owns it, as it owns everything else. No integration node exists below the root: nidana.runtime has no children (nidana.runtime D1), and nidana.tooling's two children exchange no contract (nidana.tooling D1), so nidana.integration's `--all` replay covers every contract of both.
 
 ### D6: The Dart topology DSL wraps every combinator
 
@@ -299,7 +311,7 @@ The Specification requires dev-mode behavior in several places (Spec §2.4, §3.
 
 ### D9: Reactive engine and subject construction
 
-The engine is RxDart (Spec §2.1, §3.3; Guide §6.1), resolved at 0.28.0 on the pinned SDK. How subjects are constructed, and the delivery timing that follows, is nidana.runtime's decision (OQ-R1), surfaced to consumers as guarantees of bus-api@v1. Not an ADR: no other node touches a subject. The root records what the experiment `docs/auto-run/experiments/rxdart-sync-subjects/` found, because Spec §3.3 says that for RxDart "No additional machinery is required beyond" `sync: true`:
+The engine is RxDart (Spec §2.1, §3.3; Guide §6.1), resolved at 0.28.0 on the pinned SDK. How subjects are constructed, and the delivery timing that follows, was nidana.runtime's question (OQ-R1), decided as guarantees of bus-api@v1: an observed subscription of a state or replay topic keeps RxDart's first delivery in the first provider-zone microtask after `listen` (G17), while topology reads take a synchronous path of their own, so that a connection reaches the reads before `activate` returns (G22; nidana.runtime D3). Not an ADR: no other node touches a subject. The root records what the experiment `docs/auto-run/experiments/rxdart-sync-subjects/` found, because Spec §3.3 says that for RxDart "No additional machinery is required beyond" `sync: true`:
 
 - a `sync: true` `PublishSubject` delivers synchronously;
 - a `sync: true` `BehaviorSubject` or `ReplaySubject` delivers its replay to a new subscriber in a microtask, buffering later events behind it in order, and delivers synchronously once that subscriber is established;
@@ -315,19 +327,19 @@ Dart code compiles only against real declarations, so between packages of this t
 
 ## Proposed ADRs
 
-Each entry is a proposal until a later hsdd-adr step materializes and accepts it; from then on the binding text is the file under `hsdd/adr/`, and the entry here is a pointer to it. The affected nodes already carry `Governed by` links.
+This decomposition proposed three ADRs. hsdd-adr materialized and accepted each on 2026-10-17, so the binding text is the file under `hsdd/adr/`, and each entry here is a pointer to it. Each file has since been amended in place, keeping its status, date and item numbers, with a dated `## Amendments` section that lists what changed; the entries below name those amendments. The affected nodes and contracts carry `Governed by` links.
 
 ### ADR-001 (accepted): Executable validation for Dart API contracts
 
-Accepted 2026-10-17 as `hsdd/adr/001-executable-contract-validation.md`, which holds the binding text; it resolves OQ8. The accepted decision sharpens the proposal: reject fixtures anchor each expected diagnostic to a line, conformance cases are values bound per implementation and per test runner, contract guarantees carry `G{n}` ids that fixtures cover, and the workspace root's analysis options exclude `hsdd/**`.
+Accepted 2026-10-17 as `hsdd/adr/001-executable-contract-validation.md`, which holds the binding text; it resolves OQ8. The accepted decision sharpens the proposal: reject fixtures anchor each expected diagnostic to a line, conformance cases are values bound per implementation and per test runner, contract guarantees carry `G{n}` ids that fixtures cover, and the workspace root's analysis options exclude `hsdd/**`. Amended in place twice. On 2026-10-17, after the nine contracts were written, items 2, 3, 4, 6, 7, 9 and 10 gained what those contracts needed: coverage of schema, file and cli sets declared in `## Validation`, data directories, recorded invocations for `file` contracts, and `--guarantee` over file replays and recorded invocations. On 2026-10-18, after nidana.tooling D1, item 10 gained the rule for a contract with several producing leaf-parents (each producer's last phase replays its whole share; nidana.integration's `--all` is the one unrestricted replay), and `affects` gained nidana.tooling.codegen and nidana.tooling.lint.
 
 ### ADR-002 (accepted): Package and workspace layout
 
-Accepted 2026-10-17 as `hsdd/adr/002-package-workspace-layout.md`, which holds the binding text; it resolves OQ9 and, with D7, OQ12, and partially resolves nidana.tooling's OQ-T2. The package set and names are the proposal's. Four changes follow from `docs/auto-run/experiments/workspace-layout/`: `nidana_dart_lint` depends on no nidana package and pins its analyzer, because the analysis server resolves a plugin outside the workspace; the workspace scan and every check over the aggregated IR run as a command of `nidana_dart_codegen`; the plugin is enabled in the workspace root's analysis options, the only place the analyzer accepts it in a workspace; and a member's `example/` folder has no pubspec of its own. The accepted decision also fixes the root lint set and strict modes, the `hsdd/**` exclude, hosted constraints between members, and the replay tool's dependency set.
+Accepted 2026-10-17 as `hsdd/adr/002-package-workspace-layout.md`, which holds the binding text; it resolves OQ9 and, with D7, OQ12. Its item 8 fixed where nidana.tooling's OQ-T2 scan runs, and OQ-T2 is now resolved in nidana.tooling. The package set and names are the proposal's. Four changes follow from `docs/auto-run/experiments/workspace-layout/`: `nidana_dart_lint` depends on no nidana package and pins its analyzer, because the analysis server resolves a plugin outside the workspace; the workspace scan and every check over the aggregated IR run as a command of `nidana_dart_codegen`; the plugin is enabled in the workspace root's analysis options, the only place the analyzer accepts it in a workspace; and a member's `example/` folder has no pubspec of its own. The accepted decision also fixes the root lint set and strict modes, the `hsdd/**` exclude, hosted constraints between members, and the replay tool's dependency set. Amended in place on 2026-10-18: a plugin diagnostic reports at the severity its code declares, INFO only when it declares none, which corrects the accepted claim that every plugin rule reports at INFO (`docs/auto-run/experiments/plugin-severity/`); item 3's Owner column and `affects` name nidana.tooling.codegen and nidana.tooling.lint; and what the workspace scan reads is nidana-checks@v1 Refinement 2's.
 
 ### ADR-003 (accepted): Time source and virtual scheduler on Dart
 
-Accepted 2026-10-17 as `hsdd/adr/003-time-source-virtual-scheduler.md`, which holds the binding text; it resolves OQ7 and the clock-control part of OQ2. The accepted decision keeps the proposal's provider as a zone plus a clock, nidana's own virtual scheduler and RxDart's time operators. Five changes follow from `docs/auto-run/experiments/virtual-scheduler/` and `time-source-widget/`: the production provider captures the construction zone without forking it; `bus.observe` subscribes, and observers run, inside the provider zone, so a TestBus subscriber needs no real event-loop turn; no nidana code chains on a future from outside the zone, and the live `switchMap` does not wait for the previous inner's cancel, because RxDart 0.28's `switchMap` does and its continuation escapes the virtual scheduler, `fakeAsync` and `testWidgets` alike; bus-testing@v1 adds an asynchronous settle for work that starts outside the zone; widget tests construct the bus in the test body and shut it down before the body ends. The accepted decision also fixes the scheduler's drain order, bounds and fixed start instant, and governs nidana.model (time enters the contracts package only as an argument), navigation-api@v1 and flutter-binding@v1.
+Accepted 2026-10-17 as `hsdd/adr/003-time-source-virtual-scheduler.md`, which holds the binding text; it resolves OQ7 and the clock-control part of OQ2. The accepted decision keeps the proposal's provider as a zone plus a clock, nidana's own virtual scheduler and RxDart's time operators. Five changes follow from `docs/auto-run/experiments/virtual-scheduler/` and `time-source-widget/`: the production provider captures the construction zone without forking it; `bus.observe` subscribes, and observers run, inside the provider zone, so a TestBus subscriber needs no real event-loop turn; no nidana code chains on a future from outside the zone, and the live `switchMap` does not wait for the previous inner's cancel, because RxDart 0.28's `switchMap` does and its continuation escapes the virtual scheduler, `fakeAsync` and `testWidgets` alike; bus-testing@v1 adds an asynchronous settle for work that starts outside the zone; widget tests construct the bus in the test body and shut it down before the body ends. The accepted decision also fixes the scheduler's drain order, bounds and fixed start instant, and governs nidana.model (time enters the contracts package only as an argument), navigation-api@v1 and flutter-binding@v1. Its links were amended in place on 2026-10-17, with the Decision and Consequences unchanged: `affects` gained topology-dsl@v1, whose live `switchMap` and time-dependent combinators items 3 and 4 constrain, and that contract's header gained `Governed by: [ADR-003]`.
 
 ## Open questions
 
@@ -366,7 +378,7 @@ Guide §10.3 calls these organizational patterns, not architectural decisions. R
 
 ### OQ5: Server-driven topologies
 
-Guide §10.4 separates server-controlled rewiring, which a topology already expresses with `switchMap` over a configuration topic, from server-shipped topology code, which the architecture does not target. Resolved by D1: no dedicated v1 feature; the rewiring case is covered by topology-dsl@v1's `switchMap`.
+Guide §10.4 separates server-controlled rewiring, in which configuration arriving on a topic switches among pre-shipped pipelines, from server-shipped topology code, which the architecture does not target. Resolved by D1: no dedicated v1 feature. The Guide draws the rewiring as a meta-topology that uses `switchMap` to swap among pre-defined topologies; topology-dsl@v1 has no combinator that selects among pipelines (its Refinement 4). The rewiring case is a `combine` over the configuration topic for state-like pipelines, or a `withLatestFrom` gate per pipeline joined by `merge` for event pipelines, with every candidate pipeline staying subscribed; topology-dsl@v1's `switchMap` selects among shell-provided streams only. topology-dsl@v1's authoring step marked the difference from Guide §10.4 and Spec §6.1 and §7.1 for upstreaming.
 
 ### OQ6: Persistence and hydration
 

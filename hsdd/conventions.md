@@ -75,8 +75,8 @@ Replaces the template's "OpenSpec init" section.
   - `TA` = nidana.tooling.codegen
   - `TB` = nidana.tooling.lint
   - a child of an internal node takes its parent's prefix plus one letter
-    (children of nidana.runtime are `RA`, `RB`, and so on), declared here by
-    the hsdd-spec run that creates the child
+    (nidana.tooling's children are `TA` and `TB`), declared here by the
+    hsdd-spec run that creates the child
 - Dart packages: `nidana_dart_{layer}` for published packages, after Guide
   Appendix B.2; unpublished workspace members drop `_dart` (ADR-002)
 
