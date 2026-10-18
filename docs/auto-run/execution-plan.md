@@ -194,8 +194,9 @@ tree. Done when `node docs/auto-run/tools/gate.mjs --final` passes.
 | S37 | 6 | hsdd-reconcile | nidana.tooling.lint's pending section | done | 745673a |
 | S38 | 6 | hsdd-adr | ADR-002 update: third-party lower bounds from the full planned resolution; Context Q11c | done | 257b22d |
 | S39 | 6 | hsdd-phase-plan | nidana.tooling.codegen (11 phases) | done | ad8093c |
-| S40 | 6 | hsdd-reconcile | nidana.tooling.codegen's pending section | running | |
-| S41.. | 6 | hsdd-phase-plan, hsdd-reconcile | nidana.integration's plan and reconcile | nidana.flutter, nidana.tooling.lint, nidana.tooling.codegen, nidana.integration, in that order | planned | |
+| S40 | 6 | hsdd-reconcile | nidana.tooling.codegen's pending section | done | 162c13c |
+| S41 | 6 | hsdd-phase-plan | nidana.integration | running | |
+| S42 | 6 | hsdd-reconcile | nidana.integration's pending section (every contract to final and stable) | planned | | nidana.flutter, nidana.tooling.lint, nidana.tooling.codegen, nidana.integration, in that order | planned | |
 
 ## Change log
 
@@ -353,3 +354,7 @@ tree. Done when `node docs/auto-run/tools/gate.mjs --final` passes.
 - 2026-10-18 (UTC), after S39: stage-7 pass also takes `pub_semver ^2.2.1` into ADR-002 item 4's table
   (codegen D3 declares it; outside the table), nidana.tooling.md's "Carried into the children's phase
   plans" bullet, and the contracts' "checked by nidana.tooling's gates" lines (now the children's).
+- 2026-10-18 (UTC), after S40: every producer is confirmed; nidana.integration is the last unplanned
+  consumer of all nine contracts. Stage-7 pass also takes nidana.tooling.codegen.6's "seventeen recorded
+  invocations" (now twenty), codegen.10's gate note, and nidana.tooling.md's drained "Carried into"
+  bullets.
