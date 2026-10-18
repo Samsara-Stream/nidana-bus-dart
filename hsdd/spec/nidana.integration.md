@@ -61,7 +61,9 @@ So nidana.integration.1 waits on nidana.model.1 (the workspace root and the `str
 
 The schedule this gives: nidana.integration.1 merges once the codegen and lint lanes and nidana.flutter.1 have; .2 to .4 run beside nidana.flutter.5 to .7 once nidana.runtime.14 and nidana.navigation.6 have merged; after nidana.flutter.7 the node's chain is .5, then .6, then .7 and .8 side by side.
 
-Alternative considered: every phase after every producer's last producing phase, the literal node-level reading of root Development flow item 4. It keeps one start condition and builds nothing on a producer that may still renegotiate a declaration, but the chain after nidana.flutter.7 grows from three phases to six. The signal that would favor it: an hsdd-contract renegotiation of a consumed contract's declarations during a producer's remaining phases.
+Alternative considered: every phase after every producer's last producing phase, the literal node-level reading of root Development flow item 4 as first written. It keeps one start condition and builds nothing on a producer that may still renegotiate a declaration, but the chain after nidana.flutter.7 grows from three phases to six. The signal that would favor it: an hsdd-contract renegotiation of a consumed contract's declarations during a producer's remaining phases.
+
+**Corrected 2026-10-18.** As first written, the alternative named the node-level reading as root Development flow item 4's present one. The root flow was restated on 2026-10-18 to bind this node's `hard` edges per phase, citing this decision, so the alternative names the flow's first wording. The decision and its edges did not change.
 
 ### D3: What every gate runs
 
@@ -111,9 +113,11 @@ Alternatives considered: the full Appendix A diagram (two services and a topic n
 - scans the example and such a package together; the scan resolves the seeded package's imports of the example and reports a name collision and a writer conflict across the two (I4);
 - starts a nested `flutter test` without contention (I5).
 
-So the CI slice's assertions are tests of the member that spawn the real commands and check exit codes, report lines and documents, and every seeded violation lives in a temporary directory, never in the member's analyzed code (ADR-002 Consequences): a seeded companion package beside the example for the plugin rules, the claim checks and the name collision, and seeded graph documents for the topology checks. The failing half thus has two parts: nidana-checks@v1's seventeen recorded invocations, replayed by the unrestricted replay (its In CI's own reading of the root's success criterion), and the violations seeded beside the example.
+So the CI slice's assertions are tests of the member that spawn the real commands and check exit codes, report lines and documents, and every seeded violation lives in a temporary directory, never in the member's analyzed code (ADR-002 Consequences): a seeded companion package beside the example for the plugin rules, the claim checks and the name collision, and seeded graph documents for the topology checks. The failing half thus has two parts, as nidana-checks@v1 In CI also reads the root's success criterion: nidana-checks@v1's seventeen recorded invocations, replayed by the unrestricted replay, and the violations seeded beside the example.
 
-Alternatives considered: the recorded invocations as the whole failing half, as nidana-checks@v1 In CI reads it (no test infrastructure, but the root's success criterion has the checks fail on violations seeded over the example, and the recorded cases run over small packages of their own, never against the example's claims or generated registry); seeded trees in an excluded directory of the repository (the only ones are `ref/`, `docs/` and `hsdd/`, none of which a phase writes code into); a CI driver script under the member's `tool/` (application code that the scan and the plugin read, with assertions no test runner reports).
+Alternatives considered: the recorded invocations as the whole failing half, as nidana-checks@v1 In CI first read it (no test infrastructure, but the root's success criterion has the checks fail on violations seeded over the example, and the recorded cases run over small packages of their own, never against the example's claims or generated registry); seeded trees in an excluded directory of the repository (the only ones are `ref/`, `docs/` and `hsdd/`, none of which a phase writes code into); a CI driver script under the member's `tool/` (application code that the scan and the plugin read, with assertions no test runner reports).
+
+**Corrected 2026-10-18.** As first written, the decision called the recorded invocations nidana-checks@v1 In CI's own reading of the failing half, and its first alternative said In CI reads them as the whole failing half. In CI, amended within v1 on 2026-10-18 (nidana-checks@v1 Versioning, amendment (j)), now names nidana.integration.8's gate and reads the recorded invocations as one part of the failing half and the violations seeded beside the example as the other, citing this decision. The decision now says In CI reads it the same way, and the alternative names In CI's first wording. The decision did not change.
 
 ### D7: The registry is generated, committed and checked against `generate`
 
@@ -121,7 +125,9 @@ The example commits `lib/topics.g.dart`, written by the builder in nidana.integr
 
 The order matters, and the flag is left out, for what build_runner 2.16.1 does (`docs/auto-run/experiments/integration-plan-facts/`, I7): in a fresh checkout it builds over the committed output without a conflict; `--delete-conflicting-outputs` has been removed and is ignored with a warning; and it rewrites a stale committed output silently, exit 0, so a check after it alone would never see the stale commit.
 
-Alternatives considered: build_runner first, as an app's CI runs it (a stale committed registry rewritten in the working tree before any check sees it); no committed registry, generated in every gate (the default gate analyzes before any test, and a fresh checkout would not analyze).
+Alternatives considered: build_runner first, then the comparison (a stale committed registry rewritten in the working tree before any check sees it); no committed registry, generated in every gate (the default gate analyzes before any test, and a fresh checkout would not analyze).
+
+**Corrected 2026-10-18.** As first written, the first alternative ran build_runner first "as an app's CI runs it", after topic-codegen@v1's app-build paragraph, which then placed the comparison after the three commands. That paragraph, amended within v1 on 2026-10-18 (topic-codegen@v1 Versioning, amendment (e)), now has an app compare `generate`'s output with the committed registry before build_runner, for the reason this decision gives, so the alternative no longer describes an app's CI. The decision did not change.
 
 ### D8: The static graph and the running app's graph agree
 
@@ -160,7 +166,7 @@ Alternative considered: `package:test` as a dev dependency for the VM tests (a d
 
 Ordering policy: `fp-progression` (conventions), in the four bands D1 names: types (.1), pure functions (.2), effects (.3 on the VM, .5 in Flutter), composition (.4, .6, then .7 and .8). Two lanes follow .2, the VM lane .3 and .4 and the Flutter lane .5, and meet at .6; .7 and .8 run side by side after it. Cross-node waits follow D2; the gates follow D3.
 
-No two phases of this plan edit one file (D4), so no phase carries `Collides with`. nidana.integration.1 is the one phase that creates a workspace member: it edits the root `pubspec.yaml` workspace list and `pubspec.lock`, which every other node's member-creating phase also edits (conventions, Shared workspace files; the `note` entry below). No adjacent pair is a merge candidate under the sizing floor (D1).
+No two phases of this plan edit one file (D4), so no phase carries `Collides with`. nidana.integration.1 is the one phase that creates a workspace member: it edits the root `pubspec.yaml` workspace list and `pubspec.lock`, which every other node's member-creating phase also edits (conventions, Shared workspace files). No adjacent pair is a merge candidate under the sizing floor (D1).
 
 ### nidana.integration.1: Example member, domain types and topic registry
 
