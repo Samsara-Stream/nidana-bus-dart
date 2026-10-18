@@ -1,0 +1,4 @@
+# No diagnostics section: every warning rule on at its declared severity, every lint rule off.
+plugins:
+  ps_lint:
+    path: ../../packages/ps_lint

@@ -1,0 +1,93 @@
+
+### setup: resolve, SDK
+pub get exit: 0
+  analyzer                13.3.0
+  analysis_server_plugin  0.3.18
+Dart SDK version: 3.13.5 (stable) (Tue Sep 29 01:00:52 2026 -0700) on "macos_arm64"
+
+### S1 the two earlier stand-ins: how each registers its rules and declares its code
+-- workspace-layout/packages/wl_lint/lib/main.dart
+  19:    registry.registerWarningRule(_Rule());
+  24:  static final LintCode code = LintCode('no_global_bus', 'Global Bus accessor.');
+-- workspace-layout/packages/wl_lint_pinned/lib/main.dart
+  19:    registry.registerWarningRule(_Rule());
+  24:  static final LintCode code = LintCode('no_global_bus_pinned', 'Global Bus accessor.');
+-- nidana-checks-fixtures/packages/nidana_dart_lint/lib/main.dart
+  20:      ..registerWarningRule(RawStringTopic())
+  21:      ..registerWarningRule(GlobalBusAccessor())
+  22:      ..registerWarningRule(ExplicitTopicTypeArguments())
+  23:      ..registerWarningRule(UnflaggedSensitiveTopic());
+-- nidana-checks-fixtures/packages/nidana_dart_lint/lib/src/rules.dart
+  84:      : super(const LintCode(
+  89:          severity: DiagnosticSeverity.WARNING,
+  116:      : super(const LintCode(
+  121:          severity: DiagnosticSeverity.WARNING,
+  181:      : super(const LintCode(
+  185:          severity: DiagnosticSeverity.WARNING,
+  219:      : super(const LintCode(
+-- what each reported (from its own output.txt)
+  workspace-layout:       INFO|STATIC_WARNING|NO_GLOBAL_BUS
+  workspace-layout:       INFO|STATIC_WARNING|NO_GLOBAL_BUS_PATH
+  workspace-layout:       INFO|STATIC_WARNING|NO_GLOBAL_BUS_PINNED
+  nidana-checks-fixtures: WARNING|GLOBAL_BUS_ACCESSOR
+  nidana-checks-fixtures: WARNING|EXPLICIT_TOPIC_TYPE_ARGUMENTS
+  nidana-checks-fixtures: WARNING|RAW_STRING_TOPIC
+  nidana-checks-fixtures: INFO|UNFLAGGED_SENSITIVE_TOPIC
+
+### S2 the pinned sources: LintCode's default severity, the diagnostic type, and the plugin server's severity choice
+-- analyzer 13.3.0 lib/src/dart/error/lint_codes.dart
+  61:    this.severity = DiagnosticSeverity.INFO,
+  72:  DiagnosticType get type => DiagnosticType.LINT;
+-- analyzer 13.3.0 lib/src/lint/registry.dart (which rules run)
+    Iterable<AbstractAnalysisRule> enabled(Map<String, RuleConfig> ruleConfigs) {
+      assert(ruleConfigs.keys.every((key) => key == key.toLowerCase()));
+      return [
+        // All warning rules that haven't explicitly been disabled.
+        ...warningRules.values.where(
+          (rule) => ruleConfigs[rule.name.toLowerCase()]?.isEnabled ?? true,
+        ),
+        // All lint rules that have explicitly been enabled.
+        ...lintRules.values.where(
+          (rule) => ruleConfigs[rule.name.toLowerCase()]?.isEnabled ?? false,
+        ),
+      ];
+    }
+-- analysis_server_plugin 0.3.18 lib/src/plugin_server.dart (the reported severity and type)
+  464:            severityMapping[diagnostic.diagnosticCode] ??
+  465:                protocol.AnalysisErrorSeverity.INFO,
+  466:            protocol.AnalysisErrorType.STATIC_WARNING,
+  580:        configuredSeverity != ConfiguredSeverity.enable) {
+  591:    // Fall back to the declared severity of [code].
+  592:    var severityName = code.severity.name.toUpperCase();
+
+### C1 no diagnostics section: warning rules at their declared severity, lint rules off
+INFO|STATIC_WARNING|WARNING_DEFAULT|5|warning rule, default severity.
+WARNING|STATIC_WARNING|WARNING_DECLARED|5|warning rule, declared WARNING.
+exit: 2
+-- ps_lint synthetic package
+  analyzer                13.3.0
+  analysis_server_plugin  0.3.18
+
+### C2 lint rules enabled with true: at their declared severity
+INFO|STATIC_WARNING|LINT_DEFAULT|5|lint rule, default severity.
+INFO|STATIC_WARNING|WARNING_DEFAULT|5|warning rule, default severity.
+WARNING|STATIC_WARNING|LINT_DECLARED|5|lint rule, declared WARNING.
+WARNING|STATIC_WARNING|WARNING_DECLARED|5|warning rule, declared WARNING.
+exit: 2
+
+### C3 only warning_default (workspace-layout's shape) reports
+INFO|STATIC_WARNING|WARNING_DEFAULT|5|warning rule, default severity.
+exit: 0
+-- with --fatal-infos
+INFO|STATIC_WARNING|WARNING_DEFAULT|5|warning rule, default severity.
+exit: 1
+
+### C4 only warning_declared (nidana-checks-fixtures' shape) reports
+WARNING|STATIC_WARNING|WARNING_DECLARED|5|warning rule, declared WARNING.
+exit: 2
+
+### C5 configured severities override the declared ones; a configured severity enables a lint rule
+ERROR|STATIC_WARNING|LINT_DEFAULT|5|lint rule, default severity.
+INFO|STATIC_WARNING|WARNING_DECLARED|5|warning rule, declared WARNING.
+WARNING|STATIC_WARNING|WARNING_DEFAULT|5|warning rule, default severity.
+exit: 3

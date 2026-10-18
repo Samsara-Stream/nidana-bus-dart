@@ -1,0 +1,6 @@
+# Only warning_default reports: workspace-layout's stand-in shape.
+plugins:
+  ps_lint:
+    path: ../../packages/ps_lint
+    diagnostics:
+      warning_declared: false

@@ -1,0 +1,9 @@
+# plugin-severity: what decides the severity at which an analysis server
+# plugin's diagnostic reports under `fvm dart analyze` (see run.sh). Its own
+# pub workspace, never a member of the repository's workspace.
+name: ps_root
+publish_to: none
+environment:
+  sdk: ^3.13.0
+workspace:
+  - packages/ps_lint

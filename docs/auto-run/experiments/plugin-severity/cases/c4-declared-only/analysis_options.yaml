@@ -1,0 +1,6 @@
+# Only warning_declared reports: nidana-checks-fixtures' stand-in shape.
+plugins:
+  ps_lint:
+    path: ../../packages/ps_lint
+    diagnostics:
+      warning_default: false

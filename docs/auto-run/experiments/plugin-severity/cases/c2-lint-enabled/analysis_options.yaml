@@ -1,0 +1,7 @@
+# The two lint rules enabled with true: each at its declared severity.
+plugins:
+  ps_lint:
+    path: ../../packages/ps_lint
+    diagnostics:
+      lint_default: true
+      lint_declared: true

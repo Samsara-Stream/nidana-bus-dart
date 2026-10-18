@@ -5,5 +5,5 @@
 | id | status | affects |
 |----|--------|---------|
 | `ADR-001` | accepted | nidana, nidana.model, nidana.runtime, nidana.navigation, nidana.flutter, nidana.tooling, nidana.tooling.codegen, nidana.tooling.lint, nidana.integration, topic-model@v1, topology-dsl@v1, topology-ir@v1, bus-api@v1, bus-testing@v1, navigation-api@v1, flutter-binding@v1, topic-codegen@v1, nidana-checks@v1 |
-| `ADR-002` | accepted | nidana, nidana.model, nidana.runtime, nidana.navigation, nidana.flutter, nidana.tooling, nidana.integration, topic-model@v1, topology-dsl@v1, topology-ir@v1, bus-api@v1, bus-testing@v1, navigation-api@v1, flutter-binding@v1, topic-codegen@v1, nidana-checks@v1 |
+| `ADR-002` | accepted | nidana, nidana.model, nidana.runtime, nidana.navigation, nidana.flutter, nidana.tooling, nidana.tooling.codegen, nidana.tooling.lint, nidana.integration, topic-model@v1, topology-dsl@v1, topology-ir@v1, bus-api@v1, bus-testing@v1, navigation-api@v1, flutter-binding@v1, topic-codegen@v1, nidana-checks@v1 |
 | `ADR-003` | accepted | nidana.model, nidana.runtime, nidana.navigation, nidana.flutter, nidana.integration, topology-dsl@v1, bus-api@v1, bus-testing@v1, navigation-api@v1, flutter-binding@v1 |

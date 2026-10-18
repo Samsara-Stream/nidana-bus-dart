@@ -1,0 +1,8 @@
+# Configured severities: each overrides the declared one; a severity also enables a lint rule.
+plugins:
+  ps_lint:
+    path: ../../packages/ps_lint
+    diagnostics:
+      warning_default: warning
+      warning_declared: info
+      lint_default: error
