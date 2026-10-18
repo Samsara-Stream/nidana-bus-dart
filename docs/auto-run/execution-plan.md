@@ -181,7 +181,10 @@ tree. Done when `node docs/auto-run/tools/gate.mjs --final` passes.
 | S24 | 5 | hsdd-adr | ADR-001 update: item 10 for a contract two leaf-parents produce | done | cd87e32 |
 | S25 | 5 | hsdd-adr | ADR-002 update: stale plugin-severity consequence; tooling children as owners and in affects | done | 6aa8688 |
 | S26 | 5 | hsdd-spec (root refresh) | root D1 check table (explicit_topic_type_arguments), D4 (runtime leaf-parent, tooling children), OQ5, three new tooling edges (bus-testing, navigation-api, flutter-binding), embedded summaries and Sources, conventions' RA/RB example | done | 9239917 |
-| S27 | 5 | hsdd-spec (touch) | topology-ir@v1 edges into nidana.navigation and nidana.flutter (headers, root DAG, edge table, matrix) | running | |
+| S27 | 5 | hsdd-spec (touch) | topology-ir@v1 edges into nidana.navigation and nidana.flutter (headers, root DAG, edge table, matrix) | done | b39c80d |
+| S28 | 6 | hsdd-phase-plan | nidana.model | running | |
+| S29 | 6 | hsdd-reconcile | nidana.model's pending section | planned | |
+| S30.. | 6 | hsdd-phase-plan then hsdd-reconcile | nidana.runtime, nidana.navigation, nidana.flutter, nidana.tooling.lint, nidana.tooling.codegen, nidana.integration, in that order | planned | |
 
 ## Change log
 

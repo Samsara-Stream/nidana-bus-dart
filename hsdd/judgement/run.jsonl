@@ -25,3 +25,4 @@
 {"step_ref":"S24","skill":"hsdd-adr","target":"ADR-001 (item 10)","started":"2026-10-18T01:01:06Z","finished":"2026-10-18T01:07:50Z","commit":"cd87e32","dispatches":1}
 {"step_ref":"S25","skill":"hsdd-adr","target":"ADR-002 (update)","started":"2026-10-18T01:07:59Z","finished":"2026-10-18T01:18:58Z","commit":"6aa8688","dispatches":1}
 {"step_ref":"S26","skill":"hsdd-spec","target":"nidana (root refresh)","started":"2026-10-18T01:19:08Z","finished":"2026-10-18T01:38:40Z","commit":"9239917","dispatches":1}
+{"step_ref":"S27","skill":"hsdd-spec","target":"nidana (edge sweep)","started":"2026-10-18T01:38:50Z","finished":"2026-10-18T01:48:29Z","commit":"b39c80d","dispatches":1}

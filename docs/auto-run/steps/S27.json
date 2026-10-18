@@ -1,0 +1,157 @@
+{
+  "step_ref": "S27",
+  "skill": "hsdd-spec",
+  "target": "nidana (root), consumed-contract edges implied by fixtures",
+  "status": "completed",
+  "stop": null,
+  "artifacts": [
+    "hsdd/spec/nidana.md",
+    "hsdd/spec/nidana.navigation.md",
+    "hsdd/spec/nidana.flutter.md"
+  ],
+  "decisions": [
+    {
+      "at": "2026-10-18T01:45:05Z",
+      "artifact": "hsdd/spec/nidana.md",
+      "question": "package:nidana_dart_contracts/nidana_dart_contracts.dart carries the declarations of three contracts (topic-model@v1, topology-dsl@v1, topology-ir@v1). When a fixture imports it, which contracts does its node consume?",
+      "options": [
+        { "label": "by the declarations the fixture names", "consequence": "each importer consumes only the contracts whose Boundary groups it uses; nidana.tooling.lint, whose analyze-* cases import the main library but name no IR declaration, gains no topology-ir@v1 edge" },
+        { "label": "by library", "consequence": "every importer of the main library consumes all three model contracts; nidana.tooling.lint and nidana.tooling (internal) would gain topology-ir@v1, with no change to scheduling because nidana.model's first phase lands all three" }
+      ],
+      "chosen": "by the declarations the fixture names",
+      "why": "topic-model@v1's Interface says the main library carries topology-dsl@v1's and topology-ir@v1's declarations unless they name a library of their own, and every consuming contract's Boundary table assigns declaration groups, not libraries, to contracts. hsdd-config injects a consumed contract's text into a phase, so an edge that names a contract the node never uses adds noise without adding a constraint. Scheduling is identical either way, which is why this is close. The signal that would have changed my mind: hsdd-config or a checkpoint resolving consumption by imported library rather than by declaration.",
+      "evidence": [
+        "hsdd/contract/topic-model.md Interface (Library paragraph)",
+        "hsdd/contract/topology-ir.md Interface (Libraries paragraph)",
+        "hsdd/contract/navigation-api.md Boundary",
+        "hsdd/contract/flutter-binding.md Boundary",
+        "hsdd/contract/fixture/nidana-checks/invocation/analyze-*/ (no CombinatorKind, FunctionRef, StageInput, TopicInput, TopologyDefinition, TransformEdge, EdgeInput or buildDefinition)"
+      ],
+      "blast_radius": "contract",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T01:45:05Z",
+      "artifact": "hsdd/spec/nidana.md",
+      "question": "topology-ir@v1 into nidana.navigation: the behavior suites its gates run (navigation_conformance.dart, navigation_executor_conformance.dart through in_memory_router_test.dart and nidana_dart_navigation_test.dart) name TopologyDefinition, TransformEdge, TopicInput, StageInput, CombinatorKind, ShellClaim and analyzeTopologyGraph. Is the edge contract or hard?",
+      "options": [
+        { "label": "contract", "consequence": "nidana.navigation starts on nidana.model's first phase for this contract, which it already waits on; the behavior its G13, G15, G16, G19 and G24 cases need arrives before it starts, through its hard edge on nidana.runtime" },
+        { "label": "hard", "consequence": "nidana.navigation waits for nidana.model to finish every phase, renderers and JSON form included, which its suites never touch; inconsistent with the contract typing of topology-dsl@v1 into the same node, whose G13 cases call the same buildDefinition()" }
+      ],
+      "chosen": "contract",
+      "why": "Root D10: hard means the consumer's tests need the producer's real behavior before the consumer can start. The model behavior these cases exercise (the analyses and definition equality) is exactly what nidana.runtime's activation checks and live graph use (bus-api@v1 G23, G24, G37), so nidana.runtime's unrestricted bus-api@v1 replay at its last producing phase cannot pass without it, and nidana.navigation already waits on the runtime shipping through its hard bus-testing@v1 edge. nidana.runtime types its own use of the same analyses contract. The signal that would have changed my mind: a navigation case that needs a model behavior the runtime's replay never exercises (the renderers or the JSON form).",
+      "evidence": [
+        "hsdd/contract/fixture/navigation-api/behavior/navigation_conformance.dart (G13, G15, G16)",
+        "hsdd/contract/fixture/navigation-api/behavior/navigation_executor_conformance.dart (G19, G24)",
+        "hsdd/contract/navigation-api.md Boundary (topology-ir@v1 row), G15",
+        "hsdd/contract/bus-api.md G23, G24, G37",
+        "hsdd/contract/fixture/bus-api/behavior/bus_api_conformance.dart (ActivationRejected with TopologyCycle, WriterConflict, ScopeViolation, SelfReference findings)",
+        "hsdd/spec/nidana.runtime.md Contracts (topology-ir@v1 row, contract)",
+        "root D10",
+        "hsdd/spec/nidana.tooling.md D3"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T01:45:05Z",
+      "artifact": "hsdd/spec/nidana.md",
+      "question": "topology-ir@v1 into nidana.flutter: flutter_binding_conformance.dart compares bus.toGraph() claims with ShellClaim values and reads TopologyDefinition ids from bus.toGraph(); flutter_navigation_executor_test.dart binds navigation-api@v1's executor suite, which runs analyzeTopologyGraph. Is the edge contract or hard?",
+      "options": [
+        { "label": "contract", "consequence": "no new wait: nidana.flutter already waits on nidana.model's first phase and, through hard bus-api@v1 and bus-testing@v1 edges, on the runtime shipping" },
+        { "label": "hard", "consequence": "nidana.flutter, on the critical path, would wait for nidana.model's last phase although its cases use model value types and the analyses only" }
+      ],
+      "chosen": "contract",
+      "why": "Same reasoning as the navigation edge. Most of what these cases check is nidana.runtime's behavior (toGraph, claims) over model value types; the one model behavior beyond value equality, analyzeTopologyGraph in the bound executor suite's G24 case, backs the runtime's own activation check (bus-api@v1 G24), which the runtime's last replay exercises before it ships. Typing it hard would put nidana.model's remaining phases on the critical path for no case that needs them. The signal that would have changed my mind: a flutter-binding@v1 case that needs the renderers or the JSON form.",
+      "evidence": [
+        "hsdd/contract/fixture/flutter-binding/behavior/flutter_binding_conformance.dart (G7, G14, G17; TopologyDefinition helper at line 92)",
+        "hsdd/contract/fixture/flutter-binding/behavior/flutter_navigation_executor_test.dart (binds navigation_executor_conformance.dart, G19, G24)",
+        "hsdd/contract/flutter-binding.md Boundary (topology-ir@v1 row)",
+        "hsdd/contract/bus-api.md G24, G37",
+        "root D10"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T01:45:05Z",
+      "artifact": "hsdd/spec/nidana.md",
+      "question": "Every api and shared-model fixture tree imports package:nidana_contract_check/fixture.dart, the replay tool nidana.model writes in its first phase. Does that import imply an edge?",
+      "options": [
+        { "label": "no edge", "consequence": "the DAG keeps contract edges only; the dependency on the tool is stated once in D10's bullet" },
+        { "label": "treat it as a model contract's library", "consequence": "would need a contract that declares the tool, which this step may not add, and adds no ordering because every importer already waits on nidana.model's first phase" }
+      ],
+      "chosen": "no edge",
+      "why": "ADR-001 item 9 makes the replay tool a workspace package owned by nidana.model, not part of any contract's Interface, and the brief adds edges only, never contracts. Every node whose fixtures import it already consumes a model contract from nidana.model's first phase, which writes it, so the DAG already orders it.",
+      "evidence": [
+        "hsdd/adr/001-executable-contract-validation.md item 9",
+        "hsdd/spec/nidana.md Development flow item 1"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T01:46:04Z",
+      "artifact": "hsdd/spec/nidana.md",
+      "question": "Do the two new edges change the root's Development flow or critical path?",
+      "options": [
+        { "label": "leave the flow as written", "consequence": "the D10 bullet says neither edge changes the flow; the flow text stays untouched" },
+        { "label": "add a sentence to the flow", "consequence": "restates in the flow a wait both nodes already have" }
+      ],
+      "chosen": "leave the flow as written",
+      "why": "Both edges are contract edges from nidana.model, whose first phase both nodes already wait on through topic-model@v1 and topology-dsl@v1, and both nodes start only after the runtime ships. No lane, wait or critical-path node moves, so the flow already states the schedule.",
+      "evidence": [
+        "hsdd/spec/nidana.md Development flow items 1 to 3",
+        "root D10"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    }
+  ],
+  "experiments": [],
+  "self_check": [
+    { "gate": "The spec stays high-level; it is not an implementation plan.", "status": "pass", "note": "only Consumes lines, DAG labels, two edge rows, one matrix cell, one matrix-intro sentence, one sentence below the edge table and one D10 bullet changed" },
+    { "gate": "Every node has explicit consumed/produced contract ids.", "status": "pass", "note": "nidana.navigation and nidana.flutter gain topology-ir@v1; every other Consumes line unchanged" },
+    { "gate": "Every node is testable in isolation (fixtures, mocks, schemas).", "status": "pass", "note": "isolation strategies unchanged; the new edges are what the existing fixtures already import" },
+    { "gate": "Every dependency edge is typed; parallel lanes are called out.", "status": "pass", "note": "both new edges typed contract in the DAG and the edge table; lanes unchanged" },
+    { "gate": "Each child is marked internal or leaf-parent.", "status": "pass", "note": "kinds unchanged" },
+    { "gate": "Mermaid DAG matches the dependency table.", "status": "pass", "note": "checked by script: every (from, to, contract, type) in the DAG labels has a table row and back, except the pre-existing integration shorthand ('all produced (hard)' per producer in the DAG, one 'every other child' row in the table), which is unchanged; every embedded Consumes line equals the union of the DAG's incoming contracts for that node" },
+    { "gate": "`conventions.md` exists/updated at the root.", "status": "pass", "note": "exists; no new convention" },
+    { "gate": "The decomposition axis at each level matches ownership stated by the human, not assumed; no node is owned by two teams.", "status": "pass", "note": "unchanged (root D3, single team); gate text rewritten without its em-dash" },
+    { "gate": "Every child node has its own `hsdd/spec/{child-id}.md` file.", "status": "pass", "note": "unchanged" },
+    { "gate": "Every input source appears in the Sources of at least one node, or is marked in the root `## Sources` as \"informative only, not decomposed\", with a reason.", "status": "pass", "note": "Sources untouched; gate text rewritten without its em-dash" },
+    { "gate": "No node's Sources lists a document that does not govern it.", "status": "pass", "note": "Sources untouched" },
+    { "gate": "Field blocks are bullet lists and empty lists say \"none\".", "status": "pass", "note": "edited Consumes lines stay bullets" },
+    { "gate": "Every open question is defined once, in its owning spec, with a table row and a `### {ID}` detail subsection; child views carry `[inherits …]`; no cited ID lacks a definition.", "status": "pass", "note": "no Open questions row or detail touched; no OQ cited by the new text" },
+    { "gate": "OQ prefixes used by node specs are declared in `conventions.md`.", "status": "pass", "note": "untouched" },
+    { "gate": "Under `multi-team`, every node whose team differs from its parent's carries `- **Team:**`; no node is owned by two teams.", "status": "n/a", "note": "single-team" },
+    { "gate": "Where children exchange contracts, an integration node exists or the decision not to add one is stated in the parent (one line).", "status": "pass", "note": "nidana.integration unchanged (root D5)" },
+    { "gate": "A graft kept every existing child id and touched only the new child's file, the parent's summaries and the parent's DAG.", "status": "n/a", "note": "no graft; no node id, contract id or decision id changed" },
+    { "gate": "A retired node's file is kept; its contracts' retirement went through `hsdd-reconcile`.", "status": "n/a", "note": "no retirement" },
+    { "gate": "Promotion: the human confirmed before `- **Adopted:** promoted` was written; `## Observed surface` kept; `v0` contracts unchanged unless redesigned.", "status": "n/a", "note": "no promotion" },
+    { "gate": "node docs/auto-run/tools/gate.mjs --skill hsdd-spec", "status": "pass", "note": "gate: 0 error(s), 0 warning(s), 3 changed file(s)" }
+  ],
+  "notes_for_orchestrator": [
+    "Edges added (consumer, contract, type): (nidana.navigation, topology-ir@v1, contract); (nidana.flutter, topology-ir@v1, contract). Both from nidana.model. No other edge is missing.",
+    "Sweep method: every .dart file under hsdd/contract/fixture/, with relative imports followed transitively (bindings import other contracts' conformance libraries by relative path), mapped library to contract by each contract's Interface; the shared main library nidana_dart_contracts.dart mapped by the declarations used (decision 1). Per producing node: nidana.model's three trees import only its own libraries and the replay tool; nidana.runtime's bus-api and bus-testing trees, including bus_activation_test.dart's binding of topology-dsl@v1's live suite, import the three model contracts and its own; nidana.navigation's tree adds topology_ir.dart (missing, added); nidana.flutter's tree, including its binding of navigation-api@v1's executor suite, adds topology_ir.dart (missing, added); nidana.tooling.codegen's scan-* cases import the main library, bus-api, navigation-api and flutter-binding, and its topic-codegen expected trees import the main library, all consumed; nidana.tooling.lint's analyze-* cases import the main library (topic-model and topology-dsl declarations only), bus-api and bus-testing, all consumed; nidana.integration consumes all nine.",
+    "Files changed: hsdd/spec/nidana.navigation.md and hsdd/spec/nidana.flutter.md (Consumes line only); hsdd/spec/nidana.md (both embedded Consumes lines, the two model DAG labels, two edge-table rows, the topology-ir@v1 matrix consumers cell, one sentence in the matrix intro, one sentence below the edge table, and a dated bullet under D10). nidana.tooling.md and its children unchanged.",
+    "For the phase-plan steps of nidana.navigation and nidana.flutter: list topology-ir@v1 in the phases whose replays run the cases named in D10's bullet (navigation-api@v1 G13, G15, G16, G19, G24; flutter-binding@v1 G7, G14, G17 and the bound executor suite) and emit confirm entries so reconcile adds both nodes to topology-ir@v1's consumers frontmatter (currently [nidana.runtime, nidana.tooling, nidana.integration]). No contract file was touched.",
+    "If a navigation or flutter phase plan finds a case that needs a model behavior nidana.runtime's unrestricted bus-api@v1 replay does not exercise (renderers, JSON form), the contract typing in D10 should be revisited; that is the signal named in decisions 2 and 3.",
+    "No ADR proposed, no OQ minted or re-rowed, no node, contract or decision id added or changed. No experiment was needed: the sweep is static."
+  ]
+}
