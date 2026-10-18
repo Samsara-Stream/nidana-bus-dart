@@ -1,0 +1,9 @@
+name: cpf_host
+description: Stand-in for nidana_dart_codegen, the member whose test/ holds fixture packages (experiment only).
+version: 0.1.0
+environment:
+  sdk: ^3.13.0
+resolution: workspace
+dependencies:
+  analyzer: ^13.3.0
+  cpf_contracts: ^0.1.0

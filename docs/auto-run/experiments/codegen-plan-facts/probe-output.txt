@@ -1,0 +1,18 @@
+Dart SDK version: 3.13.5 (stable) (Tue Sep 29 01:00:52 2026 -0700) on "macos_arm64"
+
+### A1 the full planned resolution with pub_semver (open) and json_schema (dev, ^5.2.2) in the codegen stand-in
+pub get exit: 0
+  pub_semver resolves to 2.2.1
+  direct packages whose resolved version differs from item 4's table: none
+  packages in the lockfile: 88
+
+### A2 pub_semver: ^2.2.1 in the codegen stand-in, every other constraint from item 4's table, each set from no lockfile
+  {cc, ct, cg}: pub get exit 0; pub_semver 2.2.1, analyzer 13.3.0, dart_style 3.1.14, test 1.33.0
+  {cc, ct, cg, li}: pub get exit 0; pub_semver 2.2.1, analyzer 13.3.0, dart_style 3.1.14, test 1.33.0
+  {cc, ct, rt, nv, fl, li, cg, in}: pub get exit 0; pub_semver 2.2.1, analyzer 13.3.0, dart_style 3.1.14, test 1.31.1
+
+### A3 DartFormatter(languageVersion: Version(3, 13, 0)) in the codegen stand-in of A2's full workspace
+  exit 0; output: int one() => 1;
+  dart analyze --fatal-infos of bin/fmt.dart: exit 0; No issues found!
+
+run exit 0

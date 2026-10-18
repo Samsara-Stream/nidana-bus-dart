@@ -1,0 +1,7 @@
+# A fixture package root: not a workspace member, never resolved by pub.
+name: pure_app
+publish_to: none
+environment:
+  sdk: ^3.13.0
+dependencies:
+  cpf_contracts: any

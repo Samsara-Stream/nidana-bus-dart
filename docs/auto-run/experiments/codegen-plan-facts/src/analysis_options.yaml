@@ -1,0 +1,11 @@
+# ADR-002 item 2's root options.
+include: package:lints/recommended.yaml
+analyzer:
+  exclude:
+    - ref/**
+    - docs/**
+    - hsdd/**
+  language:
+    strict-casts: true
+    strict-inference: true
+    strict-raw-types: true

@@ -1,0 +1,12 @@
+name: cpf_flutter
+description: Stand-in Flutter member, as nidana_dart_runtime_flutter puts flutter into the package configuration (experiment only).
+version: 0.1.0
+environment:
+  sdk: ^3.13.0
+resolution: workspace
+dependencies:
+  flutter:
+    sdk: flutter
+dev_dependencies:
+  flutter_test:
+    sdk: flutter

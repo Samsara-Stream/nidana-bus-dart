@@ -1,0 +1,6 @@
+name: cpf_contracts
+description: Stand-in for nidana_dart_contracts (experiment only).
+version: 0.1.0
+environment:
+  sdk: ^3.13.0
+resolution: workspace

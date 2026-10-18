@@ -1,0 +1,85 @@
+Dart SDK version: 3.13.5 (stable) (Tue Sep 29 01:00:52 2026 -0700) on "macos_arm64"
+root pub get exit: 0
+
+### B1 dart run of the entry from the pure fixture package's root (no --packages)
+exit 0
+wrote: cart
+left in the fixture package: ./.dart_tool/nidana_dart_codegen/catalog_entry.dart 
+
+### B2 dart run --packages=<workspace root config> from the same root
+exit 0
+wrote: cart
+left in the fixture package: ./.dart_tool/nidana_dart_codegen/catalog_entry.dart 
+
+### B3 the pinned SDK's dart by path (Platform.resolvedExecutable of a dart run process), --packages, from the same root
+resolved executable: {home}/fvm/versions/3.47.7/bin/cache/dart-sdk/bin/dart
+exit 0
+wrote: cart
+left in the fixture package: ./.dart_tool/nidana_dart_codegen/catalog_entry.dart 
+
+### B4 flutter test --no-pub of the entry from the Flutter fixture package's root
+exit 1
+tool_crash
+testCompilerBuildNativeAssets
+wrote: nothing
+left in the fixture package: ./.dart_tool/nidana_dart_codegen/catalog_entry.dart ./flutter_01.log 
+
+### B5 the Flutter fixture under dart run --packages (expected: dart:ui missing)
+exit 254
+Dart library 'dart:ui' is not available on this platform
+wrote: nothing
+
+### B6 a registration that imports its own package by package: URI, dart run --packages (the package is not in the workspace configuration)
+exit 254
+Error: Couldn't resolve the package 'pure_app' in 'package:pure_app/pure_app.dart'.
+wrote: nothing
+
+### B7 the workspace root's fvm dart analyze --fatal-infos with the two fixture packages below cpf_host/test/
+exit 3
+
+  error - entry/catalog_entry.dart:6:8 - Target of URI doesn't exist: '../../tool/nidana_catalog.dart'. Try creating the file referenced by the URI, or try using a URI for a file that does exist. - uri_does_not_exist
+   info - packages/cpf_host/test/fixture/flutter_app/tool/nidana_catalog.dart:2:8 - Can't use a relative path to import a library in 'lib'. Try fixing the relative path or changing the import to a 'package:' import. - avoid_relative_lib_imports
+   info - packages/cpf_host/test/fixture/pure_app/tool/nidana_catalog.dart:2:8 - Can't use a relative path to import a library in 'lib'. Try fixing the relative path or changing the import to a 'package:' import. - avoid_relative_lib_imports
+
+3 issues found.
+
+### B8 the pure fixture copied to a temporary directory with a synthesized package configuration (workspace packages, absolute, plus itself); dart run from its root
+exit 0
+Because pure_app depends on cpf_contracts any which doesn't exist (could not find package cpf_contracts at https://pub.dev), version solving failed.
+
+wrote: cart
+
+### B9 the Flutter fixture copied likewise; flutter test --no-pub from its root (the Flutter SDK holding the dart of B3, by path)
+flutter: {home}/fvm/versions/3.47.7/bin/flutter
+exit 1
+testCompilerBuildNativeAssets
+wrote: nothing
+
+### B11 the Flutter fixture copied to a temporary directory and resolved as a standalone package: flutter pub get --offline with cpf_contracts overridden by path (ADR-002 Q18), then flutter test --no-pub
+pub get --offline exit 0
+Changed 7 dependencies!
+exit 1
+cannot run without a dependency on either "package:flutter_test" or "package:test"
+wrote: nothing
+
+### B13 B11 with flutter_test added as a dev dependency of the standalone package
+pub get --offline exit 0
+exit 79
+No tests ran.
+No tests were found.
+wrote: page
+
+### B12 the pure fixture resolved the same way (dart pub get --offline), then dart run without --packages
+pub get --offline exit 0
+exit 0
+wrote: cart
+
+### B10 the analyzer over the B8 and B9 copies and over the in-tree fixtures: what each class's superclass resolves to
+/lib/pure_app.dart: CartTopology extends Topology from package:cpf_contracts/cpf_contracts.dart; diagnostics: none
+/lib/page.dart: PageTopology extends Topology from package:cpf_contracts/cpf_contracts.dart; diagnostics: none
+/lib/page.dart: CartPage extends StatelessWidget from package:flutter/src/widgets/framework.dart; diagnostics: none
+/lib/pure_app.dart: CartTopology extends Topology from package:cpf_contracts/cpf_contracts.dart; diagnostics: none
+/lib/page.dart: PageTopology extends Topology from package:cpf_contracts/cpf_contracts.dart; diagnostics: none
+/lib/page.dart: CartPage extends StatelessWidget from package:flutter/src/widgets/framework.dart; diagnostics: none
+
+run exit 0

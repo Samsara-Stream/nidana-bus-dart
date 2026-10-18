@@ -1,0 +1,11 @@
+# codegen-plan-facts: its own pub workspace, never a member of the repository's.
+name: cpf_root
+publish_to: none
+environment:
+  sdk: ^3.13.0
+workspace:
+  - packages/cpf_contracts
+  - packages/cpf_flutter
+  - packages/cpf_host
+dev_dependencies:
+  lints: ^6.1.0

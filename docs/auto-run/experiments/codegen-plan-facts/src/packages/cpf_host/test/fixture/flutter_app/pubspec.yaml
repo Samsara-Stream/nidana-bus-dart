@@ -1,0 +1,10 @@
+# A fixture package root that imports Flutter: not a workspace member, never
+# resolved by pub.
+name: flutter_app
+publish_to: none
+environment:
+  sdk: ^3.13.0
+dependencies:
+  flutter:
+    sdk: flutter
+  cpf_contracts: any
