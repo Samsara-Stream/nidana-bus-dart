@@ -1,0 +1,5 @@
+nidana_dart_codegen:generate
+--graph
+missing.json
+hsdd/contract/fixture/topic-codegen/input/topics.yaml
+{output}

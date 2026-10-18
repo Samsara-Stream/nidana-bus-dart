@@ -1,0 +1,137 @@
+
+### setup: copy the stand-in workspace, the fixtures and the schema, resolve
+pub get exit: 0
+fixture tree: expected input invalid invocation rejected valid 
+invocation cases: 17
+  generate-graph-undecodable: exit 1, files/ topics.yaml topology-graph.json , expected/ none, args: --graph topology-graph.json topics.yaml {output} 
+  generate-no-graph: exit 0, files/ none, expected/ topics.g.dart topics.md , args: hsdd/contract/fixture/topic-codegen/input/topics.yaml {output} 
+  generate-rejected-class-collision: exit 1, files/ none, expected/ none, args: hsdd/contract/fixture/topic-codegen/rejected/class-collision.yaml {output} 
+  generate-rejected-duplicate-domain-key: exit 1, files/ none, expected/ none, args: hsdd/contract/fixture/topic-codegen/rejected/duplicate-domain-key.yaml {output} 
+  generate-rejected-duplicate-field-key: exit 1, files/ none, expected/ none, args: hsdd/contract/fixture/topic-codegen/rejected/duplicate-field-key.yaml {output} 
+  generate-rejected-duplicate-topic-key: exit 1, files/ none, expected/ none, args: hsdd/contract/fixture/topic-codegen/rejected/duplicate-topic-key.yaml {output} 
+  generate-rejected-initial-not-finite: exit 1, files/ none, expected/ none, args: hsdd/contract/fixture/topic-codegen/rejected/initial-not-finite.yaml {output} 
+  generate-rejected-member-collision: exit 1, files/ none, expected/ none, args: hsdd/contract/fixture/topic-codegen/rejected/member-collision.yaml {output} 
+  generate-rejected-member-object-name: exit 1, files/ none, expected/ none, args: hsdd/contract/fixture/topic-codegen/rejected/member-object-name.yaml {output} 
+  generate-rejected-member-reserved-word: exit 1, files/ none, expected/ none, args: hsdd/contract/fixture/topic-codegen/rejected/member-reserved-word.yaml {output} 
+  generate-rejected-syntax-error: exit 1, files/ none, expected/ none, args: hsdd/contract/fixture/topic-codegen/rejected/syntax-error.yaml {output} 
+  generate-rejected-two-documents: exit 1, files/ none, expected/ none, args: hsdd/contract/fixture/topic-codegen/rejected/two-documents.yaml {output} 
+  generate-usage-missing-graph: exit 2, files/ none, expected/ none, args: --graph missing.json hsdd/contract/fixture/topic-codegen/input/topics.yaml {output} 
+  generate-usage-missing-topics: exit 2, files/ none, expected/ none, args: missing.yaml {output} 
+  generate-usage-no-arguments: exit 2, files/ none, expected/ none, args: 
+  generate-usage-output-is-a-file: exit 2, files/ afile topics.yaml , expected/ none, args: topics.yaml afile 
+  generate-usage-unknown-option: exit 2, files/ none, expected/ none, args: --frobnicate hsdd/contract/fixture/topic-codegen/input/topics.yaml {output} 
+
+### E1 every recorded invocation passes as ADR-001 item 7 replays it; a case without files/ runs from the workspace root
+PASS generate-graph-undecodable
+PASS generate-no-graph
+PASS generate-rejected-class-collision
+PASS generate-rejected-duplicate-domain-key
+PASS generate-rejected-duplicate-field-key
+PASS generate-rejected-duplicate-topic-key
+PASS generate-rejected-initial-not-finite
+PASS generate-rejected-member-collision
+PASS generate-rejected-member-object-name
+PASS generate-rejected-member-reserved-word
+PASS generate-rejected-syntax-error
+PASS generate-rejected-two-documents
+PASS generate-usage-missing-graph
+PASS generate-usage-missing-topics
+PASS generate-usage-no-arguments
+PASS generate-usage-output-is-a-file
+PASS generate-usage-unknown-option
+17 of 17 invocations pass
+replay exit: 0
+
+### E2 the existing file replay (ADR-001 item 6) and the schema cases (item 5) still pass
+file replay: PASS
+schema check exit: 0
+PASS lines: 63; FAIL lines: 0
+SKIP rejected/duplicate-domain-key.yaml: not one YAML document (Duplicate mapping key.)
+SKIP rejected/duplicate-field-key.yaml: not one YAML document (Duplicate mapping key.)
+SKIP rejected/duplicate-topic-key.yaml: not one YAML document (Duplicate mapping key.)
+SKIP rejected/syntax-error.yaml: not one YAML document (While parsing a flow sequence, expected ',' or ']'.)
+SKIP rejected/two-documents.yaml: not one YAML document (Only expected one document.)
+schema check: 0 failure(s)
+
+### E3 G14: generate-no-graph's expected/topics.g.dart is the file replay's; its topics.md is expected/topics.md without the graph's rows, sections and header lines
+topics.g.dart IDENTICAL to the file replay's expected/topics.g.dart
+rows 'Written by' or 'Read by': 0; graph sections: 0
+<!-- GENERATED CODE - DO NOT MODIFY BY HAND. -->
+<!-- nidana_dart_codegen from topics.yaml (topic-codegen@v1). -->
+19 topics in 5 domains, from `topics.yaml`. No topology graph was given, so readers and writers are not listed.
+otherwise EQUAL to expected/topics.md
+
+### E4 the amended structure prototype over the repository's nine contracts, then over a copy with two seeded defects in topic-codegen@v1's new parts
+bus-api (api): 41 guarantees; covered by reject 10, behavior 37; not executable 2; in part 0; data directories none
+bus-testing (api): 20 guarantees; covered by reject 2, behavior 17; not executable 1; in part 0; data directories none
+flutter-binding (api): 19 guarantees; covered by reject 7, behavior 15; not executable 2; in part 0; data directories none
+navigation-api (api): 27 guarantees; covered by reject 5, behavior 23; not executable 2; in part 0; data directories none
+nidana-checks (cli): 18 guarantees; covered by cli 17; not executable 1; in part 2; data directories none
+topic-codegen (file): 21 guarantees; covered by schema 1, file 12, cli 4; not executable 5; in part 2; data directories rejected
+topic-model (shared-model): 27 guarantees; covered by reject 10, behavior 18; not executable 2; in part 0; data directories none
+topology-dsl (api): 29 guarantees; covered by reject 8, behavior 21; not executable 0; in part 0; data directories none
+topology-ir (api): 22 guarantees; covered by reject 3, behavior 21; not executable 0; in part 0; data directories render
+9 contracts, 0 problem(s)
+exit: 0
+-- seeded: a case directory with no table row; G2 dropped from every generate-rejected-* row while G2's part line stays
+rows still naming G2: 0
+  PROBLEM topic-codegen: invocation/generate-extra has no row in the invocation table
+  PROBLEM topic-codegen: G2 is marked executable in part but nothing covers it
+topic-codegen (file): 21 guarantees; covered by schema 1, file 12, cli 3; not executable 5; in part 2; data directories rejected
+  PROBLEM topic-codegen: uncovered G2
+9 contracts, 3 problem(s)
+exit: 1
+
+### E5 seeded defects in the stand-in generator: each fails the cases of the guarantee it breaks; the file replay alone misses every one
+-- page-without-graph
+seeded page-without-graph in lib/src/generate.dart (G14: a page is written without a graph)
+FAIL generate-no-graph: file set at {output} is topics.g.dart topics.md topology-graph.html, expected topics.g.dart topics.md
+16 of 17 invocations pass
+file replay: PASS
+-- registry-depends-on-graph
+seeded registry-depends-on-graph in lib/src/generate.dart (G14: the registry differs without a graph)
+FAIL generate-no-graph: {output}/topics.g.dart differs from expected/topics.g.dart
+16 of 17 invocations pass
+file replay: PASS
+-- writes-before-rejecting
+seeded writes-before-rejecting in bin/generate.dart (G2, G19: the output directory is created before the inputs are checked)
+FAIL generate-graph-undecodable: {output} exists after the run, expected nothing: 
+FAIL generate-rejected-class-collision: {output} exists after the run, expected nothing: 
+FAIL generate-rejected-duplicate-domain-key: {output} exists after the run, expected nothing: 
+FAIL generate-rejected-duplicate-field-key: {output} exists after the run, expected nothing: 
+FAIL generate-rejected-duplicate-topic-key: {output} exists after the run, expected nothing: 
+FAIL generate-rejected-initial-not-finite: {output} exists after the run, expected nothing: 
+FAIL generate-rejected-member-collision: {output} exists after the run, expected nothing: 
+FAIL generate-rejected-member-object-name: {output} exists after the run, expected nothing: 
+FAIL generate-rejected-member-reserved-word: {output} exists after the run, expected nothing: 
+FAIL generate-rejected-syntax-error: {output} exists after the run, expected nothing: 
+FAIL generate-rejected-two-documents: {output} exists after the run, expected nothing: 
+6 of 17 invocations pass
+file replay: PASS
+-- usage-exits-1
+seeded usage-exits-1 in bin/generate.dart (G19: usage errors exit 1)
+FAIL generate-usage-missing-graph: exit 1, expected 2
+FAIL generate-usage-missing-topics: exit 1, expected 2
+FAIL generate-usage-no-arguments: exit 1, expected 2
+FAIL generate-usage-output-is-a-file: exit 1, expected 2
+FAIL generate-usage-unknown-option: exit 1, expected 2
+12 of 17 invocations pass
+file replay: PASS
+-- missing-graph-exits-1
+seeded missing-graph-exits-1 in bin/generate.dart (G19: a missing graph exits 1 like an undecodable one)
+FAIL generate-usage-missing-graph: exit 1, expected 2
+16 of 17 invocations pass
+file replay: PASS
+-- reserved-member-accepted
+seeded reserved-member-accepted in lib/src/topics_document.dart (G2: R3 is not enforced)
+FAIL generate-rejected-member-object-name: exit 0, expected 1; {output} exists after the run, expected nothing: topics.g.dart topics.md
+FAIL generate-rejected-member-reserved-word: exit 255, expected 1
+15 of 17 invocations pass
+file replay: PASS
+-- restored
+17 of 17 invocations pass
+file replay: PASS
+
+### E6 a case naming a fixture by its path from the workspace root fails loudly when the file is missing
+FAIL generate-rejected-two-documents: exit 2, expected 1
+0 of 1 invocations pass
