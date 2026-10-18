@@ -53,7 +53,7 @@ Nidana Bus is a typed, lifecycle-managed reactive substrate for application data
 | Node | Kind | Package (ADR-002) | Responsibility | Produces |
 |------|------|-------------------|----------------|----------|
 | nidana.model | leaf-parent | `nidana_dart_contracts` | pure core: topics, envelope and lineage rules, observer interfaces, topology DSL interface and recorder, IR, graphs, pure analyses | topic-model@v1, topology-dsl@v1, topology-ir@v1 |
-| nidana.runtime | internal | `nidana_dart_runtime` | the bus on RxDart: subjects, publish path, ownership, activation, lifecycle, observers, scheduler provider, TestBus | bus-api@v1, bus-testing@v1 |
+| nidana.runtime | leaf-parent | `nidana_dart_runtime` | the bus on RxDart: subjects, publish path, ownership, activation, lifecycle, observers, scheduler provider, TestBus | bus-api@v1, bus-testing@v1 |
 | nidana.navigation | leaf-parent | `nidana_dart_navigation` | intent vocabulary, typed routes, nav-resolver template, executor protocol | navigation-api@v1 |
 | nidana.flutter | leaf-parent | `nidana_dart_runtime_flutter` | Flutter UI adapter: bus provider, topic widgets, page and module scope binding, Flutter navigation executor | flutter-binding@v1 |
 | nidana.tooling | internal | `nidana_dart_codegen`, `nidana_dart_lint` | codegen, topic catalog, topology catalog and graph emission, v1 static checks | topic-codegen@v1, nidana-checks@v1 |
@@ -74,7 +74,7 @@ Nidana Bus is a typed, lifecycle-managed reactive substrate for application data
 
 ### nidana.runtime: Bus Runtime
 
-- **Kind:** internal
+- **Kind:** leaf-parent
 - **Purpose:** the bus: turns topic declarations and topology definitions into live RxDart subjects and subscriptions and enforces the Bus Runtime Contract (Spec §3), lifecycle (Spec §7), observation (Spec §9), the error model (Spec §10) and runtime operations (Spec §11)
 - **Owns:** package `nidana_dart_runtime`; `Bus` and `BusConfig`; the topic registry and subject lifecycle; the publish path (dedup, ordering, reentrancy normalization, observers, sensitive gating, startup barrier); publishers, writer handles and the ownership table; the live DSL with envelope threading; activation checks; scopes and module reference counting with grace; `bus.toGraph()`; shutdown and resource limits; dev-mode diagnostics (D8); the scheduler provider, virtual scheduler, `TestBus` and envelope recorder (ADR-003); the per-topic ordering regression test; an SDK-neutral telemetry observer (D1)
 - **Does not own:** pure types, lineage rules, the IR and analyses (nidana.model); routes and widgets (nidana.flutter); navigation semantics (nidana.navigation); static checks (nidana.tooling)
@@ -82,7 +82,7 @@ Nidana Bus is a typed, lifecycle-managed reactive substrate for application data
 - **Produces:** [bus-api@v1, bus-testing@v1]
 - **Governed by:** [ADR-001, ADR-002, ADR-003]
 - **Sources:** Spec §1, §2.3 to §2.5, §3.1 to §3.13, §5.3, §5.5, §6.1, §6.3, §6.5, §7.1 to §7.5, §9, §10, §11, Appendix A.5, A.7; Guide §2, §4, §6.1, §6.5, §8.1, §8.2, §8.4, §8.5, §10.1; Rationale §2.1, §2.2, §3.2
-- **Decomposes into:** child nodes minted by a later hsdd-spec run on this node
+- **Decomposes into:** phases (see hsdd-phase-plan)
 - **Isolation strategy:** builds against the model's contracts only; runs on the Dart VM with `TestBus` and the virtual scheduler, no Flutter; replays bus-api@v1 and bus-testing@v1 fixtures and binds the behavior fixtures of topology-dsl@v1, whose live semantics it implements
 
 ### nidana.navigation: Navigation
@@ -143,7 +143,7 @@ Nidana Bus is a typed, lifecycle-managed reactive substrate for application data
 %%{init:{'theme':'base','themeVariables':{'primaryTextColor':'#1e293b','lineColor':'#475569','edgeLabelBackground':'#ffffff','tertiaryTextColor':'#1e293b'}}}%%
 flowchart LR
     model["nidana.model<br/>(leaf-parent)"]
-    runtime["nidana.runtime<br/>(internal)"]
+    runtime["nidana.runtime<br/>(leaf-parent)"]
     navigation["nidana.navigation<br/>(leaf-parent)"]
     flutter["nidana.flutter<br/>(leaf-parent)"]
     tooling["nidana.tooling<br/>(internal)"]
@@ -197,12 +197,12 @@ D10 fixes what `contract` and `shared-model` mean between Dart packages.
 
 1. **nidana.model first.** Every edge starts there. Its first phase lands the type-level skeleton of its three contracts (the ordering policy is `fp-progression`) and the contract replay tool every producing gate calls (ADR-001).
 2. **Two lanes once the model's skeleton has merged.**
-   - Lane A, the critical path: nidana.runtime, decomposed by its own hsdd-spec step first.
+   - Lane A, the critical path: nidana.runtime, a leaf-parent phase-planned directly (nidana.runtime D1).
    - Lane B, parallel: nidana.tooling, decomposed by its own hsdd-spec step first. It needs only the model's contracts and the declared surface of bus-api@v1, never a running bus.
 3. **After the runtime ships bus-api@v1 and bus-testing@v1:** nidana.navigation, then the executor part of nidana.flutter. The binding part of nidana.flutter needs only the runtime, so it can start as soon as the runtime ships and run in parallel with nidana.navigation; its executor phases wait for the skeleton of navigation-api@v1.
 4. **nidana.integration last,** after every producer ships.
 
-Critical path: nidana.model, nidana.runtime, nidana.flutter, nidana.integration. Recommended order for the internal children's own decomposition: nidana.runtime, then nidana.tooling.
+Critical path: nidana.model, nidana.runtime, nidana.flutter, nidana.integration. nidana.tooling is the one child left to decompose with its own hsdd-spec step.
 
 ## Contract matrix
 
@@ -334,7 +334,7 @@ Accepted 2026-10-17 as `hsdd/adr/003-time-source-virtual-scheduler.md`, which ho
 | ID | Question | Status | Waits on | Affects |
 |----|----------|--------|----------|---------|
 | OQ1 | Which Guide Appendix B layers and Appendix C planned-v1 tools ship in v1 for Dart/Flutter? | RESOLVED (2026-10-17): D1 | none | every child |
-| OQ2 | What is the TestBus contract on Dart (Guide §10.1): clock control, assertion API, topology test isolation, cross-platform parity? | PARTIAL | OQ-R2 (assertion API and isolation) | nidana.runtime, nidana.flutter, nidana.integration |
+| OQ2 | What is the TestBus contract on Dart (Guide §10.1): clock control, assertion API, topology test isolation, cross-platform parity? | RESOLVED (2026-10-17): ADR-003, D1, bus-testing@v1 | none | nidana.runtime, nidana.flutter, nidana.integration |
 | OQ3 | What devtools and observability ship (Guide §10.2)? | RESOLVED (2026-10-17): D1 | none | nidana.runtime, nidana.tooling |
 | OQ4 | Does scaling to multiple feature teams (Guide §10.3) need tree work in v1? | RESOLVED (2026-10-17): D1 | none | nidana.tooling |
 | OQ5 | Do server-driven topologies (Guide §10.4) need a v1 feature? | RESOLVED (2026-10-17): D1 | none | nidana.model |
@@ -352,7 +352,9 @@ The Guide plans v1 per layer and per tool but leaves layer 5 open and lists no s
 
 ### OQ2: TestBus contract on Dart
 
-Guide §10.1 leaves four questions open. Clock control and its interaction with Flutter's `WidgetTester` is resolved by ADR-003 (OQ7). Cross-platform test parity is out of v1 (D1). The assertion API of the envelope recorder and the way a test activates one topology without the `APPLICATION` set remain, owned by nidana.runtime as OQ-R2, which inherits this question.
+Guide §10.1 leaves four questions open. Clock control and its interaction with Flutter's `WidgetTester` is resolved by ADR-003 (OQ7). Cross-platform test parity is out of v1 (D1). The assertion API of the envelope recorder and the way a test activates one topology without the `APPLICATION` set were owned by nidana.runtime as OQ-R2, which inherits this question.
+
+Resolved (2026-10-17): clock control by ADR-003, parity by D1, and OQ-R2 by bus-testing@v1, whose recorder returns typed value lists that a test compares with `==` (G14 to G16) and whose TestBus activates nothing, with `input` and `stub` standing in for absent producers (G18).
 
 ### OQ3: Devtools and observability
 

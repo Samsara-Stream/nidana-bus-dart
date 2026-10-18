@@ -1,0 +1,6 @@
+name: off_type_delivery
+publish_to: none
+environment:
+  sdk: ^3.13.0
+dependencies:
+  rxdart: ^0.28.0

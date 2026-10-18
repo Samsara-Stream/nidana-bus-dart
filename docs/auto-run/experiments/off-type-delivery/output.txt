@@ -1,0 +1,59 @@
+--- 1 sync broadcast controller, cast in onData
+A(Object?) got off-type
+zone handler: _TypeError
+C(Object?) got off-type
+add(off-type) returned
+A(Object?) got 7
+B(int) got 7
+C(Object?) got 7
+add(7) returned
+--- 2 sync broadcast controller, cast in map with onError
+A(Object?) got off-type
+B(int) onError _TypeError
+C(Object?) got off-type
+add(off-type) returned
+A(Object?) got 7
+B(int) got 7
+C(Object?) got 7
+add(7) returned
+--- 3 sync PublishSubject, cast in onData
+A(Object?) got off-type
+zone handler: _TypeError
+C(Object?) got off-type
+add(off-type) returned
+A(Object?) got 7
+B(int) got 7
+C(Object?) got 7
+add(7) returned
+--- 4 sync BehaviorSubject seeded 0, cast in onData, after replay
+A(Object?) got 0
+B(int) got 0
+C(Object?) got 0
+A(Object?) got off-type
+zone handler: _TypeError
+C(Object?) got off-type
+add(off-type) returned
+A(Object?) got 7
+B(int) got 7
+C(Object?) got 7
+add(7) returned
+--- 5 sync BehaviorSubject seeded off-type, cast in onData (replay)
+A(Object?) got off-type seed
+zone handler: _TypeError
+C(Object?) got off-type seed
+A(Object?) got 7
+B(int) got 7
+C(Object?) got 7
+add(7) returned
+--- 6 sync BehaviorSubject seeded 0, distinct then cast in onData
+A(Object?) got 0
+B(int) got 0
+C(Object?) got 0
+A(Object?) got off-type
+zone handler: _TypeError
+C(Object?) got off-type
+add(off-type) returned
+A(Object?) got 7
+B(int) got 7
+C(Object?) got 7
+add(7) returned
