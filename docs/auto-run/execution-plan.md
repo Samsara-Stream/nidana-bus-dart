@@ -206,8 +206,8 @@ dropped flag in ADR-002 (nidana.integration D7 records it for the one member tha
 | S41 | 6 | hsdd-phase-plan | nidana.integration (8 phases) | done | b47b883 |
 | S42 | 6 | hsdd-reconcile | nidana.integration's pending section (every contract to final and stable) | done | a313ab0 |
 | S43 | 7 | hsdd-adr | ADR-001 update: item 9 landing phases, CLI semantics, empty selection and suite-keyed binding restriction; "first producing phase" wording | done | 9a05120 |
-| S44 | 7 | hsdd-contract | topology-ir@v1 touch: private function references (`_name@{key}`, JIT and AOT keys differ) | running | |
-| S45 | 7 | hsdd-contract | nidana-checks@v1 touch: plugin-failure exit codes in app CI; In CI's "same steps" for nidana.integration | planned | |
+| S44 | 7 | hsdd-contract | topology-ir@v1 touch: private function references (`_name@{key}`, JIT and AOT keys differ) | done | b7428f2 |
+| S45 | 7 | hsdd-contract | nidana-checks@v1 touch: plugin-failure exit codes in app CI; In CI's "same steps" for nidana.integration | running | |
 | S46 | 7 | hsdd-spec (touch) | root: dev flow and D10 wording, the lint wait sentence, the Contracts paragraph's draft and provisional sentence | planned | |
 | S47 | 7 | hsdd-spec (touch) | nidana.model: Owns, Inherited and Isolation lines | planned | |
 | S48 | 7 | hsdd-spec (touch) | nidana.runtime: D1 Consequences and the dev-flow line | planned | |
