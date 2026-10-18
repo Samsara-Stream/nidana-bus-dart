@@ -175,8 +175,9 @@ tree. Done when `node docs/auto-run/tools/gate.mjs --final` passes.
 | S18 | 4 | hsdd-adr | ADR-003 update: affects gains topology-dsl@v1 (and its Governed by) | done | 376ccc4 |
 | S19 | 4 | hsdd-contract | navigation-api@v1 touch: G1 reject line, citations of bus-api@v1 G22, G34, G40, the Flutter executor binding name | done | 31fc505 |
 | S20 | 4 | hsdd-contract | bus-api@v1 touch: widened Topic<Object?> reference case, cite nidana-checks@v1 G5 | done | 27ce541 |
-| S21 | 4 | hsdd-contract | topic-codegen@v1 touch: catalog's claim rule aligned with nidana-checks@v1's recognizer; recorded invocations for G2, G14, G19 under amended ADR-001 item 7 | running | |
-| next | 5 | hsdd-spec | nidana.runtime, then nidana.tooling (each followed by its ADRs and internal contracts) | planned | |
+| S21 | 4 | hsdd-contract | topic-codegen@v1 touch: catalog's claim rule aligned with nidana-checks@v1's recognizer; recorded invocations for G2, G14, G19 under amended ADR-001 item 7 | done | ca0d8ff |
+| S22 | 5 | hsdd-spec | nidana.runtime (mid-level); then its ADRs and internal contracts | running | |
+| next | 5 | hsdd-spec | nidana.tooling (mid-level); then its ADRs and internal contracts | planned | |
 | end of 5 | 5 | hsdd-spec (root refresh) | root D1 check table (adds explicit_topic_type_arguments), OQ2 and OQ5, embedded child summaries | planned | |
 
 ## Change log
@@ -275,3 +276,5 @@ tree. Done when `node docs/auto-run/tools/gate.mjs --final` passes.
   global-accessor note, for nidana.tooling's plan. The runtime decomposition must read S20's registry
   notes: subjects hold values at `Object?`, envelopes are never cast to the value type, writers are
   kept per (topic, type argument), and an off-type widened publish must not stop delivery (G13).
+- 2026-10-17 (UTC), after S21: the touch batch is done; stage 4 is complete. Note for nidana.model's
+  replay tool: run `pub get` before replaying recorded invocations (a stale resolution exits 255).

@@ -1,0 +1,373 @@
+{
+  "step_ref": "S21",
+  "skill": "hsdd-contract",
+  "target": "topic-codegen@v1 (hsdd/contract/topic-codegen.md)",
+  "status": "completed",
+  "stop": null,
+  "artifacts": [
+    "hsdd/contract/topic-codegen.md",
+    "hsdd/contract/fixture/topic-codegen/invocation/",
+    "hsdd/contract/INDEX.md",
+    "docs/auto-run/experiments/topic-codegen-invocations/run.sh",
+    "docs/auto-run/experiments/topic-codegen-invocations/seed.dart",
+    "docs/auto-run/experiments/topic-codegen-invocations/output.txt",
+    "docs/auto-run/steps/S21.json"
+  ],
+  "decisions": [
+    {
+      "at": "2026-10-17T23:39:10Z",
+      "artifact": "hsdd/contract/fixture/topic-codegen/invocation/",
+      "question": "Does rejected/ move into the generate-rejected-* recorded invocations (S17's recommendation), stay and be duplicated into them, or stay as the one copy that the cases name by path?",
+      "options": [
+        {
+          "label": "move into files/",
+          "consequence": "one copy, each case self-contained; G2's text ('every rejected/ document') and its gate note must be reworded, the - rejected: data-directory bullet goes, ADR-001 item 9's example (topic-codegen@v1's rejected/ documents) goes stale, and the schema prototype that validates the parsable rejected/ documents must look in invocation/ instead"
+        },
+        {
+          "label": "keep rejected/ and copy into files/",
+          "consequence": "no wording change, but two copies of ten documents that structure does not compare, so they can drift"
+        },
+        {
+          "label": "keep rejected/ and name it by path",
+          "consequence": "one copy; G2's text, the data-directory bullet, ADR-001 item 9's example and the schema prototype stay as they are; each case is args and exit_code only, running from the workspace root (ADR-001 item 7) and naming rejected/{name}.yaml, as generate-no-graph names input/topics.yaml; a case's input lives outside its case directory"
+        }
+      ],
+      "chosen": "keep rejected/ and name it by path",
+      "why": "It is the only option with one copy that changes no guarantee wording and leaves ADR-001's text true. ADR-001 item 7 says a case without files/ runs from the workspace root, and item 9 lets cases read a data directory by a path from the root, so the cases are legal as written. Every rejected document's content is kept byte for byte, in place. A missing document fails its case loudly with exit 2 (experiment E6). The signal that would have favored moving: a replay tool that runs each case from an isolated copy of its case directory rather than inside the workspace.",
+      "evidence": [
+        "hsdd/adr/001-executable-contract-validation.md items 7, 9",
+        "docs/auto-run/steps/S17.json notes_for_orchestrator",
+        "docs/auto-run/experiments/topic-codegen-invocations/"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T23:39:10Z",
+      "artifact": "hsdd/contract/fixture/topic-codegen/invocation/",
+      "question": "Do generate-graph-undecodable and generate-usage-output-is-a-file hold their inputs in files/ as copies (S17's design), or name topology-ir@v1's invalid/format_v2.json and input/topics.yaml in place?",
+      "options": [
+        {
+          "label": "copies in files/",
+          "consequence": "two copies of input/topics.yaml and one of topology-ir@v1's invalid/format_v2.json; the case cannot be broken by a rename in another contract's fixture tree"
+        },
+        {
+          "label": "name them in place",
+          "consequence": "no copies, but topic-codegen@v1's replay then depends on a file of topology-ir@v1's fixture tree, which that contract may rename within its own version"
+        }
+      ],
+      "chosen": "copies in files/",
+      "why": "The contract already copies across contracts rather than referencing (input/topology-graph.json is a copy of topology-ir@v1's valid/checkout.json), and a reference across fixture trees couples two contracts' touches. Naming rejected/ in place differs because it is this contract's own tree. The copies of input/topics.yaml only need to stay accepted, which E1 shows. Close call; the signal that would have changed it: a structure check that verifies cross-contract fixture paths.",
+      "evidence": [
+        "hsdd/contract/topic-codegen.md Validation (file bullet)",
+        "docs/auto-run/experiments/file-invocations/run.sh"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T23:39:10Z",
+      "artifact": "hsdd/contract/fixture/topic-codegen/invocation/",
+      "question": "Record exactly the sixteen cases S17 listed, or add a usage case for a missing graph file?",
+      "options": [
+        {
+          "label": "the sixteen of S17",
+          "consequence": "matches the cases S17's experiment ran; a generator that treats a missing --graph file as an undecodable graph (exit 1) passes every case"
+        },
+        {
+          "label": "add generate-usage-missing-graph",
+          "consequence": "seventeen cases; the boundary between the exit table's 'a missing input file' (2) and 'the graph document does not decode' (1) is replayed"
+        }
+      ],
+      "chosen": "add generate-usage-missing-graph",
+      "why": "The exit-code table already puts a missing input file at 2 and an undecodable graph at 1, so the case adds coverage without adding a rule, and a missing graph is the one input on that boundary that the sixteen leave out. In the experiment, the seeded defect missing-graph-exits-1 passes all sixteen of S17's cases and the file replay, and fails only this case (E5).",
+      "evidence": [
+        "hsdd/contract/topic-codegen.md The generate command (exit codes)",
+        "docs/auto-run/experiments/topic-codegen-invocations/"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T23:39:10Z",
+      "artifact": "hsdd/contract/topic-codegen.md",
+      "question": "Make G2 executable in full by recording generate over every valid/ and invalid/ document too, or only over rejected/, with a part line for the rest?",
+      "options": [
+        {
+          "label": "rejected/ only, part line for the rest",
+          "consequence": "ten rejection cases; G2's acceptance of valid/, rejection of invalid/ and its builder half stay with nidana.tooling's gates"
+        },
+        {
+          "label": "add 53 invalid/ and 4 valid/ cases",
+          "consequence": "G2's generate half fully replayed, at 57 more case directories, four of them with expected/ registries and catalogs that pin more presentation, which every later topics.md change must re-record and review"
+        }
+      ],
+      "chosen": "rejected/ only, part line for the rest",
+      "why": "The invalid/ documents already replay against the schema (G1), and nidana.tooling's gates run the generator over valid/ and invalid/; the rejected/ documents are the ones the schema accepts and only the generator rejects (R1 to R4), so they are where a recorded rejection adds the most. The builder half cannot be a recorded invocation without build_runner in a package tree. Signal that would change it: a schema-enforcement regression in the generator reaching nidana.integration despite nidana.tooling's gates.",
+      "evidence": [
+        "hsdd/contract/topic-codegen.md G1, G2",
+        "hsdd/adr/001-executable-contract-validation.md item 3 (part lines)"
+      ],
+      "blast_radius": "contract",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T23:39:10Z",
+      "artifact": "hsdd/contract/topic-codegen.md",
+      "question": "Which ids does each case's Covers cell declare?",
+      "options": [
+        {
+          "label": "S17's mapping",
+          "consequence": "generate-no-graph G14, G18; each generate-rejected-* G2, G19; generate-graph-undecodable and each generate-usage-* G19"
+        },
+        {
+          "label": "also G2 on generate-no-graph",
+          "consequence": "declares the acceptance of input/topics.yaml there too, but --guarantee then holds the case back until a phase delivers R1 to R4"
+        }
+      ],
+      "chosen": "S17's mapping",
+      "why": "ADR-001 item 9 runs a case only when every id it covers is in the restriction, so an extra id delays a case. The acceptance of input/topics.yaml is already shown by the file replay under G3; the G2 part line says so.",
+      "evidence": [
+        "hsdd/adr/001-executable-contract-validation.md items 3, 9, 10",
+        "docs/auto-run/steps/S17.json notes_for_orchestrator"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T23:39:10Z",
+      "artifact": "hsdd/contract/topic-codegen.md",
+      "question": "State catalog's alignment with nidana-checks@v1's claim recognizer by editing G20, G21 and the Interface bullet in place, or by adding a guarantee G22?",
+      "options": [
+        {
+          "label": "edit G20, G21 and the bullet in place",
+          "consequence": "one statement per fact, with citations of nidana-checks@v1 G11, G12, G18; the guarantee count stays 21"
+        },
+        {
+          "label": "add G22",
+          "consequence": "leaves G20 and G21 untouched but restates their claim parts in a third place"
+        }
+      ],
+      "chosen": "edit G20, G21 and the bullet in place",
+      "why": "G20 already names the claims and G21 the warnings; the old text deferred to 'the scan nidana-checks@v1 defines', so the edit makes explicit what the reference already bound: unresolvable scopes are left out like unresolvable write sets, stand-in sources keep the claim, an empty write set claims nothing (topology-ir@v1 G12 forbids an empty ShellClaim anyway). The only producer-visible addition is a stderr warning for a site whose scope does not resolve; the document's content rule and every exit code are unchanged, and nidana-checks@v1 G18 already required the same sets. Hence compatible, no stop.",
+      "evidence": [
+        "hsdd/contract/nidana-checks.md Claim sites, G11, G12, G18",
+        "hsdd/contract/topology-ir.md G12",
+        "docs/auto-run/steps/S16.json notes_for_orchestrator item 2"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T23:39:10Z",
+      "artifact": "hsdd/contract/topic-codegen.md",
+      "question": "Does topic-codegen@v1 pin the form of catalog's stderr warning, for example nidana-checks@v1's warning|unresolved_claim|{site}|{message} line (S16's suggestion), or leave its text unpinned?",
+      "options": [
+        {
+          "label": "leave the text unpinned",
+          "consequence": "catalog warns once per site with free text; the scan's unresolved_claim line stays the machine-readable report of the same sites (nidana-checks@v1 G18)"
+        },
+        {
+          "label": "pin nidana-checks@v1's line form",
+          "consequence": "a CI tool could parse catalog's stderr, but the form would be one more not-executable clause (catalog is not replayable while OQ-T1 is open) and catalog's stderr would carry two forms, the line for claims and free text for its exit-1 causes"
+        }
+      ],
+      "chosen": "leave the text unpinned",
+      "why": "Nothing reads catalog's stderr today, the scan already gives the machine form over the same sites, and generate's diagnostic message texts are likewise unpinned. Pinning later is a compatible addition. Signal that would change it: a consumer that parses catalog's warnings.",
+      "evidence": [
+        "hsdd/contract/nidana-checks.md Output, G18",
+        "hsdd/contract/topic-codegen.md The generate command"
+      ],
+      "blast_radius": "contract",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T23:43:11Z",
+      "artifact": "hsdd/contract/topic-codegen.md",
+      "question": "A stand-in source names its site relative to the working directory (nidana-checks@v1 G11, G17), so topology-graph.json then depends on where catalog runs. Does topic-codegen@v1 G17 ('the outputs ... hold no timestamp, path or environment value') cover catalog's document, making the alignment a conflict?",
+      "options": [
+        {
+          "label": "G17 is generate's",
+          "consequence": "the catalog bullet says, citing G17, that unlike generate's outputs a document holding a stand-in depends on the working directory; no guarantee text changes"
+        },
+        {
+          "label": "G17 covers catalog too",
+          "consequence": "stand-in sources would need a rendering independent of the working directory, which contradicts nidana-checks@v1 G17 and G18 (catalog's claims equal the scan's) and would need a change to that contract"
+        }
+      ],
+      "chosen": "G17 is generate's",
+      "why": "G17 is covered in full by the file replay, which runs generate only, and carries no not-executable part for catalog, which ADR-001 item 3 would require if it covered catalog; its 'input files' matches the generate bullet's 'two input files', while catalog reads package directories; only the generate section states the independence. nidana-checks@v1 G18 has bound catalog to the scan's stand-ins since S16, so the dependence exists already and this touch only states it. Signal that would change it: a consumer of topology-graph.json comparing documents produced from different directories.",
+      "evidence": [
+        "hsdd/contract/topic-codegen.md G17, Validation (file bullet)",
+        "hsdd/contract/nidana-checks.md G11, G17, G18",
+        "hsdd/adr/001-executable-contract-validation.md item 3"
+      ],
+      "blast_radius": "contract",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T23:43:11Z",
+      "artifact": "hsdd/contract/topic-codegen.md",
+      "question": "What does G19's part line name: the diagnostic form only (S17's wording), or also the 'writes nothing' of a usage error whose <output> is an existing file?",
+      "options": [
+        {
+          "label": "diagnostic form only",
+          "consequence": "shorter, but claims G19's 'writes nothing' is replayed for generate-usage-output-is-a-file, where the replay compares no tree but {output} and that case names no {output}"
+        },
+        {
+          "label": "diagnostic form and the file given as <output>",
+          "consequence": "the line names every part the cases do not reach, as ADR-001 item 3 asks"
+        }
+      ],
+      "chosen": "diagnostic form and the file given as <output>",
+      "why": "ADR-001 item 7 checks 'nothing at {output}' only, and generate-usage-output-is-a-file passes afile as <output>, so whether afile is left unchanged is not observed by the replay.",
+      "evidence": [
+        "hsdd/adr/001-executable-contract-validation.md items 3, 7",
+        "docs/auto-run/experiments/file-invocations/replay.dart"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-17T23:57:03Z",
+      "artifact": "hsdd/contract/fixture/topic-codegen/invocation/",
+      "question": "The two missing-file usage cases named input/missing.yaml and input/missing.json (S17's form), which the run's gate (docs/auto-run/tools/gate.mjs) reports as Validation paths that do not exist. Where do the cases point instead?",
+      "options": [
+        {
+          "label": "bare names at the workspace root",
+          "consequence": "missing.yaml and missing.json, read from the workspace root, which never holds them; the table stays exact and the gate passes"
+        },
+        {
+          "label": "keep input/missing.*",
+          "consequence": "the gate fails on every run, and a later file of that name under input/ would silently turn the case into a different one"
+        },
+        {
+          "label": "files/ holding no topics document",
+          "consequence": "needs a placeholder file, because git does not keep an empty files/, plus another copy of input/topics.yaml for the graph case"
+        }
+      ],
+      "chosen": "bare names at the workspace root",
+      "why": "The case's point is an input path at which nothing exists; a bare name at the root keeps that while leaving the fixture tree's path namespace to files that exist, and needs no placeholder. The rerun of the experiment replays both cases with exit 2.",
+      "evidence": [
+        "node docs/auto-run/tools/gate.mjs --skill hsdd-contract (2 errors before, 0 after)",
+        "docs/auto-run/experiments/topic-codegen-invocations/output.txt E1"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    }
+  ],
+  "experiments": [
+    {
+      "path": "docs/auto-run/experiments/topic-codegen-invocations/",
+      "question": "Do the seventeen recorded invocations of generate replay as amended ADR-001 item 7 says against the stand-in generator of docs/auto-run/experiments/topic-codegen-fixtures/; do the file replay and schema cases still pass; does the amended structure prototype pass topic-codegen@v1; and does a seeded defect in the stand-in generator fail the cases of the guarantee it breaks?",
+      "finding": "E1: 17 of 17 pass with docs/auto-run/experiments/file-invocations/replay.dart; the 14 cases without files/ ran from the workspace root. E2: the file replay is byte-identical to expected/ and the schema check has 63 PASS, 0 FAIL (5 rejected/ documents skipped as not one YAML document, as before). E3: generate-no-graph's expected/topics.g.dart equals expected/topics.g.dart byte for byte, and its topics.md equals expected/topics.md once the graph rows, the three graph sections and the header lines are removed. E4: structure_check.dart reports 0 problems over all nine contracts (topic-codegen: schema 1, file 12, cli 4, not executable 5, in part 2, data directory rejected), and reports both defects seeded into a copy (a case directory with no row; G2 dropped from the rejected rows while its part line stays). E5: six defects seeded into the stand-in generator each fail only the cases of the guarantee they break, and the file replay passes every one of them: a page without a graph and a registry that differs without a graph fail generate-no-graph (G14); creating the output before checking inputs fails the 10 rejected cases and generate-graph-undecodable (G2, G19); usage errors exiting 1 fail the 5 usage cases (G19); a missing graph exiting 1 fails only generate-usage-missing-graph (G19), which S17's sixteen cases would have missed; R3 unenforced fails the two R3 cases (G2; the reserved-word case exits 255 because the stand-in's formatter rejects the invalid Dart it produces). The restored generator passes 17 of 17. E6: with rejected/two-documents.yaml moved away, its case fails with exit 2 instead of passing. Harness fact: copying a workspace member with fresh mtimes (cp -R) makes dart run re-resolve, which fails with exit 255 from a case's files/ (no pubspec.yaml); the script copies with cp -Rp."
+    }
+  ],
+  "self_check": [
+    {
+      "gate": "Frontmatter has id, version, status, kind, owner, compatibility, produced_by, consumers; external_consumers when any exist.",
+      "status": "pass",
+      "note": "frontmatter unchanged by this touch: id topic-codegen, v1, draft, file, nidana.tooling, versioned, produced_by and consumers, three external consumers"
+    },
+    {
+      "gate": "`consumers` lists phase ids that actually consume this contract.",
+      "status": "pass",
+      "note": "node ids (nidana.integration; producer nidana.tooling) with phase_ids: provisional, as every contract before phase planning; unchanged"
+    },
+    {
+      "gate": "The Interface section is concrete enough to mock against.",
+      "status": "pass",
+      "note": "generate's arguments, outputs and exit codes are now also fixed by seventeen recorded invocations; catalog's claim rule now names nidana-checks@v1's recognizer rules for write sets, scopes, stand-in sources and empty write sets"
+    },
+    {
+      "gate": "At least one guarantee/invariant is stated.",
+      "status": "pass",
+      "note": "G1 to G21, none renumbered; G20 and G21 reworded with citations of nidana-checks@v1 G11, G12, G18, no guarantee weakened"
+    },
+    {
+      "gate": "A breaking change bumped the version and added a migration note.",
+      "status": "n/a",
+      "note": "compatible touch: added fixtures and coverage, and the catalog claim rule stated as the reference already bound it (nidana-checks@v1 G18); no path, executable, argument, exit code, output byte or content rule changed; recorded in ## Versioning"
+    },
+    {
+      "gate": "The registry was regenerated.",
+      "status": "pass",
+      "note": "node hsdd/scripts/gen-registry.mjs; INDEX.md unchanged because no frontmatter changed"
+    },
+    {
+      "gate": "`phase_ids` is present (`provisional` until `hsdd-reconcile` finalizes it).",
+      "status": "pass",
+      "note": "phase_ids: provisional"
+    },
+    {
+      "gate": "Every code-level artifact both sides consume (types file, fixtures, shared package) names its canonical path and its owner in the Interface or Validation section: the owning phase for code, `hsdd-contract` for validation artifacts.",
+      "status": "pass",
+      "note": "Interface names packages/nidana_dart_codegen (nidana.tooling) and hsdd/contract/fixture/topic-codegen/ (hsdd-contract); the new invocation/ tree is under that fixture directory and listed in Validation"
+    },
+    {
+      "gate": "A contract or version created by this run has its schema and its kind's fixtures written at the canonical paths.",
+      "status": "n/a",
+      "note": "no contract or version created; the touch added recorded invocations at hsdd/contract/fixture/topic-codegen/invocation/, the canonical path of ADR-001 item 7"
+    },
+    {
+      "gate": "Open questions are cited by ID only, never defined here; prose justifying behavior as \"pending OQ-x\" is swept when the OQ resolves (hsdd-reconcile).",
+      "status": "pass",
+      "note": "OQ-T1 cited by id only; the skill's em-dash in this gate's text is rendered as a comma here"
+    },
+    {
+      "gate": "A `stable` contract names a schema or a fixtures directory at the canonical paths and the artifact exists, or it carries `validation: grandfathered` (never on a contract authored after the upgrade).",
+      "status": "n/a",
+      "note": "status draft; schema and fixture directory exist and are named"
+    },
+    {
+      "gate": "No version is `retired` while a consumer or an external consumer still names it.",
+      "status": "n/a",
+      "note": "nothing retired"
+    },
+    {
+      "gate": "A `v0` contract carries `## Observed completeness`, and the block changed in any commit that added fixtures to it.",
+      "status": "n/a",
+      "note": "v1 contract"
+    }
+  ],
+  "notes_for_orchestrator": [
+    "Compatible touch, version kept at v1, frontmatter unchanged, so hsdd/contract/INDEX.md regenerated with no diff. No guarantee renumbered or weakened: G2, G14 and G19 keep their text; G20 and G21 are reworded to cite nidana-checks@v1 G11, G12 and G18 with the same or wider obligations on the producer. ## Versioning has the touch line (2026-10-17).",
+    "rejected/ did not move (decision 1, departing from S17's recommendation): the ten generate-rejected-{name} cases name hsdd/contract/fixture/topic-codegen/rejected/{name}.yaml from the workspace root, so there is one copy, G2's wording and the - rejected: data-directory bullet stay, ADR-001 item 9's example (topic-codegen@v1's rejected/ documents) stays true, and the schema prototype still validates the parsable rejected/ documents. Review if you prefer self-contained case directories.",
+    "Seventeen cases, not sixteen: generate-usage-missing-graph was added (decision 3). The two missing-file cases name missing.yaml and missing.json at the workspace root rather than input/missing.*, because gate.mjs reports a Validation path under hsdd/contract/fixture/ that does not exist (decision 10).",
+    "Validation now has '- invocations:' and a '| Case | Command | Exit | Covers |' table; G14's not-executable line is gone; G2 and G19 have part lines (G2: valid/ and invalid/ through generate, and the builder; G19: the diagnostic form and that a file given as <output> stays unchanged). G9, G10, G11, G20 and G21 stay not executable.",
+    "catalog alignment: the Interface bullet now states nidana-checks@v1's treatment (unresolvable write set or scope: left out and warned on stderr, one per site; unresolvable source: stand-in named by the site, claim kept; empty write set: neither a claim nor reported), and that a stand-in makes topology-graph.json depend on catalog's working directory, unlike generate's outputs (G17). Decision 8 reads topic-codegen@v1 G17 as generate's only, on the evidence of its coverage and wording; if a reviewer reads G17 as covering catalog too, the conflict is with nidana-checks@v1 G17 and G18, which predate this step (S16), not with this touch. catalog's warning text stays unpinned (decision 7).",
+    "Optional follow-ups, not blocking: (1) nidana-checks@v1's not-executable line for G18 could cite topic-codegen@v1's new catalog wording at its next touch; no change is needed for correctness. (2) The OQ-T2 RESOLVED sweep and the root D1 check list addition noted in S16 are still open for nidana.tooling's hsdd-spec step or a reconcile.",
+    "For nidana.model's replay tool (its first phase, cli set): topic-codegen@v1's cases rely on running '{package}:{executable}' cases from files/ through the workspace's resolution; dart run re-resolves when a member's pubspec.yaml is newer than the resolution and then fails from files/ (no pubspec.yaml) with exit 255. The tool should run pub get once before replaying, or report that state as an environment error rather than a case failure.",
+    "No stop condition met: no collision, no consumer-visible change, no tree-shape choice, nothing outside the repository. Experiment side effects: work/ and work-structure/ are created and removed by run.sh; .dart_tool and lockfiles there are git-ignored."
+  ]
+}
