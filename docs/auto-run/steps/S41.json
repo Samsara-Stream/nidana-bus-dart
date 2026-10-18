@@ -1,0 +1,606 @@
+{
+  "step_ref": "S41",
+  "skill": "hsdd-phase-plan",
+  "target": "nidana.integration (hsdd/spec/nidana.integration.md)",
+  "status": "completed",
+  "stop": null,
+  "artifacts": [
+    "hsdd/spec/nidana.integration.md",
+    "docs/auto-run/experiments/integration-plan-facts/"
+  ],
+  "decisions": [
+    {
+      "at": "2026-10-18T07:44:39Z",
+      "artifact": "hsdd/spec/nidana.integration.md (D6, nidana.integration.8)",
+      "question": "How does the CI slice run the codegen and the v1 checks over the example and assert their outputs?",
+      "options": [
+        {
+          "label": "tests of the member that spawn the commands",
+          "consequence": "assertions on exit codes, report lines and documents live in test files the gate runs; needs the pinned dart from inside flutter test, which the experiment shows is reachable through FLUTTER_ROOT (I1, I2)"
+        },
+        {
+          "label": "gate commands only",
+          "consequence": "the gate sees exit codes only: an empty scan report, the catalog document's content and the seeded failures cannot be asserted"
+        },
+        {
+          "label": "a CI driver script under the member's tool/",
+          "consequence": "application code that the scan and the plugin read, with assertions no test runner reports"
+        }
+      ],
+      "chosen": "tests of the member that spawn the commands",
+      "why": "Only tests can check what the commands print and write, and the experiment shows a Flutter member's test can find the pinned dart, run members' executables from the workspace root, analyze and scan temporary packages, and start a nested flutter test. The gate still runs the In CI commands at the top level so an app's recipe and its exit codes are shown literally.",
+      "evidence": [
+        "docs/auto-run/experiments/integration-plan-facts/ (I1 to I5)",
+        "nidana-checks@v1 In CI",
+        "ADR-002 Consequences"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T07:44:39Z",
+      "artifact": "hsdd/spec/nidana.integration.md (D6, nidana.integration.8)",
+      "question": "What is the failing half of the root's success criterion, 'the v1 static checks pass over it and fail on seeded violations'?",
+      "options": [
+        {
+          "label": "recorded invocations plus violations seeded beside the example",
+          "consequence": "nidana-checks@v1's seventeen recorded cases through the unrestricted replay, and a seeded companion package and seeded graph documents in temporary directories that import or extend the real example; about 200 lines of test code in nidana.integration.8"
+        },
+        {
+          "label": "recorded invocations only",
+          "consequence": "no test infrastructure, as nidana-checks@v1 In CI reads it, but no check ever fails against the example's own claims, generated registry or Flutter claim sites"
+        }
+      ],
+      "chosen": "recorded invocations plus violations seeded beside the example",
+      "why": "The criterion says the checks fail on seeded violations over the example, and the recorded cases run over small packages of their own. The experiment shows a temporary package beside the example resolves through a synthesized package configuration, the plugin reports all four rules there when enabled by absolute path, and the scan reports collisions and writer conflicts across the example and the seeded package. The signal that would have favored the contract's narrower reading: the seeded package failing to resolve or the plugin refusing an absolute path.",
+      "evidence": [
+        "docs/auto-run/experiments/integration-plan-facts/ (I3, I4)",
+        "nidana-checks@v1 In CI",
+        "root spec success criteria",
+        "ADR-002 Consequences"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T07:44:39Z",
+      "artifact": "hsdd/spec/nidana.integration.md (D3, nidana.integration.8 gate)",
+      "question": "Where does nidana.integration.8's gate write what catalog and generate produce?",
+      "options": [
+        {
+          "label": ".dart_tool/nidana_integration/",
+          "consequence": "the root analyze never reads it (I6), so a generated topics.g.dart left there breaks no later gate"
+        },
+        {
+          "label": "build/nidana_integration/, as nidana-checks@v1 In CI's example uses build/",
+          "consequence": "the root analyze reads build/ (I6), so generate's topics.g.dart left there would be analyzed by every later gate of every node"
+        }
+      ],
+      "chosen": ".dart_tool/nidana_integration/",
+      "why": "The experiment shows the root analyze reads the root's and a member's build/ directories and skips .dart_tool/.",
+      "evidence": [
+        "docs/auto-run/experiments/integration-plan-facts/ (I6)"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T07:48:58Z",
+      "artifact": "hsdd/spec/nidana.integration.md (D1, Phase Plan)",
+      "question": "How are the seven end-to-end slices and the live replays cut into phases under fp-progression?",
+      "options": [
+        {
+          "label": "eight phases in four bands with two lanes",
+          "consequence": "types, pure core, VM effects and Flutter effects in parallel lanes, bus-side and Flutter composition, then module scope and CI side by side; each phase about 250 to 420 lines; the tail after nidana.flutter.7 is three phases"
+        },
+        {
+          "label": "one phase per Owns slice",
+          "consequence": "observation and single-writer phases of about 150 lines each, below the sizing floor, and a bootstrap phase composing effects no earlier phase had landed"
+        },
+        {
+          "label": "six phases with the Flutter slices merged",
+          "consequence": "one cycle fewer per merge, but the Flutter end-to-end phase comes to about 630 lines, two PEs"
+        }
+      ],
+      "chosen": "eight phases in four bands with two lanes",
+      "why": "Each phase fits one PE with its tests, every slice lands in a phase whose band matches it, and the lanes let the VM work run beside nidana.flutter.5 to .7. nidana.integration.7 and .8 share no file and their tests are self-contained, so they run side by side. Guarded navigation is asserted on a TestBus (deterministic envelopes and consecutive route writes) and again through the Flutter executor.",
+      "evidence": [
+        "hsdd/conventions.md Phase design",
+        "bus-testing@v1 G13",
+        "navigation-api@v1 G21"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T07:48:58Z",
+      "artifact": "hsdd/spec/nidana.integration.md (D2)",
+      "question": "Which producer phase does each phase of this hard-edge consumer wait on?",
+      "options": [
+        {
+          "label": "per phase: declarations at the landing phase, behavior at the last producing phase",
+          "consequence": "nidana.integration.1 starts once the codegen and lint lanes and nidana.flutter.1 merge, .2 to .4 run beside nidana.flutter.5 to .7, and the chain after nidana.flutter.7 is three phases"
+        },
+        {
+          "label": "every phase after every producer's last producing phase",
+          "consequence": "one start condition and nothing built on a declaration a producer may still renegotiate, but six phases after nidana.flutter.7"
+        }
+      ],
+      "chosen": "per phase: declarations at the landing phase, behavior at the last producing phase",
+      "why": "It keeps the hard-edge meaning every Delivery paragraph states for nidana.integration (behavior waits on the last producing phase) and applies the declarations-only reading bus-api@v1's Delivery and nidana.flutter D6 already use. nidana.integration.1 waits on nidana.tooling.lint.4 so the plugin's rules report over the member from its first commit. The signal that would favor the literal reading: an hsdd-contract renegotiation of a consumed declaration during a producer's remaining phases.",
+      "evidence": [
+        "root spec D5, D10",
+        "bus-api@v1 Delivery",
+        "nidana.flutter D6",
+        "nidana-checks@v1 Delivery",
+        "hsdd/conventions.md Phase design"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T07:48:58Z",
+      "artifact": "hsdd/spec/nidana.integration.md (D3)",
+      "question": "Which phase first runs the unrestricted `fvm dart run nidana_contract_check --all`, and which run it again?",
+      "options": [
+        {
+          "label": "first at nidana.integration.6, again at .7 and .8",
+          "consequence": "a cross-node failure found as soon as every producer's last phase is in the closure; three gates of several minutes"
+        },
+        {
+          "label": "only at nidana.integration.8",
+          "consequence": "one long replay, but a failure found two phases later"
+        }
+      ],
+      "chosen": "first at nidana.integration.6, again at .7 and .8",
+      "why": "nidana.integration.6 is the first phase whose closure holds every contract's last producing phase, so the replay can pass there; running it again at the last two gates replays any producer fix that lands after .6. The signal that would favor a single replay: the replay making a gate outlast the review sitting.",
+      "evidence": [
+        "ADR-001 item 10",
+        "nidana-checks@v1 Delivery"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T07:48:58Z",
+      "artifact": "hsdd/spec/nidana.integration.md (D1, review tiers)",
+      "question": "Which tier does each phase take, given the integration-node default of full-review?",
+      "options": [
+        {
+          "label": "full-review except spot-check for .1 and .5",
+          "consequence": "the scaffolding and generated registry, and the thin pages each with a widget test, get a glance; the composed behavior gets a full review in .6 and .7"
+        },
+        {
+          "label": "full-review everywhere",
+          "consequence": "the integration default, at the cost of two full reviews of low-risk diffs"
+        }
+      ],
+      "chosen": "full-review except spot-check for .1 and .5",
+      "why": "The skill makes scaffolding and types gate-only and pure or thin phases spot-check; the integration default is a default. spot-check rather than gate-only for .1 because its domain values shape every later slice.",
+      "evidence": [
+        "hsdd/conventions.md",
+        ".agents/skills/hsdd-phase-plan/SKILL.md Review Tiers"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T07:48:58Z",
+      "artifact": "hsdd/spec/nidana.integration.md (D5)",
+      "question": "What does the example app contain?",
+      "options": [
+        {
+          "label": "Guide Appendix A trimmed to the slices",
+          "consequence": "ten topics in four domains, five topologies (three APPLICATION, one MODULE, one PAGE), three services, two observers, eight routes; every slice has what it exercises and nothing else"
+        },
+        {
+          "label": "the full Appendix A diagram",
+          "consequence": "an analytics service, error.app and a separate auth service that no slice reads"
+        },
+        {
+          "label": "a smaller scenario without payment-flow",
+          "consequence": "two APPLICATION topologies leave the bootstrap slice two activation orders to compare instead of six"
+        }
+      ],
+      "chosen": "Guide Appendix A trimmed to the slices",
+      "why": "The node's Overview names Appendix A as the reference scenario; the trim keeps every element a slice exercises, including a PAGE claim (payment.draft) and shell-owned state topics (Spec §3.11). The owner's own node Overview fixes Appendix A as the scenario, so the trim is a planning choice within it, not a question for the owner.",
+      "evidence": [
+        "Guide Appendix A",
+        "Spec §2.5",
+        "Spec §3.11",
+        "Spec §7.2",
+        "Spec §7.6",
+        "Spec §9.2"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T07:48:58Z",
+      "artifact": "hsdd/spec/nidana.integration.md (D5)",
+      "question": "Guide Appendix A has the persistence service publish Hydrated on cart.events at startup for the MODULE-scoped checkout-flow; does the example hydrate the cart that way?",
+      "options": [
+        {
+          "label": "leave cart hydration out and mark Appendix A for upstreaming",
+          "consequence": "the example hydrates auth only; the module slice keeps checkout-flow MODULE-scoped"
+        },
+        {
+          "label": "give the cart an APPLICATION owner",
+          "consequence": "cart hydration works, but the module slice loses its owned, retained state"
+        },
+        {
+          "label": "hydrate the cart through a state topic the module reads",
+          "consequence": "works, but adds a topic and a reducer path no slice needs"
+        }
+      ],
+      "chosen": "leave cart hydration out and mark Appendix A for upstreaming",
+      "why": "A MODULE topology observes only what is published after its activation and an event topic retains nothing (Spec §3.13, §7.4), so Appendix A's cart Hydrated event reaches no reducer while the user has not entered the checkout module. The fix belongs in the Guide, which is read-only here.",
+      "evidence": [
+        "Spec §3.13",
+        "Spec §7.4",
+        "Guide Appendix A"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": true
+    },
+    {
+      "at": "2026-10-18T07:48:58Z",
+      "artifact": "hsdd/spec/nidana.integration.md (D4)",
+      "question": "Where do the example's topologies live, and which catalog runner records them?",
+      "options": [
+        {
+          "label": "pure libraries, recorded with dart run",
+          "consequence": "lib/src/core/ and tool/ import no Flutter library, so catalog runs the registration with dart run; topologies sit in the pure substrate as Spec §5 has them"
+        },
+        {
+          "label": "PAGE topologies beside their widgets",
+          "consequence": "catalog records the registration under the Flutter tester, nested inside the member's own flutter test in nidana.integration.8; nidana.tooling.codegen's gates already start that runner"
+        }
+      ],
+      "chosen": "pure libraries, recorded with dart run",
+      "why": "Topologies are pure declarations (Spec §5), and nidana.tooling.codegen D4 already exercises the Flutter runner in its own gates. The member still declares flutter_test (ADR-002 item 3), so the Flutter runner would work if a later registration reached dart:ui.",
+      "evidence": [
+        "topic-codegen@v1 Registration point 3",
+        "nidana.tooling.codegen D4",
+        "Spec §5",
+        "docs/auto-run/experiments/integration-plan-facts/ (I5)"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T07:48:58Z",
+      "artifact": "hsdd/spec/nidana.integration.md (D4, nidana.integration.1)",
+      "question": "Which phases edit the member's pubspec, the topics document and the root workspace files?",
+      "options": [
+        {
+          "label": "nidana.integration.1 alone, declaring everything up front",
+          "consequence": "every dependency of ADR-002 item 3's row and every topic land once; no later phase changes the resolution or the registry, and no phase of this plan collides with another"
+        },
+        {
+          "label": "each phase adds what it first needs",
+          "consequence": "every such phase edits the lockfile and meets other nodes' member-creating merges on it, and the registry changes in several phases"
+        }
+      ],
+      "chosen": "nidana.integration.1 alone, declaring everything up front",
+      "why": "ADR-002 item 3's row fixes the member's dependencies in advance and item 4 their constraints, so nothing is learned by deferring them; nidana.tooling.codegen D3 chose the same.",
+      "evidence": [
+        "ADR-002 items 3 and 4",
+        "ADR-002 Consequences",
+        "nidana.tooling.codegen D3"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T07:52:46Z",
+      "artifact": "hsdd/spec/nidana.integration.md (D7)",
+      "question": "How is the example's registry produced and kept fresh, given that the CI slice diffs the committed lib/topics.g.dart against generate (topic-codegen@v1 G11)?",
+      "options": [
+        {
+          "label": "committed, staleness checked before build_runner runs",
+          "consequence": "the member analyzes in a fresh checkout; the registry test compares generate's output with the committed file, then build_runner runs, then the test runs again to compare the builder's bytes"
+        },
+        {
+          "label": "build_runner first, as an app's CI runs it",
+          "consequence": "build_runner 2.16.1 rewrites a stale committed registry silently with exit 0 (I7), so no later check sees the stale commit"
+        },
+        {
+          "label": "not committed, generated in every gate",
+          "consequence": "the default gate analyzes before any test, and a fresh checkout would not analyze"
+        }
+      ],
+      "chosen": "committed, staleness checked before build_runner runs",
+      "why": "The experiment shows build_runner 2.16.1 builds over a committed output in a fresh checkout, ignores the removed --delete-conflicting-outputs flag with a warning, and silently rewrites a stale committed output, so the comparison must run before it; the gates call build_runner without the flag.",
+      "evidence": [
+        "docs/auto-run/experiments/integration-plan-facts/ (I7)",
+        "topic-codegen@v1 G10, G11 and its Validation",
+        "ADR-002 Consequences"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T07:48:58Z",
+      "artifact": "hsdd/spec/nidana.integration.md (D8)",
+      "question": "How does the example keep catalog's static graph comparable with the running app's bus.toGraph()?",
+      "options": [
+        {
+          "label": "public transformers, one factory, literal page route, containment check",
+          "consequence": "every FunctionRef is named with no library key; the payment page passes route 'checkout/payment' so its static and live sources agree; the test checks the live graph is contained in the document"
+        },
+        {
+          "label": "derived page route, compare up to stand-in sources and private-name keys",
+          "consequence": "exercises flutter-binding@v1 G7's route derivation, which nidana.flutter covers, but the document holds a stand-in source and the comparison needs normalization"
+        }
+      ],
+      "chosen": "public transformers, one factory, literal page route, containment check",
+      "why": "topic-codegen@v1 says the static graph equals an AOT app's bus.toGraph() only when every transformer is public, and nidana-checks@v1 resolves a PageScope source only from a literal route. A live graph holds only what is active, so containment, plus exact equality of ids, definitions and claims against the registration and the expected claims, is the precise check.",
+      "evidence": [
+        "topic-codegen@v1 The topology graph document and the catalog command",
+        "topology-ir@v1 G9",
+        "nidana-checks@v1 Claim sites",
+        "flutter-binding@v1 G7",
+        "Spec §6.5"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T07:48:58Z",
+      "artifact": "hsdd/spec/nidana.integration.md (D9)",
+      "question": "How do the member's VM-style and widget tests run, and how do the bootstrap functions serve both?",
+      "options": [
+        {
+          "label": "flutter_test only; bootstrap stops short of start()",
+          "consequence": "TestBus tests run in test bodies under flutter test, widget tests on the production provider; tests attach recorders and activation observers before start(), and the Flutter shell constructs its own executor"
+        },
+        {
+          "label": "add package:test for VM tests; bootstrap calls start()",
+          "consequence": "a dependency outside ADR-002 item 3's row, and no way to attach a recorder or publish a deep link before start()"
+        }
+      ],
+      "chosen": "flutter_test only; bootstrap stops short of start()",
+      "why": "flutter_test re-exports the test API, ADR-002 item 3's row lists no test dependency, ADR-003 items 6 and 7 fix how TestBus and widget tests drive time, and bus-testing@v1 has recorders attached before start().",
+      "evidence": [
+        "ADR-002 item 3",
+        "ADR-003 items 6 and 7",
+        "bus-testing@v1 How a test uses it",
+        "flutter-binding@v1 G4",
+        "Guide §3.5"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T07:48:58Z",
+      "artifact": "hsdd/spec/nidana.integration.md (D5, nidana.integration.3)",
+      "question": "Which observer is the sensitive-capable one in the observation slice?",
+      "options": [
+        {
+          "label": "bus-api@v1's TelemetryObserver with observeSensitive",
+          "consequence": "the slice also exercises G33's span attributes, nidana.sensitive among them, on the composed app"
+        },
+        {
+          "label": "an app-written trace observer",
+          "consequence": "mirrors Appendix A's TraceObserver literally, with more example code and no runtime guarantee exercised"
+        }
+      ],
+      "chosen": "bus-api@v1's TelemetryObserver with observeSensitive",
+      "why": "Its capabilities parameter takes observeSensitive, and using it checks a runtime guarantee end to end at no extra code; the app's LoggingObserver plays Appendix A's non-sensitive observer.",
+      "evidence": [
+        "bus-api@v1 G30, G33",
+        "Spec §9.1",
+        "Spec §9.2",
+        "Guide Appendix A"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T07:48:58Z",
+      "artifact": "hsdd/spec/nidana.integration.md (nidana.integration.2, .4, .5, .6)",
+      "question": "Where does the guard send an intent while auth.state is still AuthInitializing, as a cold-start deep link meets it?",
+      "options": [
+        {
+          "label": "a splash route carrying the attempted intent",
+          "consequence": "the splash page publishes the intent again once auth resolves, and the guard decides on the resolved principal; one more page and route"
+        },
+        {
+          "label": "the unauthenticated redirect (the template's default)",
+          "consequence": "a signed-in user's deep link to a protected route lands on the login page while hydration is still running"
+        }
+      ],
+      "chosen": "a splash route carrying the attempted intent",
+      "why": "navigation-api@v1 Refinement 2 gives the principal a pending variant for exactly this case (Guide §3.5 with Spec §7.6), and the example should show it.",
+      "evidence": [
+        "navigation-api@v1 Refinement 2, G12",
+        "Guide §3.5",
+        "Spec §7.6"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T07:53:33Z",
+      "artifact": "hsdd/spec/nidana.integration.md (Governance updates)",
+      "question": "Which phases does the confirm entry for nidana-checks@v1's consumers name, given that every gate's root analyze runs the plugin over the member?",
+      "options": [
+        {
+          "label": "the phases that use the contract by design: .1, .6, .7, .8",
+          "consequence": ".1 waits on nidana.tooling.lint.4 for the member's first commit; .6 to .8 replay its invocations; .8 runs both hosts; matches how no other node lists itself for the root analyze"
+        },
+        {
+          "label": "every phase",
+          "consequence": "accurate about the root analyze, but every other node's phases would then also be consumers by the same reasoning"
+        }
+      ],
+      "chosen": "the phases that use the contract by design: .1, .6, .7, .8",
+      "why": "The frontmatter lists phases that consume a contract on purpose; no producer or other consumer lists its phases for the root analyze the plugin reaches. .2 to .5 stay under the rules through their dependency on .1.",
+      "evidence": [
+        "nidana-checks@v1 frontmatter and Delivery",
+        "ADR-002 item 7"
+      ],
+      "blast_radius": "contract",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    }
+  ],
+  "experiments": [
+    {
+      "path": "docs/auto-run/experiments/integration-plan-facts/",
+      "question": "Can a test of a Flutter workspace member, run from the root under fvm flutter test --no-pub, drive the toolchain (find dart, run member executables, analyze and scan seeded temporary packages, nest flutter test)? Which output directories does the root analyze read? How does build_runner 2.16.1 treat a committed generated output?",
+      "finding": "I1: FLUTTER_ROOT is set and the root package configuration's flutterRoot names the same SDK; the pinned dart is $FLUTTER_ROOT/bin/cache/dart-sdk/bin/dart. I2: dart run nidana_dart_codegen:scan from the root, 6 s. I3: a temporary package outside the workspace with a synthesized package configuration and the plugin enabled by absolute path reports all four rules, exit 2, 9 s. I4: the scan over the example and the seeded package reports topic_name_collision and writer_conflict across them, exit 1. I5: a nested flutter test runs, 3 s, no startup lock. I6: the root analyze reads build/ (root and member) and not .dart_tool/. I7: build_runner 2.16.1 builds over a committed output in a fresh checkout, ignores the removed --delete-conflicting-outputs with a warning, and silently rewrites a stale committed output with exit 0."
+    }
+  ],
+  "self_check": [
+    {
+      "gate": "Phase 1 defines all shared types and contract-bounded interfaces.",
+      "status": "pass",
+      "note": "This node produces no contract; nidana.integration.1 lands every domain value, the whole topic registry (all ten topics) and the routes the later phases share."
+    },
+    {
+      "gate": "Phases 2..N-1 are maximally independent (parallelizable where possible).",
+      "status": "pass",
+      "note": "Two lanes after .2 (VM: .3, .4; Flutter: .5) meeting at .6; .7 and .8 run side by side; no two phases edit one file."
+    },
+    {
+      "gate": "Each phase has <= 8 OpenSpec tasks (split if more).",
+      "status": "pass",
+      "note": "6 to 8 plan tasks each; sizes 250 to 420 lines including tests."
+    },
+    {
+      "gate": "Adjacent same-tier phases were checked against the sizing floor; every merge candidate kept separate names its reason (tier boundary, parallel lane, isolated risk).",
+      "status": "pass",
+      "note": "No pair is a merge candidate: .2/.3 and .3/.4 consume different contracts; .6/.7 fail condition (iii) because .8 depends on .6 alone, and merged exceed a PE (D1)."
+    },
+    {
+      "gate": "Contract ids are defined before the phase that implements them.",
+      "status": "pass",
+      "note": "All nine consumed contracts exist; this node implements none."
+    },
+    {
+      "gate": "Phase N is testable against contract fixtures even if Phase N-1 is not implemented.",
+      "status": "n/a",
+      "note": "The node produces no contract; every phase tests against the producers' real packages (root D10, ADR-001 item 11), and its dependencies on earlier phases of this node are on the example's own code."
+    },
+    {
+      "gate": "No phase couples to another phase's internals.",
+      "status": "pass",
+      "note": "Phases of this node build on the example code earlier phases land, through its libraries; cross-node they use only consumed contracts' public libraries and commands."
+    },
+    {
+      "gate": "Each phase has a concrete gate, a verification description, and a review tier.",
+      "status": "pass",
+      "note": "Every gate is a full fvm command sequence from the workspace root."
+    },
+    {
+      "gate": "The phase dependency graph is included as a Mermaid flowchart and matches the Dependencies fields.",
+      "status": "pass",
+      "note": "Intra-node edges solid, producer phases dashed with labels."
+    },
+    {
+      "gate": "Summary table opens the section and matches the phase sections.",
+      "status": "pass",
+      "note": "Opens right after the Default gate line; full phase ids in both."
+    },
+    {
+      "gate": "Field blocks are bullet lists; empty lists say \"none\".",
+      "status": "pass",
+      "note": "Produces: none in every phase; no Collides with column or field because no phase collides."
+    },
+    {
+      "gate": "Every contingent phase names the OQ id it waits on; no contingency without a minted OQ.",
+      "status": "n/a",
+      "note": "No phase is contingent; no OQ was needed or minted."
+    },
+    {
+      "gate": "The plan names the ordering policy it followed, matching the conventions line (or `interfaces-first` when absent, `fp-progression` when only the pre-v0.10 `FP ordering:` bullet is present).",
+      "status": "pass",
+      "note": "First line after the table names fp-progression, as the conventions line does."
+    },
+    {
+      "gate": "Every producing phase's Gate includes the contract replay for each contract it produces.",
+      "status": "n/a",
+      "note": "No producing phase; the unrestricted replay runs from .6 on (D3)."
+    },
+    {
+      "gate": "In append mode: no existing id changed, no shipped phase edited, numbering continued from the highest existing id.",
+      "status": "n/a",
+      "note": "First plan for this node."
+    },
+    {
+      "gate": "node docs/auto-run/tools/gate.mjs --skill hsdd-phase-plan --node nidana.integration",
+      "status": "pass",
+      "note": "0 errors, 0 warnings."
+    }
+  ],
+  "notes_for_orchestrator": [
+    "Phase count: 8. nidana.integration.1 Example member, domain types and topic registry (spot-check, ~420 loc, <=8 tasks; deps nidana.model.1, nidana.model.8, nidana.runtime.1, nidana.navigation.1, nidana.flutter.1, nidana.tooling.codegen.11, nidana.tooling.lint.4).",
+    "nidana.integration.2 Pure core: reducers, navigation configuration, topologies, registration (full-review, ~420 loc, <=8 tasks; deps .1, nidana.model.11, nidana.model.14, nidana.navigation.6).",
+    "nidana.integration.3 Services and observers: hydration, single-writer, observation (full-review, ~400 loc, <=7 tasks; deps .2, nidana.runtime.14).",
+    "nidana.integration.4 Bus bootstrap and navigation on a TestBus (full-review, ~350 loc, <=7 tasks; deps .3).",
+    "nidana.integration.5 Pages and the route builder (spot-check, ~400 loc, <=8 tasks; deps .2, nidana.flutter.7).",
+    "nidana.integration.6 The example app end to end (full-review, ~380 loc, <=7 tasks; deps .4, .5, nidana.model.2, .6, .7); first unrestricted --all replay.",
+    "nidana.integration.7 Module and page scope end to end (full-review, ~250 loc, <=6 tasks; deps .6); --all again.",
+    "nidana.integration.8 CI slice: codegen and v1 checks, passing and failing (full-review, ~380 loc, <=8 tasks; deps .6); --all again, plus the In CI commands with outputs under .dart_tool/nidana_integration/.",
+    "Governance entries, confirm (9, consumers only, this node produces nothing): topic-model@v1 [.1-.8]; topology-dsl@v1 [.2-.8]; topology-ir@v1 [.2-.8]; bus-api@v1 [.3-.8]; bus-testing@v1 [.3-.8]; navigation-api@v1 [.1, .2, .4-.8]; flutter-binding@v1 [.5-.8]; topic-codegen@v1 [.1, .6, .7, .8]; nidana-checks@v1 [.1, .6, .7, .8]. Each entry names full ids nidana.integration.N and replaces the node placeholder nidana.integration in the frontmatter. After reconcile every contract has producer and consumer phases confirmed, so each can flip to phase_ids: final and, with its validation artifact present, status: stable.",
+    "Governance entries, note (5): the member and the shared root workspace list and lockfile; the unrestricted replay first at .6, again at .7 and .8; the root analyze reads build/ and not .dart_tool/ (I6, a conventions candidate); Flutter member tests can drive the toolchain via FLUTTER_ROOT (I1 to I5, a conventions candidate); build_runner 2.16.1 removed --delete-conflicting-outputs and silently rewrites a stale committed output (I7).",
+    "Governance entries, amend: none (this node owns no contract). request: none; no consumed contract leaves a gap the plan depends on, so reconcile has no request to answer.",
+    "Upstream: D5 marks Guide Appendix A for upstreaming: its persistence service hydrates cart state through cart.events for the MODULE-scoped checkout-flow, which a MODULE topology cannot receive before module entry (Spec §3.13, §7.4). The decision is node-local, would_upstream true.",
+    "This node has no Open questions table and owns no OQ; root OQ2, OQ6, OQ7 and nidana.flutter's OQ-F1, which name nidana.integration, are already resolved. No OQ row was changed.",
+    "Routed items: the example declares flutter_test (ADR-002 item 3's row) so catalog's Flutter runner would work, but its registration reaches no dart:ui, so catalog records it with dart run (D4); the app is clean under the plugin from nidana.integration.1 because that phase waits on nidana.tooling.lint.4 (D2); seeded violations live only in temporary directories (D6); the catalog graph is compared with bus.toGraph() because every transformer is public (D8); the CI order is the root analyze before catalog and scan (D3).",
+    "Root Development flow item 4 ('nidana.integration last, after every producer ships') is refined per phase by D2 without changing any edge type; a root refresh may want to say so, as it does for nidana.flutter D6.",
+    "Experiment kept at docs/auto-run/experiments/integration-plan-facts/ (run.sh, output.txt, src/); run.sh rebuilds and removes its work directories."
+  ]
+}

@@ -195,8 +195,8 @@ tree. Done when `node docs/auto-run/tools/gate.mjs --final` passes.
 | S38 | 6 | hsdd-adr | ADR-002 update: third-party lower bounds from the full planned resolution; Context Q11c | done | 257b22d |
 | S39 | 6 | hsdd-phase-plan | nidana.tooling.codegen (11 phases) | done | ad8093c |
 | S40 | 6 | hsdd-reconcile | nidana.tooling.codegen's pending section | done | 162c13c |
-| S41 | 6 | hsdd-phase-plan | nidana.integration | running | |
-| S42 | 6 | hsdd-reconcile | nidana.integration's pending section (every contract to final and stable) | planned | | nidana.flutter, nidana.tooling.lint, nidana.tooling.codegen, nidana.integration, in that order | planned | |
+| S41 | 6 | hsdd-phase-plan | nidana.integration (8 phases) | done | b47b883 |
+| S42 | 6 | hsdd-reconcile | nidana.integration's pending section (every contract to final and stable) | running | | nidana.flutter, nidana.tooling.lint, nidana.tooling.codegen, nidana.integration, in that order | planned | |
 
 ## Change log
 
