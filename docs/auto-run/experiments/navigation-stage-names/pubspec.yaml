@@ -1,0 +1,15 @@
+# navigation-stage-names: S32 (phase plan of nidana.navigation) checks two
+# runtime facts its decisions use, on the stand-in packages of
+# ../navigation-api-touch/ (copied, then patched as run.sh says). Its own pub
+# workspace, never a member of the repository's workspace.
+name: nsn_root
+publish_to: none
+environment:
+  sdk: ^3.13.0
+workspace:
+  - packages/nidana_dart_contracts
+  - packages/nidana_contract_check
+  - packages/nidana_dart_runtime
+  - packages/nidana_dart_navigation
+dev_dependencies:
+  lints: ^6.1.0

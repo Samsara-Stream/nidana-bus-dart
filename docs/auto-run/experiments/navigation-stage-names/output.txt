@@ -1,0 +1,64 @@
+pub get exit: 0
+Dart SDK version: 3.13.5 (stable) (Tue Sep 29 01:00:52 2026 -0700) on "macos_arm64"
+
+### T0 the stand-in navigation library is ../navigation-api-touch/'s, unchanged, and patch/navigation.closures.dart is a copy of it
+navigation.dart: identical to navigation-api-touch
+patch/navigation.closures.dart: identical
+
+### S1a closures (as written): the recorded resolver's transformers
+-- reactive form
+  map transformer=FunctionRef.anonymous()
+  map transformer=FunctionRef(principalOf)
+  withLatestFrom transformer=FunctionRef.anonymous()
+  write transformer=null
+-- static form
+  map transformer=FunctionRef.anonymous()
+  map transformer=FunctionRef(principalOf)
+  withLatestFrom transformer=FunctionRef.anonymous()
+  write transformer=null
+two reactive resolvers record equal definitions: true
+two static resolvers record equal definitions: true
+exit: 0
+
+### S2a closures (as written): navigation-api@v1's bindings
+-- hsdd/contract/fixture/navigation-api/behavior/nidana_dart_navigation_test.dart
+00:00 +40: All tests passed!
+exit: 0
+-- hsdd/contract/fixture/navigation-api/behavior/in_memory_router_test.dart
+00:00 +52: All tests passed!
+exit: 0
+
+### S1b method tear-offs (patch/navigation.named.dart): the recorded resolver's transformers
+Analyzing nidana_dart_navigation...
+No issues found!
+analyze exit: 0
+-- reactive form
+  map transformer=FunctionRef(resolveDeepLinks)
+  map transformer=FunctionRef(principalOf)
+  withLatestFrom transformer=FunctionRef(applyAuthGuard)
+  write transformer=null
+-- static form
+  map transformer=FunctionRef(resolveDeepLinks)
+  map transformer=FunctionRef(principalOf)
+  withLatestFrom transformer=FunctionRef(applyAuthGuard)
+  write transformer=null
+two reactive resolvers record equal definitions: true
+two static resolvers record equal definitions: true
+exit: 0
+
+### S2b method tear-offs: navigation-api@v1's bindings
+-- hsdd/contract/fixture/navigation-api/behavior/nidana_dart_navigation_test.dart
+00:00 +40: All tests passed!
+exit: 0
+-- hsdd/contract/fixture/navigation-api/behavior/in_memory_router_test.dart
+00:00 +52: All tests passed!
+exit: 0
+
+### S3 an error event on a synchronous broadcast stream, listened with onData only inside a guarded zone
+data received: [1, 2]
+errors at the listening zone's handler: [Bad state: router defect]
+subscription kept receiving after the error: true
+exit: 0
+
+### cleanup: restore the stand-in as written, remove the copied fixtures
+removed
