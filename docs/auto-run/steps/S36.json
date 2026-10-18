@@ -1,0 +1,271 @@
+{
+  "step_ref": "S36",
+  "skill": "hsdd-phase-plan",
+  "target": "nidana.tooling.lint",
+  "status": "completed",
+  "stop": null,
+  "artifacts": [
+    "hsdd/spec/nidana.tooling.lint.md",
+    "docs/auto-run/experiments/plugin-rebuild/",
+    "docs/auto-run/experiments/plugin-rule-tests/",
+    "docs/auto-run/experiments/lint-pin-resolution/"
+  ],
+  "decisions": [
+    {
+      "at": "2026-10-18T05:18:30Z",
+      "artifact": "hsdd/spec/nidana.tooling.lint.md",
+      "question": "How many phases, and how are the four rules cut across them under fp-progression? (D2)",
+      "options": [
+        { "label": "four phases: type level, two pure decision lanes, reporting", "consequence": "Each rule is a pure decision (resolved node to findings) plus a reporting visitor. .1 types and shell, .2 and .3 decisions side by side, .4 visitors, guard and the whole-share replay. Follows fp-progression's bands and keeps the node spec's parallel lanes; one more review cycle; nothing reports until .4." },
+        { "label": "three phases, serial, per the spec's slices", "consequence": "Each rule's decision and visitor in one phase; one cycle fewer. Only one phase can run the whole share, so .3 must follow .2; .2 reports (an effect) before .3's pure core lands, against fp-progression; the spec's parallel lanes become serial." },
+        { "label": "three slices in parallel plus a replay-only phase", "consequence": "Keeps parallelism but the fourth phase changes almost no code, below the sizing floor." }
+      ],
+      "chosen": "four phases: type level, two pure decision lanes, reporting",
+      "why": "The conventions name fp-progression (pure core before every effect phase, shell last) and the node spec's own Development flow calls each rule's decision pure and its visitor the effect. A single last phase must replay the whole share (nidana.tooling D2), which the three-phase cut can only satisfy by serializing the lanes. Separately, analyze-human's coverage (G1, G2) means no per-rule case can replay before all four rules report, so splitting reporting out loses no intermediate replay. The experiment shows decisions can be tested apart from reporting. Close call against the serial three-phase plan; the signal that would have flipped it: decisions that cannot be tested without a reporting rule, or the owner weighting one fewer review cycle above band order.",
+      "evidence": ["hsdd/conventions.md Phase design (fp-progression)", "hsdd/spec/nidana.tooling.lint.md Development flow", "nidana.tooling D2", "hsdd/contract/nidana-checks.md Validation table", "docs/auto-run/experiments/plugin-rule-tests/ (Q2)"],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T05:18:30Z",
+      "artifact": "hsdd/spec/nidana.tooling.lint.md",
+      "question": "Where does D1's recognition helper land: in the type-level phase or in a pure decision lane?",
+      "options": [
+        { "label": "in nidana.tooling.lint.1", "consequence": "Both decision lanes build on it and run side by side; .1 holds one pure function beside its types and grows to about 430 lines." },
+        { "label": "in nidana.tooling.lint.2", "consequence": "Stricter band purity for .1, but .3 must wait on .2 and .2 grows past one review sitting (about 500 lines)." }
+      ],
+      "chosen": "in nidana.tooling.lint.1",
+      "why": "Every rule uses it (topic creations for raw string and sensitivity, Bus subclasses for accessor and type arguments); the node spec's slice table already places it in the plugin surface slice. Placing it in a lane orders the other lane after it.",
+      "evidence": ["hsdd/spec/nidana.tooling.lint.md Slices, D1"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T05:19:10Z",
+      "artifact": "hsdd/spec/nidana.tooling.lint.md",
+      "question": "What does each producing gate replay of nidana-checks@v1, given ADR-001 item 9's every-id rule? (D3)",
+      "options": [
+        { "label": "G1 at .1 to .3, G1 to G8 at .4", "consequence": "Standard replay form at every gate; .1 to .3 admit no case and pass on structure plus an empty cli selection; .4 runs every analyze-* case and no scan-* case, the whole share." },
+        { "label": "amend analyze-human's Covers to G1, G2, G4 to G7", "consequence": "Would let a rule phase replay its own per-rule case, but under D2 no rule reports before .4, so it buys nothing and touches a contract." },
+        { "label": "--set structure at .1 to .3", "consequence": "Drops the dependency on nidana.model.7 for the early phases but departs from ADR-001 item 10's replay form." }
+      ],
+      "chosen": "G1 at .1 to .3, G1 to G8 at .4",
+      "why": "Every analyze-* case covering G1 also covers G2 or G7, and analyze-human covers exactly G1 and G2, so any restriction admitting a per-rule case admits analyze-human, which needs all four rules. nidana.model D2 items 1 and 4 make an empty selection pass, the reading nidana.runtime, nidana.navigation and nidana.flutter already rely on. Every gate runs the cli set, so .1 depends on nidana.model.7 (and .1).",
+      "evidence": ["ADR-001 items 9 and 10", "hsdd/contract/nidana-checks.md Validation table", "hsdd/spec/nidana.model.md D2 items 1, 3 and 4", "hsdd/conventions.md Phase design (replay tool sets)", "docs/auto-run/experiments/empty-guarantee-selection/"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T05:21:14Z",
+      "artifact": "hsdd/spec/nidana.tooling.lint.md",
+      "question": "How are the four rules' decisions paired into the two parallel lanes?",
+      "options": [
+        { "label": "the spec's slices: raw string with accessor, type arguments with sensitivity", "consequence": "Balanced lanes, about 380 and 410 lines; follows the node spec's slice table." },
+        { "label": "by consumed contract: raw string with sensitivity, accessor with type arguments", "consequence": "Cleaner contract split (topic-model alone against the bus surface) but unbalanced lanes, about 470 and 330 lines, the first past one sitting." }
+      ],
+      "chosen": "the spec's slices: raw string with accessor, type arguments with sensitivity",
+      "why": "Sizes decide it: the sensitivity search is the largest decision and pairing it with raw string pushes one lane past a PE. Neither pairing changes any external edge. The signal that would have flipped it: the sensitivity decision coming in well under its estimate.",
+      "evidence": ["hsdd/spec/nidana.tooling.lint.md Slices", "docs/auto-run/experiments/nidana-checks-fixtures/packages/nidana_dart_lint/lib/src/rules.dart (stand-in sizes)"],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T05:21:14Z",
+      "artifact": "hsdd/spec/nidana.tooling.lint.md",
+      "question": "Review tier of nidana.tooling.lint.3 (type-argument and sensitivity decisions)",
+      "options": [
+        { "label": "full-review", "consequence": "The reviewer reads the known-sensitive type traversal; a wrong traversal is caught before .4's replay rather than as rework in .4." },
+        { "label": "spot-check", "consequence": "Matches the pure-utility default; mistakes surface at .4's replay of analyze-unflagged-sensitive-topic." }
+      ],
+      "chosen": "full-review",
+      "why": "The sensitivity heuristic (aliases, annotations from any library, record fields at any depth, display strings under an alias) is the plan's most intricate logic and its one data-protection check. The other tiers follow the skill's defaults: .1 gate-only (types and scaffolding; its gate proves the plugin loads), .2 spot-check (pure, well-constrained), .4 full-review (integration with the real analysis server and every member).",
+      "evidence": ["hsdd-phase-plan Review Tiers", "Spec §9.2", "hsdd/contract/nidana-checks.md G7 and rule details"],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T05:21:14Z",
+      "artifact": "hsdd/spec/nidana.tooling.lint.md",
+      "question": "Which test harness do the rule tests use, given ADR-002 item 3 lists analyzer_testing and test as the plugin's only dev dependencies? (D4)",
+      "options": [
+        { "label": "AnalysisRuleTest under plain package:test", "consequence": "No new dependency; setUp and tearDown called from package:test hooks; stand-ins registered before setUp." },
+        { "label": "test_reflective_loader", "consequence": "The analysis_server_plugin guide's form, but a third dev dependency needing a D under ADR-002 item 3, and absent from the pub cache." }
+      ],
+      "chosen": "AnalysisRuleTest under plain package:test",
+      "why": "The experiment ran AnalysisRuleTest under plain package:test on the workspace's versions: diagnostics matched with offset, length and message, a pure decision tested over a resolved node, and a test/ library skipped in memory. The one trap found: newPackage must precede setUp.",
+      "evidence": ["ADR-002 item 3", "docs/auto-run/experiments/plugin-rule-tests/ (Q1 to Q3)"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T05:21:14Z",
+      "artifact": "hsdd/spec/nidana.tooling.lint.md",
+      "question": "The run says consuming phases test against real packages or bind a contract's suite, never hand-rolled mocks. What do the rule tests resolve against? (D4)",
+      "options": [
+        { "label": "in-memory recognition stand-ins, real packages through the analyze-* replay", "consequence": "Unit tests need no nidana package (the node's isolation strategy); stand-ins copy the Interfaces' declaration shapes and carry no behavior; .4's replay resolves the real declarations." },
+        { "label": "copy the real package sources into the test resource provider", "consequence": "Tests the real declarations in unit tests, but needs rxdart, clock and meta sources in memory too and ties .1 to .3 to the producers' phases." }
+      ],
+      "chosen": "in-memory recognition stand-ins, real packages through the analyze-* replay",
+      "why": "The node spec's accepted isolation strategy prescribes stand-ins whose package names recognition matches. ADR-001 item 11 concerns stand-ins of behavior bound to a conformance suite; the plugin runs none of these contracts, so there is no suite to bind. The real declarations are exercised where the contract fixtures run them.",
+      "evidence": ["hsdd/spec/nidana.tooling.lint.md Isolation strategy", "ADR-001 item 11", "ADR-002 item 7"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T05:21:14Z",
+      "artifact": "hsdd/spec/nidana.tooling.lint.md",
+      "question": "Which phases wait on the producers' declaration phases (nidana.model.5, nidana.runtime.1)? (D5)",
+      "options": [
+        { "label": "only nidana.tooling.lint.4", "consequence": "Edges follow root D10's reason (compilation against real declarations), which applies to the analyze-* cases only; .1 to .3 can start once the replay tool's sets exist; refines the node's Development flow sentence to phase level." },
+        { "label": "every phase", "consequence": "One start condition for the node as its Development flow reads; adds edges that carry no dependency; nothing changes on the critical path." }
+      ],
+      "chosen": "only nidana.tooling.lint.4",
+      "why": "The plugin imports no nidana package; .1 to .3 test over stand-ins and their restricted replays admit no case. Only the analyze-* cases import nidana_dart_contracts, nidana_dart_runtime and testing.dart; none imports nidana_dart_navigation or nidana_dart_runtime_flutter (checked against every fixture file), so the waits S35 anticipated on nidana.navigation.1 and nidana.flutter.1 do not arise. Close: the signal that would favor every phase waiting is a gate of .1 to .3 that resolves a nidana package.",
+      "evidence": ["root D10", "topic-model@v1 Delivery", "bus-api@v1 Delivery", "bus-testing@v1 Delivery", "hsdd/contract/fixture/nidana-checks/invocation/analyze-*/files/"],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T05:21:14Z",
+      "artifact": "hsdd/spec/nidana.tooling.lint.md",
+      "question": "nidana.tooling.lint.1 comes to about 430 lines with tests, past the roughly 400-line PE. Keep it whole or split it?",
+      "options": [
+        { "label": "keep one gate-only phase of about 430 lines", "consequence": "One cycle; the overrun is test code (registration, recognition, package properties, stand-ins) in a phase no human reads line by line." },
+        { "label": "split scaffold and codes from the recognition helper", "consequence": "Two small phases on the path to both lanes, the first below the sizing floor." }
+      ],
+      "chosen": "keep one gate-only phase of about 430 lines",
+      "why": "The PE ceiling is approximate, about half the lines are tests and stand-in sources, and the phase is gate-only. The signal that would have split it: an estimate well past 450 or a reason to review the root analysis options change apart.",
+      "evidence": ["hsdd/conventions.md Phase design (PE sizing)"],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T05:21:14Z",
+      "artifact": "hsdd/spec/nidana.tooling.lint.md",
+      "question": "Does a test guard the plugin's pins and its independence from nidana packages, or is that left to review?",
+      "options": [
+        { "label": "package_properties_test.dart from .1 on", "consequence": "Every gate checks ADR-002 items 3 and 7: exact pins equal to the root lockfile, dev dependencies exactly analyzer_testing and test, no nidana import under lib/." },
+        { "label": "review only", "consequence": "A pin drift or a nidana import would surface only when the analysis server fails to load the plugin outside the workspace." }
+      ],
+      "chosen": "package_properties_test.dart from .1 on",
+      "why": "A nidana dependency would make the plugin unloadable outside the workspace (ADR-002 Context, Q12), which no workspace gate shows; the test costs about 50 lines. It follows nidana.runtime D9's and nidana.model D6's pattern of package-property tests.",
+      "evidence": ["ADR-002 items 3 and 7, Context Q12", "hsdd/spec/nidana.model.md D6"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T05:24:12Z",
+      "artifact": "hsdd/spec/nidana.tooling.lint.md",
+      "question": "raw_string_topic: G4 accepts the whole initializer of 'a static field'; the rule detail says 'a static field, static const or static final, of any class'. Which does the plugin implement, and what is amended?",
+      "options": [
+        { "label": "implement G4, amend the detail", "consequence": "Any static field, in any class, mixin, enum, extension or extension type, const, final, late or neither, is accepted; compatible, since it reports no more than G4 and no recorded case changes." },
+        { "label": "implement the detail, amend G4", "consequence": "Mutable and late static fields and non-class static fields would be reported; widens G4, which Versioning calls breaking." }
+      ],
+      "chosen": "implement G4, amend the detail",
+      "why": "The guarantee is the normative statement and the recorded cases hold no field that distinguishes the two; the compatible direction is the narrower report. Signal that would have flipped it: an owner preference to forbid mutable registry fields, which would be a v2 rule.",
+      "evidence": ["hsdd/contract/nidana-checks.md G4, rule details, Versioning", "hsdd/contract/fixture/nidana-checks/invocation/analyze-raw-string-topic/"],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T05:24:12Z",
+      "artifact": "hsdd/spec/nidana.tooling.lint.md",
+      "question": "unflagged_sensitive_topic's {1} when the value type contains more than one known-sensitive type: which one is named?",
+      "options": [
+        { "label": "first in a depth-first search, alias first", "consequence": "The alias a type is written through, the type, then type arguments in order, or a record's positional fields then named fields by name; matches the stand-in that recorded the cases; amend, compatible." },
+        { "label": "leave it to the implementation", "consequence": "No contract change, but G2's 'placeholders filled as stated' has no single answer for two such types." }
+      ],
+      "chosen": "first in a depth-first search, alias first",
+      "why": "G2 requires the placeholders filled as stated, so the producer has to settle it and consumers reading the message can rely on it. No recorded case holds two such types, and message wording is compatible under Versioning.",
+      "evidence": ["hsdd/contract/nidana-checks.md Placeholders, G2, Versioning", "docs/auto-run/experiments/nidana-checks-fixtures/packages/nidana_dart_lint/lib/src/rules.dart (sensitiveTypeIn)"],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    }
+  ],
+  "experiments": [
+    {
+      "path": "docs/auto-run/experiments/plugin-rebuild/",
+      "question": "Does fvm dart analyze pick up an edit to a path-enabled analysis server plugin at the same path, and what does a plugin that does not compile do?",
+      "finding": "Yes: edits under lib/src/ and to lib/main.dart are picked up by the next dart analyze, which recompiles the plugin's AOT snapshot (about 11 s; about 4 s with nothing changed); one synthetic package per path is reused. A plugin that does not compile fails dart analyze with exit 4. Gates need no cache clearing."
+    },
+    {
+      "path": "docs/auto-run/experiments/plugin-rule-tests/",
+      "question": "Can the rules be tested with analyzer_testing under plain package:test (no test_reflective_loader), and can a decision be tested as a pure function over a resolved node?",
+      "finding": "Yes on analyzer 13.3.0, analysis_server_plugin 0.3.18, analyzer_testing 0.3.2 and test 1.31.1: assertDiagnostics matches offset, length and message; resolveFile plus a direct call tests the decision; a test/ library is skipped in memory; a lib/src/ declaration is recognized and a same-named class of another package is not. newPackage must be called before AnalysisRuleTest.setUp."
+    },
+    {
+      "path": "docs/auto-run/experiments/lint-pin-resolution/",
+      "question": "What does adding nidana_dart_lint's exact pins do to a workspace with no Flutter member yet?",
+      "finding": "Without Flutter the workspace resolves analyzer 14.5.0 and test 1.33.0 (L1); adding the plugin's member moves analyzer to 13.3.0 and leaves test at 1.33.0, whose test_core admits analyzer 13 (L2); a member constrained to analyzer ^14.5.0 beside the plugin fails resolution (L3)."
+    }
+  ],
+  "self_check": [
+    { "gate": "Phase 1 defines all shared types and contract-bounded interfaces.", "status": "pass", "note": "nidana.tooling.lint.1 lands the four LintCodes (the contract's plugin table), Finding, the registered rules, the recognition helper and the stand-ins later tests use." },
+    { "gate": "Phases 2..N-1 are maximally independent (parallelizable where possible).", "status": "pass", "note": "nidana.tooling.lint.2 and nidana.tooling.lint.3 depend only on .1 and edit disjoint files." },
+    { "gate": "Each phase has <= 8 OpenSpec tasks (split if more).", "status": "pass", "note": "7, 6, 6, 6 plan tasks." },
+    { "gate": "Adjacent same-tier phases were checked against the sizing floor; every merge candidate kept separate names its reason (tier boundary, parallel lane, isolated risk).", "status": "pass", "note": "Only .3 and .4 share a tier; their consumed contracts differ and together they exceed one sitting, so no pair is a candidate (recorded under the summary table)." },
+    { "gate": "Contract ids are defined before the phase that implements them.", "status": "pass", "note": "All five contracts exist under hsdd/contract/." },
+    { "gate": "Phase N is testable against contract fixtures even if Phase N-1 is not implemented.", "status": "pass", "note": ".2 and .3 test over stand-ins without each other; .4 is the composition phase and tests against the recorded analyze-* cases and the real packages." },
+    { "gate": "No phase couples to another phase's internals.", "status": "pass", "note": ".4 calls the decisions through the shape D2 fixes (visited node to Finding values); .2 and .3 use only .1's Finding, helper and stand-ins." },
+    { "gate": "Each phase has a concrete gate, a verification description, and a review tier.", "status": "pass", "note": "Every gate is a full fvm command chain run from the workspace root." },
+    { "gate": "The phase dependency graph is included as a Mermaid flowchart and matches the Dependencies fields.", "status": "pass", "note": "Cross-node edges dashed: nidana.model.1 and .7 into .1, nidana.model.5 and nidana.runtime.1 into .4." },
+    { "gate": "Summary table opens the section and matches the phase sections.", "status": "pass", "note": "The Default gate line, then the table; prose after." },
+    { "gate": "Field blocks are bullet lists; empty lists say \"none\".", "status": "pass", "note": "Scope uses nested bullets; Collides with is omitted where none and reads none in the table." },
+    { "gate": "Every contingent phase names the OQ id it waits on; no contingency without a minted OQ.", "status": "n/a", "note": "No phase is contingent; no request entry; no OQ minted or cited." },
+    { "gate": "The plan names the ordering policy it followed, matching the conventions line (or `interfaces-first` when absent, `fp-progression` when only the pre-v0.10 `FP ordering:` bullet is present).", "status": "pass", "note": "First line after the summary table: fp-progression." },
+    { "gate": "Every producing phase's Gate includes the contract replay for each contract it produces.", "status": "pass", "note": "All four gates run fvm dart run nidana_contract_check nidana-checks with --guarantee." },
+    { "gate": "In append mode: no existing id changed, no shipped phase edited, numbering continued from the highest existing id.", "status": "n/a", "note": "First plan for this node." },
+    { "gate": "node docs/auto-run/tools/gate.mjs --skill hsdd-phase-plan --node nidana.tooling.lint", "status": "pass", "note": "0 errors, 0 warnings." }
+  ],
+  "notes_for_orchestrator": [
+    "Four phases. nidana.tooling.lint.1 Plugin skeleton: gate-only, ~430 loc, <=7 tasks, depends on nidana.model.1 and nidana.model.7, collides with .4 (lib/src/rules.dart); creates packages/nidana_dart_lint, edits root pubspec.yaml workspace list, pubspec.lock and analysis_options.yaml plugins section; replay --guarantee G1.",
+    "nidana.tooling.lint.2 Raw-string and accessor decisions: spot-check, ~380 loc, <=6 tasks, depends on .1; pure decisions only; replay --guarantee G1.",
+    "nidana.tooling.lint.3 Type-argument and sensitivity decisions: full-review, ~410 loc, <=6 tasks, depends on .1; pure decisions only; replay --guarantee G1.",
+    "nidana.tooling.lint.4 Reporting and the plugin's whole share: full-review, ~300 loc, <=6 tasks, depends on .2, .3, nidana.model.5, nidana.runtime.1, collides with .1; replay --guarantee G1,G2,G3,G4,G5,G6,G7,G8 (every analyze-* case, no scan-* case).",
+    "New node-local decisions D2 (decision/visitor split and phase shape), D3 (gate replays), D4 (rule tests over recognition stand-ins; package_properties_test), D5 (only .4 waits on producers). No OQ exists or was minted for this node; no proposed ADR.",
+    "confirm entries: nidana-checks@v1 produced_by [.1, .2, .3, .4] (this node's share only; union with codegen's, phase_ids final only once both producers and the consumer are in); topic-model@v1 consumers [.1, .2, .3, .4], .4 waits on nidana.model.5; topology-dsl@v1 consumers [.3, .4], .4 waits on nidana.model.5; bus-api@v1 consumers [.1, .2, .3, .4], .4 waits on nidana.runtime.1; bus-testing@v1 consumers [.1, .2, .4], .4 waits on nidana.runtime.1, and this adds nidana.tooling to its consumers (nidana.tooling D3). For topic-model, topology-dsl and bus-api the ids replace this node's share of the nidana.tooling placeholder.",
+    "note entries: (1) the new package and the three shared root files .1 edits; (2) from .1 on every root analyze loads the plugin, exit 4 on a non-compiling plugin, edits picked up at the same path; (3) from .4 on the rules report over every member's application code (a top-level or static Bus, a literal topic name outside a static field initializer, explicit type arguments on nidana sinks including a forwarding super.publish<T, V>, an unflagged known-sensitive topic), nidana.integration's example app included; (4) from .1 on the root lockfile resolves analyzer 13.3.0 even before a Flutter member exists, and a member constraining analyzer above 13.3.0 makes the workspace unresolvable, so nidana_dart_codegen's analyzer constraint must admit 13.3.0.",
+    "amend entries on nidana-checks@v1, all compatible, none can break a consumer: (a) editorial, global_bus_accessor detail cites bus-api@v1 For static analysis (routed, S20); (b) editorial, Refinement 4 says root D1 lists explicit_topic_type_arguments since 2026-10-18 (routed, S26); (c) raw_string_topic detail reads as G4: any static field of any declaration kind, const, final, late or neither; (d) unflagged_sensitive_topic's {1} with several known-sensitive types: first in a depth-first, alias-first search.",
+    "No request entries: the four consumed contracts declare everything the rules recognize (topic constructors with name and sensitive; Bus.publish, Publisher.publish and TestBus extends Bus under lib/src of nidana_dart_runtime; TopologyBuilder.write and reduceInto). Reconcile has nothing to answer for this node.",
+    "S35 anticipated waits on nidana.navigation.1 and nidana.flutter.1 for analyze-* cases that import them: no analyze-* case imports nidana_dart_navigation or nidana_dart_runtime_flutter (checked against every fixture file), so no phase waits on those nodes.",
+    "D5 refines, at phase level, the sentence in this node's Development flow, nidana.tooling's Development flow and the root Development flow item 2 that nidana.tooling.lint waits on nidana.runtime's first phase: it holds for .4 only. Not a contradiction a reconcile must fix, but a sweep of those sentences would make them exact.",
+    "Later plans should know: no per-rule analyze-* case can replay before all four rules report, because analyze-human covers exactly G1 and G2 (D3); and ADR-002 Context Q11c records exit 3 for a non-compiling plugin where plugin-rebuild R6 saw exit 4 (nidana-checks@v1 already says 3 or 4), a candidate correction at ADR-002's next touch.",
+    "Experiments added: docs/auto-run/experiments/plugin-rebuild/, plugin-rule-tests/, lint-pin-resolution/ (each with run.sh and output.txt; none is a workspace member)."
+  ]
+}

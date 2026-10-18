@@ -190,8 +190,9 @@ tree. Done when `node docs/auto-run/tools/gate.mjs --final` passes.
 | S33 | 6 | hsdd-reconcile | nidana.navigation's pending section | done | a218bd7 |
 | S34 | 6 | hsdd-phase-plan | nidana.flutter (7 phases) | done | 3dfed85 |
 | S35 | 6 | hsdd-reconcile | nidana.flutter's pending section | done | badc78f |
-| S36 | 6 | hsdd-phase-plan | nidana.tooling.lint | running | |
-| S37.. | 6 | hsdd-phase-plan then hsdd-reconcile | (nidana.tooling.lint's reconcile), nidana.flutter, nidana.tooling.lint, nidana.tooling.codegen, nidana.integration, in that order | planned | |
+| S36 | 6 | hsdd-phase-plan | nidana.tooling.lint (4 phases) | done | ae2277a |
+| S37 | 6 | hsdd-reconcile | nidana.tooling.lint's pending section | running | |
+| S38.. | 6 | hsdd-phase-plan then hsdd-reconcile | nidana.flutter, nidana.tooling.lint, nidana.tooling.codegen, nidana.integration, in that order | planned | |
 
 ## Change log
 
@@ -331,3 +332,6 @@ tree. Done when `node docs/auto-run/tools/gate.mjs --final` passes.
   key that differs between JIT and AOT, so graphs with private transformers compare unequal across them.
   Routed to nidana.tooling.codegen's plan (catalog versus runtime graph comparison) and to the stage-7
   pass (topology-ir@v1's Function references table lacks the row).
+- 2026-10-18 (UTC), after S36: the stage-7 pass also takes ADR-002's Q11c (exit 3 recorded, exit 4
+  observed for a plugin that does not compile) and the root, nidana.tooling and nidana.tooling.lint
+  dev-flow sentences that say lint waits on nidana.runtime.1 (only lint.4 does).
