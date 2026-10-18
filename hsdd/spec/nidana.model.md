@@ -14,7 +14,7 @@
   - `TopologyDefinition`, `TransformEdge`, `CombinatorKind`, `FunctionRef`, and the IR's JSON form (Spec §6.5)
   - `TopologyGraph`, `ShellClaim`, `toGraph()`, and the Mermaid, Graphviz and JSON renderers (Spec §6.5; topology-ir@v1 Refinement 3)
   - pure analyses: inter-topology cycle detection by strongly connected components, the intra-topology self-reference check (Spec §3.8), single-writer conflicts among topology and shell owners (Spec §3.11), scope compatibility (Spec §7.2), topic name uniqueness over a set of declarations (Spec §4.3); the runtime runs them at activation and the workspace scan in CI (topology-ir@v1)
-  - the contract replay tool, package `nidana_contract_check` (not published), written in this node's first phase (ADR-001)
+  - the contract replay tool, package `nidana_contract_check` (not published), which lands by set over nidana.model.1, nidana.model.2, nidana.model.6 and nidana.model.7, each set before the first gate that runs it (ADR-001 item 9; D1)
 - **Does not own:** subjects, subscriptions, timers, zones and the live interpretation of the DSL (nidana.runtime); source scanning and catalog runs (nidana.tooling); navigation types (nidana.navigation); any dependency beyond the SDK and `meta` in `nidana_dart_contracts`
 - **Consumes:** none
 - **Produces:** [topic-model@v1, topology-dsl@v1, topology-ir@v1]
@@ -34,7 +34,7 @@ The package name follows Guide B.2's layer 1 name for traceability; its content 
 
 ## Inherited from the root
 
-- Ordering policy `fp-progression` (conventions): the first phase lands the type-level skeleton of all three contracts and the replay tool, because every other node's first edge waits on it (root D10).
+- Ordering policy `fp-progression` (conventions): the plan opens with the replay tool's first sets at nidana.model.1 and nidana.model.2, gate infrastructure that ADR-001 item 9 places first; then the type-level band lands one contract per phase, nidana.model.3 to nidana.model.5, each that contract's first producing phase (ADR-001 item 10); the tool's remaining sets land beside the band at nidana.model.6 and nidana.model.7 (D1). Every other node's edges start there (root Development flow item 1): a consumer's `contract` or `shared-model` edge waits on nidana.model.3 for topic-model@v1 alone and on nidana.model.5 for topology-dsl@v1 or topology-ir@v1 (root D10; the contracts' Delivery paragraphs), and a phase whose gate runs a replay set, or whose tests import `package:nidana_contract_check/fixture.dart`, waits on the phase that lands it (conventions, Phase design).
 - Every combinator is a method on this node's handle or builder; topology bodies never call RxDart on read handles (root D6).
 - Diagnostics and dev mode are runtime concerns reached through bus-api@v1 (root D8); nothing here logs.
 
