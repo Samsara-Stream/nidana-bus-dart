@@ -145,11 +145,11 @@ before them):
 
 After S42 nothing is provisional, draft or pending, and `gate.mjs --final` passes. What remains is text
 the stage-6 steps found stale or inexact (the change log entries after S28 list it). Each item goes
-through the skill that owns its file: ADR-001 through hsdd-adr (S43); two contracts through
-hsdd-contract (S44, S45), as compatible amendments within v1 now that every contract is `stable`; five
-node specs' non-plan text through hsdd-spec touches (S46 to S50); and every phase scope, gate and
-plan-written decision that assumed the pre-amendment ADR text through one hsdd-reconcile sweep (S51),
-which updates phase scopes that assumed otherwise. Done when S51's `gate.mjs --final` passes. Left as
+through the skill that owns its file: ADR-001 through hsdd-adr (S43); three contracts through
+hsdd-contract (S44 to S46), as compatible amendments within v1 now that every contract is `stable`; five
+node specs' non-plan text through hsdd-spec touches (S47 to S51); and every phase scope, gate and
+plan-written decision that assumed the pre-amendment ADR text through one hsdd-reconcile sweep (S52),
+which updates phase scopes that assumed otherwise. Done when S52's `gate.mjs --final` passes. Left as
 is, with a decision each: the nine contracts' replay-tool provenance bullet; `pub_semver` in ADR-002's
 table (item 4's outside-the-table rule covers it through nidana.tooling.codegen D3); build_runner's
 dropped flag in ADR-002 (nidana.integration D7 records it for the one member that runs build_runner).
@@ -207,14 +207,15 @@ dropped flag in ADR-002 (nidana.integration D7 records it for the one member tha
 | S42 | 6 | hsdd-reconcile | nidana.integration's pending section (every contract to final and stable) | done | a313ab0 |
 | S43 | 7 | hsdd-adr | ADR-001 update: item 9 landing phases, CLI semantics, empty selection and suite-keyed binding restriction; "first producing phase" wording | done | 9a05120 |
 | S44 | 7 | hsdd-contract | topology-ir@v1 touch: private function references (`_name@{key}`, JIT and AOT keys differ) | done | b7428f2 |
-| S45 | 7 | hsdd-contract | nidana-checks@v1 touch: plugin-failure exit codes in app CI; In CI's "same steps" for nidana.integration | running | |
-| S46 | 7 | hsdd-spec (touch) | root: dev flow and D10 wording, the lint wait sentence, the Contracts paragraph's draft and provisional sentence | planned | |
-| S47 | 7 | hsdd-spec (touch) | nidana.model: Owns, Inherited and Isolation lines | planned | |
-| S48 | 7 | hsdd-spec (touch) | nidana.runtime: D1 Consequences and the dev-flow line | planned | |
-| S49 | 7 | hsdd-spec (touch) | nidana.tooling: drained "Carried into" bullets, the lint wait sentence | planned | |
-| S50 | 7 | hsdd-spec (touch) | nidana.tooling.lint: the Development flow's start condition (only nidana.tooling.lint.4 waits on the producers, D5) | planned | |
-| S51 | 7 | hsdd-reconcile (sweep) | phase scopes, gates and plan-written decisions that contradict amended ADR-001, ADR-002 and the contracts; then `gate.mjs --final` | planned | |
-| S52 | 8 | none (orchestrator) | REPORT.md | planned | |
+| S45 | 7 | hsdd-contract | nidana-checks@v1 touch: plugin-failure exit codes in app CI; In CI's "same steps" for nidana.integration | done | acc56b2 |
+| S46 | 7 | hsdd-contract | topic-codegen@v1 touch: the stale-registry check must run before build_runner, which silently rewrites the committed registry | running | |
+| S47 | 7 | hsdd-spec (touch) | root: dev flow and D10 wording, the lint wait sentence, the Contracts paragraph's draft and provisional sentence | planned | |
+| S48 | 7 | hsdd-spec (touch) | nidana.model: Owns, Inherited and Isolation lines | planned | |
+| S49 | 7 | hsdd-spec (touch) | nidana.runtime: D1 Consequences and the dev-flow line | planned | |
+| S50 | 7 | hsdd-spec (touch) | nidana.tooling: drained "Carried into" bullets, the lint wait sentence | planned | |
+| S51 | 7 | hsdd-spec (touch) | nidana.tooling.lint: the Development flow's start condition (only nidana.tooling.lint.4 waits on the producers, D5) | planned | |
+| S52 | 7 | hsdd-reconcile (sweep) | phase scopes, gates and plan-written decisions that contradict amended ADR-001, ADR-002 and the contracts; then `gate.mjs --final` | planned | |
+| S53 | 8 | none (orchestrator) | REPORT.md | planned | |
 
 ## Change log
 
@@ -385,3 +386,7 @@ dropped flag in ADR-002 (nidana.integration D7 records it for the one member tha
   command line and the two S31 rules; S51 also takes nidana.model.6's scope and tests (suite-keyed
   restriction, empty selection, a cross-slug binding) and D2's restatements; S46 also takes the root's
   "Amended in place twice" line and the conventions' sentence naming ADR-001 for the first-phase tool.
+- 2026-10-18 (UTC), after S45: inserted S46, a topic-codegen@v1 touch: its app-build paragraph
+  compares `generate`'s registry with the committed one after build_runner has rewritten it, so the
+  check cannot fail (S45; integration-plan-facts I7). Later stage-7 steps shift by one: spec touches
+  S47 to S51, the sweep S52, REPORT S53.
