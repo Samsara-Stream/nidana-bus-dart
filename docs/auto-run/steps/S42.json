@@ -1,0 +1,189 @@
+{
+  "step_ref": "S42",
+  "skill": "hsdd-reconcile",
+  "target": "nidana.integration (pending section of hsdd/spec/nidana.integration.md)",
+  "status": "completed",
+  "stop": null,
+  "artifacts": [
+    "hsdd/contract/topic-model.md",
+    "hsdd/contract/topology-dsl.md",
+    "hsdd/contract/topology-ir.md",
+    "hsdd/contract/bus-api.md",
+    "hsdd/contract/bus-testing.md",
+    "hsdd/contract/navigation-api.md",
+    "hsdd/contract/flutter-binding.md",
+    "hsdd/contract/topic-codegen.md",
+    "hsdd/contract/nidana-checks.md",
+    "hsdd/contract/INDEX.md",
+    "hsdd/conventions.md",
+    "hsdd/spec/nidana.integration.md",
+    "docs/auto-run/experiments/reconcile-final-checks/run.sh",
+    "docs/auto-run/experiments/reconcile-final-checks/output.txt",
+    "docs/auto-run/steps/S42.json"
+  ],
+  "decisions": [
+    {
+      "at": "2026-10-18T08:06:57Z",
+      "artifact": "hsdd/contract/topic-model.md, hsdd/contract/topology-dsl.md, hsdd/contract/topology-ir.md (Delivery)",
+      "question": "The three nidana.model contracts' Delivery paragraphs say a consumer's edge waits on nidana.model.3 or nidana.model.5 and name no `hard` edge, while nidana.integration's `hard` edges wait on each contract's last producing phase (nidana.integration D2). Does a Delivery paragraph need a change for this consumer?",
+      "options": [
+        { "label": "add the hard-edge clause", "consequence": "one sentence per contract, 'A `hard` edge waits instead on nidana.model.{8,11,14}, the last producing phase (nidana.integration)', as the six other contracts already say; hsdd-config then carries the right wait into every nidana.integration phase context" },
+        { "label": "leave the paragraphs unchanged", "consequence": "no edit, but the generic 'a consumer's edge ... waits on nidana.model.3/5' read literally gives nidana.integration.1 and .2 a wait their plan does not take, and nidana.integration D2's claim that each consumed contract's Delivery names its wait stays false for three contracts" }
+      ],
+      "chosen": "add the hard-edge clause",
+      "why": "Conventions (Contracts) say the reconcile that applies confirms writes the Delivery paragraph, including the phase a consumer's edge waits on. Written at S29, when nidana.integration was a node placeholder, these three paragraphs covered only `contract` and `shared-model` edges, so their generic sentence names a wrong phase for nidana.integration's `hard` edges (root edge table: every other child to nidana.integration is `hard`; root D10). The added sentence matches the plan's waits (nidana.integration.1 on nidana.model.8, .2 on nidana.model.11 and nidana.model.14) and the wording bus-api@v1, navigation-api@v1, flutter-binding@v1, topic-codegen@v1 and nidana-checks@v1 already use. No interface, guarantee or version changes, so no Versioning line, as earlier reconciles' Delivery writes carried none.",
+      "evidence": ["hsdd/conventions.md (Contracts)", "hsdd/spec/nidana.md D10 and edge table", "hsdd/spec/nidana.integration.md D2"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T08:06:57Z",
+      "artifact": "hsdd/contract/navigation-api.md (Delivery)",
+      "question": "navigation-api@v1's Delivery says a `hard` edge waits on nidana.navigation.6 (nidana.integration), but the confirm makes nidana.integration.1 a consumer that declares `AppRoutes` against the declarations and waits on nidana.navigation.1. Is that wrong for this consumer?",
+      "options": [
+        { "label": "name nidana.integration.1's wait on nidana.navigation.1", "consequence": "the paragraph says nidana.navigation.6 for nidana.integration from .2 on and adds that nidana.integration.1, compiling only, waits on nidana.navigation.1, as bus-api@v1's Delivery names nidana.flutter.1's compile-only wait on nidana.runtime.1" },
+        { "label": "keep the node-level hard-edge wording", "consequence": "no edit, but hsdd-config would carry 'waits on nidana.navigation.6' into nidana.integration.1's context, contradicting its plan's dependency list and its confirm entry's rationale" }
+      ],
+      "chosen": "name nidana.integration.1's wait on nidana.navigation.1",
+      "why": "The confirm entry's rationale and nidana.integration D2 rule 1 put nidana.integration.1 on nidana.navigation.1: it compiles `AppRoutes` against `NavRoute` and runs none of the contract's behavior; from nidana.navigation.1 on the const constructors assign their fields (the same paragraph). The old wording named a wrong phase for one of this consumer's phases, which is the case the step allows a correction for. Every other contract's Delivery names nidana.integration's waits correctly (bus-api@v1, bus-testing@v1: nidana.runtime.14, first consumer .3; flutter-binding@v1: nidana.flutter.7, first consumer .5; topic-codegen@v1: nidana.tooling.codegen.11; nidana-checks@v1: nidana.tooling.lint.4 for the plugin and nidana.tooling.codegen.11 for the scan, both before .1).",
+      "evidence": ["hsdd/spec/nidana.integration.md D2 and nidana.integration.1 Dependencies", "hsdd/contract/bus-api.md Delivery"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T08:07:12Z",
+      "artifact": "hsdd/contract/*.md (status)",
+      "question": "ADR-001 item 12 makes a fixtures directory the executable validation artifact only when it meets item 3 and its kind's items, checked by the structure set once the replay tool exists and by hsdd-reconcile by reading until then. On what check does each of the nine contracts flip to `stable`?",
+      "options": [
+        { "label": "path existence plus the prototype structure check", "consequence": "every Validation path exists, every binding is listed, and the file-invocations prototype of item 3's coverage and item 9's layout reports 0 problems over the nine contracts; all nine flip" },
+        { "label": "path existence alone", "consequence": "what hsdd-reconcile step 7 states literally; skips item 12's reading of coverage" },
+        { "label": "hold every contract at draft until the replay tool runs", "consequence": "nothing flips; the final gate fails on nine contracts and every consumer phase context warns draft, although the rule says reading suffices until the tool exists" }
+      ],
+      "chosen": "path existence plus the prototype structure check",
+      "why": "It satisfies step 7 and does item 12's reading mechanically instead of by eye: 226 guarantees across nine contracts, each covered by a reject header, a behavior case name, a schema or file covers clause, an invocation row or a not-executable line; layouts and data directories as item 9 states; ten bindings listed. Reject codes and suites remain unverified against the real packages until the first replay (ADR-001 Consequences), which stable does not claim: stable is interface-frozen, not producer-shipped.",
+      "evidence": ["docs/auto-run/experiments/reconcile-final-checks/ (C1a to C1c)", "docs/auto-run/experiments/file-invocations/structure_check.dart", "hsdd/adr/001-executable-contract-validation.md items 3, 9, 12"],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T08:08:24Z",
+      "artifact": "hsdd/conventions.md",
+      "question": "Notes 1 (the member and the shared root workspace list and lockfile) and 2 (the unrestricted replay first at nidana.integration.6, again at .7 and .8): do they change a convention?",
+      "options": [
+        { "label": "drop both", "consequence": "conventions unchanged for them; the facts stay in nidana.integration D3, D4 and its phase sections" },
+        { "label": "apply both", "consequence": "Shared workspace files would name nidana.integration.1 and Phase design would carry one node's replay schedule, plan data the conventions do not hold for any other node" }
+      ],
+      "chosen": "drop both",
+      "why": "Conventions (Shared workspace files) already name nidana.integration among the nodes whose one member-creating phase edits the workspace list and lockfile, without naming any node's phase; ADR-001 item 10 already places the tree's one unrestricted replay in nidana.integration's gate. Which phases run it is the plan's data (hsdd-reconcile step 10: drop notes that duplicate derived data).",
+      "evidence": ["hsdd/conventions.md (Execution protocol, Shared workspace files)", "hsdd/adr/001-executable-contract-validation.md item 10"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T08:08:24Z",
+      "artifact": "hsdd/conventions.md (Phase design)",
+      "question": "Note 3: the root `fvm dart analyze` reads `build/` directories and no `.dart_tool/`. Does it change a convention?",
+      "options": [
+        { "label": "apply as a Phase design rule for every gate", "consequence": "one bullet: a gate's Dart output that is not a committed source goes under `.dart_tool/` or a temporary directory, never `build/`; every node's planner and phase context sees it" },
+        { "label": "leave it in nidana.integration D3", "consequence": "no conventions edit; a later phase of another node that writes generated Dart under `build/` would break every node's root analyze with no rule to cite" }
+      ],
+      "chosen": "apply as a Phase design rule for every gate",
+      "why": "The root analyze runs in every gate of every node, so one node's stray output under `build/` fails the others' gates: a cross-node rule, the kind the conventions hold. Experiment C2 widened S41's I6 to a member's `.dart_tool/`, where topic-codegen@v1's `catalog` writes its entry point: neither the root's nor a member's `.dart_tool/` is read, both `build/` directories are. The rule is worded for output that is not a committed source, since nidana.integration.1 and .8 run build_runner, which writes the committed `lib/topics.g.dart`. No current plan writes Dart under `build/`.",
+      "evidence": ["docs/auto-run/experiments/integration-plan-facts/ (I6)", "docs/auto-run/experiments/reconcile-final-checks/ (C2)", "hsdd/contract/topic-codegen.md Registration point 3"],
+      "blast_radius": "tree",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T08:08:24Z",
+      "artifact": "hsdd/conventions.md (Phase design)",
+      "question": "Note 4: a Flutter member's test finds the pinned `dart` at `$FLUTTER_ROOT/bin/cache/dart-sdk/bin/dart` and can drive the toolchain from it. Does it change a convention?",
+      "options": [
+        { "label": "apply beside the ancestor-search rule", "consequence": "two sentences in the existing bullet on member tests: a Flutter member's test that runs the toolchain spawns the pinned `dart` from `FLUTTER_ROOT`, never a `dart` from `PATH`, because `Platform.resolvedExecutable` is the `flutter_tester` there" },
+        { "label": "leave it in nidana.integration D6 and D9", "consequence": "no conventions edit; the owner's 'always fvm dart, never a bare dart' rule has no stated form for processes a test spawns" }
+      ],
+      "chosen": "apply beside the ancestor-search rule",
+      "why": "It is the toolchain convention applied to processes a test spawns, and it sits beside the conventions' existing Flutter-test fact (`Isolate.resolvePackageUri` throws, so ancestor search). Today only nidana.integration's tests spawn the toolchain, so the case is close; the signal that would have changed my mind is certainty that no other Flutter member's test ever spawns a tool, which a retro phase or a later version of nidana.flutter can break. The temporary-package analysis technique (I3, I4) stays node-local in D6.",
+      "evidence": ["docs/auto-run/experiments/integration-plan-facts/ (I1, I2, I5)", "hsdd/conventions.md (Phase design, member tests bullet)"],
+      "blast_radius": "tree",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T08:08:24Z",
+      "artifact": "hsdd/conventions.md",
+      "question": "Note 5: build_runner 2.16.1 has removed `--delete-conflicting-outputs` and silently rewrites a stale committed output. Does it change a convention?",
+      "options": [
+        { "label": "drop as node-local", "consequence": "the fact stays in nidana.integration D7, which orders its gates accordingly" },
+        { "label": "apply to conventions", "consequence": "a rule for gates that check committed generated files, of which nidana.integration's are the only ones" },
+        { "label": "route to ADR-002 through hsdd-adr", "consequence": "ADR-002 Consequences, which already governs where build_runner runs, would record the flag's removal; an ADR step for a fact no artifact contradicts" }
+      ],
+      "chosen": "drop as node-local",
+      "why": "ADR-002 Consequences confines build_runner to `packages/nidana_integration`, the one member that applies the builders and the only one committing generated output, and D7 already holds the fact and the ordering. No artifact passes the removed flag (grep of hsdd/), so nothing is stale. Listed below as an optional ADR-002 touch.",
+      "evidence": ["hsdd/adr/002-package-workspace-layout.md (Consequences)", "hsdd/spec/nidana.integration.md D7", "docs/auto-run/experiments/integration-plan-facts/ (I7)"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T08:09:49Z",
+      "artifact": "hsdd/contract/nidana-checks.md (In CI)",
+      "question": "nidana-checks@v1 In CI says nidana.integration's gate 'runs the same steps' as an app's CI (build_runner, then analyze, catalog and scan into `build/`), while nidana.integration.8 runs build_runner after its tests (D7) and writes every output under `.dart_tool/nidana_integration/` (D3). Edit the sentence in this reconcile?",
+      "options": [
+        { "label": "leave it and report", "consequence": "the contract body changes only through entries; a later hsdd-contract touch or consistency pass rewords the informative sentence" },
+        { "label": "reword it now", "consequence": "accurate at once, but a contract body edit no entry asked for and outside the Delivery paragraph this step may correct" }
+      ],
+      "chosen": "leave it and report",
+      "why": "The sentence is informative, states no guarantee, and is not contradicted in substance: the same commands run over the same package, with a different output directory and build_runner placed later for D7's staleness check. Body edits belong to amend entries or hsdd-contract. Not a collision under hsdd-reconcile step 3: no second node claims anything and no amend is involved.",
+      "evidence": ["hsdd/contract/nidana-checks.md (In CI)", "hsdd/spec/nidana.integration.md D3, D7, nidana.integration.8 Gate"],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    }
+  ],
+  "experiments": [
+    {
+      "path": "docs/auto-run/experiments/reconcile-final-checks/",
+      "question": "C1: do the nine fixture trees meet ADR-001 item 3's coverage and item 9's layout, with every Validation path present and every binding listed, so that item 12 holds by reading? C2: does the root analyze read a member's `.dart_tool/` (where catalog writes its entry point), as well as the root's and members' `build/`?",
+      "finding": "C1: the file-invocations structure prototype reports 0 problems over 226 guarantees in nine contracts; 64 Validation paths, 0 missing; 10 bindings, all listed. C2: the root analyze reports the stray library under the root's `build/` and a member's `build/`, and none under the root's `.dart_tool/`, a member's `.dart_tool/` or `{member}/.dart_tool/nidana_dart_codegen/`."
+    }
+  ],
+  "self_check": [
+    { "gate": "Every pending section drained, or explicitly deferred with a reason.", "status": "pass", "note": "nidana.integration's section replaced by the one stamp line; the six other pending sections were stamped by S29, S31, S33, S35, S37 and S40; grep of hsdd/spec/*.md finds no entry left. gate.mjs --final: no undrained section." },
+    { "gate": "No contract with both sides fully planned remains `phase_ids: provisional`; none with `phase_ids: final`, no open request and an existing validation artifact remains `status: draft`; none was flipped without its artifact.", "status": "pass", "note": "All nine contracts now have only phase ids in produced_by and consumers, each resolving to a phase heading; all nine flipped to phase_ids: final and status: stable; each Validation section names fixture paths (topology-ir@v1 and topic-codegen@v1 also a schema) that exist, checked against item 12 by reading (experiment C1)." },
+    { "gate": "Grandfather marks were added only to pre-existing fixtureless `stable` contracts named by the plan step (the upgrade step or one carrying it forward), none re-marked after a discharge, and removed wherever the artifact now exists.", "status": "n/a", "note": "No grandfather step named; no contract carries `validation:`." },
+    { "gate": "No contract was retired while a consumer or external consumer still names it.", "status": "n/a", "note": "No retired node." },
+    { "gate": "Every collision was decided by the human, and the losing plan was updated to match.", "status": "n/a", "note": "No collision: one section with one confirm per contract; `packages/nidana_integration` is claimed by nidana.integration alone (root Owns, ADR-002 item 3); no amend or request; no confirm contradicts contract text (topic-codegen@v1 G10 and G11 and nidana-checks@v1 G18 already name this node as exercising them)." },
+    { "gate": "Contract edits follow hsdd-contract versioning (breaking change = new version + migration note).", "status": "pass", "note": "Frontmatter (consumers, phase_ids, status) and four Delivery paragraphs only; no declaration, guarantee or fixture changed; every contract stays v1 with no Versioning line, as earlier reconciles' Delivery writes." },
+    { "gate": "`node hsdd/scripts/gen-registry.mjs` ran after the last contract edit.", "status": "pass", "note": "Ran after the last contract edit: contract/INDEX.md lists all nine as stable with consumer counts bus-api 20, bus-testing 13, flutter-binding 7, navigation-api 16, nidana-checks 4, topic-codegen 4, topic-model 41, topology-dsl 25, topology-ir 23; adr/INDEX.md unchanged. gate.mjs --skill hsdd-reconcile and --final: 0 errors, 0 warnings." },
+    { "gate": "No artifact still cites a resolved OQ as open; sweep locations reported.", "status": "pass", "note": "No drained entry resolves an OQ, and nidana.integration owns none. Every OQ row in the tree (OQ1 to OQ12, OQ-M1 to OQ-M3, OQ-R1 to OQ-R3, OQ-N1, OQ-N2, OQ-F1, OQ-T1, OQ-T2) reads RESOLVED; grep for 'pending OQ', 'until OQ', 'waits on OQ', 'contingent on' and OPEN status across hsdd/ finds nothing. Swept locations: none." }
+  ],
+  "notes_for_orchestrator": [
+    "Entries and what was done. confirm topic-model@v1 consumers [nidana.integration.1 to .8]: applied; confirm topology-dsl@v1 [.2 to .8]: applied; confirm topology-ir@v1 [.2 to .8]: applied; confirm bus-api@v1 [.3 to .8]: applied; confirm bus-testing@v1 [.3 to .8]: applied; confirm navigation-api@v1 [.1, .2, .4 to .8]: applied; confirm flutter-binding@v1 [.5 to .8]: applied; confirm topic-codegen@v1 [.1, .6, .7, .8]: applied; confirm nidana-checks@v1 [.1, .6, .7, .8]: applied. Each replaced the placeholder `nidana.integration`. note 1 (shared root files) and note 2 (the --all schedule): dropped as duplicate or derived. note 3 (root analyze reads build/, not .dart_tool/): applied to conventions Phase design as a new bullet, widened by experiment C2 to members' .dart_tool/. note 4 (FLUTTER_ROOT): applied to conventions, two sentences in the existing member-tests bullet. note 5 (build_runner 2.16.1): dropped as node-local (ADR-002 Consequences confines build_runner to nidana_integration; D7 holds it).",
+    "Resulting contract state, all nine: status stable, phase_ids final, version v1, no validation: key. topic-model@v1 produced_by [nidana.model.3, .8], 41 consumers. topology-dsl@v1 produced_by [nidana.model.4, .9, .11], 25. topology-ir@v1 produced_by [nidana.model.5, .10 to .14], 23. bus-api@v1 produced_by [nidana.runtime.1, .5 to .8, .11 to .14], 20. bus-testing@v1 produced_by [nidana.runtime.1, .5, .7, .13, .14], 13. navigation-api@v1 produced_by [nidana.navigation.1 to .6], 16. flutter-binding@v1 produced_by [nidana.flutter.1 to .7], 7. topic-codegen@v1 produced_by [nidana.tooling.codegen.1 to .6, .10, .11], 4. nidana-checks@v1 produced_by [nidana.tooling.lint.1 to .4, nidana.tooling.codegen.7, .8, .9, .11], 4. No contract failed to flip.",
+    "Delivery paragraphs corrected for this consumer: topic-model@v1, topology-dsl@v1 and topology-ir@v1 gain 'A `hard` edge waits instead on nidana.model.{8, 11, 14}, the last producing phase (nidana.integration)'; navigation-api@v1 now says nidana.navigation.6 for nidana.integration from .2 on and that nidana.integration.1, compiling only, waits on nidana.navigation.1. The other five already named nidana.integration's waits correctly.",
+    "No hsdd-contract or hsdd-adr step is required by this drain. Optional, non-blocking: (a) hsdd-adr, at ADR-002's next touch, record in Consequences that build_runner 2.16.1 has removed --delete-conflicting-outputs and rewrites a stale committed output silently (integration-plan-facts I7); (b) hsdd-contract, at nidana-checks@v1's next touch, reword In CI's 'nidana.integration's gate runs the same steps' to the same commands with outputs under .dart_tool/nidana_integration/ and build_runner after the tests (nidana.integration D3, D7); topic-codegen@v1 or that paragraph might also tell apps that commit a registry that build_runner rewrites a stale one silently, so a staleness check runs before it.",
+    "For a later consistency pass: nidana.integration.md's Phase Plan prose (the paragraph after the summary table) still says 'the `note` entry below', which the stamp drained; it is hsdd-phase-plan's text, left untouched. hsdd/spec/nidana.md's Contracts paragraph says each contract is 'draft with provisional phase ids until hsdd-reconcile confirms them', now history. bus-api@v1 Versioning (a) justified staying within v1 partly by 'every contract is `draft`'; with every contract stable, that ground is gone: from now on a change that could break a consumer goes through hsdd-contract as a new version with a migration note.",
+    "Every contract now has both sides confirmed by phase ids and is stable, so hsdd-config raises no draft or provisional warning for any phase. hsdd-milestone's precondition (every leaf-parent phase-planned) holds. Verified: node docs/auto-run/tools/gate.mjs --skill hsdd-reconcile and --final both report 0 errors, 0 warnings."
+  ]
+}

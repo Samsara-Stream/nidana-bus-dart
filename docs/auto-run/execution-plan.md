@@ -141,10 +141,18 @@ before them):
   contract change too large for reconcile its own `hsdd-contract` step. A collision or a breaking
   amend stops the run.
 
-### Stage 7. Final reconcile sweep (hsdd-reconcile, whole tree)
+### Stage 7. Consistency pass, then a final reconcile sweep
 
-Only if anything remains provisional, draft or pending after stage 6: one reconcile pass over the whole
-tree. Done when `node docs/auto-run/tools/gate.mjs --final` passes.
+After S42 nothing is provisional, draft or pending, and `gate.mjs --final` passes. What remains is text
+the stage-6 steps found stale or inexact (the change log entries after S28 list it). Each item goes
+through the skill that owns its file: ADR-001 through hsdd-adr (S43); two contracts through
+hsdd-contract (S44, S45), as compatible amendments within v1 now that every contract is `stable`; four
+node specs' non-plan text through hsdd-spec touches (S46 to S49); and every phase scope, gate and
+plan-written decision that assumed the pre-amendment ADR text through one hsdd-reconcile sweep (S50),
+which updates phase scopes that assumed otherwise. Done when S50's `gate.mjs --final` passes. Left as
+is, with a decision each: the nine contracts' replay-tool provenance bullet; `pub_semver` in ADR-002's
+table (item 4's outside-the-table rule covers it through nidana.tooling.codegen D3); build_runner's
+dropped flag in ADR-002 (nidana.integration D7 records it for the one member that runs build_runner).
 
 ### Stage 8. Report (orchestrator)
 
@@ -170,7 +178,7 @@ tree. Done when `node docs/auto-run/tools/gate.mjs --final` passes.
 | S13 | 4 | hsdd-contract | bus-api@v1 amendment: pre-start connection guarantee, publish typing, S11 wording fixes | done | 5727b7d |
 | S14 | 4 | hsdd-contract | flutter-binding@v1 | done | cd3b670 |
 | S15 | 4 | hsdd-contract | topic-codegen@v1 | done | 4e8031f |
-| S10..S14 | 4 | hsdd-contract | bus-api, bus-testing, navigation-api, flutter-binding, topic-codegen, nidana-checks (all @v1), in that order | planned | |
+| S16 | 4 | hsdd-contract | nidana-checks@v1 | done | 67bea11 |
 | S17 | 4 | hsdd-adr | ADR-001 update: plan-interpretation wording, data directories in the structure set, coverage wording for file and cli contracts, cases without files/ | done | 5385a5f |
 | S18 | 4 | hsdd-adr | ADR-003 update: affects gains topology-dsl@v1 (and its Governed by) | done | 376ccc4 |
 | S19 | 4 | hsdd-contract | navigation-api@v1 touch: G1 reject line, citations of bus-api@v1 G22, G34, G40, the Flutter executor binding name | done | 31fc505 |
@@ -196,7 +204,16 @@ tree. Done when `node docs/auto-run/tools/gate.mjs --final` passes.
 | S39 | 6 | hsdd-phase-plan | nidana.tooling.codegen (11 phases) | done | ad8093c |
 | S40 | 6 | hsdd-reconcile | nidana.tooling.codegen's pending section | done | 162c13c |
 | S41 | 6 | hsdd-phase-plan | nidana.integration (8 phases) | done | b47b883 |
-| S42 | 6 | hsdd-reconcile | nidana.integration's pending section (every contract to final and stable) | running | | nidana.flutter, nidana.tooling.lint, nidana.tooling.codegen, nidana.integration, in that order | planned | |
+| S42 | 6 | hsdd-reconcile | nidana.integration's pending section (every contract to final and stable) | done | a313ab0 |
+| S43 | 7 | hsdd-adr | ADR-001 update: item 9 landing phases, CLI semantics, empty selection and suite-keyed binding restriction; "first producing phase" wording | running | |
+| S44 | 7 | hsdd-contract | topology-ir@v1 touch: private function references (`_name@{key}`, JIT and AOT keys differ) | planned | |
+| S45 | 7 | hsdd-contract | nidana-checks@v1 touch: plugin-failure exit codes in app CI; In CI's "same steps" for nidana.integration | planned | |
+| S46 | 7 | hsdd-spec (touch) | root: dev flow and D10 wording, the lint wait sentence, the Contracts paragraph's draft and provisional sentence | planned | |
+| S47 | 7 | hsdd-spec (touch) | nidana.model: Owns, Inherited and Isolation lines | planned | |
+| S48 | 7 | hsdd-spec (touch) | nidana.runtime: D1 Consequences and the dev-flow line | planned | |
+| S49 | 7 | hsdd-spec (touch) | nidana.tooling: drained "Carried into" bullets, the lint wait sentence | planned | |
+| S50 | 7 | hsdd-reconcile (sweep) | phase scopes, gates and plan-written decisions that contradict amended ADR-001, ADR-002 and the contracts; then `gate.mjs --final` | planned | |
+| S51 | 8 | none (orchestrator) | REPORT.md | planned | |
 
 ## Change log
 
@@ -358,3 +375,7 @@ tree. Done when `node docs/auto-run/tools/gate.mjs --final` passes.
   consumer of all nine contracts. Stage-7 pass also takes nidana.tooling.codegen.6's "seventeen recorded
   invocations" (now twenty), codegen.10's gate note, and nidana.tooling.md's drained "Carried into"
   bullets.
+- 2026-10-18 (UTC), after S42: every contract is `phase_ids: final` and `status: stable`; `gate.mjs
+  --final` passes. Stage 7 is now a consistency pass of eight steps (S43 to S50) with the decisions in
+  `docs/auto-run/steps/S43.plan.json`; the step log's stale S10..S14 planned row is replaced by S16's
+  row, which it had displaced.
