@@ -216,7 +216,7 @@ dropped flag in ADR-002 (nidana.integration D7 records it for the one member tha
 | S51 | 7 | hsdd-spec (touch) | nidana.tooling.lint: the Development flow's start condition (only nidana.tooling.lint.4 waits on the producers, D5) | done | 8a6b513 |
 | S52 | 7 | hsdd-spec (touch) | nidana.tooling.codegen: Development flow start conditions and the drained "Carried into" section | done | a298bf6 |
 | S53 | 7 | hsdd-reconcile (sweep) | phase scopes, gates and plan-written decisions that contradict amended ADR-001, ADR-002 and the contracts; then `gate.mjs --final` | done | 3dd24d0 |
-| S54 | 8 | none (orchestrator) | REPORT.md | running | |
+| S54 | 8 | none (orchestrator) | REPORT.md | done | this report's commit |
 
 ## Change log
 
@@ -399,3 +399,4 @@ dropped flag in ADR-002 (nidana.integration D7 records it for the one member tha
   lines (nidana.model.9 gains topology-dsl@v1 G30, nidana.model.12 topology-ir@v1 G23, nidana.flutter.1
   the pure members' tests, nidana.tooling.codegen.10's note) and restated plan scopes and plan-written
   decisions; no phase, dependency or contention entry changed. Stage 8 (REPORT) is S54.
+- 2026-10-18 (UTC), S54: `docs/auto-run/REPORT.md` written and committed; the run stops here.
