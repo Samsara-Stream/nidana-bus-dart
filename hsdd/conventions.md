@@ -145,6 +145,18 @@ the summary table do not depend on it.
 - Gate commands call `fvm dart` and `fvm flutter`, never a bare `dart` or
   `flutter`, and run from the workspace root unless they name a package
   directory
+- A member's own tests run from the workspace root by path, with the root
+  as working directory: `fvm dart test packages/{member}` for a pure-Dart
+  member, `fvm flutter test --no-pub packages/{member}` for a Flutter member
+  (nidana.flutter's and nidana.integration's). Under `fvm flutter test`,
+  `Isolate.resolvePackageUri` throws `UnsupportedError`, so a Flutter
+  member's test that reads its own sources or the governance tree finds the
+  workspace root by ancestor search, the nearest ancestor of the working
+  directory that holds `hsdd/contract/` (nidana.model D6's rule).
+  `fvm dart pub get` resolves a workspace with a Flutter member from no
+  lockfile, and `fvm dart pub get --enforce-lockfile` passes with one
+  (`docs/auto-run/experiments/flutter-phase-facts/`, F1 to F3;
+  `docs/auto-run/experiments/flutter-reconcile-amends/`, T9)
 - A gate of a phase that produces a contract runs that contract's replay
   (ADR-001)
 - The replay tool lands by set, in nidana.model's phases (nidana.model D1):

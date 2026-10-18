@@ -1,0 +1,13 @@
+# Stand-in for the workspace root's options (ADR-002 item 2): the lint set,
+# the strict modes, and the governance tree excluded.
+include: package:lints/recommended.yaml
+analyzer:
+  exclude:
+    - hsdd/**
+    - probe/**
+    - tool/**
+    - gorouter_probe/**
+  language:
+    strict-casts: true
+    strict-inference: true
+    strict-raw-types: true

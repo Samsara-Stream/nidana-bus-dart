@@ -91,6 +91,16 @@ Widget _text(String s) => Text(s, textDirection: TextDirection.ltr);
 List<String> _active(Bus bus) =>
     <String>[for (final TopologyDefinition d in bus.toGraph().topologies) d.topologyId];
 
+/// A production-provider bus built in the test body inside an error zone of
+/// its own, which is then its provider zone (ADR-003), with the errors that
+/// reach that zone's handler. The case shuts it down itself.
+(Bus, List<Object>) _guardedBus() {
+  final List<Object> errors = <Object>[];
+  late final Bus bus;
+  runZonedGuarded(() => bus = Bus(_quiet), (Object error, StackTrace _) => errors.add(error));
+  return (bus, errors);
+}
+
 // ------------------------------------------------------------ helper widgets
 
 /// Calls [onDispose] from its own dispose.
@@ -459,6 +469,43 @@ final List<ConformanceCase<FlutterBindingHarness>> flutterBindingConformance =
       expect(bus.removeTopic(_count), isTrue);
     },
   ),
+  (
+    name: 'G5 a value of another type, put in through a widened reference, fails the build with TypeError and reaches no zone handler, and the next value of the topic\'s type renders',
+    body: (FlutterBindingHarness h) async {
+      final (Bus bus, List<Object> zoneErrors) = _guardedBus();
+      try {
+        final StateTopic<Object?> wide = _count;
+        final Publisher owner = bus.publisher(_owner, writes: <StateTopic<Object?>>{_count});
+        bus.start();
+        owner.writer<Object?>(wide).publish('x');
+        final List<int> built = <int>[];
+        await h.pumpWidget(BusProvider.value(
+          bus: bus,
+          child: StateTopicBuilder<int>(
+              topic: _count,
+              builder: (BuildContext _, int v) {
+                built.add(v);
+                return _text('$v');
+              }),
+        ));
+        expect(h.takeException(), isA<TypeError>());
+        await h.pump();
+        owner.writer(_count).publish(5);
+        await h.pump();
+        expect(h.takeException(), isNull);
+        owner.writer<Object?>(wide).publish('y');
+        await h.pump();
+        expect(h.takeException(), isA<TypeError>());
+        owner.writer(_count).publish(6);
+        await h.pump();
+        expect(h.takeException(), isNull);
+        expect(built, <int>[5, 6]);
+        expect(zoneErrors, isEmpty);
+      } finally {
+        bus.shutdown();
+      }
+    },
+  ),
   // ------------------------------------------------------------ G6
   (
     name: 'G6 the first frame renders getBufferedValues, and the replay of the buffer causes no rebuild',
@@ -513,6 +560,45 @@ final List<ConformanceCase<FlutterBindingHarness>> flutterBindingConformance =
         <String>['a', 'b'],
         <String>['b', 'c', 'd'],
       ]);
+    },
+  ),
+  (
+    name: 'G6 while the buffer holds a value of another type every build fails with TypeError and no zone handler is reached, and the delivery that pushes it out renders',
+    body: (FlutterBindingHarness h) async {
+      final (Bus bus, List<Object> zoneErrors) = _guardedBus();
+      try {
+        final ReplayTopic<Object?> wide = _log;
+        final Publisher pub = bus.publisher(_owner);
+        bus.start();
+        pub.publish(_log, 'a');
+        pub.publish(wide, 1);
+        final List<List<String>> built = <List<String>>[];
+        await h.pumpWidget(BusProvider.value(
+          bus: bus,
+          child: ReplayTopicBuilder<String>(
+              topic: _log,
+              builder: (BuildContext _, List<String> v) {
+                built.add(v);
+                return _text(v.join());
+              }),
+        ));
+        expect(h.takeException(), isA<TypeError>());
+        await h.pump();
+        for (final String v in <String>['b', 'c']) {
+          pub.publish(_log, v);
+          await h.pump();
+          expect(h.takeException(), isA<TypeError>());
+        }
+        pub.publish(_log, 'd');
+        await h.pump();
+        expect(h.takeException(), isNull);
+        expect(built, <List<String>>[
+          <String>['b', 'c', 'd'],
+        ]);
+        expect(zoneErrors, isEmpty);
+      } finally {
+        bus.shutdown();
+      }
     },
   ),
   // ------------------------------------------------------------ G7
@@ -596,6 +682,27 @@ final List<ConformanceCase<FlutterBindingHarness>> flutterBindingConformance =
       await h.pumpWidget(BusProvider.value(bus: bus, child: const SizedBox()));
       expect(publisher.isDisposed, isTrue);
       expect(bus.toGraph().claims, isEmpty);
+    },
+  ),
+  (
+    name: 'G7 a route named / alone gives the page route /, and an empty route name gives none',
+    body: (FlutterBindingHarness h) async {
+      final Bus bus = h.bus(_quiet);
+      Widget app(String name, Widget page) => BusProvider.value(
+            bus: bus,
+            child: WidgetsApp(
+              color: const Color(0xFF000000),
+              onGenerateInitialRoutes: (String _) => <Route<dynamic>>[_named(name, page)],
+              onGenerateRoute: (RouteSettings s) => null,
+            ),
+          );
+      BuildContext? home;
+      await h.pumpWidget(app('/', PageScope(child: _Context((BuildContext c) => home = c))));
+      expect(h.takeException(), isNull);
+      expect(PageScope.publisherOf(home!).source, const PageSource('/'));
+      await h.pumpWidget(const SizedBox());
+      await h.pumpWidget(app('', PageScope(child: const SizedBox())));
+      expect(h.takeException(), isA<StateError>());
     },
   ),
   // ------------------------------------------------------------ G8
@@ -690,6 +797,31 @@ final List<ConformanceCase<FlutterBindingHarness>> flutterBindingConformance =
       expect(PageScope.publisherOf(page), same(first));
       expect(first.source, const PageSource('fb/first'));
       expect(_active(bus), <String>['fb-page']);
+    },
+  ),
+  (
+    name: 'G8 a PageScope stays bound to the bus it mounted under when its provider provides another bus, until it unmounts',
+    body: (FlutterBindingHarness h) async {
+      final Bus a = h.bus(_quiet);
+      final Bus b = h.bus(_quiet);
+      late BuildContext page;
+      final Widget scope = PageScope(
+          route: 'fb/page',
+          topologies: <Topology>[_pageTopology()],
+          writes: <StateTopic<Object?>>{_claimed},
+          child: _Context((BuildContext c) => page = c));
+      await h.pumpWidget(BusProvider.value(bus: a, child: scope));
+      final Publisher first = PageScope.publisherOf(page);
+      await h.pumpWidget(BusProvider.value(bus: b, child: scope));
+      expect(PageScope.publisherOf(page), same(first));
+      expect(_active(a), <String>['fb-page']);
+      expect(a.toGraph().claims, hasLength(1));
+      expect(_active(b), isEmpty);
+      expect(b.toGraph().claims, isEmpty);
+      await h.pumpWidget(BusProvider.value(bus: b, child: const SizedBox()));
+      expect(first.isDisposed, isTrue);
+      expect(_active(a), isEmpty);
+      expect(a.toGraph().claims, isEmpty);
     },
   ),
   // ------------------------------------------------------------ G9
@@ -1300,6 +1432,28 @@ final List<ConformanceCase<FlutterBindingHarness>> flutterBindingConformance =
         ShellClaim(source: const ServiceSource('test'), writes: <TopicRef>{_count.ref}),
         ShellClaim(source: const ServiceSource('test'), writes: <TopicRef>{_other.ref}),
       });
+      await h.pumpWidget(t.wrap(const SizedBox()));
+      await h.pumpWidget(const SizedBox());
+    },
+  ),
+  (
+    name: 'G17 stub keeps one publisher per topic and returns its writer per type argument, and a claim the bus rejects throws ClaimRejected and claims nothing',
+    body: (FlutterBindingHarness h) async {
+      final WidgetTestBus t = WidgetTestBus(_quiet);
+      final StateTopic<Object?> wide = _count;
+      final StateWriter<Object?> loose = t.stub<Object?>(wide);
+      final StateWriter<int> typed = t.stub<int>(_count);
+      expect(t.stub<Object?>(wide), same(loose));
+      expect(t.stub<int>(_count), same(typed));
+      t.bus.publisher(_owner, writes: <StateTopic<Object?>>{_other});
+      expect(() => t.stub(_other), throwsA(isA<ClaimRejected>()));
+      expect(_claims(t.bus), <ShellClaim>{
+        ShellClaim(source: const ServiceSource('test'), writes: <TopicRef>{_count.ref}),
+        ShellClaim(source: _owner, writes: <TopicRef>{_other.ref}),
+      });
+      t.bus.start();
+      typed.publish(7);
+      expect(t.bus.getCurrentValue(_count), 7);
       await h.pumpWidget(t.wrap(const SizedBox()));
       await h.pumpWidget(const SizedBox());
     },

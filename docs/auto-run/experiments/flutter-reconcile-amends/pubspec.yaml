@@ -1,0 +1,17 @@
+# flutter-reconcile-amends: replays the flutter-binding@v1 fixtures, as
+# amended within v1 from nidana.flutter's phase plan (its D7, D8, D10 and
+# D11), against the stand-in packages of ../flutter-phase-facts/ before and
+# after a patch that meets the amendments (see run.sh). Its own pub
+# workspace, never a member of the repository's workspace.
+name: fra_root
+publish_to: none
+environment:
+  sdk: ^3.13.0
+workspace:
+  - packages/nidana_dart_contracts
+  - packages/nidana_contract_check
+  - packages/nidana_dart_runtime
+  - packages/nidana_dart_navigation
+  - packages/nidana_dart_runtime_flutter
+dev_dependencies:
+  lints: ^6.1.0

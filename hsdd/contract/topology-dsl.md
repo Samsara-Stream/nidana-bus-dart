@@ -6,7 +6,7 @@ kind: api
 owner: nidana.model
 compatibility: versioned
 produced_by: [nidana.model.4, nidana.model.9, nidana.model.11]
-consumers: [nidana.runtime.1, nidana.runtime.9, nidana.runtime.10, nidana.runtime.11, nidana.runtime.12, nidana.runtime.14, nidana.navigation.1, nidana.navigation.3, nidana.navigation.6, nidana.flutter, nidana.tooling, nidana.integration]
+consumers: [nidana.runtime.1, nidana.runtime.9, nidana.runtime.10, nidana.runtime.11, nidana.runtime.12, nidana.runtime.14, nidana.navigation.1, nidana.navigation.3, nidana.navigation.6, nidana.flutter.1, nidana.flutter.2, nidana.flutter.5, nidana.flutter.6, nidana.flutter.7, nidana.tooling, nidana.integration]
 external_consumers: [app topology modules, app topology tests]
 phase_ids: provisional
 ---

@@ -1,0 +1,379 @@
+
+### setup: the before tree from git, resolve
+before: hsdd/contract at bf7d934
+pub get exit: 0
+Flutter 3.47.7 • channel stable • https://github.com/flutter/flutter.git
+Dart SDK version: 3.13.5 (stable) (Tue Sep 29 01:00:52 2026 -0700) on "macos_arm64"
+
+### T0 the stand-in packages are ../flutter-phase-facts/'s, unchanged
+nidana_dart_contracts: identical
+nidana_contract_check: identical
+nidana_dart_runtime: identical
+nidana_dart_navigation: identical
+nidana_dart_runtime_flutter: identical
+
+### T1 what changed among the flutter-binding@v1 and navigation-api@v1 fixtures, before against after
+diff -ru hsdd-before/contract/fixture/flutter-binding/behavior/flutter_binding_conformance.dart hsdd/contract/fixture/flutter-binding/behavior/flutter_binding_conformance.dart
+--- hsdd-before/contract/fixture/flutter-binding/behavior/flutter_binding_conformance.dart	2026-10-18 11:57:36
++++ hsdd/contract/fixture/flutter-binding/behavior/flutter_binding_conformance.dart	2026-10-18 11:57:36
+@@ -91,6 +91,16 @@
+ List<String> _active(Bus bus) =>
+     <String>[for (final TopologyDefinition d in bus.toGraph().topologies) d.topologyId];
+ 
++/// A production-provider bus built in the test body inside an error zone of
++/// its own, which is then its provider zone (ADR-003), with the errors that
++/// reach that zone's handler. The case shuts it down itself.
++(Bus, List<Object>) _guardedBus() {
++  final List<Object> errors = <Object>[];
++  late final Bus bus;
++  runZonedGuarded(() => bus = Bus(_quiet), (Object error, StackTrace _) => errors.add(error));
++  return (bus, errors);
++}
++
+ // ------------------------------------------------------------ helper widgets
+ 
+ /// Calls [onDispose] from its own dispose.
+@@ -459,6 +469,43 @@
+       expect(bus.removeTopic(_count), isTrue);
+     },
+   ),
++  (
++    name: 'G5 a value of another type, put in through a widened reference, fails the build with TypeError and reaches no zone handler, and the next value of the topic\'s type renders',
++    body: (FlutterBindingHarness h) async {
++      final (Bus bus, List<Object> zoneErrors) = _guardedBus();
++      try {
++        final StateTopic<Object?> wide = _count;
++        final Publisher owner = bus.publisher(_owner, writes: <StateTopic<Object?>>{_count});
++        bus.start();
++        owner.writer<Object?>(wide).publish('x');
++        final List<int> built = <int>[];
++        await h.pumpWidget(BusProvider.value(
++          bus: bus,
++          child: StateTopicBuilder<int>(
++              topic: _count,
++              builder: (BuildContext _, int v) {
++                built.add(v);
++                return _text('$v');
++              }),
++        ));
++        expect(h.takeException(), isA<TypeError>());
++        await h.pump();
++        owner.writer(_count).publish(5);
++        await h.pump();
++        expect(h.takeException(), isNull);
++        owner.writer<Object?>(wide).publish('y');
++        await h.pump();
++        expect(h.takeException(), isA<TypeError>());
++        owner.writer(_count).publish(6);
++        await h.pump();
++        expect(h.takeException(), isNull);
++        expect(built, <int>[5, 6]);
++        expect(zoneErrors, isEmpty);
++      } finally {
++        bus.shutdown();
++      }
++    },
++  ),
+   // ------------------------------------------------------------ G6
+   (
+     name: 'G6 the first frame renders getBufferedValues, and the replay of the buffer causes no rebuild',
+@@ -515,6 +562,45 @@
+       ]);
+     },
+   ),
++  (
++    name: 'G6 while the buffer holds a value of another type every build fails with TypeError and no zone handler is reached, and the delivery that pushes it out renders',
++    body: (FlutterBindingHarness h) async {
++      final (Bus bus, List<Object> zoneErrors) = _guardedBus();
++      try {
++        final ReplayTopic<Object?> wide = _log;
++        final Publisher pub = bus.publisher(_owner);
++        bus.start();
++        pub.publish(_log, 'a');
++        pub.publish(wide, 1);
++        final List<List<String>> built = <List<String>>[];
++        await h.pumpWidget(BusProvider.value(
++          bus: bus,
++          child: ReplayTopicBuilder<String>(
++              topic: _log,
++              builder: (BuildContext _, List<String> v) {
++                built.add(v);
++                return _text(v.join());
++              }),
++        ));
++        expect(h.takeException(), isA<TypeError>());
++        await h.pump();
++        for (final String v in <String>['b', 'c']) {
++          pub.publish(_log, v);
++          await h.pump();
++          expect(h.takeException(), isA<TypeError>());
++        }
++        pub.publish(_log, 'd');
++        await h.pump();
++        expect(h.takeException(), isNull);
++        expect(built, <List<String>>[
++          <String>['b', 'c', 'd'],
++        ]);
++        expect(zoneErrors, isEmpty);
++      } finally {
++        bus.shutdown();
++      }
++    },
++  ),
+   // ------------------------------------------------------------ G7
+   (
+     name: 'G7 a PageScope under a router route publishes with PageSource of its entry\'s route path, at page scope',
+@@ -598,6 +684,27 @@
+       expect(bus.toGraph().claims, isEmpty);
+     },
+   ),
++  (
++    name: 'G7 a route named / alone gives the page route /, and an empty route name gives none',
++    body: (FlutterBindingHarness h) async {
++      final Bus bus = h.bus(_quiet);
++      Widget app(String name, Widget page) => BusProvider.value(
++            bus: bus,
++            child: WidgetsApp(
++              color: const Color(0xFF000000),
++              onGenerateInitialRoutes: (String _) => <Route<dynamic>>[_named(name, page)],
++              onGenerateRoute: (RouteSettings s) => null,
++            ),
++          );
++      BuildContext? home;
++      await h.pumpWidget(app('/', PageScope(child: _Context((BuildContext c) => home = c))));
++      expect(h.takeException(), isNull);
++      expect(PageScope.publisherOf(home!).source, const PageSource('/'));
++      await h.pumpWidget(const SizedBox());
++      await h.pumpWidget(app('', PageScope(child: const SizedBox())));
++      expect(h.takeException(), isA<StateError>());
++    },
++  ),
+   // ------------------------------------------------------------ G8
+   (
+     name: 'G8 PageScope rejects a topology that is not PAGE-scoped, and keeps an unmodifiable copy of its arguments',
+@@ -692,6 +799,31 @@
+       expect(_active(bus), <String>['fb-page']);
+     },
+   ),
++  (
++    name: 'G8 a PageScope stays bound to the bus it mounted under when its provider provides another bus, until it unmounts',
++    body: (FlutterBindingHarness h) async {
++      final Bus a = h.bus(_quiet);
++      final Bus b = h.bus(_quiet);
++      late BuildContext page;
++      final Widget scope = PageScope(
++          route: 'fb/page',
++          topologies: <Topology>[_pageTopology()],
++          writes: <StateTopic<Object?>>{_claimed},
++          child: _Context((BuildContext c) => page = c));
++      await h.pumpWidget(BusProvider.value(bus: a, child: scope));
++      final Publisher first = PageScope.publisherOf(page);
++      await h.pumpWidget(BusProvider.value(bus: b, child: scope));
++      expect(PageScope.publisherOf(page), same(first));
++      expect(_active(a), <String>['fb-page']);
++      expect(a.toGraph().claims, hasLength(1));
++      expect(_active(b), isEmpty);
++      expect(b.toGraph().claims, isEmpty);
++      await h.pumpWidget(BusProvider.value(bus: b, child: const SizedBox()));
++      expect(first.isDisposed, isTrue);
++      expect(_active(a), isEmpty);
++      expect(a.toGraph().claims, isEmpty);
++    },
++  ),
+   // ------------------------------------------------------------ G9
+   (
+     name: 'G9 a module prefix matches the paths whose segments begin with its segments, whatever the leading slash',
+@@ -1300,6 +1432,28 @@
+         ShellClaim(source: const ServiceSource('test'), writes: <TopicRef>{_count.ref}),
+         ShellClaim(source: const ServiceSource('test'), writes: <TopicRef>{_other.ref}),
+       });
++      await h.pumpWidget(t.wrap(const SizedBox()));
++      await h.pumpWidget(const SizedBox());
++    },
++  ),
++  (
++    name: 'G17 stub keeps one publisher per topic and returns its writer per type argument, and a claim the bus rejects throws ClaimRejected and claims nothing',
++    body: (FlutterBindingHarness h) async {
++      final WidgetTestBus t = WidgetTestBus(_quiet);
++      final StateTopic<Object?> wide = _count;
++      final StateWriter<Object?> loose = t.stub<Object?>(wide);
++      final StateWriter<int> typed = t.stub<int>(_count);
++      expect(t.stub<Object?>(wide), same(loose));
++      expect(t.stub<int>(_count), same(typed));
++      t.bus.publisher(_owner, writes: <StateTopic<Object?>>{_other});
++      expect(() => t.stub(_other), throwsA(isA<ClaimRejected>()));
++      expect(_claims(t.bus), <ShellClaim>{
++        ShellClaim(source: const ServiceSource('test'), writes: <TopicRef>{_count.ref}),
++        ShellClaim(source: _owner, writes: <TopicRef>{_other.ref}),
++      });
++      t.bus.start();
++      typed.publish(7);
++      expect(t.bus.getCurrentValue(_count), 7);
+       await h.pumpWidget(t.wrap(const SizedBox()));
+       await h.pumpWidget(const SizedBox());
+     },
+fixture diff exit: 1
+
+### T2 structure (after): headers, markers, guarantee coverage, listed bindings, no src/ imports
+PASS G1 2 fixture(s)
+PASS G2 1 fixture(s)
+PASS G3 3 fixture(s)
+PASS G4 3 fixture(s)
+PASS G5 8 fixture(s)
+PASS G6 4 fixture(s)
+PASS G7 6 fixture(s)
+PASS G8 6 fixture(s)
+PASS G9 2 fixture(s)
+PASS G10 8 fixture(s)
+PASS G11 2 fixture(s)
+PASS G12 2 fixture(s)
+PASS G13 4 fixture(s)
+PASS G14 3 fixture(s)
+PASS G15 3 fixture(s)
+PASS G16 1 fixture(s)
+PASS G17 7 fixture(s)
+PASS G18 not executable
+PASS G19 not executable
+guarantees: 19; cases: 57; bindings: 2; fixture files: 13
+exit: 0
+
+### T3 the conformance library and both bindings analyze clean under the fixture options (after)
+Analyzing behavior...
+No issues found!
+exit: 0
+
+### T4 after, the stand-in as copied
+-- hsdd/contract/fixture/flutter-binding/behavior/nidana_dart_runtime_flutter_test.dart
+FAILED: G17 stub keeps one publisher per topic and returns its writer per type argument, and a claim the bus rejects throws ClaimRejected and claims nothing
+FAILED: G5 a value of another type, put in through a widened reference, fails the build with TypeError and reaches no zone handler, and the next value of the topic's type renders
+FAILED: G6 while the buffer holds a value of another type every build fails with TypeError and no zone handler is reached, and the delivery that pushes it out renders
+FAILED: G7 a route named / alone gives the page route /, and an empty route name gives none
+00:00 +53 -4: Some tests failed.
+exit: 1
+-- why: G5 a value of another type
+00:00 +0: G5 a value of another type, put in through a widened reference, fails the build with TypeError and reaches no zone handler, and the next value of the topic's type renders
+The following TestFailure was thrown running a test:
+Expected: <Instance of 'TypeError'>
+  Actual: <null>
+   Which: is not an instance of 'TypeError'
+  G5 a value of another type, put in through a widened reference, fails the build with TypeError and
+-- why: G6 while the buffer holds
+00:00 +0: G6 while the buffer holds a value of another type every build fails with TypeError and no zone handler is reached, and the delivery that pushes it out renders
+The following TestFailure was thrown running a test:
+Expected: <Instance of 'TypeError'>
+  Actual: <null>
+   Which: is not an instance of 'TypeError'
+  G6 while the buffer holds a value of another type every build fails with TypeError and no zone
+-- why: G7 a route named / alone
+The following TestFailure was thrown running a test:
+Expected: null
+  Actual: StateError:<Bad state: PageScope has no route: give it one, or put it under a named route>
+-- why: G17 stub keeps one publisher
+The following _TypeError was thrown running a test:
+-- hsdd/contract/fixture/flutter-binding/behavior/flutter_navigation_executor_test.dart
+00:00 +26: All tests passed!
+exit: 0
+
+### T5 after, the stand-in patched to meet the amendments
+-- patch/topic_builders.amended.dart against the stand-in as copied
+1a2,3
+> // Patched in flutter-reconcile-amends: the subscription observes at Object?
+> // (G5 and G6 as amended, nidana.flutter D7).
+76c78
+<       _bus!, widget.topic, _bus!.getBufferedValues(widget.topic).length, _changed);
+---
+>       _bus!, widget.topic, _bus!.getBufferedValues<Object?>(widget.topic).length, _changed);
+110c112,114
+< /// bus-api@v1 G17 delivers as what was current when it listened.
+---
+> /// bus-api@v1 G17 delivers as what was current when it listened. It observes
+> /// through a widened reference, so no conversion of a delivery can fail
+> /// (flutter-binding@v1 G5 and G6 as amended).
+117,118c121,122
+<     _current = bus.observe<T>(topic).listen(
+<       (T _) {
+---
+>     _current = bus.observe<Object?>(topic).listen(
+>       (Object? _) {
+-- patch/page_scope.amended.dart against the stand-in as copied
+1a2,3
+> // Patched in flutter-reconcile-amends: a route named / alone gives the page
+> // route / (G7 as amended, nidana.flutter D11).
+74a77
+>   if (settings?.name == '/') return '/';
+-- patch/widget_test_bus.amended.dart against the stand-in as copied
+1a2,3
+> // Patched in flutter-reconcile-amends: stub keeps one publisher per topic and
+> // returns its writer per type argument (G17 as amended, nidana.flutter D8).
+27c29
+<   final Map<StateTopic<Object?>, Object> _stubs = <StateTopic<Object?>, Object>{};
+---
+>   final Map<StateTopic<Object?>, Publisher> _stubs = <StateTopic<Object?>, Publisher>{};
+31,38c33,37
+<   StateWriter<T> stub<T>(StateTopic<T> topic) {
+<     final Object? existing = _stubs[topic];
+<     if (existing != null) return existing as StateWriter<T>;
+<     final StateWriter<T> writer =
+<         bus.publisher(testSource, writes: <StateTopic<Object?>>{topic}).writer(topic);
+<     _stubs[topic] = writer;
+<     return writer;
+<   }
+---
+>   /// One publisher per topic, its writer per type argument (bus-api@v1 G20,
+>   /// G41); a rejected claim throws ClaimRejected and caches nothing.
+>   StateWriter<T> stub<T>(StateTopic<T> topic) =>
+>       (_stubs[topic] ??= bus.publisher(testSource, writes: <StateTopic<Object?>>{topic}))
+>           .writer<T>(topic);
+Analyzing nidana_dart_runtime_flutter...
+No issues found!
+analyze exit: 0
+-- hsdd/contract/fixture/flutter-binding/behavior/nidana_dart_runtime_flutter_test.dart
+00:00 +57: All tests passed!
+exit: 0
+-- hsdd/contract/fixture/flutter-binding/behavior/flutter_navigation_executor_test.dart
+00:00 +26: All tests passed!
+exit: 0
+
+### T6 after, seeded defect: a PageScope that rebinds when the provided bus changes
+Analyzing nidana_dart_runtime_flutter...
+No issues found!
+analyze exit: 0
+-- hsdd/contract/fixture/flutter-binding/behavior/nidana_dart_runtime_flutter_test.dart
+FAILED: G8 a PageScope stays bound to the bus it mounted under when its provider provides another bus, until it unmounts
+00:00 +56 -1: Some tests failed.
+exit: 1
+-- why: G8 a PageScope stays bound
+The following TestFailure was thrown running a test:
+Expected: same instance as <Instance of 'Publisher'>
+  Actual: <Instance of 'Publisher'>
+
+### T7 before, the patched stand-in: the fixtures from before the amendments
+-- hsdd/contract/fixture/flutter-binding/behavior/nidana_dart_runtime_flutter_test.dart
+00:00 +52: All tests passed!
+exit: 0
+-- hsdd/contract/fixture/flutter-binding/behavior/flutter_navigation_executor_test.dart
+00:00 +26: All tests passed!
+exit: 0
+
+### T8 after, the patched stand-in: the cases each consuming gate's restriction selects, new ones marked
+-- --name '^(G3|G4|G5|G6) '
+NEW: G5 a value of another type, put in through a widened reference, fails the build with TypeError and reaches no zone handler, and the next value of the topic's type renders
+NEW: G6 while the buffer holds a value of another type every build fails with TypeError and no zone handler is reached, and the delivery that pushes it out renders
+00:00 +15: All tests passed!
+-- --name '^(G7|G8) '
+NEW: G7 a route named / alone gives the page route /, and an empty route name gives none
+NEW: G8 a PageScope stays bound to the bus it mounted under when its provider provides another bus, until it unmounts
+00:00 +11: All tests passed!
+-- --name '^G17 '
+NEW: G17 stub keeps one publisher per topic and returns its writer per type argument, and a claim the bus rejects throws ClaimRejected and claims nothing
+00:00 +6: All tests passed!
+
+### T9 fvm dart pub get, not flutter pub get, resolves this workspace with a Flutter member from no lockfile, and --enforce-lockfile then passes
+fvm dart pub get exit: 0
+Try `dart pub outdated` for more information.
+lockfile entries named flutter: 2
+  source: sdk
+fvm dart pub get --enforce-lockfile exit: 0
+
+### cleanup: restore the stand-in as copied, remove the copied fixtures, the before tree and the build output
+removed

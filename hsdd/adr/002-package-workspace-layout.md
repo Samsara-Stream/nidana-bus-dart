@@ -55,7 +55,7 @@ Resolves OQ9 and, together with root D7, OQ12. Partially resolves OQ-T2: item 8 
    | `nidana_dart_contracts` | nidana.model | yes | `meta` | `test` |
    | `nidana_dart_runtime` | nidana.runtime | yes | `nidana_dart_contracts`, `rxdart`, `clock`, `meta` | `test` |
    | `nidana_dart_navigation` | nidana.navigation | yes | `nidana_dart_contracts`, `nidana_dart_runtime`, `meta` | `test` |
-   | `nidana_dart_runtime_flutter` | nidana.flutter | yes | `flutter` (SDK), `nidana_dart_contracts`, `nidana_dart_runtime`, `nidana_dart_navigation`, `meta`; a router package only if OQ-F1 selects one | `flutter_test` (SDK) |
+   | `nidana_dart_runtime_flutter` | nidana.flutter | yes | `flutter` (SDK), `nidana_dart_contracts`, `nidana_dart_runtime`, `nidana_dart_navigation`, `meta`; no router package (OQ-F1, resolved by flutter-binding@v1 Refinement 1 and G18) | `flutter_test` (SDK) |
    | `nidana_dart_codegen` | nidana.tooling.codegen | yes | `nidana_dart_contracts`, `build`, and those of `source_gen`, `analyzer`, `dart_style`, `yaml` and `path` its code imports | `build_test`, `test` |
    | `nidana_dart_lint` | nidana.tooling.lint | yes | `analysis_server_plugin`, `analyzer`, pinned as item 7 states | `analyzer_testing`, `test` |
    | `nidana_contract_check` | nidana.model | no | `args`, `json_schema`, `matcher`, `package_config`, `path` | `test` |
@@ -138,3 +138,4 @@ Resolves OQ9 and, together with root D7, OQ12. Partially resolves OQ-T2: item 8 
   - Frontmatter `affects`: nidana.tooling.codegen and nidana.tooling.lint, whose specs already carry `Governed by: [ADR-001, ADR-002]`. nidana.tooling stays, because its spec carries the link and its Owns list names both packages by this ADR.
   - Unchanged by nidana.runtime's becoming a leaf-parent (nidana.runtime D1): this ADR names nidana.runtime only as owner of `nidana_dart_runtime`, which still holds, and item 3's internal library seam for the RxDart code is the one nidana.runtime D2 places in its delivery and pipeline slices.
   - Not superseded: the decision did not change, other artifacts cite its items by number, and a superseding ADR would move every `Governed by` link without changing what binds.
+- 2026-10-18, a citation swept in place by hsdd-reconcile (step 13), with the Decision otherwise unchanged: item 3's row for `nidana_dart_runtime_flutter` read "a router package only if OQ-F1 selects one", which treated OQ-F1 as open. OQ-F1 is resolved (nidana.flutter's spec; flutter-binding@v1 Refinement 1 and G18) with no router package, so the row says so; the package's dependencies are the five the row already listed.
