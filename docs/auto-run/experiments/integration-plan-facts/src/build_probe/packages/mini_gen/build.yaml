@@ -1,0 +1,7 @@
+builders:
+  topics:
+    import: "package:mini_gen/builder.dart"
+    builder_factories: ["topicsBuilder"]
+    build_extensions: {"^lib/topics.yaml": ["lib/topics.g.dart"]}
+    auto_apply: dependents
+    build_to: source

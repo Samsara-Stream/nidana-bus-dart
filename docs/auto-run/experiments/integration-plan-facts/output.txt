@@ -1,0 +1,64 @@
+
+### setup: SDK, resolve with dart pub get (no lockfile), then --enforce-lockfile
+Flutter 3.47.7 • channel stable • https://github.com/flutter/flutter.git
+dart pub get exit: 0
+dart pub get --enforce-lockfile exit: 0
+"flutterRoot": "file://{home}/fvm/versions/3.47.7"
+
+### I0 the root analyze with the Flutter member, the plugin enabled
+Analyzing work...
+No issues found!
+exit: 0
+
+### I1 to I5 the member's probe test, from the workspace root
+I1: working directory {root}
+I1: Platform.resolvedExecutable {home}/fvm/versions/3.47.7/bin/cache/artifacts/engine/darwin-x64/flutter_tester
+I1: FLUTTER_ROOT {home}/fvm/versions/3.47.7
+I1: package_config flutterRoot file://{home}/fvm/versions/3.47.7
+I1: candidate {home}/fvm/versions/3.47.7/bin/cache/dart-sdk/bin/dart exists=true
+I1: candidate {home}/fvm/versions/3.47.7/bin/cache/dart-sdk/bin/dart exists=true
+I1: dart --version exit 0: Dart SDK version: 3.13.5 (stable) (Tue Sep 29 01:00:52 2026 -0700) on "macos_arm64"
+I2: scan exit 0 in 6 s, stdout "", stderr ""
+I3: dart analyze exit 2 in 9 s
+I3: WARNING|GLOBAL_BUS_ACCESSOR|5:6
+I3: WARNING|RAW_STRING_TOPIC|17:53
+I3: WARNING|EXPLICIT_TOPIC_TYPE_ARGUMENTS|18:14
+I3: INFO|UNFLAGGED_SENSITIVE_TOPIC|13:7
+I4: scan exit 1 in 5 s
+I4: error|topic_name_collision|{tmp}/nidana_seeded_shlV1o/seeded_app/lib/seeded.dart:10:32|Topic name 'payment.result' is declared 2 times: {tmp}/nidana_seeded_shlV1o/seeded_app/lib/seeded.dart:10:32 (StateTopic<int>), packages/nidana_integration/lib/app.dart:11:32 (StateTopic<int>).
+I4: error|writer_conflict||State topic 'payment.result' has 2 writers: service:payment at packages/nidana_integration/lib/app.dart:18:26, service:rogue at {tmp}/nidana_seeded_shlV1o/seeded_app/lib/seeded.dart:19:7.
+I5: flutter {home}/fvm/versions/3.47.7/bin/flutter exists=true
+I5: nested exit 0 in 3 s; nested ran: true; startup lock: false
+00:25 +5: All tests passed!
+exit: 0
+
+### I6 which output directories the root analyze reads: a library with an unused import written to build/, .dart_tool/ and the member's build/
+WARNING|UNUSED_IMPORT|{root}/build/ci/stray.dart
+WARNING|UNUSED_IMPORT|{root}/packages/nidana_integration/build/ci/stray.dart
+exit: 2
+
+### cleanup
+removed
+
+### I7 build_runner in a member whose generated output is committed
+dart pub get exit: 0
+-- I7a first build
+  Built with build_runner/aot in 6s; wrote 1 output.
+exit: 0
+// GENERATED CODE - DO NOT MODIFY BY HAND.
+const int topicLines = 3;
+-- I7b a fresh checkout: the committed output kept, every .dart_tool removed, resolved again, built
+  Built with build_runner/aot in 6s; wrote 1 output.
+exit: 0
+-- I7c the same with --delete-conflicting-outputs
+W These options have been removed and were ignored: --delete-conflicting-outputs
+  Built with build_runner/aot in 6s; wrote 1 output.
+exit: 0
+-- I7d a stale committed output in a fresh checkout: does the build rewrite it?
+  Built with build_runner/aot in 6s; wrote 1 output.
+exit: 0
+// GENERATED CODE - DO NOT MODIFY BY HAND.
+const int topicLines = 3;
+
+### cleanup I7
+removed

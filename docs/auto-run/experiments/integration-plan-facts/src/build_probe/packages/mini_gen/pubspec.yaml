@@ -1,0 +1,9 @@
+name: mini_gen
+version: 0.1.0
+description: Stand-in for a builder package with nidana_dart_codegen's build.yaml shape (experiment only).
+publish_to: none
+environment:
+  sdk: ^3.13.0
+resolution: workspace
+dependencies:
+  build: ^4.0.11

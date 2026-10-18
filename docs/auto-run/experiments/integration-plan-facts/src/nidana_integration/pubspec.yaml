@@ -1,0 +1,17 @@
+name: nidana_integration
+description: Stand-in for the unpublished example member of nidana.integration (experiment only).
+publish_to: none
+environment:
+  sdk: ^3.13.0
+resolution: workspace
+dependencies:
+  flutter:
+    sdk: flutter
+  nidana_dart_contracts: ^0.1.0
+  nidana_dart_runtime: ^0.1.0
+  nidana_dart_navigation: ^0.1.0
+  nidana_dart_runtime_flutter: ^0.1.0
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  nidana_dart_codegen: ^0.1.0
