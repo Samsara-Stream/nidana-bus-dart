@@ -1,0 +1,10 @@
+# catalog-loading: its own pub workspace, never a member of the repository's.
+name: catalog_loading_root
+publish_to: none
+environment:
+  sdk: ^3.13.0
+workspace:
+  - packages/nidana_dart_contracts
+  - packages/domain
+  - packages/app
+  - packages/app_bare

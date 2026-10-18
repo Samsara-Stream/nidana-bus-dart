@@ -1,0 +1,9 @@
+name: app_bare
+publish_to: none
+environment:
+  sdk: ^3.13.0
+resolution: workspace
+dependencies:
+  flutter:
+    sdk: flutter
+  nidana_dart_contracts: ^0.1.0

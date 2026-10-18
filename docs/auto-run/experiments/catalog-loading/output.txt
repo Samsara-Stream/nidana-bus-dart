@@ -1,0 +1,137 @@
+Dart SDK version: 3.13.5 (stable) (Tue Sep 29 01:00:52 2026 -0700) on "macos_arm64"
+pub get exit: 0
+
+### T1 pure package, fvm dart run on the generated entry (package domain)
+elapsed 2.647s
+exit 0
+wrote domain-dart.json, 1866 bytes; transformers: "name": "cart.added" "name": "cart.count" "name": "cart.price" "name": "countAdded" "name": "flatRate" 
+
+### T2 Flutter-importing registration, fvm dart run (package app)
+exit 254
+{flutter}/packages/flutter/lib/src/widgets/app.dart:50:1: Error: Dart library 'dart:ui' is not available on this platform.
+no file written
+
+### T3 the same entry under fvm flutter test: a main() that declares no test, in a file outside test/ whose name does not end in _test.dart
+elapsed 5.641s
+exit 79
+No tests ran.
+No tests were found.
+wrote app-flutter.json, 1051 bytes; transformers: "name": "payment.status" "name": "payment.submitted" "name": "statusOf" 
+
+### T4 the domain registration recorded under the Flutter tester (entry in package app, relative import), compared with T1
+exit 79
+No tests were found.
+wrote domain-flutter.json, 1866 bytes; transformers: "name": "cart.added" "name": "cart.count" "name": "cart.price" "name": "countAdded" "name": "flatRate" 
+T1 and T4 documents: byte-identical
+
+### T5 a Flutter package without flutter_test as a dev dependency, under fvm flutter test (package app_bare)
+exit 79
+No tests ran.
+No tests were found.
+wrote bare-flutter.json, 905 bytes; transformers: "name": "addTap" "name": "bare.taps" "name": "bare.total" 
+
+### T6 a throwing registration under fvm flutter test: does the exit code report it?
+exit 1
+Bad state: a topology that cannot be constructed
+no file written
+
+### T7 the pure entry from a directory outside the package, dart run --packages (the pinned SDK's dart by path: fvm needs .fvmrc above the working directory)
+exit 0
+wrote outside.json, 1866 bytes; transformers: "name": "cart.added" "name": "cart.count" "name": "cart.price" "name": "countAdded" "name": "flatRate" 
+T1 and T7 documents: byte-identical
+
+### The T1 document
+{
+  "format": "topology-ir@v1",
+  "topologies": [
+    {
+      "topologyId": "cart",
+      "scope": "application",
+      "reads": [
+        {
+          "name": "cart.added",
+          "variant": "event",
+          "typeName": "int"
+        }
+      ],
+      "writes": [
+        {
+          "name": "cart.count",
+          "variant": "state",
+          "typeName": "int"
+        }
+      ],
+      "transforms": [
+        {
+          "combinator": "reduceInto",
+          "inputs": [
+            {
+              "topic": {
+                "name": "cart.added",
+                "variant": "event",
+                "typeName": "int"
+              }
+            }
+          ],
+          "output": {
+            "name": "cart.count",
+            "variant": "state",
+            "typeName": "int"
+          },
+          "transformer": {
+            "name": "countAdded"
+          }
+        }
+      ]
+    },
+    {
+      "topologyId": "pricing",
+      "scope": "application",
+      "reads": [
+        {
+          "name": "cart.count",
+          "variant": "state",
+          "typeName": "int"
+        }
+      ],
+      "writes": [
+        {
+          "name": "cart.price",
+          "variant": "state",
+          "typeName": "int"
+        }
+      ],
+      "transforms": [
+        {
+          "combinator": "map",
+          "inputs": [
+            {
+              "topic": {
+                "name": "cart.count",
+                "variant": "state",
+                "typeName": "int"
+              }
+            }
+          ],
+          "transformer": {
+            "name": "flatRate"
+          }
+        },
+        {
+          "inputs": [
+            {
+              "edge": 0
+            }
+          ],
+          "output": {
+            "name": "cart.price",
+            "variant": "state",
+            "typeName": "int"
+          }
+        }
+      ]
+    }
+  ],
+  "claims": []
+}
+run exit 0

@@ -72,6 +72,8 @@ Replaces the template's "OpenSpec init" section.
   - `F` = nidana.flutter
   - `T` = nidana.tooling
   - `I` = nidana.integration
+  - `TA` = nidana.tooling.codegen
+  - `TB` = nidana.tooling.lint
   - a child of an internal node takes its parent's prefix plus one letter
     (children of nidana.runtime are `RA`, `RB`, and so on), declared here by
     the hsdd-spec run that creates the child

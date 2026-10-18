@@ -121,7 +121,7 @@ Nidana Bus is a typed, lifecycle-managed reactive substrate for application data
 - **Produces:** [topic-codegen@v1, nidana-checks@v1]
 - **Governed by:** [ADR-001, ADR-002]
 - **Sources:** Spec §3.8, §3.11, §4.3 to §4.6, §6.3, §6.4, §6.5, §7.2, §7.6, §9.2; Guide §5, Appendix C.1 to C.5
-- **Decomposes into:** child nodes minted by a later hsdd-spec run on this node
+- **Decomposes into:** nidana.tooling.codegen, nidana.tooling.lint
 - **Isolation strategy:** analyzer-based checks run over source fixtures and never execute a bus; codegen runs against golden input and expected trees; catalog and graph checks run over fixture topologies through the model's recorder
 
 ### nidana.integration: Integration
@@ -198,11 +198,11 @@ D10 fixes what `contract` and `shared-model` mean between Dart packages.
 1. **nidana.model first.** Every edge starts there. Its first phase lands the type-level skeleton of its three contracts (the ordering policy is `fp-progression`) and the contract replay tool every producing gate calls (ADR-001).
 2. **Two lanes once the model's skeleton has merged.**
    - Lane A, the critical path: nidana.runtime, a leaf-parent phase-planned directly (nidana.runtime D1).
-   - Lane B, parallel: nidana.tooling, decomposed by its own hsdd-spec step first. It needs only the model's contracts and the declared surface of bus-api@v1, never a running bus.
+   - Lane B, parallel: nidana.tooling's two leaf-parent children, nidana.tooling.codegen and nidana.tooling.lint (nidana.tooling D1), each phase-planned directly and side by side. Neither runs a bus; what each waits on is in nidana.tooling's Development flow.
 3. **After the runtime ships bus-api@v1 and bus-testing@v1:** nidana.navigation, then the executor part of nidana.flutter. The binding part of nidana.flutter needs only the runtime, so it can start as soon as the runtime ships and run in parallel with nidana.navigation; its executor phases wait for the skeleton of navigation-api@v1.
 4. **nidana.integration last,** after every producer ships.
 
-Critical path: nidana.model, nidana.runtime, nidana.flutter, nidana.integration. nidana.tooling is the one child left to decompose with its own hsdd-spec step.
+Critical path: nidana.model, nidana.runtime, nidana.flutter, nidana.integration. No child is left to decompose: nidana.tooling's children are leaf-parents (nidana.tooling D1).
 
 ## Contract matrix
 
