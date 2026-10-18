@@ -584,6 +584,21 @@ final List<ConformanceCase<NavigationHarness>> navigationConformance =
           _staticResolver(_guarded).buildDefinition());
     },
   ),
+  (
+    name: 'G13 both nav-resolver forms name their stage functions: resolveDeepLinks on the intent map, the given projection on the auth map, applyAuthGuard on the withLatestFrom',
+    body: (NavigationHarness h) async {
+      for (final (String form, TopologyDefinition d) in <(String, TopologyDefinition)>[
+        ('reactive', _reactiveResolver().buildDefinition()),
+        ('static', _staticResolver(_guarded).buildDefinition()),
+      ]) {
+        expect(d.transforms[0].transformer, FunctionRef.named('resolveDeepLinks'),
+            reason: form);
+        expect(d.transforms[1].transformer, FunctionRef.of(_principalOf), reason: form);
+        expect(d.transforms[2].transformer, FunctionRef.named('applyAuthGuard'),
+            reason: form);
+      }
+    },
+  ),
   // ------------------------------------------------------------ G14
   (
     name: 'G14 the live nav-resolver publishes one resolved intent per intent, in order, guarded with the latest principal and policy',

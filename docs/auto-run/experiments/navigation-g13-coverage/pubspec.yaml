@@ -1,0 +1,15 @@
+# navigation-g13-coverage: S33 (reconcile of nidana.navigation's plan) checks
+# the coverage case it adds for navigation-api@v1 G13's stage-name clause, on
+# the stand-in packages of ../navigation-stage-names/ (copied unchanged). Its
+# own pub workspace, never a member of the repository's workspace.
+name: ngc_root
+publish_to: none
+environment:
+  sdk: ^3.13.0
+workspace:
+  - packages/nidana_dart_contracts
+  - packages/nidana_contract_check
+  - packages/nidana_dart_runtime
+  - packages/nidana_dart_navigation
+dev_dependencies:
+  lints: ^6.1.0

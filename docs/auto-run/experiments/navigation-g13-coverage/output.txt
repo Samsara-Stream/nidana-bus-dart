@@ -1,0 +1,124 @@
+
+### setup: the before tree from git, resolve
+before: hsdd/contract at 52743ca
+pub get exit: 0
+Dart SDK version: 3.13.5 (stable) (Tue Sep 29 01:00:52 2026 -0700) on "macos_arm64"
+
+### T0 the stand-in packages and patches are ../navigation-stage-names/'s, unchanged
+nidana_dart_contracts: identical
+nidana_contract_check: identical
+nidana_dart_runtime: identical
+nidana_dart_navigation: identical
+patch/navigation.closures.dart: identical
+patch/navigation.named.dart: identical
+-- patch/navigation.wrapped-projection.dart against patch/navigation.named.dart
+523c523
+<           b.read(authState).map(principalOf);
+---
+>           b.read(authState).map((S state) => principalOf(state));
+532a533,534
+> // Seeded defect: the auth map wraps the app's projection in a closure, so it
+> // records FunctionRef.anonymous() in place of FunctionRef.of(principalOf).
+
+### T1 what changed among navigation-api@v1's fixtures, before against after
+diff -ru hsdd-before/contract/fixture/navigation-api/behavior/navigation_conformance.dart hsdd/contract/fixture/navigation-api/behavior/navigation_conformance.dart
+--- hsdd-before/contract/fixture/navigation-api/behavior/navigation_conformance.dart	2026-10-18 11:14:02
++++ hsdd/contract/fixture/navigation-api/behavior/navigation_conformance.dart	2026-10-18 11:14:02
+@@ -584,6 +584,21 @@
+           _staticResolver(_guarded).buildDefinition());
+     },
+   ),
++  (
++    name: 'G13 both nav-resolver forms name their stage functions: resolveDeepLinks on the intent map, the given projection on the auth map, applyAuthGuard on the withLatestFrom',
++    body: (NavigationHarness h) async {
++      for (final (String form, TopologyDefinition d) in <(String, TopologyDefinition)>[
++        ('reactive', _reactiveResolver().buildDefinition()),
++        ('static', _staticResolver(_guarded).buildDefinition()),
++      ]) {
++        expect(d.transforms[0].transformer, FunctionRef.named('resolveDeepLinks'),
++            reason: form);
++        expect(d.transforms[1].transformer, FunctionRef.of(_principalOf), reason: form);
++        expect(d.transforms[2].transformer, FunctionRef.named('applyAuthGuard'),
++            reason: form);
++      }
++    },
++  ),
+   // ------------------------------------------------------------ G14
+   (
+     name: 'G14 the live nav-resolver publishes one resolved intent per intent, in order, guarded with the latest principal and policy',
+fixture diff exit: 1
+
+### T2 structure (after): headers, markers, guarantee coverage, listed bindings, no src/ imports
+guarantees: 27; cases: 67; bindings: 2; fixture files: 13
+exit: 0
+PASS G13 4 fixture(s)
+
+### T3 the conformance libraries and the bindings analyze clean under the fixture options (after)
+Analyzing behavior...
+No issues found!
+exit: 0
+
+### T4a after, closures stand-in (both stages anonymous)
+-- hsdd/contract/fixture/navigation-api/behavior/nidana_dart_navigation_test.dart
+FAILED: G13 both nav-resolver forms name their stage functions: resolveDeepLinks on the intent map, the given projection on the auth map, applyAuthGuard on the withLatestFrom [E]
+  Expected: FunctionRef:<FunctionRef(resolveDeepLinks)>
+  Actual: FunctionRef:<FunctionRef.anonymous()>
+00:00 +40 -1: Some tests failed.
+exit: 1
+-- hsdd/contract/fixture/navigation-api/behavior/in_memory_router_test.dart
+00:00 +52: All tests passed!
+exit: 0
+
+### T4b after, seeded defect: named stages, the auth map wraps the projection in a closure
+Analyzing nidana_dart_navigation...
+No issues found!
+analyze exit: 0
+-- hsdd/contract/fixture/navigation-api/behavior/nidana_dart_navigation_test.dart
+FAILED: G13 both nav-resolver forms name their stage functions: resolveDeepLinks on the intent map, the given projection on the auth map, applyAuthGuard on the withLatestFrom [E]
+  Expected: FunctionRef:<FunctionRef(_principalOf@21345819)>
+  Actual: FunctionRef:<FunctionRef.anonymous()>
+00:00 +40 -1: Some tests failed.
+exit: 1
+
+### T5 after, named stand-in (method tear-offs of private stage classes)
+-- hsdd/contract/fixture/navigation-api/behavior/nidana_dart_navigation_test.dart
+00:00 +41: All tests passed!
+exit: 0
+-- hsdd/contract/fixture/navigation-api/behavior/in_memory_router_test.dart
+00:00 +52: All tests passed!
+exit: 0
+-- the cases a --guarantee G13 restriction selects (names beginning 'G13 ')
+G13 both nav-resolver forms name their stage functions: resolveDeepLinks on the intent map, the given projection on the auth map, applyAuthGuard on the withLatestFrom
+G13 given a static policy the nav-resolver does not read nav.access-policy
+G13 the reactive nav-resolver is an APPLICATION topology that resolves intents, then guards them with the latest principal and access policy, and writes nav.resolved-intent
+G13 two nav-resolvers built from one configuration record equal definitions
+00:00 +4: All tests passed!
+
+### T6 before, named stand-in: the fixtures from before the amend
+-- hsdd/contract/fixture/navigation-api/behavior/nidana_dart_navigation_test.dart
+00:00 +40: All tests passed!
+exit: 0
+-- hsdd/contract/fixture/navigation-api/behavior/in_memory_router_test.dart
+00:00 +52: All tests passed!
+exit: 0
+
+### T7 probe/private_names.dart: FunctionRef.of of private and public names, JIT twice, then AOT
+private top-level: FunctionRef(_privateTopLevel@21497603)
+public top-level: FunctionRef(publicTopLevel)
+public method of a private class: FunctionRef(resolveDeepLinks)
+private method: FunctionRef(_privateMethod@21497603)
+exit: 0
+private top-level: FunctionRef(_privateTopLevel@21497603)
+public top-level: FunctionRef(publicTopLevel)
+public method of a private class: FunctionRef(resolveDeepLinks)
+private method: FunctionRef(_privateMethod@21497603)
+exit: 0
+compile exe exit: 0
+private top-level: FunctionRef(_privateTopLevel@17497603)
+public top-level: FunctionRef(publicTopLevel)
+public method of a private class: FunctionRef(resolveDeepLinks)
+private method: FunctionRef(_privateMethod@17497603)
+exit: 0
+
+### cleanup: restore the stand-in as copied, remove the copied fixtures and the before tree
+removed
