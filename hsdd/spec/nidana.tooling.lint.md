@@ -16,21 +16,21 @@
   - `ref/nidana-docs/arch/nidana-bus-ref-arch-spec-v0_15_0.md` §3.1, §4.2, §4.4, §9.2
   - `ref/nidana-docs/arch/nidana-bus-ref-arch-guide-v0_15_0.md` §5.1, §5.2, Appendix C.1, C.2, C.5
 - **Decomposes into:** phases (see hsdd-phase-plan)
-- **Isolation strategy:** each rule is unit-tested with analyzer_testing over in-memory sources whose stand-in libraries carry the package names recognition matches, so the tests need no nidana package; every producing phase replays nidana-checks@v1's `analyze-*` recorded invocations, restricted by `--guarantee` to the rules delivered so far, which run `dart analyze` over package trees that resolve the real `nidana_dart_contracts` and `nidana_dart_runtime` declarations through the workspace (ADR-001 items 7 and 10; nidana.tooling D2); nothing runs a bus
+- **Isolation strategy:** each rule is unit-tested with analyzer_testing over in-memory sources whose stand-in libraries carry the package names recognition matches, so the tests need no nidana package; every producing phase replays nidana-checks@v1 restricted by `--guarantee` to the ids delivered so far, which admits no `analyze-*` case before nidana.tooling.lint.4; there all eight recorded invocations run `dart analyze` over package trees that resolve the real `nidana_dart_contracts` and `nidana_dart_runtime` declarations through the workspace (ADR-001 items 7 and 10; nidana.tooling D2; D3); nothing runs a bus
 
 ## Overview
 
 This node is the half of nidana.tooling that runs inside the analysis server. Its rules decide one library at a time, report beside the analyzer's own diagnostics, and fail `dart analyze` by severity (nidana-checks@v1 Refinement 3). The analysis server loads the plugin from a synthetic package resolved apart from the workspace, which is why the plugin depends on no nidana package and pins its two dependencies (ADR-002 item 7).
 
-It is a leaf-parent (nidana.tooling D1): four rules in one package, about three phases.
+It is a leaf-parent (nidana.tooling D1): four rules in one package, estimated at about three phases and planned as four (D2).
 
 ## Inherited from nidana.tooling and the root
 
-- ADR-002 item 7: the phase that creates `nidana_dart_lint` adds the plugin to the root analysis options by `path: packages/nidana_dart_lint`. From then on every root `fvm dart analyze`, and so every gate in the workspace that analyzes, loads the plugin; a plugin that does not build fails them all (ADR-002 Consequences).
+- ADR-002 item 7: the phase that creates `nidana_dart_lint`, nidana.tooling.lint.1, adds the plugin to the root analysis options by `path: packages/nidana_dart_lint`. From then on every root `fvm dart analyze`, and so every gate in the workspace that analyzes, loads the plugin; a plugin that does not build fails every root analyze under `--fatal-infos`, which every gate runs, and so fails every gate (ADR-002 Consequences).
 - The rules run over every member, so each rule must report nothing the members' contracts declare: registries are static fields, buses are held by instances and parameters, and nidana's own sinks are called without explicit type arguments (nidana-checks@v1 The plugin).
 - Each code's default severity is set on its diagnostic code: nidana-checks@v1 G1 fixes WARNING for the three blocking rules and INFO for the sensitivity rule, which the stand-in plugin of `docs/auto-run/experiments/nidana-checks-fixtures/` sets with `DiagnosticSeverity` per code (T1). ADR-002's experiment, whose one-rule plugin set none, saw INFO (ADR-002 Context, Q11b).
 - `dart analyze` reports the plugin's diagnostics only at the root whose options enable it (`docs/auto-run/experiments/nidana-checks-fixtures/`, probe P2); the recorded invocations run at their `files/` root.
-- nidana-checks@v1 is produced with nidana.tooling.codegen; this node delivers the plugin's guarantees and replays the `analyze-*` cases, its last producing phase all of them (nidana.tooling D2).
+- nidana-checks@v1 is produced with nidana.tooling.codegen; this node delivers the plugin's guarantees and replays the `analyze-*` cases, all of them at its last producing phase, nidana.tooling.lint.4, and none before it (nidana.tooling D2; D3).
 
 ## Contracts
 
@@ -67,20 +67,24 @@ flowchart LR
 
 ## Development flow
 
-The node starts once nidana.model's and nidana.runtime's first phases have merged, because its recorded invocations resolve `nidana_dart_contracts`, `nidana_dart_runtime` and `testing.dart` (root D10; nidana.tooling D3).
+The node starts once nidana.model.1 and nidana.model.7 have merged, and only its replaying phase waits on a producer (D5). Root D10 holds: a `contract` edge waits on the phase that the contract's Delivery paragraph names for a consumer's edge, and a phase whose gate runs a replay set waits on the nidana.model phase that lands that set (conventions, Phase design). The plugin imports no nidana package (ADR-002 item 7) and the rule tests run over D4's stand-ins, so nidana.tooling.lint.1 to nidana.tooling.lint.3 wait on no producer's phase, only on the replay tool's `structure` and `cli` sets at nidana.model.1 and nidana.model.7, which every gate runs (D3). nidana.tooling.lint.4 replays the `analyze-*` recorded invocations, which resolve `nidana_dart_contracts`, `nidana_dart_runtime` and `testing.dart`, so it alone waits on nidana.model.5 and nidana.runtime.1 (D5; nidana.tooling D3). The plan's Depends on column holds every phase-level wait.
 
-- The plugin surface is phase 1 (conventions, `fp-progression`): it registers every rule of the contract, so the plugin loads and reports nothing until the later slices add detection, and the root options enable it from that phase on (ADR-002 item 7).
+- The plugin surface, all but the application-code guard, is nidana.tooling.lint.1 (conventions, `fp-progression`): it registers every rule of the contract with no node processor, so the plugin loads and reports nothing until nidana.tooling.lint.4 adds the visitors and the guard, and the root options enable it from that phase on (ADR-002 item 7; D2).
 - Each rule's decision is a pure function of the resolved node it visits; the visitor that reports it is the effect (conventions, `fp-progression`).
-- The two rule slices can run in parallel once the surface lands.
-- A recorded invocation starts an analysis server whose first run sets up the plugin's synthetic package from the pub cache; the eight `analyze-*` cases take minutes (the run's note on nidana-checks@v1's authoring), which the phase gates budget for.
+- The decisions of the two rule slices run in parallel once the surface lands, as nidana.tooling.lint.2 and nidana.tooling.lint.3; their visitors land together in nidana.tooling.lint.4, the one phase that replays this node's whole share (D2).
+- A recorded invocation starts an analysis server whose first run sets up the plugin's synthetic package from the pub cache; the eight `analyze-*` cases take minutes (the run's note on nidana-checks@v1's authoring), which nidana.tooling.lint.4's gate, the only one that runs them, budgets for (D3).
+
+**Corrected 2026-10-18.** As first written, the opening paragraph had the whole node start once nidana.model's and nidana.runtime's first phases merged, the node-level reading that D5 refines and that its alternative names; nidana.tooling.lint.4 alone keeps that wait, on the phases the Delivery paragraphs name. The bullets now name the phases that cut the slices along D2's split.
 
 ## Decisions
 
 ### D1: The plugin's recognition helper is its own
 
-The four rules share one recognition helper inside `nidana_dart_lint`: an element is nidana's when its name matches and its library's URI is in the named package, `lib/src/` included; `Bus` matches the class and every subclass; application code is every library outside the test directories `RuleContext.isInTestDirectory` names. The helper re-implements, from nidana-checks@v1's Terms both hosts use, what nidana.tooling.codegen's recognizer implements for the scan; the two share no code, because the plugin can depend on no nidana package (ADR-002 item 7). G3 holds for each host on its own, and each host's cases check it (nidana.tooling D2).
+The four rules share one recognition helper inside `nidana_dart_lint`: an element is nidana's when its name matches and its library's URI is in the named package, `lib/src/` included; `Bus` matches the class and every subclass. Application code is every library outside the test directories `RuleContext.isInTestDirectory` names, and the rules read only it through the application-code guard, which registers a rule's node processors only when `RuleContext.isInTestDirectory` is false and lands with the visitors in nidana.tooling.lint.4 (D2). The helper and the guard re-implement, from nidana-checks@v1's Terms both hosts use, what nidana.tooling.codegen's recognizer implements for the scan; the two hosts share no code, because the plugin can depend on no nidana package (ADR-002 item 7). G3 holds for each host on its own, and each host's cases check it (nidana.tooling D2).
 
 Alternative considered: one recognition library shared with the scan, which would need the plugin to depend on `nidana_dart_codegen`, which the analysis server cannot resolve from the plugin's synthetic package before publication (ADR-002 Context, Q12).
+
+**Corrected 2026-10-18.** As first written, this decision put the application-code test in the recognition helper. The phase plan lands the helper's recognition by package and element name at nidana.tooling.lint.1 and the application-code guard, in each rule's registration, at nidana.tooling.lint.4 (D2 items 1 and 3), so the decision now names the guard apart from the helper. The decision did not change.
 
 ### D2: Each rule is a pure decision and a reporting visitor
 
@@ -131,8 +135,10 @@ Alternative considered: every phase waits on both producers, as the Development 
 
 ## Carried into the phase plan
 
-- `amend nidana-checks@v1` on the `global_bus_accessor` rule detail, routed here by the run after bus-api@v1's touch: the sentence "bus-api@v1 For static analysis defines a global accessor as a top-level variable or static field; this rule also reports top-level and static getters, which reach a bus the same way" describes bus-api@v1's earlier wording. bus-api@v1's amendment (f) made For static analysis define a global bus accessor exactly as G5 reports it, getters included, so the sentence becomes a citation of that definition. Editorial and compatible: no rule, code, message or case changes.
-- `confirm nidana-checks@v1 produced_by` with this node's producing phases, complementary to nidana.tooling.codegen's (nidana.tooling D2).
+Each item below went into this node's phase plan as a governance entry, and hsdd-reconcile drained it on 2026-10-18. The items stay as pointers to where each landed; git history holds the entries' text.
+
+- The `amend nidana-checks@v1` on the `global_bus_accessor` rule detail, routed here by the run after bus-api@v1's touch. The detail had extended bus-api@v1 For static analysis's earlier definition of a global accessor, a top-level variable or static field, to getters. bus-api@v1's amendment (f) made that paragraph define it exactly as G5 reports it, getters included, and the detail now cites it (nidana-checks@v1 Versioning, amendment (a)). Editorial and compatible: no rule, code, message or case changed.
+- The `confirm nidana-checks@v1 produced_by` with this node's producing phases, complementary to nidana.tooling.codegen's: `produced_by` is their union, nidana.tooling.lint.1 to .4 and nidana.tooling.codegen.7, .8, .9 and .11, with `phase_ids: final`, and the Delivery paragraph states which of this node's phases delivers which guarantee (nidana-checks@v1 Versioning, amendment (e); nidana.tooling D2, Reconcile).
 
 ## Phase Plan
 
