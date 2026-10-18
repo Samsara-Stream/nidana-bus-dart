@@ -5,7 +5,7 @@ status: draft
 kind: shared-model
 owner: nidana.model
 compatibility: versioned
-produced_by: [nidana.model]
+produced_by: [nidana.model.3, nidana.model.8]
 consumers: [nidana.runtime, nidana.navigation, nidana.flutter, nidana.tooling, nidana.integration]
 external_consumers: [app topic registries, app observers and sinks, app tests asserting on envelopes]
 phase_ids: provisional
@@ -36,7 +36,9 @@ Placement rule the next two contracts follow: a value that crosses more than one
 
 ## Interface
 
-**Library:** `package:nidana_dart_contracts/nidana_dart_contracts.dart`, the main library of the package `nidana_dart_contracts` at `packages/nidana_dart_contracts/` (ADR-002 item 3). This contract defines no second public library; the same main library carries the declarations of topology-dsl@v1 and topology-ir@v1 unless those contracts name a library of their own. **Code owner:** nidana.model, whose first phase lands every declaration below (ordering policy `fp-progression`, root D10). **Validation artifacts:** `hsdd/contract/fixture/topic-model/`, owned by hsdd-contract (ADR-001 item 8).
+**Library:** `package:nidana_dart_contracts/nidana_dart_contracts.dart`, the main library of the package `nidana_dart_contracts` at `packages/nidana_dart_contracts/` (ADR-002 item 3). This contract defines no second public library; the same main library carries the declarations of topology-dsl@v1 and topology-ir@v1 unless those contracts name a library of their own. **Code owner:** nidana.model, whose first producing phase lands every declaration below (ordering policy `fp-progression`, root D10; Delivery, below). **Validation artifacts:** `hsdd/contract/fixture/topic-model/`, owned by hsdd-contract (ADR-001 item 8).
+
+**Delivery**, by the phases `produced_by` names. nidana.model.3 lands every declaration, and a consumer's edge on this contract alone waits on it; a consumer of topology-dsl@v1 or topology-ir@v1 as well waits on nidana.model.5, where their declarations complete the main library the three contracts share. Until nidana.model.8 merges, a body that computes throws `UnimplementedError` and values compare by identity; nidana.model.8 delivers every behavior guarantee.
 
 The declarations below are the schema of this contract (ADR-001 item 4). Bodies are omitted; the comments and the guarantees state the semantics. Every class here other than the three observer interfaces is an immutable value, annotated `@immutable` from `package:meta`, the package's only dependency.
 

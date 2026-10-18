@@ -1,6 +1,6 @@
 // Conformance library for topology-ir@v1 (ADR-001 item 4): the IR values,
 // their projection from a recorded plan, graphs, the analyses, the JSON form
-// and the renderers (G2 to G22). Its cases are values; a binding registers
+// and the renderers (G2 to G23). Its cases are values; a binding registers
 // them with a test runner. It imports neither package:test nor
 // package:flutter_test.
 //
@@ -1486,6 +1486,55 @@ final List<ConformanceCase<TopologyIrHarness>> topologyIrConformance =
       expect(counting.seen, <TopologyGraph>[g]);
       expect(scheduled, 0);
       expect(g.render(const MermaidRenderer()), texts[1]);
+    },
+  ),
+  // ------------------------------------------------------------ G23
+  (
+    name: 'G23 finding and collision constructors put the lists they are given in the orders the Interface names',
+    body: (TopologyIrHarness h) async {
+      final TopologyCycle cycle = TopologyCycle(
+          topologyIds: <String>['c', 'a', 'b'], topics: <TopicRef>[_ref('y'), _ref('x'), _state('x')]);
+      final SelfReference self = SelfReference(topologyId: 't', topic: _state('s'), edges: <int>[3, 0, 2]);
+      final WriterConflict conflict = WriterConflict(topic: _state('w'), writers: const <MessageSource>[
+        TopologySource('t2'),
+        ServiceSource('svc'),
+        TopologySource('t1'),
+        ServiceSource('svc'),
+      ]);
+      final TopicDeclaration atB = TopicDeclaration(topic: _state('n'), site: 'lib/b.dart:1');
+      final TopicDeclaration atAEvent = TopicDeclaration(topic: _ref('n'), site: 'lib/a.dart:1');
+      final TopicDeclaration atAState = TopicDeclaration(topic: _state('n'), site: 'lib/a.dart:1');
+      final TopicNameCollision collision =
+          TopicNameCollision(name: 'n', declarations: <TopicDeclaration>[atB, atAEvent, atAState]);
+      final TopologyGraph g = topologyIrSamples['findings']!();
+      final List<TopologyFinding> findings = analyzeTopologyGraph(g);
+      final List<TopicNameCollision> collisions =
+          findTopicNameCollisions(<TopicDeclaration>[atB, atAEvent, atAState]);
+      await h.settle();
+      expect(cycle.topologyIds, <String>['a', 'b', 'c']);
+      expect(cycle.topics, <TopicRef>[_state('x'), _ref('x'), _ref('y')]);
+      expect(self.edges, <int>[0, 2, 3]);
+      expect(conflict.writers, const <MessageSource>[
+        ServiceSource('svc'),
+        ServiceSource('svc'),
+        TopologySource('t1'),
+        TopologySource('t2'),
+      ]);
+      expect(collision.declarations, <TopicDeclaration>[atAState, atAEvent, atB]);
+      expect(collisions, <TopicNameCollision>[collision]);
+      for (final TopologyFinding f in findings) {
+        final TopologyFinding rebuilt = switch (f) {
+          TopologyCycle(:final List<String> topologyIds, :final List<TopicRef> topics) => TopologyCycle(
+              topologyIds: topologyIds.reversed.toList(), topics: topics.reversed.toList()),
+          SelfReference(:final String topologyId, :final TopicRef topic, :final List<int> edges) =>
+            SelfReference(topologyId: topologyId, topic: topic, edges: edges.reversed.toList()),
+          WriterConflict(:final TopicRef topic, :final List<MessageSource> writers) =>
+            WriterConflict(topic: topic, writers: writers.reversed.toList()),
+          ScopeViolation() => f,
+        };
+        expect(rebuilt, f);
+        expect(rebuilt.hashCode, f.hashCode);
+      }
     },
   ),
 ];

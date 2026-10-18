@@ -1,0 +1,87 @@
+
+### setup: copy the contracts, fixtures and schema from the repository, resolve
+copied 84 files
+1
+1
+pub get exit: 0
+Dart SDK version: 3.13.5 (stable) (Tue Sep 29 01:00:52 2026 -0700) on "macos_arm64"
+
+### T0 the stand-in packages are clean under the root lint set and --fatal-infos
+Analyzing packages...
+No issues found!
+exit: 0
+
+### T1 structure: guarantee coverage holds with G30 and G23 (prototype structure set)
+PASS G30 1 fixture(s)
+guarantees: 30; cases: 67; bindings: 1; fixture files: 14
+exit: 0
+PASS G23 1 fixture(s)
+guarantees: 23; cases: 42; bindings: 1; fixture files: 7
+exit: 0
+
+### T2 the two conformance libraries and their bindings analyze clean (warnings included)
+Analyzing recording_conformance.dart, topology_builder_test.dart, behavior...
+No issues found!
+exit: 0
+
+### T3 topology-dsl@v1 recording suite, every case, against the stand-in
+00:00 +24: All tests passed!
+exit: 0
+
+### T4 the G30 case alone (--guarantee topology-dsl/G30)
+00:00 +0: G30 stages, sinks, builders and plans are equal only when identical, with identity hash codes
+00:00 +1: All tests passed!
+exit: 0
+
+### T5 topology-ir@v1 suite, every case, against the sorting stand-in
+00:00 +42: All tests passed!
+exit: 0
+
+### T6 the G23 case alone (--guarantee topology-ir/G23)
+00:00 +0: G23 finding and collision constructors put the lists they are given in the orders the Interface names
+00:00 +1: All tests passed!
+exit: 0
+
+### T7 G30 is not vacuous: value equality seeded into a stage, a sink, the builder or the plan fails G30 alone
+-- a read stage equal by topic and dedup
+G30 stages, sinks, builders and plans are equal only when identical, with identity hash codes [E]
+Some tests failed.
+-- a write sink equal by topic and input
+G30 stages, sinks, builders and plans are equal only when identical, with identity hash codes [E]
+Some tests failed.
+-- builders all equal
+G30 stages, sinks, builders and plans are equal only when identical, with identity hash codes [E]
+Some tests failed.
+-- a plan equal by id, identity hash code kept
+G30 stages, sinks, builders and plans are equal only when identical, with identity hash codes [E]
+Some tests failed.
+
+### T8 G23 is not vacuous: each constructor keeping the order given fails G23 alone
+-- TopologyCycle keeps its ids and topics as given
+G23 finding and collision constructors put the lists they are given in the orders the Interface names [E]
+Some tests failed.
+-- SelfReference keeps its edges as given
+G23 finding and collision constructors put the lists they are given in the orders the Interface names [E]
+Some tests failed.
+-- WriterConflict keeps its writers as given
+G23 finding and collision constructors put the lists they are given in the orders the Interface names [E]
+Some tests failed.
+-- TopicNameCollision keeps its declarations as given
+G23 finding and collision constructors put the lists they are given in the orders the Interface names [E]
+Some tests failed.
+
+### T9 the stand-in of ../topology-ir-fixtures/ (no constructor sorts) fails G23 and nothing else
+G23 finding and collision constructors put the lists they are given in the orders the Interface names [E]
+Some tests failed.
+00:00 +24: All tests passed!
+stand-in restored
+
+### T10 amended ADR-001's coverage and layout prototype over the repository's nine contracts as they stand
+topic-model (shared-model): 27 guarantees; covered by reject 10, behavior 18; not executable 2; in part 0; data directories none
+topology-dsl (api): 30 guarantees; covered by reject 8, behavior 22; not executable 0; in part 0; data directories none
+topology-ir (api): 23 guarantees; covered by reject 3, behavior 22; not executable 0; in part 0; data directories render
+9 contracts, 0 problem(s)
+exit: 0
+
+### cleanup: remove the copied tree; the repository's hsdd/contract/ stays the only copy
+removed

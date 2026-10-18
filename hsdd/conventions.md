@@ -121,13 +121,21 @@ tech-skill constraint.
 **Ordering policy:** fp-progression
 
 `fp-progression`: types, then pure functions, then effects, then composition,
-as four ordered bands. Phase 1 of a leaf-parent is the type-level skeleton,
-which lands the declarations of every contract the node produces; pure-core
-phases precede every effect phase; the final phase is the imperative shell.
-Chosen for the owner's functional-first practice (pure core, imperative
-shell) and because the first phase then unblocks every `contract` and
-`shared-model` edge out of the node (root D10). `hsdd-phase-plan` reads this
-line; sizing, tiers, gates and the summary table do not depend on it.
+as four ordered bands. The plan opens with the type-level band, after any
+gate infrastructure an ADR places first (the replay tool of ADR-001 item 9,
+in nidana.model): it lands the declarations of every contract the node
+produces, each contract's declarations in one phase, that contract's first
+producing phase (ADR-001 item 10). Pure-core phases precede every effect
+phase; the final phase is the imperative shell. Chosen for the owner's
+functional-first practice (pure core, imperative shell) and because a
+contract's first producing phase then unblocks every `contract` and
+`shared-model` edge on that contract (root D10). Where root D10, the root
+Development flow, an ADR or a contract says "the producer's first phase",
+read the phase the contract's Delivery paragraph names for a consumer's edge
+(Contracts, below): its first producing phase, or a later type-level phase
+when contracts share one library, as topology-dsl@v1's consumers wait on
+nidana.model.5. `hsdd-phase-plan` reads this line; sizing, tiers, gates and
+the summary table do not depend on it.
 
 - One Phase Equivalent (PE) per phase: <= 8 plan tasks (tasks of the
   superpowers plan; where a phase template says "OpenSpec tasks" it means
@@ -139,6 +147,15 @@ line; sizing, tiers, gates and the summary table do not depend on it.
   directory
 - A gate of a phase that produces a contract runs that contract's replay
   (ADR-001)
+- The replay tool lands by set, in nidana.model's phases (nidana.model D1):
+  `structure` at nidana.model.1; `surface`, `reject`, `schema`,
+  `package:nidana_contract_check/fixture.dart` and PENDING detection at
+  nidana.model.2; `behavior` at nidana.model.6; `file` and `cli` at
+  nidana.model.7. A phase of another node whose gate runs a set, or whose
+  tests import `fixture.dart`, depends on the phase that lands it, beside its
+  contract edges; no contract carries these edges. Where root D10, ADR-001 or
+  a contract says the replay tool or `fixture.dart` comes with nidana.model's
+  first phase, read this list
 
 ## Teams
 **Teams:** single-team
@@ -151,6 +168,15 @@ One owner, Purbo with coding agents, builds every node. No node carries a
 Do not list contracts here; run `node hsdd/scripts/gen-registry.mjs` after any
 contract change. What a contract's executable validation contains, per
 kind, is ADR-001's.
+
+When hsdd-reconcile applies a producer's `confirm` entries, it also writes
+the contract's **Delivery** paragraph, under the Interface's opening
+paragraph: the phase that lands the declarations, the phase a consumer's
+edge waits on, and which producing phase delivers which guarantees, read
+from the plan's entries and its gates' `--guarantee` lists. Consumer plans
+read it there, because they never read the producer's plan, and hsdd-config
+carries it into every consuming phase's context with the contract body. A
+re-plan of the producer is drained the same way and rewrites the paragraph.
 
 ## Parallel development protocol (planning and execution)
 - Governance files (`hsdd/contract/`, `hsdd/adr/`, this file, both `INDEX.md`)
@@ -187,6 +213,18 @@ Replaces the template's "per-phase OpenSpec cycles" protocol.
   `Collides with` entries naming each other execute serially on the node's
   integration branch. Spawn parallel worktrees only for phases with no
   collision between them.
+- **Shared workspace files.** The root `pubspec.yaml` and `pubspec.lock`
+  (ADR-002 item 1) are edited by every phase that creates a workspace member:
+  nidana.model.1 creates them, nidana.model.3 adds `nidana_dart_contracts`,
+  and one phase each of nidana.runtime, nidana.navigation, nidana.flutter,
+  nidana.tooling.codegen, nidana.tooling.lint and nidana.integration adds
+  that node's member. The `workspace:` list is kept in path order, one member
+  per line, so each such phase inserts one line. `Collides with` names only
+  phases of the planner's own node, so this rule carries the contention
+  across nodes: those changes reach the root branch one at a time, and the
+  merge that brings a second one keeps both list lines in path order and
+  resolves the lockfile again with `fvm dart pub get` at the workspace root,
+  committing the result. A lockfile is never merged by hand.
 - **Plan naming** (replaces OpenSpec capability naming). A plan is named
   after its phase, so two phases never write one plan file; colliding phases
   serialize through `Collides with`, not through plan names.

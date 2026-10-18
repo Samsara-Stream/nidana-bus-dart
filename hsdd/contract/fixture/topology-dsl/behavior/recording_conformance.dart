@@ -1,7 +1,7 @@
 // Conformance library for topology-dsl@v1, recording side (ADR-001 item 4):
-// what recording a declaration produces (G9 to G17). Its cases are values; a
-// binding registers them with a test runner. It imports neither package:test
-// nor package:flutter_test.
+// what recording a declaration produces (G9 to G17 and G30). Its cases are
+// values; a binding registers them with a test runner. It imports neither
+// package:test nor package:flutter_test.
 //
 // The implementation under test is the package's own recording builder,
 // which the cases reach through planOf and buildDefinition: recording has
@@ -711,6 +711,34 @@ final List<ConformanceCase<RecordingHarness>> recordingConformance =
       expect(a.hashCode, TopologyRef('checkout-flow').hashCode);
       expect(a == const TopologyRef('checkout-cart'), isFalse);
       expect(a.id, 'checkout-flow');
+    },
+  ),
+  // ------------------------------------------------------------ G30
+  (
+    name: 'G30 stages, sinks, builders and plans are equal only when identical, with identity hash codes',
+    body: (RecordingHarness h) async {
+      final List<TopologyBuilder> builders = <TopologyBuilder>[];
+      final Topology t = topology('rec-identity', Scope.page, (TopologyBuilder b) {
+        builders.add(b);
+        final TopicStream<int> first = b.read(_taps);
+        final TopicStream<int> second = b.read(_taps);
+        b.write(_out, first);
+        b.write(_out, first);
+        b.write(_out, second);
+      });
+      final TopologyPlan plan = planOf(t);
+      final TopologyPlan again = planOf(t);
+      await h.settle();
+      expect(plan.stages, hasLength(2));
+      expect(plan.stages[0] == plan.stages[1], isFalse);
+      expect(plan.sinks, hasLength(3));
+      expect(plan.sinks[0] == plan.sinks[1], isFalse);
+      expect(plan == again, isFalse);
+      expect(builders, hasLength(2));
+      expect(builders[0] == builders[1], isFalse);
+      for (final Object o in <Object>[...plan.stages, ...plan.sinks, plan, builders.first]) {
+        expect(o.hashCode, identityHashCode(o));
+      }
     },
   ),
 ];

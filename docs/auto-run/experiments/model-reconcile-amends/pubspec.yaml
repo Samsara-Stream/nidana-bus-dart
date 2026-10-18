@@ -1,0 +1,13 @@
+# model-reconcile-amends: replays the topology-dsl@v1 recording suite and the
+# topology-ir@v1 suite, with the cases S29's reconcile added for G30 and G23,
+# against a stand-in of nidana_dart_contracts (see run.sh). Its own pub
+# workspace, never a member of the repository's workspace.
+name: mra_root
+publish_to: none
+environment:
+  sdk: ^3.13.0
+workspace:
+  - packages/nidana_contract_check
+  - packages/nidana_dart_contracts
+dev_dependencies:
+  lints: ^6.1.0

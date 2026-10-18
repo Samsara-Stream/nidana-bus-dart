@@ -86,7 +86,7 @@ Resolves OQ7 and the clock-control part of OQ2.
 - bus-api@v1 states the two providers, the zone rule for `bus.observe` and observers, timer cancellation at shutdown and the clock accessor as guarantees; bus-testing@v1 states the scheduler operations, quiescence, the bounds, the fixed start instant and the settle operation. Their behavior fixtures run on the VM and need no `fake_async`.
 - Inside `testWidgets` the provider clock starts at the wall-clock time of the test start, so widget tests compare timestamps as differences.
 - flutter-binding@v1's widget-test helpers own bus shutdown at unmount. navigation-api@v1's executor protocol stamps route transitions from the bus's clock.
-- A per-topic dispatcher hint in a topic declaration can have no effect on Dart; whether topic-model@v1 carries one stays OQ-M3.
+- A per-topic dispatcher hint in a topic declaration can have no effect on Dart; topic-model@v1 carries none (its G5, which resolved OQ-M3).
 - No v1 lint enforces item 8. A phase gate can search the sources for `DateTime.now(`, `Stopwatch(` and timers created outside the provider implementation.
 - Marked for upstreaming: Spec §3.6 and Guide §6.5 do not say how scheduler injection works on Dart, and Guide §6.5 names an `EventLoopScheduler` that RxDart does not have; Guide §10.1's clock-control question has a Dart answer here; Spec §2.3 says the bus implements no schedulers and no stream combinators, while on Dart the test scheduler and the live `switchMap` are nidana's, because RxDart has no scheduler and its `switchMap` escapes every fake-time zone; Spec §11.2's "in `tearDown`" for tests does not hold under flutter_test, which needs the bus shut down before the test body ends.
 
