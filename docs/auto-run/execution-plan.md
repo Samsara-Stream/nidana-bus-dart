@@ -192,8 +192,9 @@ tree. Done when `node docs/auto-run/tools/gate.mjs --final` passes.
 | S35 | 6 | hsdd-reconcile | nidana.flutter's pending section | done | badc78f |
 | S36 | 6 | hsdd-phase-plan | nidana.tooling.lint (4 phases) | done | ae2277a |
 | S37 | 6 | hsdd-reconcile | nidana.tooling.lint's pending section | done | 745673a |
-| S38 | 6 | hsdd-adr | ADR-002 update: third-party lower bounds from the full planned resolution; Context Q11c (exit 4) | running | |
-| S39.. | 6 | hsdd-phase-plan then hsdd-reconcile | nidana.tooling.codegen, nidana.integration (each then its reconcile) | nidana.flutter, nidana.tooling.lint, nidana.tooling.codegen, nidana.integration, in that order | planned | |
+| S38 | 6 | hsdd-adr | ADR-002 update: third-party lower bounds from the full planned resolution; Context Q11c | done | 257b22d |
+| S39 | 6 | hsdd-phase-plan | nidana.tooling.codegen | running | |
+| S40.. | 6 | hsdd-reconcile, hsdd-phase-plan, hsdd-reconcile | codegen's reconcile, then nidana.integration's plan and reconcile | nidana.flutter, nidana.tooling.lint, nidana.tooling.codegen, nidana.integration, in that order | planned | |
 
 ## Change log
 
@@ -342,3 +343,9 @@ tree. Done when `node docs/auto-run/tools/gate.mjs --final` passes.
   already written (nidana.model.1, the runtime's member phase, navigation.1, flutter.1, lint.1) to the
   amended rule, as hsdd-reconcile updates scopes that assumed otherwise. Also for stage 7:
   flutter-binding@v1's Delivery clause about lint's invocations, nidana.tooling.md's carried-items bullet.
+- 2026-10-18 (UTC), after S38: ADR-002 item 4 now lists every third-party constraint (the full planned
+  resolution); item 7's pins point at the table. Stage-7 pass adds: plan lines restating the old rule
+  (nidana.model.1 Scope, nidana.runtime.1 Scope, nidana.tooling.lint.1 Scope; navigation.1 and flutter.1
+  could cite the table); nidana.tooling.lint D3 item 4 and lint.1 Verification say "exit 4" where the root
+  analyze gives 3; nidana-checks@v1's plugin-failure exit codes (2 and 0 cases); nidana.flutter.1's gate
+  should run the pure members' tests, since that phase moves `test` for them.

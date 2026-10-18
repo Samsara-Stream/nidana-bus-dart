@@ -1,0 +1,149 @@
+{
+  "step_ref": "S38",
+  "skill": "hsdd-adr",
+  "target": "ADR-002 (hsdd/adr/002-package-workspace-layout.md), amended in place",
+  "status": "completed",
+  "stop": null,
+  "artifacts": [
+    "hsdd/adr/002-package-workspace-layout.md",
+    "hsdd/adr/INDEX.md (regenerated; content unchanged, since the frontmatter did not change)",
+    "docs/auto-run/experiments/constraint-lower-bounds/run.mjs",
+    "docs/auto-run/experiments/constraint-lower-bounds/output.txt",
+    "docs/auto-run/experiments/plugin-compile-exit/run.sh",
+    "docs/auto-run/experiments/plugin-compile-exit/output.txt",
+    "docs/auto-run/steps/S38.json"
+  ],
+  "decisions": [
+    {
+      "at": "2026-10-18T06:02:54Z",
+      "artifact": "hsdd/adr/002-package-workspace-layout.md (item 4)",
+      "question": "Which rule replaces item 4's 'lower bound is the version the committed lockfile resolves when the dependency is added', so that every member's constraints resolve at every point of the build order the phase plans allow?",
+      "options": [
+        { "label": "lower bounds from the full planned resolution, as a table in item 4", "consequence": "Every member copies one recorded constraint per package; all 20 reachable member sets resolve from no lockfile and both orders resolve incrementally; items 1 and 7's values and the lockfile rule stay. Before nidana.flutter.1 the lockfile holds test 1.33.0 inside ^1.31.1 and moves it down there; the table must be recomputed on a pin change and a new package needs a probe." },
+        { "label": "accepted rule plus a Flutter anchor in the root", "consequence": "flutter_test as a root dev dependency from nidana.model.1 makes the accepted rule write the table's constraints and resolve at every stage of both orders tried, with no test move at nidana.flutter.1; it changes item 1 (the root gains a second dependency) and item 4's 'Flutter appears only in' bullet, and each constraint still depends on which members exist when it is written." },
+        { "label": "accepted rule unchanged", "consequence": "nidana.model.1 writes test: ^1.33.0 and package_config: ^3.0.0; nidana.flutter.1's pub get fails along both orders." },
+        { "label": "lowest working version checked by pub downgrade", "consequence": "Honest bounds for publication, but every member-creating phase runs a downgrade resolution that nothing else in the tree uses." }
+      ],
+      "chosen": "lower bounds from the full planned resolution, as a table in item 4",
+      "why": "It is the only option that meets the brief's whole requirement: the experiment shows every reachable member set resolves (P4, 20 of 20) and both orders resolve incrementally with --enforce-lockfile passing after every stage and a final lockfile equal to a fresh full resolution (P5a, P5b, P6), while item 1's root, the lockfile rule and item 7's pin values stay as written. The anchor also resolves (P3a, P3b) and avoids the test move at nidana.flutter.1, but it changes items 1 and 4 and leaves constraints order-dependent. The accepted rule fails on two packages, not one: package_config ^3.0.0 fails beside a Flutter member on its own (P2c). Close call between the table and the anchor; the signal that would have changed my mind is a member test that needs a test API newer than 1.31.1 before nidana.flutter.1, or a second direct package held above its lower bound before the first Flutter member (P4 shows test is the only one today).",
+      "evidence": [
+        "docs/auto-run/experiments/constraint-lower-bounds/ (P0 to P6)",
+        "docs/auto-run/experiments/lint-reconcile-amends/output-constraints.txt (K1 to K6)",
+        "docs/auto-run/steps/S37.json (note routing the defect to hsdd-adr)",
+        "hsdd/spec/nidana.tooling.lint.md nidana.tooling.lint.1 Dependencies (nidana.model.1 and .7 only, so the plugin can land before the Flutter member)"
+      ],
+      "blast_radius": "tree",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T06:02:54Z",
+      "artifact": "hsdd/adr/002-package-workspace-layout.md (item 4)",
+      "question": "How does a third-party package outside the table (added later by a node's D{n}, item 3) get its lower bound?",
+      "options": [
+        { "label": "probe of the whole planned set plus the package, recorded in the D{n}", "consequence": "The bound comes from one resolution of the table's packages with Flutter, item 7's pins and the new package; later members copy the D{n}'s constraint; the ADR is not touched per package." },
+        { "label": "the package joins the table by an ADR amendment", "consequence": "One home for every constraint, at the cost of an hsdd-adr step for each new package." }
+      ],
+      "chosen": "probe of the whole planned set plus the package, recorded in the D{n}",
+      "why": "Decided with the rule. Item 3 already routes new packages through a node D{n} within item 4's rules, so the D{n} is the existing home; an ADR amendment per package would make ADR-002 churn. No evidence beyond item 3's existing routing; the signal that would favor the table route is a package that several nodes add.",
+      "evidence": ["hsdd/adr/002-package-workspace-layout.md item 3 (last bullet)"],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T06:02:54Z",
+      "artifact": "hsdd/adr/002-package-workspace-layout.md (item 4, item 5, Consequences)",
+      "question": "What does the ADR say about test being held at 1.33.0 inside ^1.31.1 until the first Flutter member, and about the table on a pin change?",
+      "options": [
+        { "label": "bind tests to the lower bound and state the move", "consequence": "Item 4 says no member's tests use a test API newer than 1.31.1; Consequences say nidana.flutter.1's pub get moves test, test_api, test_core (and analyzer) down; item 5 lists item 4's table among what a pin change changes." },
+        { "label": "leave it implicit", "consequence": "Shorter ADR; a pre-Flutter phase could use a test 1.32 or 1.33 API and break at nidana.flutter.1 with no rule naming the cause." }
+      ],
+      "chosen": "bind tests to the lower bound and state the move",
+      "why": "Decided with the rule. P4 and P5a show test is the only direct package above its lower bound before the Flutter member, so one sentence covers the whole drift. Item 5 already ties the lockfile and item 7's pins to the .fvmrc pin; the table is the same kind of pin-derived fact.",
+      "evidence": ["docs/auto-run/experiments/constraint-lower-bounds/ (P4, P5a, P5b)"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T06:09:35Z",
+      "artifact": "hsdd/adr/002-package-workspace-layout.md (item 7)",
+      "question": "Item 7 pins the plugin's two packages 'to the exact version the committed lockfile resolves (0.3.18 and 13.3.0 on the current pin)'. Does that wording need the same fix?",
+      "options": [
+        { "label": "align item 7 with item 4's table", "consequence": "The pins are the versions the full planned resolution holds, which the table lists; values unchanged." },
+        { "label": "leave the wording; the parenthesized values carry it", "consequence": "Read literally while the plugin lands before the Flutter member, the rule pins analyzer 14.1.0 and analysis_server_plugin 0.3.20, which conflict with any analyzer constraint below 14 and with the Flutter member." }
+      ],
+      "chosen": "align item 7 with item 4's table",
+      "why": "nidana.tooling.lint.1 depends only on nidana.model.1 and .7, so the plugin can land before the Flutter member, where the literal reading fails (P5c, and the reason K3 gives). The brief asked whether item 7 needs to change; its values do not, its wording does.",
+      "evidence": [
+        "docs/auto-run/experiments/constraint-lower-bounds/ (P5c)",
+        "docs/auto-run/experiments/lint-reconcile-amends/output-constraints.txt (K3)",
+        "hsdd/spec/nidana.tooling.lint.md nidana.tooling.lint.1 Dependencies"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T06:10:26Z",
+      "artifact": "hsdd/adr/002-package-workspace-layout.md (Context Q11c, new Context paragraph, Consequences plugin-failure bullet)",
+      "question": "Context Q11c records exit 3 for a plugin that does not compile, and plugin-rebuild R6 observed exit 4. Which fact does the ADR state?",
+      "options": [
+        { "label": "state the general rule", "consequence": "Diagnostics decide the exit (3 ERROR, 2 WARNING, INFO 0 or 1 under --fatal-infos); 4 only when nothing analyzed reports; the root analyze reports the plugin's own broken source as an ERROR, so exit 3 there; plain analyze with only INFOs exits 0 with the plugin not loaded." },
+        { "label": "replace 3 with 4", "consequence": "Wrong for the root analyze, which the gates run: E1 reproduces Q11c's exit 3." }
+      ],
+      "chosen": "state the general rule",
+      "why": "plugin-compile-exit shows both observations were right for their shapes: Q11c ran the root analyze, whose ERROR on the plugin's broken source it filtered from its output (exit 3, E1); R6 analyzed a clean directory outside the plugin (exit 4, E2). E3 to E6 show the exit follows the analyzed files' diagnostics whenever there are any, so a broken plugin can exit 2, 1 or 0. The Consequences bullet keeps its claim (every root analyze under --fatal-infos fails) and now says how.",
+      "evidence": [
+        "docs/auto-run/experiments/plugin-compile-exit/ (E0 to E7)",
+        "docs/auto-run/experiments/plugin-rebuild/output.txt (R6)",
+        "docs/auto-run/experiments/workspace-layout/run.sh (Q11c filters wl_lint/lib/main.dart lines)"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    }
+  ],
+  "experiments": [
+    {
+      "path": "docs/auto-run/experiments/constraint-lower-bounds/",
+      "question": "Which lower-bound rule for third-party caret constraints resolves at every point of the build order the phase plans allow, before and after the Flutter member and the plugin join, and does anything else in ADR-002 need to change for it?",
+      "finding": "P0: the full planned resolution (every item 3 row, item 7 pins, rxdart ^0.28.0) holds args 2.7.0, json_schema 5.2.2, matcher 0.12.20, package_config 2.2.0, path 1.9.1, test 1.31.1, meta 1.19.0, rxdart 0.28.0, clock 1.1.3, analysis_server_plugin 0.3.18, analyzer 13.3.0, analyzer_testing 0.3.2, build 4.0.11, source_gen 4.2.4, dart_style 3.1.14, yaml 3.1.4, build_test 3.5.20, build_runner 2.16.1, lints 6.1.0. P1: test and package_config are held by flutter_test's test_api 0.7.12 pin, analyzer_testing, source_gen, build_runner and build_test by analyzer 13.3.0, build by build_test. P2a, P2b: the accepted rule writes test ^1.33.0 and package_config ^3.0.0 at nidana.model.1 and nidana.flutter.1's pub get fails along the planned and tooling-first orders; P2c: package_config ^3.0.0 fails on its own. P3a, P3b: with flutter_test in the root from nidana.model.1 the accepted rule writes the table's constraints and resolves along both orders. P4: carets at P0's versions resolve all 20 reachable member sets from no lockfile; test (1.33.0) is the only declared package above its bound before the Flutter member. P5a, P5b: incremental pub get resolves every stage along both orders, --enforce-lockfile passes after each, and nidana.flutter.1's stage moves test, test_api, test_core (and a transitive analyzer) down. P5c: item 7 read literally pins analyzer 14.1.0 and analysis_server_plugin 0.3.20 when the plugin lands first, and the codegen's ^13.3.0 then fails. P6: both final lockfiles equal P0's in all 88 packages."
+    },
+    {
+      "path": "docs/auto-run/experiments/plugin-compile-exit/",
+      "question": "What exit code does fvm dart analyze give when a root-enabled plugin does not compile, and why did workspace-layout Q11c see 3 where plugin-rebuild R6 saw 4?",
+      "finding": "E1: the root analyze, which also analyzes the plugin's broken source, reports that ERROR and exits 3 (Q11c's shape). E2: a clean member analyzed alone exits 4 (R6's shape). E3: WARNINGs in the analyzed files give 2; E4: an ERROR gives 3; E5: INFOs only give 0 without --fatal-infos; E6: 1 under --fatal-infos; E7: plugin restored, an ERROR gives 3. Exit 4 occurs only when nothing analyzed reports a diagnostic."
+    }
+  ],
+  "self_check": [
+    { "gate": "Frontmatter has `id`, `status`, `affects`, `date`.", "status": "pass", "note": "Unchanged: id ADR-002, status accepted, the 18 affects ids, date 2026-10-17 (the original date kept, as the brief requires)." },
+    { "gate": "The decision is genuinely cross-cutting; a node-local one stayed a `D{n}`.", "status": "pass", "note": "The constraint table binds the member-creating phases of nidana.model, nidana.runtime, nidana.navigation, nidana.flutter, nidana.tooling.lint, nidana.tooling.codegen and nidana.integration; a package outside the table stays a node D{n}." },
+    { "gate": "`## Decision` and `## Consequences` are self-contained (no reliance on Context).", "status": "pass", "note": "Item 4 carries the whole table and both rules; item 7 cites item 4; Consequences state the lockfile move, the copy-the-table rule and the exit codes without citing an experiment." },
+    { "gate": "Every id in `affects` carries a matching `Governed by: [ADR-NNN]`.", "status": "pass", "note": "affects unchanged; all nine node specs and all nine contracts carry ADR-002 in Governed by (checked by grep)." },
+    { "gate": "A superseding ADR set both `supersedes` and the old ADR's `superseded_by`.", "status": "n/a", "note": "Amended in place, not superseded; the Amendments entry says why." },
+    { "gate": "No invented decision was written as `accepted`; an unknown decision is `proposed` with a TODO.", "status": "pass", "note": "The rule was decided under the run's decision policy and settled by docs/auto-run/experiments/constraint-lower-bounds/; the Q11c fact by docs/auto-run/experiments/plugin-compile-exit/." },
+    { "gate": "The registry was regenerated.", "status": "pass", "note": "node hsdd/scripts/gen-registry.mjs ran after the last edit; hsdd/adr/INDEX.md and hsdd/contract/INDEX.md are byte-identical to before, since no frontmatter changed. node docs/auto-run/tools/gate.mjs --skill hsdd-adr: 0 errors, 0 warnings." },
+    { "gate": "Open questions are cited by ID only; an ADR that resolves one names the ID in its Decision, and the owning spec's OQ row is updated to point at this ADR (RESOLVED (date)).", "status": "n/a", "note": "The amendment resolves no OQ; existing citations (OQ9, OQ12, OQ-T2, OQ-F1) are by ID and unchanged." }
+  ],
+  "notes_for_orchestrator": [
+    "Not a run-stop: the two viable rules (table, Flutter anchor) keep the same nodes and contracts; the decision changes only member constraints and ADR-002 items 4, 5 and 7's wording.",
+    "Plan lines that now contradict amended item 4 or item 7, for the stage-7 pass: (1) hsdd/spec/nidana.model.md line 227, nidana.model.1 Scope (2): 'each a caret constraint at the version the lockfile resolves' would write test ^1.33.0 and package_config ^3.0.0; it should take each constraint from ADR-002 item 4's table. (2) hsdd/spec/nidana.runtime.md line 279, nidana.runtime.1 Scope: '`clock` and `meta` with the carets of the versions the lockfile resolves' (today's values coincide with the table, ^1.1.3 and ^1.19.0, but the rule differs). (3) hsdd/spec/nidana.tooling.lint.md line 202, nidana.tooling.lint.1 Scope: '`analyzer_testing` and `test` as dev dependencies with caret constraints at the versions the lockfile resolves (`test` with the constraint the other members carry)'; the table gives analyzer_testing ^0.3.2 and test ^1.31.1.",
+    "Plan lines consistent with the amended item that could cite the table instead of 'the constraint the other members carry': hsdd/spec/nidana.navigation.md line 156 (nidana.navigation.1 Scope), hsdd/spec/nidana.flutter.md line 183 (nidana.flutter.1 Scope). hsdd/spec/nidana.model.md line 253 (nidana.model.3) and hsdd/spec/nidana.tooling.codegen.md line 55 cite item 4 without restating it and stay correct.",
+    "Lines left inexact by the Q11c correction: hsdd/spec/nidana.tooling.lint.md line 109 (D3 item 4: 'a plugin that does not compile fails `dart analyze` with exit 4') and line 210 (nidana.tooling.lint.1 Verification: 'a plugin that fails to build (exit 4)'). At the root analyze a plugin whose source does not compile exits 3, because the analysis reports that source's ERROR (plugin-compile-exit E1); 4 holds only when nothing analyzed reports (E2). hsdd/contract/nidana-checks.md line 89 ('a plugin that does not load fails `dart analyze` with exit 3 or 4 (ADR-002 Context)') is inexact for app CI: WARNINGs in the analyzed files give 2, and INFOs only without --fatal-infos give 0 with the plugin not loaded (E3, E5); an editorial hsdd-contract fix within v1.",
+    "nidana.flutter.1's gate runs only `fvm flutter test --no-pub packages/nidana_dart_runtime_flutter`, yet its `pub get` moves test from 1.33.0 to 1.31.1 for every pure member (ADR-002 Consequences). Item 4 now forbids member tests from using a test API newer than 1.31.1; the stage-7 pass may also add the pure members' `fvm dart test` to nidana.flutter.1's gate if it wants the move checked where it happens.",
+    "S37's note called the defective rule 'item 9'; it is item 4 (item 9 is versions and publishing). No artifact carries that misnumbering.",
+    "The table is a snapshot of pub.dev on 2026-10-18 on the Flutter 3.47.7 pin; later releases stay inside the carets, and item 5 now says a pin change recomputes the table. No ADR proposed, no OQ minted, no contract changed."
+  ]
+}
