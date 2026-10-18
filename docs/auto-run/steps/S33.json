@@ -1,0 +1,167 @@
+{
+  "step_ref": "S33",
+  "skill": "hsdd-reconcile",
+  "target": "nidana.navigation (hsdd/spec/nidana.navigation.md, pending governance section)",
+  "status": "completed",
+  "stop": null,
+  "artifacts": [
+    "hsdd/contract/navigation-api.md",
+    "hsdd/contract/fixture/navigation-api/behavior/navigation_conformance.dart",
+    "hsdd/contract/topic-model.md",
+    "hsdd/contract/topology-dsl.md",
+    "hsdd/contract/topology-ir.md",
+    "hsdd/contract/bus-api.md",
+    "hsdd/contract/bus-testing.md",
+    "hsdd/contract/INDEX.md",
+    "hsdd/spec/nidana.navigation.md",
+    "docs/auto-run/experiments/navigation-g13-coverage/"
+  ],
+  "decisions": [
+    {
+      "at": "2026-10-18T04:09:46Z",
+      "artifact": "hsdd/contract/navigation-api.md",
+      "question": "Step 3 (collision detection): does the amend of navigation-api@v1 G13, which fixes the resolver's recorded transformer names to resolveDeepLinks, FunctionRef.of(principalOf) and applyAuthGuard, conflict with another node's assumption, so that it must go to the human as a collision?",
+      "options": [
+        { "label": "no collision, apply the entries", "consequence": "the amend proceeds under step 6; nidana.tooling.codegen's catalog shows the two library names and the app's projection name for the resolver" },
+        { "label": "treat as a collision and stop", "consequence": "the run waits on the owner for a question no other node's entry or spec text raises" }
+      ],
+      "chosen": "no collision, apply the entries",
+      "why": "No other pending section exists (nidana.model's and nidana.runtime's are stamped). The only other text touching the resolver's transformer names is nidana.tooling.codegen's build-time configuration paragraph, which says transformer names come from the arguments a registration passes, navResolver given the app's pure functions among them; with the amend the static graph and the bootstrap's graph still agree whenever both pass the same principalOf, and before the amend both rendered (anonymous), so neither reading breaks. No fixture of any contract asserts the resolver's transformers (grep over hsdd/contract/fixture/: navResolver appears only in navigation-api's suites and surface and in flutter-binding's suite, which activates it without inspecting transformers). No other node claims packages/nidana_dart_navigation (ADR-002 item 3).",
+      "evidence": ["hsdd/spec/nidana.tooling.codegen.md (Build-time configuration paragraph)", "hsdd/contract/fixture/flutter-binding/behavior/flutter_binding_conformance.dart", "ADR-002 item 3", "docs/auto-run/experiments/navigation-stage-names/"],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T04:09:54Z",
+      "artifact": "hsdd/contract/topology-ir.md",
+      "question": "topology-ir@v1's consumers frontmatter does not list nidana.navigation at all. Does the plan's confirm entry add nidana.navigation.3 and nidana.navigation.6, or does the edge need its own root or hsdd-contract step first?",
+      "options": [
+        { "label": "add the confirmed phase ids", "consequence": "frontmatter matches root D10's edge row (nidana.model to nidana.navigation, topology-ir@v1, contract) and the node's Consumes line; the registry shows 7 consumers" },
+        { "label": "hold until a separate step adds the node", "consequence": "the frontmatter keeps contradicting root D10 and the node spec; a later reconcile would add the same ids" }
+      ],
+      "chosen": "add the confirmed phase ids",
+      "why": "Root nidana.md says nidana.navigation and nidana.flutter reach topology-ir@v1's frontmatter through their phase plans' confirm entries (S27 planned exactly this), and nidana.navigation.md's Consumes line names topology-ir@v1. Inserted after nidana.runtime.11 and before nidana.tooling, keeping the node order the other model contracts use.",
+      "evidence": ["hsdd/spec/nidana.md (D10 edge table row nidana.model to nidana.navigation, topology-ir@v1; contract matrix intro)", "docs/auto-run/steps/S27.json", "hsdd/spec/nidana.navigation.md (Consumes)"],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T04:10:15Z",
+      "artifact": "hsdd/contract/navigation-api.md",
+      "question": "How to write navigation-api@v1's Delivery paragraph from the produced_by sub-bullets (conventions, Contracts): transcribe them only, or also state that nidana.navigation.3 and nidana.navigation.4 run side by side so each gate replays only its own dependency closure?",
+      "options": [
+        { "label": "transcribe the sub-bullets only", "consequence": "shorter; a consumer reading 'cumulatively' could assume nidana.navigation.4 or .5 already carries G9 to G13" },
+        { "label": "transcribe plus the side-by-side sentence", "consequence": "a consumer that needs both the guard and the planner knows to wait on both phases (or on nidana.navigation.6); matches the plan's D3 and its gates' --guarantee lists" }
+      ],
+      "chosen": "transcribe plus the side-by-side sentence",
+      "why": "The plan's gates restrict by dependency closure (D3): nidana.navigation.4's list is G1, G4 to G8, G17, without G9 to G13. Consumers never read the producer's plan, so the Delivery paragraph is the only place they learn this. Also named nidana.tooling among the contract-edge consumers although its id is not yet in the frontmatter (it arrives through nidana.tooling.codegen's confirm, root contract matrix intro), as bus-testing@v1's Delivery paragraph does; and the code-owner sentence now names nidana.navigation.1 and points at Delivery, as bus-api@v1's does after S31.",
+      "evidence": ["hsdd/conventions.md (Contracts)", "hsdd/spec/nidana.navigation.md (D3, phase gates)", "hsdd/contract/bus-testing.md (Delivery)", "hsdd/contract/bus-api.md (Interface code-owner sentence)"],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T04:10:54Z",
+      "artifact": "hsdd/contract/fixture/navigation-api/behavior/navigation_conformance.dart",
+      "question": "ADR-001 item 3 needs the G13 stage-name clause covered. Add a new behavior case, add assertions to the existing first G13 case (the plan's suggestion), or record a not-executable line naming nidana.navigation's gates?",
+      "options": [
+        { "label": "new G13 case over both forms", "consequence": "one case, 15 lines; the navigation suite goes from 40 to 41 cases (67 in the contract); a failure names the clause; existing cases keep their meaning" },
+        { "label": "assertions in the existing first G13 case", "consequence": "no new case, but the reactive case's name no longer describes all it checks and the static form needs a second edit" },
+        { "label": "not-executable line until an hsdd-contract step", "consequence": "no fixture work now, but a clause that is trivially executable stays unchecked and an hsdd-contract step must be scheduled" }
+      ],
+      "chosen": "new G13 case over both forms",
+      "why": "The work is small, so the step's instruction (fixture in the same edit when small) applies. A separate case checks both forms in one place and fails with the clause in its name; the expected auth-map value is FunctionRef.of(_principalOf), the contract's own wording. Confirmed against S32's stand-in: it fails against closures and against a seeded wrapped projection, passes against named stages, and a --guarantee G13 selection picks it up, so nidana.navigation.3's gate runs it with no plan change.",
+      "evidence": ["ADR-001 item 3", "ADR-001 item 4", "docs/auto-run/experiments/navigation-g13-coverage/ (T1 to T5)"],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T04:15:24Z",
+      "artifact": "hsdd/contract/navigation-api.md",
+      "question": "Is the G13 amend backward-compatible, so it applies within v1 keeping the version, or could it break a consumer and go to the human with a version bump?",
+      "options": [
+        { "label": "compatible, apply within v1", "consequence": "G13 gains the clause, the navResolver comment says so, the Breaking list gains 'a stage's recorded name', a Versioning line records the amendment; no version bump" },
+        { "label": "breaking, stop for the human and bump to v2", "consequence": "a v2 for a contract with no implementation and no consumer that could observe the old behavior" }
+      ],
+      "chosen": "compatible, apply within v1",
+      "why": "No declaration changes and no guarantee is weakened. G13 fixed the edges and their order but not their transformers; nidana_dart_navigation is not implemented, so no recorded definition or rendered graph of the resolver exists to change; no fixture of any contract asserts the transformers; two resolvers of one configuration still record equal definitions, so bus-api@v1 G23 idempotency is unchanged. Every pre-amendment case passes against the named stand-in (40 of 40, 52 of 52). The amendment falls under the Versioning list's 'a new guarantee that existing fixtures still pass'.",
+      "evidence": ["navigation-api@v1 Versioning (Compatible list)", "bus-api@v1 G23", "docs/auto-run/experiments/navigation-g13-coverage/ (T6)", "docs/auto-run/experiments/navigation-stage-names/ (S2b)"],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T04:15:24Z",
+      "artifact": "hsdd/contract/navigation-api.md",
+      "question": "State the stage names in G13 unconditionally, or qualify them 'on the VM' as topology-ir@v1 G9 does?",
+      "options": [
+        { "label": "qualify 'on the VM', citing topology-ir@v1 G9", "consequence": "true for every build topology-ir@v1 names: dart2js and dart2wasm record anonymous references, so a web build's graph is outside the clause" },
+        { "label": "unconditional", "consequence": "shorter, but false on the web, where FunctionRef.of yields anonymous for every function form" }
+      ],
+      "chosen": "qualify 'on the VM', citing topology-ir@v1 G9",
+      "why": "topology-ir@v1's Function references table records anonymous references on dart2js and dart2wasm and obfuscated names under --obfuscate; navigation-api is pure Dart and a Flutter web app can use it. The catalog and the CI checks run on the VM (topology-ir@v1), which is where the names matter.",
+      "evidence": ["topology-ir@v1 G9 and its Function references table", "docs/auto-run/experiments/function-ref-derivation/"],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T04:15:47Z",
+      "artifact": "hsdd/conventions.md",
+      "question": "Do the two note entries (nidana.navigation.1 creates the workspace member; package_properties_test.dart checks G26 and G27) change a convention, and should the second rename the not-executable lines of navigation-api@v1's Validation?",
+      "options": [
+        { "label": "no conventions change; Validation lines unchanged", "consequence": "the Shared workspace files bullet already covers 'one phase each of nidana.navigation'; the test file is named in the Delivery paragraph, as bus-api@v1 and bus-testing@v1 do after S31" },
+        { "label": "name nidana.navigation.1 in the conventions and the test file in the not-executable lines", "consequence": "more specific, but diverges from the runtime precedent and duplicates derived facts" }
+      ],
+      "chosen": "no conventions change; Validation lines unchanged",
+      "why": "Step 10 applies a note only when it changes a convention; neither does. Both facts now live in navigation-api@v1's Delivery paragraph. The structure set reads 'checked by {node}'s gates', which the lines already satisfy.",
+      "evidence": ["hsdd/conventions.md (Execution protocol, Shared workspace files)", "hsdd/contract/bus-api.md (Validation, Delivery)", "ADR-001 item 3"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    }
+  ],
+  "experiments": [
+    {
+      "path": "docs/auto-run/experiments/navigation-g13-coverage/",
+      "question": "Does the new G13 case cover the stage-name clause (fails when a stage is a closure, passes when stages are named), does structure still hold, and do the pre-amendment fixtures still pass against the named stand-in?",
+      "finding": "Fixture diff is the one new case. Structure: 27 guarantees, 67 cases, 2 bindings, G13 by 4 cases. Behavior libraries analyze clean. The new case fails against the closures stand-in (Expected FunctionRef(resolveDeepLinks), Actual FunctionRef.anonymous()) and against a seeded wrapped projection (Expected FunctionRef(_principalOf@21345819), Actual anonymous), with every other case passing; against named stages the navigation suite passes 41 of 41 and the executor suite 52 of 52; pre-amendment fixtures pass 40 of 40 and 52 of 52. T7 side finding: the VM renders a private function or method name with a library key, `_name@{key}`; the key is stable across JIT runs (21497603 twice) but differs under AOT (17497603). Public names, including a public method of a private class, render bare in both."
+    }
+  ],
+  "self_check": [
+    { "gate": "Every pending section drained, or explicitly deferred with a reason.", "status": "pass", "note": "nidana.navigation's section drained and stamped; nidana.model's and nidana.runtime's were already stamped by S29 and S31; no other pending section exists." },
+    { "gate": "No contract with both sides fully planned remains `phase_ids: provisional`; none with `phase_ids: final`, no open request and an existing validation artifact remains `status: draft`; none was flipped without its artifact.", "status": "pass", "note": "Each touched contract still has an unplanned side: navigation-api@v1 (nidana.flutter, nidana.integration), topic-model@v1, topology-dsl@v1, topology-ir@v1 and bus-api@v1 (nidana.flutter, nidana.tooling, nidana.integration), bus-testing@v1 (nidana.flutter, nidana.integration). All stay provisional and draft; no flip." },
+    { "gate": "Grandfather marks were added only to pre-existing fixtureless `stable` contracts named by the plan step (the upgrade step or one carrying it forward), none re-marked after a discharge, and removed wherever the artifact now exists.", "status": "n/a", "note": "No grandfather step named; no mark added or removed." },
+    { "gate": "No contract was retired while a consumer or external consumer still names it.", "status": "n/a", "note": "No retired node." },
+    { "gate": "Every collision was decided by the human, and the losing plan was updated to match.", "status": "n/a", "note": "Step 3 found no collision." },
+    { "gate": "Contract edits follow hsdd-contract versioning (breaking change = new version + migration note).", "status": "pass", "note": "The G13 amend is compatible and stays in v1 with a Versioning line; the Breaking list now names a stage's recorded name." },
+    { "gate": "`node hsdd/scripts/gen-registry.mjs` ran after the last contract edit.", "status": "pass", "note": "Ran at 2026-10-18T04:15:47Z after the last edit of navigation-api.md; INDEX.md consumer counts now bus-api 5, topic-model 19, topology-dsl 12, topology-ir 7." },
+    { "gate": "No artifact still cites a resolved OQ as open; sweep locations reported.", "status": "pass", "note": "The drained entries resolve no new OQ; OQ-N1 and OQ-N2 were marked RESOLVED by S32. Swept: hsdd/spec/nidana.navigation.md rows 37 and 38 and detail headings 40 and 46 (RESOLVED); hsdd/contract/navigation-api.md Refinement 1 (decides OQ-N2), Refinement 2 (decides OQ-N1), G2 (decides OQ-N2), G13 (decides OQ-N1). No other artifact under hsdd/ cites OQ-N1, OQ-N2 or any other OQ-N id. Nothing stale, no edit needed." }
+  ],
+  "notes_for_orchestrator": [
+    "Entries and what was done: (1) confirm navigation-api@v1 produced_by [nidana.navigation.1 to .6]: applied; its four sub-bullets became navigation-api@v1's Delivery paragraph under the Interface's opening paragraph, and the code-owner sentence now names nidana.navigation.1 and points at Delivery. (2) confirm topic-model@v1 consumers [.1, .3, .6]: applied, replacing the node id. (3) confirm topology-dsl@v1 consumers [.1, .3, .6]: applied, replacing the node id. (4) confirm topology-ir@v1 consumers [.3, .6]: applied, adding nidana.navigation, which the frontmatter lacked (S27's plan). (5) confirm bus-api@v1 consumers [.1, .6]: applied. (6) confirm bus-testing@v1 consumers [.6]: applied. (7) note workspace member: no conventions change. (8) note package_properties_test.dart: no conventions change; carried in the Delivery paragraph. (9) amend navigation-api@v1 G13 (D5): applied as compatible within v1: G13 clause 'on the VM, in both forms, the first edge's transformer is FunctionRef.named('resolveDeepLinks'), the second's is FunctionRef.of(principalOf) and the third's is FunctionRef.named('applyAuthGuard') (topology-ir@v1 G9)', the navResolver comment, the Breaking list, a Versioning line and a Validation line. Coverage: one new behavior case in navigation_conformance.dart, so no not-executable line was needed. No request entries; no collision.",
+    "Resulting contract state: navigation-api@v1 draft, provisional, produced_by [nidana.navigation.1 to .6], consumers [nidana.flutter, nidana.integration]. topic-model@v1 and topology-dsl@v1 draft, provisional, consumers nidana.runtime's ids, nidana.navigation.1, .3, .6, then nidana.flutter, nidana.tooling, nidana.integration. topology-ir@v1 draft, provisional, consumers [nidana.runtime.1, .8, .11, nidana.navigation.3, .6, nidana.tooling, nidana.integration]; nidana.flutter still to come through its plan's confirm (S27). bus-api@v1 draft, provisional, consumers [nidana.navigation.1, .6, nidana.flutter, nidana.tooling, nidana.integration]. bus-testing@v1 draft, provisional, consumers [nidana.navigation.6, nidana.flutter, nidana.integration]. Nothing flipped.",
+    "No hsdd-contract or hsdd-adr step is needed for this drain: the G13 fixture landed here. navigation-api@v1's frontmatter still lacks nidana.tooling as a consumer; it arrives through nidana.tooling.codegen's plan confirm (root contract matrix intro).",
+    "Finding for a later hsdd-contract touch of topology-ir@v1 (not this drain's to write): on the VM, FunctionRef.of renders a private function or method as `_name@{library key}`, and the key differs between JIT (21497603) and AOT (17497603) for the same library (docs/auto-run/experiments/navigation-g13-coverage/ T7, T4b). This is what G9 says (the text between `from Function '` and the next `'`), but the Function references table does not show it. Consequence: a definition or graph holding a private transformer renders differently, and compares unequal, between a JIT process (the build-time catalog, CI) and an AOT app's bus.toGraph() or a JSON form decoded across them. nidana.tooling.codegen's plan should know this before it compares a catalog graph with a runtime one. The nav-resolver's stages avoid it by design (public method names on private classes, D5); an app's private principalOf does not.",
+    "For nidana.navigation's plan (hsdd-phase-plan's, not edited): D5's evidence sentence says the navigation suite has 40 cases; it now has 41. nidana.navigation.3's gate (--guarantee includes G13) selects the new case, which its scope already covers ('both resolver forms recorded, including their transformer names'). No gate or scope change needed.",
+    "For the next plans: read navigation-api@v1's Delivery paragraph. A contract edge (nidana.flutter compiling against the declarations, nidana.tooling.codegen's scan cases importing the package) waits on nidana.navigation.1; nidana.flutter's phase that binds the executor suite to FlutterNavigationExecutor, and nidana.integration's hard edge, wait on nidana.navigation.6. Values compare by identity until nidana.navigation.2 (routes, intents, RouteState), .3 (access values) and .4 (executor values). nidana.tooling.codegen's catalog will render the resolver's stages as resolveDeepLinks, the app's projection name and applyAuthGuard.",
+    "Experiment: docs/auto-run/experiments/navigation-g13-coverage/ (run.sh, output.txt, probe/private_names.dart, patch/ with the seeded wrapped-projection stand-in). Its stand-in packages are copied from navigation-stage-names; .dart_tool and pubspec.lock are git-ignored. node docs/auto-run/tools/gate.mjs --skill hsdd-reconcile: 0 errors, 0 warnings."
+  ]
+}

@@ -187,8 +187,9 @@ tree. Done when `node docs/auto-run/tools/gate.mjs --final` passes.
 | S30 | 6 | hsdd-phase-plan | nidana.runtime (14 phases) | done | a8f81c8 |
 | S31 | 6 | hsdd-reconcile | nidana.runtime's pending section | done | 59e7c4c |
 | S32 | 6 | hsdd-phase-plan | nidana.navigation (6 phases) | done | b8137e4 |
-| S33 | 6 | hsdd-reconcile | nidana.navigation's pending section | running | |
-| S34.. | 6 | hsdd-phase-plan then hsdd-reconcile | nidana.flutter, nidana.tooling.lint, nidana.tooling.codegen, nidana.integration, in that order | planned | |
+| S33 | 6 | hsdd-reconcile | nidana.navigation's pending section | done | a218bd7 |
+| S34 | 6 | hsdd-phase-plan | nidana.flutter | running | |
+| S35.. | 6 | hsdd-phase-plan then hsdd-reconcile | (nidana.flutter's reconcile), nidana.flutter, nidana.tooling.lint, nidana.tooling.codegen, nidana.integration, in that order | planned | |
 
 ## Change log
 
@@ -324,3 +325,7 @@ tree. Done when `node docs/auto-run/tools/gate.mjs --final` passes.
   across a binding's imported suite) and nidana.runtime's stale D1 Consequences and dev-flow lines.
   nidana.flutter's plan must handle flutter-binding@v1 G17's stub wording and getCurrentValue's off-type
   TypeError (bus-api@v1 G41).
+- 2026-10-18 (UTC), after S33: `FunctionRef.of` renders a private function as `_name@{key}`, with a
+  key that differs between JIT and AOT, so graphs with private transformers compare unequal across them.
+  Routed to nidana.tooling.codegen's plan (catalog versus runtime graph comparison) and to the stage-7
+  pass (topology-ir@v1's Function references table lacks the row).
