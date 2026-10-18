@@ -334,28 +334,4 @@ Bands by color: types (indigo), pure (violet), effects (blue), composition (gree
 
 ## Governance updates (pending reconcile)
 
-> Emitted by hsdd-phase-plan on 2026-10-18. Drained by hsdd-reconcile;
-> do not apply by hand.
-
-- confirm `topic-model@v1` consumers: [nidana.integration.1, nidana.integration.2, nidana.integration.3, nidana.integration.4, nidana.integration.5, nidana.integration.6, nidana.integration.7, nidana.integration.8]
-  - replaces the node placeholder `nidana.integration`; .1 builds the registry against it, every later phase runs its values, and .6 to .8 replay its fixtures unrestricted
-- confirm `topology-dsl@v1` consumers: [nidana.integration.2, nidana.integration.3, nidana.integration.4, nidana.integration.5, nidana.integration.6, nidana.integration.7, nidana.integration.8]
-  - .2 records the example's topologies; .3 to .8 run them live; .6 to .8 replay its fixtures
-- confirm `topology-ir@v1` consumers: [nidana.integration.2, nidana.integration.3, nidana.integration.4, nidana.integration.5, nidana.integration.6, nidana.integration.7, nidana.integration.8]
-  - .2 analyzes the static graph and checks `FunctionRef` names; .3 matches `WriterConflict` findings; .4, .5 and .7 read `bus.toGraph()`; .8 decodes the catalog document; .6 to .8 replay its fixtures
-- confirm `bus-api@v1` consumers: [nidana.integration.3, nidana.integration.4, nidana.integration.5, nidana.integration.6, nidana.integration.7, nidana.integration.8]
-- confirm `bus-testing@v1` consumers: [nidana.integration.3, nidana.integration.4, nidana.integration.5, nidana.integration.6, nidana.integration.7, nidana.integration.8]
-  - `TestBus` in .3 and .4; the envelope recorder through `WidgetTestBus` in .5 and on the app's bus in .6 to .8
-- confirm `navigation-api@v1` consumers: [nidana.integration.1, nidana.integration.2, nidana.integration.4, nidana.integration.5, nidana.integration.6, nidana.integration.7, nidana.integration.8]
-  - .1 declares `AppRoutes` against the declarations of nidana.navigation.1; every later consumer waits on nidana.navigation.6
-- confirm `flutter-binding@v1` consumers: [nidana.integration.5, nidana.integration.6, nidana.integration.7, nidana.integration.8]
-  - nidana.integration.1 depends on the package (the member's pubspec, nidana.flutter.1) but uses none of its declarations
-- confirm `topic-codegen@v1` consumers: [nidana.integration.1, nidana.integration.6, nidana.integration.7, nidana.integration.8]
-  - G10 is exercised by every root analyze from .1 on, over the committed registry; G11 by the registry test of .1 and .8 (D7), as the contract's Validation names this node for both
-- confirm `nidana-checks@v1` consumers: [nidana.integration.1, nidana.integration.6, nidana.integration.7, nidana.integration.8]
-  - .1 waits on nidana.tooling.lint.4 so the plugin's rules report over the member from its first commit; .6 to .8 replay all seventeen recorded invocations, both producers' shares, in the tree's one unrestricted replay (ADR-001 item 10); .8 runs the plugin and the scan over the example and over seeded copies, and checks G18 by comparing `catalog`'s claims with the scan's report, as the contract's Validation names this node
-- note: `packages/nidana_integration`, an unpublished Flutter member (ADR-002 item 3), is created by nidana.integration.1, which inserts `packages/nidana_integration` into the root `pubspec.yaml` workspace list and re-resolves `pubspec.lock`. The workspace list and the lockfile are shared with the member-creating phases of every other node (conventions, Shared workspace files); no other phase of this plan edits them.
-- note: the tree's one unrestricted replay, `fvm dart run nidana_contract_check --all`, first runs in nidana.integration.6's gate and runs again in nidana.integration.7's and nidana.integration.8's (D3). After this plan is reconciled every contract has both sides confirmed.
-- note: the root `fvm dart analyze` reads `build/` directories, the root's and a member's, and does not read `.dart_tool/` (`docs/auto-run/experiments/integration-plan-facts/`, I6). A gate that writes generated Dart, such as `generate`'s `topics.g.dart`, writes it under `.dart_tool/`, or every later root analyze, in every node's gates, reads it. A candidate line for the conventions' Phase design section.
-- note: a test of a Flutter member, run from the workspace root under `fvm flutter test --no-pub`, finds the pinned `dart` at `$FLUTTER_ROOT/bin/cache/dart-sdk/bin/dart`, runs members' executables, `dart analyze` and a nested `flutter test` from it, and can analyze and scan a temporary package whose synthesized package configuration lists the workspace's packages by absolute root (`docs/auto-run/experiments/integration-plan-facts/`, I1 to I5). A candidate line beside the conventions' rule that such a test finds the workspace root by ancestor search.
-- note: build_runner 2.16.1, the workspace's (ADR-002 item 4), has removed `--delete-conflicting-outputs` (ignored with a warning), builds over a committed output in a fresh checkout, and rewrites a stale committed output silently with exit 0 (`docs/auto-run/experiments/integration-plan-facts/`, I7). A gate that checks a committed generated file compares it before it runs build_runner (D7).
+> Reconciled 2026-10-18 by hsdd-reconcile. Drained entries are in git history.

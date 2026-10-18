@@ -145,6 +145,14 @@ the summary table do not depend on it.
 - Gate commands call `fvm dart` and `fvm flutter`, never a bare `dart` or
   `flutter`, and run from the workspace root unless they name a package
   directory
+- A gate's output that is Dart and not a committed source, such as the
+  `topics.g.dart` that `generate` writes in nidana.integration.8's gate,
+  goes under a `.dart_tool/` directory or a temporary directory, never
+  under a `build/` directory. The root `fvm dart analyze` reads
+  `build/`, the root's and every member's, and reads no `.dart_tool/`, so
+  Dart left under `build/` is analyzed by every later gate of every node
+  (`docs/auto-run/experiments/integration-plan-facts/`, I6;
+  `docs/auto-run/experiments/reconcile-final-checks/`, C2)
 - A member's own tests run from the workspace root by path, with the root
   as working directory: `fvm dart test packages/{member}` for a pure-Dart
   member, `fvm flutter test --no-pub packages/{member}` for a Flutter member
@@ -152,7 +160,13 @@ the summary table do not depend on it.
   `Isolate.resolvePackageUri` throws `UnsupportedError`, so a Flutter
   member's test that reads its own sources or the governance tree finds the
   workspace root by ancestor search, the nearest ancestor of the working
-  directory that holds `hsdd/contract/` (nidana.model D6's rule).
+  directory that holds `hsdd/contract/` (nidana.model D6's rule). A
+  Flutter member's test that runs the toolchain spawns the pinned `dart` at
+  `$FLUTTER_ROOT/bin/cache/dart-sdk/bin/dart`, never a `dart` from `PATH`:
+  under `fvm flutter test`, `Platform.resolvedExecutable` is the
+  `flutter_tester`, and `FLUTTER_ROOT` names the pinned SDK, the one the
+  root package configuration's `flutterRoot` names
+  (`docs/auto-run/experiments/integration-plan-facts/`, I1, I2, I5).
   `fvm dart pub get` resolves a workspace with a Flutter member from no
   lockfile, and `fvm dart pub get --enforce-lockfile` passes with one
   (`docs/auto-run/experiments/flutter-phase-facts/`, F1 to F3;

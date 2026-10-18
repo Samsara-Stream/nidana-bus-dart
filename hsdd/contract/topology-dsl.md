@@ -1,14 +1,14 @@
 ---
 id: topology-dsl
 version: v1
-status: draft
+status: stable
 kind: api
 owner: nidana.model
 compatibility: versioned
 produced_by: [nidana.model.4, nidana.model.9, nidana.model.11]
-consumers: [nidana.runtime.1, nidana.runtime.9, nidana.runtime.10, nidana.runtime.11, nidana.runtime.12, nidana.runtime.14, nidana.navigation.1, nidana.navigation.3, nidana.navigation.6, nidana.flutter.1, nidana.flutter.2, nidana.flutter.5, nidana.flutter.6, nidana.flutter.7, nidana.tooling.lint.3, nidana.tooling.lint.4, nidana.tooling.codegen.10, nidana.tooling.codegen.11, nidana.integration]
+consumers: [nidana.runtime.1, nidana.runtime.9, nidana.runtime.10, nidana.runtime.11, nidana.runtime.12, nidana.runtime.14, nidana.navigation.1, nidana.navigation.3, nidana.navigation.6, nidana.flutter.1, nidana.flutter.2, nidana.flutter.5, nidana.flutter.6, nidana.flutter.7, nidana.tooling.lint.3, nidana.tooling.lint.4, nidana.tooling.codegen.10, nidana.tooling.codegen.11, nidana.integration.2, nidana.integration.3, nidana.integration.4, nidana.integration.5, nidana.integration.6, nidana.integration.7, nidana.integration.8]
 external_consumers: [app topology modules, app topology tests]
-phase_ids: provisional
+phase_ids: final
 ---
 
 # Contract: topology-dsl
@@ -41,7 +41,7 @@ Not here: the navigation resolver template (navigation-api@v1), the topology cat
 
 **Libraries:** `package:nidana_dart_contracts/nidana_dart_contracts.dart`, the main library of `nidana_dart_contracts` at `packages/nidana_dart_contracts/`, carries every declaration under Topologies, The builder, The handle and Pipeline values; `package:nidana_dart_contracts/topology_plan.dart`, a second public library named by this contract (ADR-002 item 3), carries every declaration under The plan. The main library does not export the plan library's declarations. Both import nothing beyond the SDK, `package:meta` and the package's own libraries (topic-model@v1 G26). **Code owner:** nidana.model, whose first producing phase lands every declaration below (ordering policy `fp-progression`, root D10; Delivery, below). **Validation artifacts:** `hsdd/contract/fixture/topology-dsl/`, owned by hsdd-contract (ADR-001 item 8).
 
-**Delivery**, by the phases `produced_by` names. nidana.model.4 lands every declaration, and with them topology-ir@v1's `TopologyDefinition`, which `buildDefinition()` returns; a consumer's edge on this contract waits on nidana.model.5, where topology-ir@v1's declarations complete the main library both contracts share. Until the phase that delivers it merges, a body that computes throws `UnimplementedError`: nidana.model.9 delivers recording, `planOf`, the stages, sinks and visitors (G10, G11, G13 to G17, and G9 but for `buildDefinition()`); nidana.model.11 delivers `buildDefinition()` and `TopologyPlan.definition` (G9, G12). G30 holds from nidana.model.4. G18 to G29 are the live implementation's (Live interpretation): nidana.runtime implements them, and they replay through bus-api@v1's `bus_activation_test.dart` from nidana.runtime.12 on (bus-api@v1 Delivery).
+**Delivery**, by the phases `produced_by` names. nidana.model.4 lands every declaration, and with them topology-ir@v1's `TopologyDefinition`, which `buildDefinition()` returns; a consumer's edge on this contract waits on nidana.model.5, where topology-ir@v1's declarations complete the main library both contracts share. A `hard` edge waits instead on nidana.model.11, the last producing phase (nidana.integration). Until the phase that delivers it merges, a body that computes throws `UnimplementedError`: nidana.model.9 delivers recording, `planOf`, the stages, sinks and visitors (G10, G11, G13 to G17, and G9 but for `buildDefinition()`); nidana.model.11 delivers `buildDefinition()` and `TopologyPlan.definition` (G9, G12). G30 holds from nidana.model.4. G18 to G29 are the live implementation's (Live interpretation): nidana.runtime implements them, and they replay through bus-api@v1's `bus_activation_test.dart` from nidana.runtime.12 on (bus-api@v1 Delivery).
 
 The declarations are the schema of this contract (ADR-001 item 4). Bodies are omitted; the comments, the combinator table and the guarantees state the semantics.
 

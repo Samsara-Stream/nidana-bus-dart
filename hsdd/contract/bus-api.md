@@ -1,14 +1,14 @@
 ---
 id: bus-api
 version: v1
-status: draft
+status: stable
 kind: api
 owner: nidana.runtime
 compatibility: versioned
 produced_by: [nidana.runtime.1, nidana.runtime.5, nidana.runtime.6, nidana.runtime.7, nidana.runtime.8, nidana.runtime.11, nidana.runtime.12, nidana.runtime.13, nidana.runtime.14]
-consumers: [nidana.navigation.1, nidana.navigation.6, nidana.flutter.1, nidana.flutter.4, nidana.flutter.5, nidana.flutter.6, nidana.flutter.7, nidana.tooling.lint.1, nidana.tooling.lint.2, nidana.tooling.lint.3, nidana.tooling.lint.4, nidana.tooling.codegen.8, nidana.tooling.codegen.9, nidana.tooling.codegen.11, nidana.integration]
+consumers: [nidana.navigation.1, nidana.navigation.6, nidana.flutter.1, nidana.flutter.4, nidana.flutter.5, nidana.flutter.6, nidana.flutter.7, nidana.tooling.lint.1, nidana.tooling.lint.2, nidana.tooling.lint.3, nidana.tooling.lint.4, nidana.tooling.codegen.8, nidana.tooling.codegen.9, nidana.tooling.codegen.11, nidana.integration.3, nidana.integration.4, nidana.integration.5, nidana.integration.6, nidana.integration.7, nidana.integration.8]
 external_consumers: [app bootstrap code, app services and executors, app pages and widgets, app observers]
-phase_ids: provisional
+phase_ids: final
 ---
 
 # Contract: bus-api

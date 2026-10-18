@@ -1,14 +1,14 @@
 ---
 id: topic-model
 version: v1
-status: draft
+status: stable
 kind: shared-model
 owner: nidana.model
 compatibility: versioned
 produced_by: [nidana.model.3, nidana.model.8]
-consumers: [nidana.runtime.1, nidana.runtime.2, nidana.runtime.3, nidana.runtime.4, nidana.runtime.6, nidana.runtime.7, nidana.runtime.8, nidana.runtime.9, nidana.runtime.10, nidana.runtime.11, nidana.runtime.12, nidana.runtime.13, nidana.runtime.14, nidana.navigation.1, nidana.navigation.3, nidana.navigation.6, nidana.flutter.1, nidana.flutter.4, nidana.flutter.5, nidana.flutter.6, nidana.flutter.7, nidana.tooling.lint.1, nidana.tooling.lint.2, nidana.tooling.lint.3, nidana.tooling.lint.4, nidana.tooling.codegen.3, nidana.tooling.codegen.5, nidana.tooling.codegen.6, nidana.tooling.codegen.7, nidana.tooling.codegen.8, nidana.tooling.codegen.9, nidana.tooling.codegen.10, nidana.tooling.codegen.11, nidana.integration]
+consumers: [nidana.runtime.1, nidana.runtime.2, nidana.runtime.3, nidana.runtime.4, nidana.runtime.6, nidana.runtime.7, nidana.runtime.8, nidana.runtime.9, nidana.runtime.10, nidana.runtime.11, nidana.runtime.12, nidana.runtime.13, nidana.runtime.14, nidana.navigation.1, nidana.navigation.3, nidana.navigation.6, nidana.flutter.1, nidana.flutter.4, nidana.flutter.5, nidana.flutter.6, nidana.flutter.7, nidana.tooling.lint.1, nidana.tooling.lint.2, nidana.tooling.lint.3, nidana.tooling.lint.4, nidana.tooling.codegen.3, nidana.tooling.codegen.5, nidana.tooling.codegen.6, nidana.tooling.codegen.7, nidana.tooling.codegen.8, nidana.tooling.codegen.9, nidana.tooling.codegen.10, nidana.tooling.codegen.11, nidana.integration.1, nidana.integration.2, nidana.integration.3, nidana.integration.4, nidana.integration.5, nidana.integration.6, nidana.integration.7, nidana.integration.8]
 external_consumers: [app topic registries, app observers and sinks, app tests asserting on envelopes]
-phase_ids: provisional
+phase_ids: final
 ---
 
 # Contract: topic-model
@@ -38,7 +38,7 @@ Placement rule the next two contracts follow: a value that crosses more than one
 
 **Library:** `package:nidana_dart_contracts/nidana_dart_contracts.dart`, the main library of the package `nidana_dart_contracts` at `packages/nidana_dart_contracts/` (ADR-002 item 3). This contract defines no second public library; the same main library carries the declarations of topology-dsl@v1 and topology-ir@v1 unless those contracts name a library of their own. **Code owner:** nidana.model, whose first producing phase lands every declaration below (ordering policy `fp-progression`, root D10; Delivery, below). **Validation artifacts:** `hsdd/contract/fixture/topic-model/`, owned by hsdd-contract (ADR-001 item 8).
 
-**Delivery**, by the phases `produced_by` names. nidana.model.3 lands every declaration, and a consumer's edge on this contract alone waits on it; a consumer of topology-dsl@v1 or topology-ir@v1 as well waits on nidana.model.5, where their declarations complete the main library the three contracts share. Until nidana.model.8 merges, a body that computes throws `UnimplementedError` and values compare by identity; nidana.model.8 delivers every behavior guarantee.
+**Delivery**, by the phases `produced_by` names. nidana.model.3 lands every declaration, and a consumer's edge on this contract alone waits on it; a consumer of topology-dsl@v1 or topology-ir@v1 as well waits on nidana.model.5, where their declarations complete the main library the three contracts share. A `hard` edge waits instead on nidana.model.8, the last producing phase (nidana.integration). Until nidana.model.8 merges, a body that computes throws `UnimplementedError` and values compare by identity; nidana.model.8 delivers every behavior guarantee.
 
 The declarations below are the schema of this contract (ADR-001 item 4). Bodies are omitted; the comments and the guarantees state the semantics. Every class here other than the three observer interfaces is an immutable value, annotated `@immutable` from `package:meta`, the package's only dependency.
 

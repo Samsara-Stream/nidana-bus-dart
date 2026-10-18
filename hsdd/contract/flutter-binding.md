@@ -1,14 +1,14 @@
 ---
 id: flutter-binding
 version: v1
-status: draft
+status: stable
 kind: api
 owner: nidana.flutter
 compatibility: versioned
 produced_by: [nidana.flutter.1, nidana.flutter.2, nidana.flutter.3, nidana.flutter.4, nidana.flutter.5, nidana.flutter.6, nidana.flutter.7]
-consumers: [nidana.tooling.codegen.8, nidana.tooling.codegen.9, nidana.tooling.codegen.11, nidana.integration]
+consumers: [nidana.tooling.codegen.8, nidana.tooling.codegen.9, nidana.tooling.codegen.11, nidana.integration.5, nidana.integration.6, nidana.integration.7, nidana.integration.8]
 external_consumers: [Flutter app bootstrap code, Flutter app pages and widgets, Flutter app widget tests]
-phase_ids: provisional
+phase_ids: final
 ---
 
 # Contract: flutter-binding

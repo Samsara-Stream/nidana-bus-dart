@@ -4,12 +4,12 @@
 
 | id | version | kind | status | owner | consumers |
 |----|---------|------|--------|-------|-----------|
-| `bus-api` | v1 | api | draft | `nidana.runtime` | 15 |
-| `bus-testing` | v1 | api | draft | `nidana.runtime` | 8 |
-| `flutter-binding` | v1 | api | draft | `nidana.flutter` | 4 |
-| `navigation-api` | v1 | api | draft | `nidana.navigation` | 10 |
-| `nidana-checks` | v1 | cli | draft | `nidana.tooling` | 1 |
-| `topic-codegen` | v1 | file | draft | `nidana.tooling` | 1 |
-| `topic-model` | v1 | shared-model | draft | `nidana.model` | 34 |
-| `topology-dsl` | v1 | api | draft | `nidana.model` | 19 |
-| `topology-ir` | v1 | api | draft | `nidana.model` | 17 |
+| `bus-api` | v1 | api | stable | `nidana.runtime` | 20 |
+| `bus-testing` | v1 | api | stable | `nidana.runtime` | 13 |
+| `flutter-binding` | v1 | api | stable | `nidana.flutter` | 7 |
+| `navigation-api` | v1 | api | stable | `nidana.navigation` | 16 |
+| `nidana-checks` | v1 | cli | stable | `nidana.tooling` | 4 |
+| `topic-codegen` | v1 | file | stable | `nidana.tooling` | 4 |
+| `topic-model` | v1 | shared-model | stable | `nidana.model` | 41 |
+| `topology-dsl` | v1 | api | stable | `nidana.model` | 25 |
+| `topology-ir` | v1 | api | stable | `nidana.model` | 23 |

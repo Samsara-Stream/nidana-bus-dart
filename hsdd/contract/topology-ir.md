@@ -1,14 +1,14 @@
 ---
 id: topology-ir
 version: v1
-status: draft
+status: stable
 kind: api
 owner: nidana.model
 compatibility: versioned
 produced_by: [nidana.model.5, nidana.model.10, nidana.model.11, nidana.model.12, nidana.model.13, nidana.model.14]
-consumers: [nidana.runtime.1, nidana.runtime.8, nidana.runtime.11, nidana.navigation.3, nidana.navigation.6, nidana.flutter.5, nidana.flutter.6, nidana.flutter.7, nidana.tooling.codegen.1, nidana.tooling.codegen.5, nidana.tooling.codegen.6, nidana.tooling.codegen.7, nidana.tooling.codegen.8, nidana.tooling.codegen.9, nidana.tooling.codegen.10, nidana.tooling.codegen.11, nidana.integration]
+consumers: [nidana.runtime.1, nidana.runtime.8, nidana.runtime.11, nidana.navigation.3, nidana.navigation.6, nidana.flutter.5, nidana.flutter.6, nidana.flutter.7, nidana.tooling.codegen.1, nidana.tooling.codegen.5, nidana.tooling.codegen.6, nidana.tooling.codegen.7, nidana.tooling.codegen.8, nidana.tooling.codegen.9, nidana.tooling.codegen.10, nidana.tooling.codegen.11, nidana.integration.2, nidana.integration.3, nidana.integration.4, nidana.integration.5, nidana.integration.6, nidana.integration.7, nidana.integration.8]
 external_consumers: [CI tools reading topology-graph.json, app topology tests asserting on definitions and graphs]
-phase_ids: provisional
+phase_ids: final
 ---
 
 # Contract: topology-ir
@@ -42,7 +42,7 @@ Not here: duplicate topology ids across modules (the graph rejects them, G11; re
 
 **Libraries:** `package:nidana_dart_contracts/nidana_dart_contracts.dart`, the main library of `nidana_dart_contracts` at `packages/nidana_dart_contracts/`, carries every declaration under The IR and Function references; `package:nidana_dart_contracts/topology_ir.dart`, a second public library named by this contract (ADR-002 item 3), carries every declaration under Graphs, Renderers, The JSON form and Analyses. `topology_ir.dart` does not re-export the main library. Both import nothing beyond the SDK (`dart:convert` included), `package:meta` and the package's own libraries (topic-model@v1 G26). **Code owner:** nidana.model, whose first producing phase lands every declaration below (ordering policy `fp-progression`, root D10; Delivery, below). **Validation artifacts:** `hsdd/contract/schema/topology-ir.schema.json` and `hsdd/contract/fixture/topology-ir/`, owned by hsdd-contract (ADR-001 item 8).
 
-**Delivery**, by the phases `produced_by` names. nidana.model.5 lands every declaration, `TopologyDefinition` having landed with topology-dsl@v1 at nidana.model.4, and a consumer's edge on this contract waits on it. Until the phase that delivers it merges, a body that computes throws `UnimplementedError` and a value compares by identity: nidana.model.10 delivers the IR values, `TransformEdge`'s rules, `FunctionRef`, `isStateBearing` and the findings' value semantics (G2, G5, G6, G9, G10, G23); nidana.model.11 the projection, `ShellClaim` and `TopologyGraph` (G3, G7, G8, G11, G12); nidana.model.12 the analyses (G13 to G18); nidana.model.13 the JSON codec and `JsonRenderer` (G4, G19 to G21); nidana.model.14 the Mermaid and Graphviz renderers (G22).
+**Delivery**, by the phases `produced_by` names. nidana.model.5 lands every declaration, `TopologyDefinition` having landed with topology-dsl@v1 at nidana.model.4, and a consumer's edge on this contract waits on it. A `hard` edge waits instead on nidana.model.14, the last producing phase (nidana.integration). Until the phase that delivers it merges, a body that computes throws `UnimplementedError` and a value compares by identity: nidana.model.10 delivers the IR values, `TransformEdge`'s rules, `FunctionRef`, `isStateBearing` and the findings' value semantics (G2, G5, G6, G9, G10, G23); nidana.model.11 the projection, `ShellClaim` and `TopologyGraph` (G3, G7, G8, G11, G12); nidana.model.12 the analyses (G13 to G18); nidana.model.13 the JSON codec and `JsonRenderer` (G4, G19 to G21); nidana.model.14 the Mermaid and Graphviz renderers (G22).
 
 The declarations are the schema of the Dart surface (ADR-001 item 4); the JSON Schema is the schema of the serialized form (ADR-001 item 5). Bodies are omitted; the comments, the rules and the guarantees state the semantics. Every class here other than the sealed bases `EdgeInput` and `TopologyFinding` and the interface `GraphRenderer` is final; every value type is immutable (annotated `@immutable`) with value equality.
 

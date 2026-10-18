@@ -1,14 +1,14 @@
 ---
 id: nidana-checks
 version: v1
-status: draft
+status: stable
 kind: cli
 owner: nidana.tooling
 compatibility: versioned
 produced_by: [nidana.tooling.lint.1, nidana.tooling.lint.2, nidana.tooling.lint.3, nidana.tooling.lint.4, nidana.tooling.codegen.7, nidana.tooling.codegen.8, nidana.tooling.codegen.9, nidana.tooling.codegen.11]
-consumers: [nidana.integration]
+consumers: [nidana.integration.1, nidana.integration.6, nidana.integration.7, nidana.integration.8]
 external_consumers: [app CI running fvm dart analyze with nidana_dart_lint enabled, app CI running the workspace scan, IDEs showing nidana_dart_lint diagnostics through the analysis server]
-phase_ids: provisional
+phase_ids: final
 ---
 
 # Contract: nidana-checks

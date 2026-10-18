@@ -1,14 +1,14 @@
 ---
 id: topic-codegen
 version: v1
-status: draft
+status: stable
 kind: file
 owner: nidana.tooling
 compatibility: versioned
 produced_by: [nidana.tooling.codegen.1, nidana.tooling.codegen.2, nidana.tooling.codegen.3, nidana.tooling.codegen.4, nidana.tooling.codegen.5, nidana.tooling.codegen.6, nidana.tooling.codegen.10, nidana.tooling.codegen.11]
-consumers: [nidana.integration]
+consumers: [nidana.integration.1, nidana.integration.6, nidana.integration.7, nidana.integration.8]
 external_consumers: [app builds running build_runner over lib/topics.yaml, app CI publishing topics.md and the topology graph page, CI tools reading topology-graph.json]
-phase_ids: provisional
+phase_ids: final
 ---
 
 # Contract: topic-codegen
