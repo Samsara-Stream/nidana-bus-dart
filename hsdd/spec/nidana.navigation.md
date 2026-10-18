@@ -15,7 +15,7 @@
   - the deep-link bootstrap order: the resolver is active and the executor constructed before `start()` (Guide §3.5, Spec §3.13)
   - result handling through typed result topics, matched on payload, never on envelope metadata (Guide §3.6)
 - **Does not own:** platform router calls and route observation (nidana.flutter); the app's auth state type, roles and route table (app code); bus mechanics (nidana.runtime)
-- **Consumes:** [topic-model@v1, topology-dsl@v1, bus-api@v1, bus-testing@v1]
+- **Consumes:** [topic-model@v1, topology-dsl@v1, topology-ir@v1, bus-api@v1, bus-testing@v1]
 - **Produces:** [navigation-api@v1]
 - **Governed by:** [ADR-001, ADR-002, ADR-003]
 - **Sources:**

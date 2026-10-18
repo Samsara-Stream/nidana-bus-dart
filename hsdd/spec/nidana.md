@@ -91,7 +91,7 @@ Nidana Bus is a typed, lifecycle-managed reactive substrate for application data
 - **Purpose:** navigation as a cross-cutting concern on the bus (Guide §3): the intent vocabulary, typed routes, the nav-resolver topology template with its pure guard and deep-link resolution, and the platform-neutral executor protocol
 - **Owns:** package `nidana_dart_navigation` (pure Dart); `NavIntent`, `DeepLink`, `ResolvedNavIntent`, `NavRoute` (the Specification's `Route`, renamed by navigation-api@v1), `RouteRegistry`, `RouteState`, `RouteTransition`, `RouteAccessRequirement`, `RouteAccessPolicy`, `AccessPrincipal`; `NavigationTopics`; the nav-resolver template, which resolves deep links before it guards; `resolveDeepLinks` and `applyAuthGuard`; `NavigationExecutor`, written once over the `NavigationRouter` port each platform implements, with the pure `planNavigation`; `InMemoryRouter` and the executor's conformance suite (D7)
 - **Does not own:** platform router calls (nidana.flutter); the app's auth state type and route table (app code); bus mechanics (nidana.runtime)
-- **Consumes:** [topic-model@v1, topology-dsl@v1, bus-api@v1, bus-testing@v1]
+- **Consumes:** [topic-model@v1, topology-dsl@v1, topology-ir@v1, bus-api@v1, bus-testing@v1]
 - **Produces:** [navigation-api@v1]
 - **Governed by:** [ADR-001, ADR-002, ADR-003]
 - **Sources:** Spec §2.4, §3.8, §3.11, §3.13, Appendix A.6; Guide §2, §3.1 to §3.7, Appendix A
@@ -104,7 +104,7 @@ Nidana Bus is a typed, lifecycle-managed reactive substrate for application data
 - **Purpose:** the Flutter UI runtime adapter (Guide Appendix B layer 6, Spec Appendix A.8): bus reference acquisition, topic-driven widgets, page publishers, page and module scope binding, and the Flutter navigation executor
 - **Owns:** package `nidana_dart_runtime_flutter`; `BusProvider` and its `BuildContext` access; topic widgets that render the first frame from `getCurrentValue`; page publishers with route-derived source; page-scope and module-scope binding (route observer, route prefix, release into the runtime's reference count); `FlutterNavigationRouter` over Flutter's own `Navigator` and `FlutterNavigationExecutor`, which wires it to navigation-api@v1's `NavigationExecutor`; shutdown at the end of the coordination domain; the widget-test library `WidgetTestBus`
 - **Does not own:** reference counting arithmetic and grace timers (nidana.runtime); intent semantics (nidana.navigation); the app's routes
-- **Consumes:** [topic-model@v1, topology-dsl@v1, bus-api@v1, bus-testing@v1, navigation-api@v1]
+- **Consumes:** [topic-model@v1, topology-dsl@v1, topology-ir@v1, bus-api@v1, bus-testing@v1, navigation-api@v1]
 - **Produces:** [flutter-binding@v1]
 - **Governed by:** [ADR-001, ADR-002, ADR-003]
 - **Sources:** Spec §2.4, §2.5, §3.1, §5.2, §5.6, §7.1 to §7.4, §11.1, §11.2, Appendix A.8; Guide §3.4, §3.5, §6.4, §9.3, Appendix B.1; Rationale §5.1 to §5.4
@@ -150,8 +150,8 @@ flowchart LR
     integration["nidana.integration<br/>(leaf-parent)"]
 
     model -- "topic-model@v1 (shared-model)<br/>topology-dsl@v1 (contract)<br/>topology-ir@v1 (contract)" --> runtime
-    model -- "topic-model@v1 (shared-model)<br/>topology-dsl@v1 (contract)" --> navigation
-    model -- "topic-model@v1 (shared-model)<br/>topology-dsl@v1 (contract)" --> flutter
+    model -- "topic-model@v1 (shared-model)<br/>topology-dsl@v1 (contract)<br/>topology-ir@v1 (contract)" --> navigation
+    model -- "topic-model@v1 (shared-model)<br/>topology-dsl@v1 (contract)<br/>topology-ir@v1 (contract)" --> flutter
     model -- "topic-model@v1 (shared-model)<br/>topology-dsl@v1 (contract)<br/>topology-ir@v1 (contract)" --> tooling
     runtime -- "bus-api@v1 (contract)<br/>bus-testing@v1 (hard)" --> navigation
     runtime -- "bus-api@v1 (hard)<br/>bus-testing@v1 (hard)" --> flutter
@@ -180,8 +180,10 @@ flowchart LR
 | nidana.model | nidana.runtime | topology-ir@v1 | contract | activation reads the IR and runs the analyses over it |
 | nidana.model | nidana.navigation | topic-model@v1 | shared-model | navigation topics are topic-model values |
 | nidana.model | nidana.navigation | topology-dsl@v1 | contract | the nav-resolver is a topology declaration |
+| nidana.model | nidana.navigation | topology-ir@v1 | contract | the behavior suites compare recorded `TopologyDefinition`s, `ShellClaim`s and `analyzeTopologyGraph` results (navigation-api@v1 G13, G15, G16, G19, G24); the analyses they run already back nidana.runtime's activation, which this node waits on (D10) |
 | nidana.model | nidana.flutter | topic-model@v1 | shared-model | widgets take topics |
 | nidana.model | nidana.flutter | topology-dsl@v1 | contract | module and page bindings activate topologies |
+| nidana.model | nidana.flutter | topology-ir@v1 | contract | the suite compares `bus.toGraph()` claims with `ShellClaim` values (flutter-binding@v1 G7, G14, G17), and the bound executor suite runs `analyzeTopologyGraph` (navigation-api@v1 G24); the analyses already back nidana.runtime's activation, which this node waits on (D10) |
 | nidana.model | nidana.tooling | topic-model@v1 | shared-model | generated registries declare topic-model values |
 | nidana.model | nidana.tooling | topology-dsl@v1 | contract | the catalog calls `buildDefinition()` |
 | nidana.model | nidana.tooling | topology-ir@v1 | contract | the checks run the model's analyses over scanned IR |
@@ -196,7 +198,7 @@ flowchart LR
 | nidana.flutter | nidana.tooling | flutter-binding@v1 | contract | the recognizer matches `PageScope` and `FlutterNavigationExecutor` claim sites, and the scan's cases import the package (nidana.tooling D3) |
 | every other child | nidana.integration | every contract it produces | hard | integration composes live components |
 
-D10 fixes what `contract` and `shared-model` mean between Dart packages. The three edges from nidana.runtime (bus-testing@v1), nidana.navigation and nidana.flutter into nidana.tooling were added on 2026-10-18 from nidana.tooling D3: tooling consumes those contracts by name, never by behavior, and within it only nidana.tooling.codegen's workspace scan and nidana.tooling.lint's recorded invocations wait on them.
+D10 fixes what `contract` and `shared-model` mean between Dart packages. The three edges from nidana.runtime (bus-testing@v1), nidana.navigation and nidana.flutter into nidana.tooling were added on 2026-10-18 from nidana.tooling D3: tooling consumes those contracts by name, never by behavior, and within it only nidana.tooling.codegen's workspace scan and nidana.tooling.lint's recorded invocations wait on them. The two topology-ir@v1 edges into nidana.navigation and nidana.flutter were added on 2026-10-18 from the fixtures those nodes' gates run (D10).
 
 ## Development flow
 
@@ -211,13 +213,13 @@ Critical path: nidana.model, nidana.runtime, nidana.flutter, nidana.integration.
 
 ## Contract matrix
 
-All nine contracts exist under `hsdd/contract/`, written by hsdd-contract in the format ADR-001 fixes, each `draft` with provisional phase ids until hsdd-reconcile confirms them. The kinds below are the ones they carry. The tooling consumers of bus-testing@v1, navigation-api@v1 and flutter-binding@v1 (nidana.tooling D3) and the two tooling children as producers (nidana.tooling D2) reach those contracts' frontmatter through the children's `confirm` entries at reconcile.
+All nine contracts exist under `hsdd/contract/`, written by hsdd-contract in the format ADR-001 fixes, each `draft` with provisional phase ids until hsdd-reconcile confirms them. The kinds below are the ones they carry. The tooling consumers of bus-testing@v1, navigation-api@v1 and flutter-binding@v1 (nidana.tooling D3) and the two tooling children as producers (nidana.tooling D2) reach those contracts' frontmatter through the children's `confirm` entries at reconcile. nidana.navigation and nidana.flutter as consumers of topology-ir@v1 (D10) reach its frontmatter the same way, through their phase plans' `confirm` entries.
 
 | Contract | Kind | Producer | Consumers in the tree | External consumers |
 |----------|------|----------|-----------------------|--------------------|
 | topic-model@v1 | shared-model | nidana.model | runtime, navigation, flutter, tooling, integration | app code declaring topics and observers |
 | topology-dsl@v1 | api | nidana.model | runtime (implements it live), navigation, flutter, tooling, integration | app code declaring topologies |
-| topology-ir@v1 | api, with a serialized form | nidana.model | runtime, tooling, integration | CI tools reading `topology-graph.json` |
+| topology-ir@v1 | api, with a serialized form | nidana.model | runtime, navigation, flutter, tooling, integration | CI tools reading `topology-graph.json` |
 | bus-api@v1 | api | nidana.runtime | navigation, flutter, tooling (surface only), integration | app bootstrap, services, pages |
 | bus-testing@v1 | api | nidana.runtime | navigation, flutter, tooling (surface only), integration | app tests |
 | navigation-api@v1 | api | nidana.navigation | flutter (implements the `NavigationRouter` port and binds the executor suite), tooling (surface only), integration | app code publishing intents |
@@ -324,6 +326,12 @@ Marked for upstreaming: Spec §3.3's RxDart bullet should name the asynchronous 
 ### D10: Edge types between Dart packages
 
 Dart code compiles only against real declarations, so between packages of this tree a `contract` or `shared-model` edge means the consumer starts once the producer's first phase, which lands the contract's types and signatures under `fp-progression`, has merged; it does not wait for the producer's node to finish. A `hard` edge means the consumer's tests need the producer's real behavior.
+
+- **2026-10-18: edges implied by fixtures.** A node consumes every contract whose public libraries are imported by the fixtures its phase gates run: the fixtures of the contracts it produces, the bindings ADR-001 item 4 places in its producing contract's fixture directory, and the conformance libraries those bindings import by relative path. Its gate cannot run before that contract's producer lands its first phase. This is nidana.tooling D3's test, applied to the whole tree. A library that carries the declarations of several contracts, as `nidana_dart_contracts.dart` carries those of topic-model@v1, topology-dsl@v1 and topology-ir@v1 (topic-model@v1 Interface), counts for the contracts whose declarations the fixture names, by the consuming contract's Boundary table. A sweep of the nine fixture trees under `hsdd/contract/fixture/` found two missing edges, added here to the consumers' Consumes lines, the DAG, the edge table and the contract matrix:
+  - topology-ir@v1 into nidana.navigation, whose suites name `TopologyDefinition`, `ShellClaim` and `analyzeTopologyGraph` from `topology_ir.dart` and the main library (navigation-api@v1 G13, G15, G16, G19, G24);
+  - topology-ir@v1 into nidana.flutter, whose suite compares `bus.toGraph()` claims with `ShellClaim` values (flutter-binding@v1 G7, G14, G17) and whose binding of navigation-api@v1's executor suite runs `analyzeTopologyGraph` (navigation-api@v1 G24).
+
+  Both edges are `contract`, not `hard`. The behavior these cases need from nidana.model, the analyses and definition equality, is what nidana.runtime's activation checks and live graph use (bus-api@v1 G23, G24, G37). nidana.runtime's unrestricted bus-api@v1 replay at its last producing phase therefore needs it before the runtime ships, and both nodes already wait on the runtime shipping through `hard` edges. nidana.runtime types its own use of the same analyses `contract` (nidana.runtime Contracts). Neither edge changes the development flow. Every other fixture import maps to a contract its node already consumes. nidana.tooling.lint's `analyze-*` cases import the main library but name no topology-ir@v1 declaration, so that child gains no edge. `package:nidana_contract_check/fixture.dart` is the replay tool (ADR-001 item 9), not a contract's library, and every node that imports it already waits on nidana.model's first phase, which writes it.
 
 ## Proposed ADRs
 
