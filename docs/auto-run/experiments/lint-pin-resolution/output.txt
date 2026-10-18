@@ -1,0 +1,20 @@
+Dart SDK version: 3.13.5 (stable) (Tue Sep 29 01:00:52 2026 -0700) on "macos_arm64"
+
+### L1 pure members only
+pub get exit: 0
+  resolved analyzer: "14.5.0"
+  resolved test: "1.33.0"
+  resolved test_core: "0.6.21"
+
+### L2 the plugin's member added
+pub get exit: 0
+< analyzer 13.3.0 (was 14.5.0) (14.5.0 available)
+  resolved analysis_server_plugin: "0.3.18"
+  resolved analyzer: "13.3.0"
+  resolved analyzer_testing: "0.3.2"
+  resolved test: "1.33.0"
+  resolved test_core: "0.6.21"
+
+### L3 a member constrained to analyzer ^14.5.0 beside the plugin
+pub get exit: 1
+Because lpr_codegen depends on analyzer ^14.5.0 and lpr_lint depends on analyzer 13.3.0, version solving failed.

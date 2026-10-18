@@ -1,0 +1,9 @@
+# plugin-rebuild: does `fvm dart analyze` pick up a change to a path-enabled
+# analysis server plugin's source at the same path (see run.sh). Its own pub
+# workspace, never a member of the repository's workspace.
+name: pr_root
+publish_to: none
+environment:
+  sdk: ^3.13.0
+workspace:
+  - packages/pr_lint

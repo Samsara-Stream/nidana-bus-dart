@@ -1,0 +1,13 @@
+Dart SDK version: 3.13.5 (stable) (Tue Sep 29 01:00:52 2026 -0700) on "macos_arm64"
+pub get exit: 0
+resolved analysis_server_plugin: "0.3.18"
+resolved analyzer: "13.3.0"
+resolved analyzer_testing: "0.3.2"
+resolved test: "1.31.1"
+test_reflective_loader entries in the lockfile: 0
+00:00 +0: loading test/rules/raw_string_test.dart
+00:00 +0: test/rules/raw_string_test.dart: Q1 the rule reports through assertDiagnostics, with its message
+00:00 +1: test/rules/raw_string_test.dart: Q2 the decision is a pure function over a resolved node
+00:00 +2: test/rules/raw_string_test.dart: Q3 nothing is reported in a test directory
+00:00 +3: All tests passed!
+exit: 0

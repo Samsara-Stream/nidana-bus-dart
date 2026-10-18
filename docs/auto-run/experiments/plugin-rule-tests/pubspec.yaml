@@ -1,0 +1,15 @@
+# plugin-rule-tests: can nidana_dart_lint's rules be tested with
+# analyzer_testing under plain package:test, with no test_reflective_loader
+# (ADR-002 item 3 lists analyzer_testing and test only), and can a rule's
+# decision be tested as a pure function over a resolved node (see run.sh).
+# Standalone package, never a member of the repository's workspace.
+name: plugin_rule_tests
+publish_to: none
+environment:
+  sdk: ^3.13.0
+dependencies:
+  analysis_server_plugin: 0.3.18
+  analyzer: 13.3.0
+dev_dependencies:
+  analyzer_testing: 0.3.2
+  test: 1.31.1

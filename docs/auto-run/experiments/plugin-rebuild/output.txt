@@ -1,0 +1,91 @@
+
+### setup: resolve, SDK
+pub get exit: 0
+Dart SDK version: 3.13.5 (stable) (Tue Sep 29 01:00:52 2026 -0700) on "macos_arm64"
+synthetic packages for this path before R1: 0
+
+### R1 cold: the plugin built for the first time at this path
+WARNING|FLAG_RULE|message v1: flagMe.
+exit: 2
+seconds: 11
+synthetic packages for this path after R1: 1
+
+### R2 warm: unchanged
+WARNING|FLAG_RULE|message v1: flagMe.
+exit: 2
+seconds: 4
+
+### R3 lib/src edit: message v1 becomes v2
+WARNING|FLAG_RULE|message v2: flagMe.
+exit: 2
+seconds: 11
+
+### R4 lib/src edit: the rule also reports alsoMe
+WARNING|FLAG_RULE|message v2: flagMe.
+WARNING|FLAG_RULE|message v2: alsoMe.
+exit: 2
+seconds: 11
+
+### R5 lib/main.dart edit: a second rule registered
+WARNING|FLAG_RULE|message v2: flagMe.
+WARNING|OTHER_RULE|other rule: flagMe.
+WARNING|FLAG_RULE|message v2: alsoMe.
+WARNING|OTHER_RULE|other rule: alsoMe.
+exit: 2
+seconds: 11
+synthetic packages for this path after R5: 1
+
+### R6 lib/src no longer compiles
+An error occurred while executing an analyzer plugin: Failed to compile "{home}/.dartServer/.plugin_manager/c3e81ce3102513cdd7ec3d28be2da7e1/bin/plugin.dart" to an AOT snapshot.
+  pluginFolder = {home}/.dartServer/.plugin_manager/c3e81ce3102513cdd7ec3d28be2da7e1
+  exitCode = 254
+  stdout = 
+  stderr = ../../packages/pr_lint/lib/src/rule.dart:38:20: Error: Expected an identifier, but got ';'.
+Try inserting an identifier before ';'.
+final int broken = ;
+                   ^
+Error: AOT compilation failed
+Bad state: Generating AOT kernel dill failed!
+
+
+#0      PluginManager._compileAsAot (package:analysis_server/src/plugin/plugin_manager.dart:644)
+#1      PluginManager._computeFiles (package:analysis_server/src/plugin/plugin_manager.dart:692)
+#2      PluginManager.filesFor (package:analysis_server/src/plugin/plugin_manager.dart:348)
+#3      PluginManager.addPluginToContextRoot (package:analysis_server/src/plugin/plugin_manager.dart:189)
+#4      PluginWatcher._addPlugins (package:analysis_server/src/plugin/plugin_watcher.dart:160)
+#5      PluginWatcher.addedDriver (package:analysis_server/src/plugin/plugin_watcher.dart:75)
+#6      AnalysisDriverScheduler.add (package:analyzer/src/dart/analysis/driver.dart:2682)
+#7      new AnalysisDriver (package:analyzer/src/dart/analysis/driver.dart:345)
+#8      ContextBuilderImpl.createContext (package:analyzer/src/dart/analysis/context_builder.dart:160)
+#9      new AnalysisContextCollectionImpl (package:analyzer/src/dart/analysis/analysis_context_collection.dart:95)
+#10     ContextManagerImpl._createAnalysisContexts.performContextRebuildGuarded.performContextRebuild (package:analysis_server/src/context_manager.dart:596)
+<asynchronous suspension>
+#11     ContextManagerImpl._createAnalysisContexts.performContextRebuildGuarded (package:analysis_server/src/context_manager.dart:750)
+<asynchronous suspension>
+#12     _CancellingTaskQueue.queue.<anonymous closure> (package:analysis_server/src/context_manager.dart:1059)
+<asynchronous suspension>
+#13     ContextManagerImpl.setRoots (package:analysis_server/src/context_manager.dart:386)
+<asynchronous suspension>
+#14     LegacyAnalysisServer.setAnalysisRoots (package:analysis_server/src/legacy_analysis_server.dart:903)
+<asynchronous suspension>
+#15     AnalysisSetAnalysisRootsHandler.handle (package:analysis_server/src/handler/legacy/analysis_set_analysis_roots.dart:52)
+<asynchronous suspension>
+#16     LegacyAnalysisServer.handleRequest.<anonymous closure>.<anonymous closure> (package:analysis_server/src/legacy_analysis_server.dart:651)
+<asynchronous suspension>
+#17     AsyncSpan.runUnary (package:perf_witness/src/async_span.dart:183)
+<asynchronous suspension>
+#18     OperationPerformanceImpl.runAsync (package:analyzer/src/util/performance/operation_performance.dart:229)
+<asynchronous suspension>
+#19     LegacyAnalysisServer.handleRequest.<anonymous closure> (package:analysis_server/src/legacy_analysis_server.dart:631)
+<asynchronous suspension>
+
+exit: 4
+seconds: 5
+
+### R7 restored to R5's source
+WARNING|FLAG_RULE|message v2: flagMe.
+WARNING|OTHER_RULE|other rule: flagMe.
+WARNING|FLAG_RULE|message v2: alsoMe.
+WARNING|OTHER_RULE|other rule: alsoMe.
+exit: 2
+seconds: 11

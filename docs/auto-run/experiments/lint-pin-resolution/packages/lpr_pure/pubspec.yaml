@@ -1,0 +1,8 @@
+# Stands in for the members before nidana.flutter.1: pure Dart, test only.
+name: lpr_pure
+publish_to: none
+environment:
+  sdk: ^3.13.0
+resolution: workspace
+dev_dependencies:
+  test: ^1.25.0

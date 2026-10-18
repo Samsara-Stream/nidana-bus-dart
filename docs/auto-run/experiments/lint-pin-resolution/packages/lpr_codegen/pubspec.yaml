@@ -1,0 +1,9 @@
+# A member that took the caret lower bound from a lockfile resolving
+# analyzer 14.5.0 (ADR-002 item 4's rule applied before the pins landed).
+name: lpr_codegen
+publish_to: none
+environment:
+  sdk: ^3.13.0
+resolution: workspace
+dependencies:
+  analyzer: ^14.5.0

@@ -1,0 +1,11 @@
+# lint-pin-resolution: what adding nidana_dart_lint's exact pins does to a
+# workspace that has no Flutter member yet (see run.sh). Its own pub
+# workspace, never a member of the repository's workspace.
+name: lpr_root
+publish_to: none
+environment:
+  sdk: ^3.13.0
+workspace:
+  - packages/lpr_pure
+dev_dependencies:
+  lints: ^6.1.0

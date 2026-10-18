@@ -1,0 +1,3 @@
+plugins:
+  pr_lint:
+    path: ../../packages/pr_lint

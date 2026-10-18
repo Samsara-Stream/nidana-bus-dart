@@ -1,0 +1,6 @@
+# A package root for the analyzer, shaped like a nidana-checks@v1 analyze-*
+# case's files/. Never resolved by pub.
+name: example_app
+publish_to: none
+environment:
+  sdk: ^3.13.0
