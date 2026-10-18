@@ -1,0 +1,48 @@
+
+### G0 pub get at the root, offline
+Downloading packages...
+Got dependencies!
+exit: 0
+
+### G1 dart test with a member directory, run from the root (root dev dependency: lints only)
+00:00 +0: packages/mgc_pure/test/pure_test.dart: twice doubles
+00:00 +1: packages/mgc_pure/test/pure_test.dart: cwd is reported
+cwd=/Users/mohamad.purbo/gitx/nidana-bus-dart/docs/auto-run/experiments/model-gate-commands
+00:00 +2: All tests passed!
+exit: 0
+
+### G2 dart test with a member's test directory, run from the root
+cwd=/Users/mohamad.purbo/gitx/nidana-bus-dart/docs/auto-run/experiments/model-gate-commands
+00:00 +2: All tests passed!
+exit: 0
+
+### G3 dart test inside the member
+00:00 +1: test/pure_test.dart: cwd is reported
+cwd=/Users/mohamad.purbo/gitx/nidana-bus-dart/docs/auto-run/experiments/model-gate-commands/packages/mgc_pure
+00:00 +2: All tests passed!
+exit: 0
+
+### G4 dart run of a member's executable from the root, the root not depending on it
+tool ran with [a, b] in /Users/mohamad.purbo/gitx/nidana-bus-dart/docs/auto-run/experiments/model-gate-commands
+exit: 0
+
+### G5 dart test of a member directory that does not exist
+Failing tests:
+  packages/absent: loading packages/absent
+exit: 1
+
+### G6 pub get --enforce-lockfile with the committed lockfile in place
+Downloading packages...
+Got dependencies!
+exit: 0
+
+### G7 pub get --enforce-lockfile after a member adds a dependency the lockfile lacks (json_schema)
+
+To update `pubspec.lock` run `dart pub get` without
+`--enforce-lockfile`.
+exit: 65
+
+### G8 dart analyze --fatal-infos at the root
+Analyzing model-gate-commands...
+No issues found!
+exit: 0

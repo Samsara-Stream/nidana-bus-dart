@@ -1,0 +1,5 @@
+name: mgc_tool
+publish_to: none
+environment:
+  sdk: ^3.13.0
+resolution: workspace

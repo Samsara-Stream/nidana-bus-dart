@@ -1,0 +1,11 @@
+# model-gate-commands: checks the gate command forms nidana.model's phase plan
+# uses (S28). Its own pub workspace, never a member of the repository's.
+name: mgc_root
+publish_to: none
+environment:
+  sdk: ^3.13.0
+workspace:
+  - packages/mgc_pure
+  - packages/mgc_tool
+dev_dependencies:
+  lints: ^6.1.0
