@@ -2042,4 +2042,80 @@ final List<ConformanceCase<BusApiHarness>> busApiConformance =
           throwsA(isA<TopicCollision>()));
     },
   ),
+  // A widened reference lets a call pass a value that is not of the topic's
+  // value type. The three cases below are what G41 states for such a value.
+  (
+    name: 'G41 an off-type value published through a widened reference reaches the observers and the widened subscriptions, while a typed subscription skips it, its TypeError reaching the zone the bus was built in, and receives later deliveries',
+    body: (BusApiHarness h) async {
+      final List<Object> errors = <Object>[];
+      late final Bus bus;
+      runZonedGuarded(() => bus = h.bus(), (Object e, StackTrace s) => errors.add(e));
+      bus.start();
+      final _Observer o = _Observer();
+      bus.addObserver(o);
+      final List<Object?> any = _listenAny(bus, _e);
+      final List<int> typed = _listen(bus, _e);
+      _publishAny(bus, _e, 'off-type');
+      bus.publish(_e, 2);
+      h.flush(bus);
+      expect(o.payloads, <Object?>['off-type', 2]);
+      expect(any, <Object?>['off-type', 2]);
+      expect(typed, <int>[2]);
+      expect(errors, <Object?>[isA<TypeError>()]);
+    },
+  ),
+  (
+    name: 'G41 the current value and the buffer hold an off-type value published through a widened reference; reading it at the value type throws TypeError at the call, and so does an activate whose reduceInto seed it is, which activates and claims nothing',
+    body: (BusApiHarness h) async {
+      final Bus bus = h.bus();
+      bus.start();
+      final Publisher owner =
+          bus.publisher(_svc, writes: <StateTopic<Object?>>{_s2});
+      _writerAny(owner, _s2).publish('off-type');
+      _publishAny(bus, _r, 'off-type');
+      expect(_currentAny(bus, _s2), 'off-type');
+      expect(_bufferedAny(bus, _r), <Object?>['off-type']);
+      expect(() => bus.getCurrentValue(_s2), throwsA(isA<TypeError>()));
+      expect(() => bus.getBufferedValues(_r), throwsA(isA<TypeError>()));
+      owner.dispose();
+      expect(
+          () => bus.activate(_t('fold-off-type',
+              (TopologyBuilder b) => b.reduceInto(_s2, b.read(_e), _sum))),
+          throwsA(isA<TypeError>()));
+      expect(bus.toGraph().topologies, isEmpty);
+      expect(bus.publisher(_svc, writes: <StateTopic<Object?>>{_s2}).writes,
+          <StateTopic<Object?>>{_s2});
+    },
+  ),
+  (
+    name: 'G41 a topology read skips an off-type value reached through a widened reference, at its connection and at a later delivery, its TypeError reaching the zone the bus was built in, and the topology goes on',
+    body: (BusApiHarness h) async {
+      final List<Object> errors = <Object>[];
+      final List<BusDiagnostic> d = <BusDiagnostic>[];
+      late final Bus bus;
+      runZonedGuarded(
+          () => bus = h.bus(_dev(d)), (Object e, StackTrace s) => errors.add(e));
+      bus.start();
+      final Publisher owner =
+          bus.publisher(_svc, writes: <StateTopic<Object?>>{_s2});
+      _writerAny(owner, _s2).publish('off-type');
+      final List<int> fromState = _listen(bus, _out);
+      final List<int> fromEvents = _listen(bus, _outB);
+      final TopologyHandle handle = bus.activate(_t('double', (TopologyBuilder b) {
+        b.write(_out, b.read(_s2).map(_double));
+        b.write(_outB, b.read(_e).map(_double));
+      }));
+      h.flush(bus);
+      expect(errors, <Object?>[isA<TypeError>()]);
+      owner.writer(_s2).publish(3);
+      _publishAny(bus, _e, 'off-type');
+      bus.publish(_e, 4);
+      h.flush(bus);
+      expect(fromState, <int>[6]);
+      expect(fromEvents, <int>[8]);
+      expect(errors, <Object?>[isA<TypeError>(), isA<TypeError>()]);
+      expect(handle.isActive, isTrue);
+      expect(d.whereType<PipelineTerminated>(), isEmpty);
+    },
+  ),
 ];

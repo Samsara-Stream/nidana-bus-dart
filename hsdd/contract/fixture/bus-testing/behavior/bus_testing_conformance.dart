@@ -92,6 +92,16 @@ final class _Observer implements BusObserver {
   }
 }
 
+// Generic shell code holds a topic through a widened reference (bus-api@v1
+// G41). Each helper takes one, so inference gives its call the reference's
+// type argument, Object?.
+
+void _publishAny(Publisher publisher, MultiWriterTopic<Object?> topic, Object? value) =>
+    publisher.publish(topic, value);
+
+StateWriter<Object?> _stubAny(TestBus bus, StateTopic<Object?> topic) =>
+    bus.stub(topic);
+
 /// The record a fresh TestBus makes of one publish to [topic].
 RecordedEnvelope _recordOne<T>(MultiWriterTopic<T> topic, T value) {
   final TestBus bus = TestBus();
@@ -798,6 +808,27 @@ final List<ConformanceCase<BusTestingHarness>> busTestingConformance =
       expect(a == otherTopic, isFalse);
     },
   ),
+  (
+    name: 'G16 for an envelope published through a widened reference, envelopesOf returns an equal envelope typed by the topic and payloadsOf its payload; an off-type payload makes both queries throw TypeError',
+    body: (BusTestingHarness h) async {
+      final TestBus bus = TestBus();
+      bus.start();
+      _publishAny(bus.input, _e, 3);
+      bus.input.publish(_e, 4);
+      final List<MessageEnvelope<int>> events = bus.recorder.envelopesOf(_e);
+      expect(events, hasLength(2));
+      expect(events[0], bus.recorder.envelopes[0].unredacted);
+      expect(events[0].payload, 3);
+      expect(events[1], same(bus.recorder.envelopes[1].unredacted));
+      expect(bus.recorder.payloadsOf(_e), <int>[3, 4]);
+      _publishAny(bus.input, _e, 'off-type');
+      expect(() => bus.recorder.envelopesOf(_e), throwsA(isA<TypeError>()));
+      expect(() => bus.recorder.payloadsOf(_e), throwsA(isA<TypeError>()));
+      expect(<Object?>[
+        for (final RecordedEnvelope r in bus.recorder.envelopes) r.envelope.payload,
+      ], <Object?>[3, 4, 'off-type']);
+    },
+  ),
   // ------------------------------------------------------------ G17
   (
     name: 'G17 a recorder attached to a production-provider bus records its deliveries from the attachment on',
@@ -907,6 +938,36 @@ final List<ConformanceCase<BusTestingHarness>> busTestingConformance =
       final TestBus closed = TestBus();
       closed.shutdown();
       expect(() => closed.input, throwsStateError);
+    },
+  ),
+  (
+    name: 'G18 stub through a StateTopic<Object?> reference and at the value type returns writers of one publisher with one claim, each the same on every call with its type argument, whichever is called first',
+    body: (BusTestingHarness h) async {
+      for (final bool widenedFirst in <bool>[true, false]) {
+        final TestBus bus = TestBus();
+        final StateWriter<Object?> any;
+        final StateWriter<int> typed;
+        if (widenedFirst) {
+          any = _stubAny(bus, _auth);
+          typed = bus.stub(_auth);
+        } else {
+          typed = bus.stub(_auth);
+          any = _stubAny(bus, _auth);
+        }
+        final String order = widenedFirst ? 'widened first' : 'typed first';
+        expect(_stubAny(bus, _auth), same(any), reason: order);
+        expect(bus.stub(_auth), same(typed), reason: order);
+        final ShellClaim claim = bus.toGraph().claims.single;
+        expect(claim.source, TestBus.testSource, reason: order);
+        expect(claim.writes, <TopicRef>{_auth.ref}, reason: order);
+        bus.start();
+        any.publish(5);
+        typed.publish(6);
+        expect(bus.getCurrentValue(_auth), 6, reason: order);
+        expect(<MessageSource>[
+          for (final RecordedEnvelope r in bus.recorder.envelopes) r.envelope.source,
+        ], <MessageSource>[TestBus.testSource, TestBus.testSource], reason: order);
+      }
     },
   ),
   // ------------------------------------------------------------ G19

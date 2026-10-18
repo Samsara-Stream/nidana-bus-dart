@@ -1,0 +1,21 @@
+Dart SDK version: 3.13.5 (stable) (Tue Sep 29 01:00:52 2026 -0700) on "macos_arm64"
+pub get exit: 0
+
+### E1 filter admits a case: --name '^(G18) '
+00:00 +0: loading test/live_binding_test.dart
+00:00 +0: G18 activate interprets the plan
+00:00 +1: All tests passed!
+exit: 0
+
+### E2 filter admits no case (a bus-api id only): --name '^(G3) '
+00:00 +0: loading test/live_binding_test.dart
+No tests ran.
+No tests match regular expression "^(G3) ".
+exit: 79
+
+### E3 the bare bus-api ids of nidana.runtime.11 applied as a name filter to the live binding
+00:00 +0: loading test/live_binding_test.dart
+00:00 +0: G18 activate interprets the plan
+00:00 +1: G19 a read applies its effective dedup
+00:00 +2: All tests passed!
+exit: 0

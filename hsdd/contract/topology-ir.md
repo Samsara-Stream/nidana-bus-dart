@@ -6,7 +6,7 @@ kind: api
 owner: nidana.model
 compatibility: versioned
 produced_by: [nidana.model.5, nidana.model.10, nidana.model.11, nidana.model.12, nidana.model.13, nidana.model.14]
-consumers: [nidana.runtime, nidana.tooling, nidana.integration]
+consumers: [nidana.runtime.1, nidana.runtime.8, nidana.runtime.11, nidana.tooling, nidana.integration]
 external_consumers: [CI tools reading topology-graph.json, app topology tests asserting on definitions and graphs]
 phase_ids: provisional
 ---

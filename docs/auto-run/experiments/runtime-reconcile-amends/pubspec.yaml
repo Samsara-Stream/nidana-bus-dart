@@ -1,0 +1,18 @@
+# runtime-reconcile-amends: replays the fixtures of bus-api@v1 and
+# bus-testing@v1, as amended within v1 from nidana.runtime's phase plan (its
+# D5, D6 and D7), and of every contract whose fixtures import
+# nidana_dart_runtime, against the stand-in runtime of ../bus-api-widened/
+# before and after a patch that meets the amendments (see run.sh). Its own
+# pub workspace, never a member of the repository's workspace.
+name: rra_root
+publish_to: none
+environment:
+  sdk: ^3.13.0
+workspace:
+  - packages/nidana_dart_contracts
+  - packages/nidana_contract_check
+  - packages/nidana_dart_runtime
+  - packages/nidana_dart_navigation
+  - packages/nidana_dart_runtime_flutter
+dev_dependencies:
+  lints: ^6.1.0

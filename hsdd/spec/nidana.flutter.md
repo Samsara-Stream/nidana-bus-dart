@@ -27,7 +27,7 @@
 
 The adapter is thin by design: every decision about delivery, ownership, scope lifetime and grace lives in the runtime, and every decision about intents lives in navigation. This node binds those to Flutter's widget and route lifecycles. Flutter's UI runs on the same isolate as the rest of the Dart code, so no dispatcher hop is needed for UI-bound topics (Spec §11.1).
 
-Two runtime facts shape the widgets (root D9, OQ-R1): `getCurrentValue` is synchronous, while a new `observe` subscription may receive its first value one microtask later. A topic widget therefore takes its first frame from `getCurrentValue` and must not render the replayed first value a second time.
+Two runtime facts shape the widgets (root D9; bus-api@v1 G17, which resolved OQ-R1): `getCurrentValue` is synchronous, while a new `observe` subscription receives its first value in the first provider-zone microtask after `listen`. A topic widget therefore takes its first frame from `getCurrentValue` and must not render the replayed first value a second time.
 
 ## Open questions
 

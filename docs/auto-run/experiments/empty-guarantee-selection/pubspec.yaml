@@ -1,0 +1,10 @@
+# empty-guarantee-selection: what `dart test` does when the name filter the
+# replay tool derives from --guarantee (nidana.model.6: anchored at the start
+# of the case name) admits no case of a binding. Its own package, never a
+# member of the repository's workspace.
+name: empty_guarantee_selection
+publish_to: none
+environment:
+  sdk: ^3.13.0
+dev_dependencies:
+  test: ^1.25.0
