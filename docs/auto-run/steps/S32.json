@@ -1,0 +1,278 @@
+{
+  "step_ref": "S32",
+  "skill": "hsdd-phase-plan",
+  "target": "nidana.navigation (hsdd/spec/nidana.navigation.md)",
+  "status": "completed",
+  "stop": null,
+  "artifacts": [
+    "hsdd/spec/nidana.navigation.md",
+    "docs/auto-run/experiments/navigation-stage-names/"
+  ],
+  "decisions": [
+    {
+      "at": "2026-10-18T03:54:29Z",
+      "artifact": "hsdd/spec/nidana.navigation.md",
+      "question": "navigation-api@v1 G13 fixes the nav-resolver's edges and order but not the functions they record; topology-ir@v1 G9 leaves a closure anonymous. Should the template's two stage functions be closures or named method tear-offs?",
+      "options": [
+        { "label": "method tear-offs of private stage classes", "consequence": "The recorded IR and every rendered graph name the stages resolveDeepLinks and applyAuthGuard, as Guide §3.4 draws them; about 35 more lines; consumers can see the names, so a compatible amend of G13 goes to reconcile and hsdd-contract adds an assertion or a not-executable line." },
+        { "label": "closures", "consequence": "No extra code and no amend, but two of the resolver's three transforms render as (anonymous) in bus.toGraph(), the catalog and the JSON form." }
+      ],
+      "chosen": "method tear-offs of private stage classes",
+      "why": "Spec §6.2 asks for named transformers and Spec §6.5 treats a topology as self-documenting data; the experiment shows tear-offs record the names in both forms, keep two resolvers of one configuration equal, and pass all 40 navigation cases and 52 executor registrations unchanged. Because the names are visible across the boundary the choice is emitted as an amend rather than kept node-local.",
+      "evidence": ["Spec §6.2", "Spec §6.5", "Guide §3.4", "navigation-api@v1 G13", "topology-ir@v1 G9", "docs/auto-run/experiments/navigation-stage-names/"],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T03:57:40Z",
+      "artifact": "hsdd/spec/nidana.navigation.md",
+      "question": "How to cut nidana.navigation into phases under fp-progression: where the resolver template and resultsFor go, and whether the in-memory router stands alone.",
+      "options": [
+        { "label": "six phases, template with the guard", "consequence": "Declarations; values; access, guard and resolver template (full-review, ~400 lines); executor values and planner; in-memory router; executor and live wiring. The security chain (guard table plus resolve-before-guard order) is reviewed in one sitting; the guard work waits on nidana.model.11 for its G13 replay." },
+        { "label": "seven phases, template in its own phase", "consequence": "A spot-check template phase of about 180 lines that could run beside the values and planner lanes as soon as nidana.model.11 merges; one more cycle whose process artifacts would rival its diff, and the guard and the stage order reviewed apart." },
+        { "label": "five phases, router folded into the planner", "consequence": "One cycle fewer, but the merged phase comes to about 500 lines, over the review window, and mixes the pure band with the effect band." }
+      ],
+      "chosen": "six phases, template with the guard",
+      "why": "The template alone sits below the sizing floor, and the guard and the template's stage order together are one security property (navigation-api@v1 Refinement 3), so reviewing them together in one full-review phase buys more than the parallel lane. resultsFor rides with the template because both are recorded DSL compositions. The signal that would have favored seven phases: nidana.model.11 expected to land much later than nidana.model.8, holding up the guard work.",
+      "evidence": ["navigation-api@v1 Refinement 3", "navigation-api@v1 G12, G13", "hsdd/conventions.md Phase design (fp-progression)", "docs/auto-run/experiments/navigation-api-fixtures/ (stand-in sizes: navigation.dart 832 lines, in_memory_router.dart 65)"],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T03:57:40Z",
+      "artifact": "hsdd/spec/nidana.navigation.md",
+      "question": "Review tier of nidana.navigation.3 (access values, resolveDeepLinks, applyAuthGuard, navResolver, resultsFor), a mostly pure phase.",
+      "options": [
+        { "label": "full-review", "consequence": "A full design and verification doc and a diff read for a pure phase; the guard table and the stage order get edge-case review." },
+        { "label": "spot-check", "consequence": "Cheaper review of well-constrained pure functions with exhaustive fixture cases; a subtle guard or order error relies on the fixtures alone." }
+      ],
+      "chosen": "full-review",
+      "why": "The phase decides access: an error in G12's table or in the template's stage order opens a protected route, the bypass navigation-api@v1 Refinement 3 exists to close. The tier table puts security at full-review.",
+      "evidence": [".agents/skills/hsdd-phase-plan/SKILL.md Review Tiers", "navigation-api@v1 Refinement 3"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T03:57:40Z",
+      "artifact": "hsdd/spec/nidana.navigation.md",
+      "question": "Where do the live resolver replays (G14, G16) land: with the resolver template, or in the final phase with the executor?",
+      "options": [
+        { "label": "final phase", "consequence": "The template phase stays pure and waits on nothing later than nidana.model.11; G14 and G16 replay once, at nidana.navigation.6, which waits on nidana.runtime.14 anyway." },
+        { "label": "with the template", "consequence": "The template phase would wait on nidana.runtime.14, the hard edge, putting a pure phase on the critical path after the runtime ships." }
+      ],
+      "chosen": "final phase",
+      "why": "--guarantee selects by guarantee id, and G16 has one recorded and one live case, so G16 cannot replay before a real TestBus exists; G14 is all live. The template adds no code for live behavior, which is the runtime's interpretation of the recorded plan. Keeping nidana.navigation.1 to .5 off nidana.runtime.14 lets them merge while the runtime's later phases run.",
+      "evidence": ["ADR-001 item 9 (--guarantee restricts behavior cases by name prefix)", "hsdd/contract/fixture/navigation-api/behavior/navigation_conformance.dart (G16 cases)", "bus-testing@v1 Delivery (hard edge on nidana.runtime.14)"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T03:57:40Z",
+      "artifact": "hsdd/spec/nidana.navigation.md",
+      "question": "Which phase replays G9 (the five topic declarations, complete at nidana.navigation.1), whose case needs topic-model@v1's values from nidana.model.8?",
+      "options": [
+        { "label": "nidana.navigation.3", "consequence": "nidana.navigation.2 starts after nidana.model.6 alone; nidana.navigation.3 already needs nidana.model.8 for G13's TopicRef comparisons." },
+        { "label": "nidana.navigation.2", "consequence": "The topics replay one phase earlier, but nidana.navigation.2 and everything after it wait on nidana.model.8." }
+      ],
+      "chosen": "nidana.navigation.3",
+      "why": "It removes a cross-node wait from nidana.navigation.2 at no cost, since nidana.navigation.3 depends on nidana.model.8 for G13 regardless.",
+      "evidence": ["topic-model@v1 Delivery (nidana.model.8 delivers every behavior guarantee)", "hsdd/contract/fixture/navigation-api/behavior/navigation_conformance.dart (G9, G13 cases)"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T03:57:40Z",
+      "artifact": "hsdd/spec/nidana.navigation.md",
+      "question": "Should the executor and the live composition (G14, G15, G16, G24 and the bootstrap test) be one phase or two?",
+      "options": [
+        { "label": "one phase", "consequence": "About 360 lines (100 of library code), 7 plan tasks, full-review; nidana.flutter's binding of the executor suite waits on one phase." },
+        { "label": "two phases", "consequence": "An executor phase and a live-wiring phase that writes almost no library code; the second's process artifacts would exceed its diff, and flutter's G24 replay would wait on a later phase than G18 to G23." }
+      ],
+      "chosen": "one phase",
+      "why": "The composition writes tests, not code, and the executor's G19 to G24 cases already exercise the bus wiring; split, the second phase sits below the floor with the same tier and contracts as the first.",
+      "evidence": ["docs/auto-run/experiments/navigation-api-fixtures/packages/nidana_dart_navigation/lib/src/navigation.dart (executor about 65 lines)", ".agents/skills/hsdd-phase-plan/SKILL.md Sizing floor"],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T03:59:59Z",
+      "artifact": "hsdd/spec/nidana.navigation.md",
+      "question": "What does nidana.navigation.1, the type-level phase, land beyond signatures: constructors, consts, equality? (D1)",
+      "options": [
+        { "label": "copying constructors, bodies throw", "consequence": "Constructors assign fields and copy collections, consts are whole, every other computing body throws UnimplementedError and equality stays Object's; G4 replays from nidana.navigation.2; consumers on nidana.navigation.1 can construct values but compare by identity." },
+        { "label": "value equality in phase 1", "consequence": "About 250 more lines in a phase already over the PE target, and G5 to G8 split across two phases." },
+        { "label": "throwing constructors", "consequence": "G4 waits for nidana.navigation.4 and RouteState is unusable in nidana.navigation.3's tests." }
+      ],
+      "chosen": "copying constructors, bodies throw",
+      "why": "ADR-001 item 10 needs every declaration in the first producing phase; field assignment and copying are the declarations' shape, and the reject codes were confirmed against final fields. The schedule reaches consumers through the Delivery sub-bullets.",
+      "evidence": ["ADR-001 item 10", "hsdd/conventions.md Phase design", "docs/auto-run/experiments/navigation-api-fixtures/", "nidana.model D3 (the same choice for nidana_dart_contracts)"],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T03:59:59Z",
+      "artifact": "hsdd/spec/nidana.navigation.md",
+      "question": "Source layout of nidana_dart_navigation below its two public libraries (D2).",
+      "options": [
+        { "label": "one library per area", "consequence": "Phases that run side by side edit disjoint files, so no phase collides; routes and intents share one library because NavRoute builds GoTo, Replace and ShowModal through private constructors." },
+        { "label": "one library with part files", "consequence": "Matches the stand-in, but nidana.navigation.3 and .4 would edit one library and serialize behind Collides with." }
+      ],
+      "chosen": "one library per area",
+      "why": "It keeps the parallel lane after nidana.navigation.2 real and leaves no Collides with entries in the plan.",
+      "evidence": ["ADR-002 item 3", "navigation-api@v1 G2, G3"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T03:59:59Z",
+      "artifact": "hsdd/spec/nidana.navigation.md",
+      "question": "At nidana.navigation.2 to .5 the --guarantee restriction admits no case of in_memory_router_test.dart (the executor suite, G18 to G24). Can those gates replay behavior at all? (D3)",
+      "options": [
+        { "label": "replay restricted, relying on nidana.model D2", "consequence": "Pure guarantees replay as they land; the executor binding passes with no case run, which nidana.model D2 items 1 and 4 imply and nidana.runtime's gates already rely on for bus_activation_test.dart." },
+        { "label": "surface and reject only until nidana.navigation.6", "consequence": "No reliance on the empty-binding reading, but G1, G4 to G13, G17 and G25 would go unreplayed until the last phase." }
+      ],
+      "chosen": "replay restricted, relying on nidana.model D2",
+      "why": "The same reading was accepted at S31 (DEC-461) for nidana.runtime's gates; dart test's exit 79 on an empty filter is a hazard for the tool's implementation, not for the plan. The signal that would change this: nidana.model.6 stating that a binding whose filter admits no case fails.",
+      "evidence": ["hsdd/spec/nidana.model.md D2 items 1 and 4", "ADR-001 item 9", "docs/auto-run/experiments/empty-guarantee-selection/"],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T03:59:59Z",
+      "artifact": "hsdd/spec/nidana.navigation.md",
+      "question": "How do this node's gates check navigation-api@v1 G26 and G27, which the contract marks not executable? (D4)",
+      "options": [
+        { "label": "a package properties test", "consequence": "test/package_properties_test.dart runs under fvm dart test in every gate: dependencies, imports, forbidden clock, timer and microtask calls, and sync: true controllers." },
+        { "label": "a search in the gate", "consequence": "Not an fvm command and outside the package's tests." }
+      ],
+      "chosen": "a package properties test",
+      "why": "Gates stay fvm commands, and the check runs with the package's tests at every phase, as nidana.model D6 and nidana.runtime D9 do for their packages. The sync: true clause was added because an asynchronous StreamController schedules a microtask per event, which G27 forbids.",
+      "evidence": ["navigation-api@v1 G26, G27", "ADR-003 item 8", "ADR-002 items 3 and 4"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T03:59:59Z",
+      "artifact": "hsdd/spec/nidana.navigation.md",
+      "question": "What does NavigationExecutor do when a router violates G18 (a perform that throws, an error event on confirmations), and is that a contract matter? (D6)",
+      "options": [
+        { "label": "no handling, node-local", "consequence": "A perform's throw reaches the provider zone's handler through bus-api@v1 G18 and later intents are still handled; a confirmations error reaches the constructor zone's handler and the subscription continues; no declaration or amend." },
+        { "label": "catch and report a new ShellDiagnostic", "consequence": "Compatible under Versioning, but a declaration and fixture work for a path no conforming router reaches." },
+        { "label": "amend G20 stating the propagation", "consequence": "Consumers could rely on it, at the cost of a guarantee clause and a fixture case for router defects." }
+      ],
+      "chosen": "no handling, node-local",
+      "why": "No conforming router produces either event, so no consumer relies on the behavior; Dart's own unhandled-error path is where a router's author looks. The signal that would change this: a platform router that throws from perform by design, such as a Flutter router before it is hosted, which flutter-binding@v1 Refinement 2 rules out.",
+      "evidence": ["navigation-api@v1 G18", "bus-api@v1 G18", "flutter-binding@v1 Refinement 2", "docs/auto-run/experiments/navigation-stage-names/ (S3)"],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T04:03:50Z",
+      "artifact": "hsdd/spec/nidana.navigation.md",
+      "question": "nidana.navigation.1 comes to about 500 lines, over the ~400-line PE target. Split it or accept it?",
+      "options": [
+        { "label": "accept, gate-only", "consequence": "One review sitting over declarations transcribed from the Interface; surface and reject pass in full from it." },
+        { "label": "split off a package-scaffold phase", "consequence": "A non-producing phase of about 100 lines below the floor; the declarations cannot split further because ADR-001 item 10 runs surface and reject in full from the first producing phase." }
+      ],
+      "chosen": "accept, gate-only",
+      "why": "Splitting removes only scaffolding and the properties test while adding a cycle; the declarations themselves must land together. Recorded as a sizing note under the summary table.",
+      "evidence": ["ADR-001 item 10", "hsdd/conventions.md Phase design"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T04:03:50Z",
+      "artifact": "hsdd/spec/nidana.navigation.md",
+      "question": "Which phases does the confirm entry list as consumers of bus-testing@v1 and topology-ir@v1, given that every behavior replay compiles conformance libraries importing testing.dart and topology_ir.dart?",
+      "options": [
+        { "label": "phases that use them", "consequence": "bus-testing@v1: nidana.navigation.6 only (the hard edge); topology-ir@v1: nidana.navigation.3 and .6, whose gates replay the cases naming its declarations; compile-only needs are covered by nidana.navigation.1's waits on nidana.runtime.1 and nidana.model.5." },
+        { "label": "every phase that compiles them", "consequence": "Lists nidana.navigation.2 to .5 as bus-testing@v1 consumers, which under the root DAG's hard typing would read as waiting on nidana.runtime.14." }
+      ],
+      "chosen": "phases that use them",
+      "why": "The root DAG types runtime to navigation as hard for bus-testing@v1, and the orchestrator asked topology-ir@v1 to be listed in the phases whose gates replay G13, G15, G16, G19 and G24; the sub-bullets record the compile-only reach so reconcile does not lose it.",
+      "evidence": ["hsdd/spec/nidana.md Dependency DAG and D10", "bus-testing@v1 Delivery", "topology-ir@v1 Delivery"],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    }
+  ],
+  "experiments": [
+    {
+      "path": "docs/auto-run/experiments/navigation-stage-names/",
+      "question": "S1: which FunctionRefs does the recorded nav-resolver carry with closure stages versus method tear-offs of private stage classes? S2: do navigation-api@v1's two bindings, from the repository's fixtures, still pass with named stages? S3: what does an error event on a synchronous broadcast stream do to a listener that passes onData only?",
+      "finding": "S1: closures record FunctionRef.anonymous() for the intent map and the withLatestFrom in both forms; tear-offs record resolveDeepLinks and applyAuthGuard; the auth map records principalOf either way; two resolvers of one configuration record equal definitions in every case. S2: the navigation suite passes 40/40 and the executor suite 52/52 on InMemoryRouter with closures and with tear-offs. S3: the error reaches the listening zone's uncaught-error handler and the subscription keeps receiving later events."
+    }
+  ],
+  "self_check": [
+    { "gate": "Phase 1 defines all shared types and contract-bounded interfaces.", "status": "pass", "note": "nidana.navigation.1 lands every declaration of both libraries (D1); surface and reject run in full from it." },
+    { "gate": "Phases 2..N-1 are maximally independent (parallelizable where possible).", "status": "pass", "note": "After nidana.navigation.2, nidana.navigation.3 runs beside nidana.navigation.4 and .5 on disjoint files; .2 is a shared prerequisite because route values are compared by both lanes." },
+    { "gate": "Each phase has <= 8 OpenSpec tasks (split if more).", "status": "pass", "note": "6, 6, 7, 6, 4, 7 plan tasks." },
+    { "gate": "Adjacent same-tier phases were checked against the sizing floor; every merge candidate kept separate names its reason (tier boundary, parallel lane, isolated risk).", "status": "pass", "note": "Only nidana.navigation.4 and .5 share tier and consumed contracts; merged they exceed the window (~500 lines) and straddle the pure and effect bands; recorded under the summary table. Every other adjacent pair differs in tier." },
+    { "gate": "Contract ids are defined before the phase that implements them.", "status": "pass", "note": "navigation-api@v1 and every consumed contract exist; nidana.navigation.1 lands the declarations before any behavior phase." },
+    { "gate": "Phase N is testable against contract fixtures even if Phase N-1 is not implemented.", "status": "pass", "note": "nidana.navigation.3 replays without .4 or .5, and .4 and .5 without .3; each gate restricts to its own dependency closure (D3). nidana.navigation.6 is the composition and needs every earlier phase by design." },
+    { "gate": "No phase couples to another phase's internals.", "status": "pass", "note": "Phases reach earlier phases through the package's public declarations; cross-node only through public libraries of the consumed contracts." },
+    { "gate": "Each phase has a concrete gate, a verification description, and a review tier.", "status": "pass", "note": "Every gate is a full fvm command chain from the workspace root." },
+    { "gate": "The phase dependency graph is included as a Mermaid flowchart and matches the Dependencies fields.", "status": "pass", "note": "Solid in-node edges and dashed cross-node edges match each Dependencies line; pastel style applied." },
+    { "gate": "Summary table opens the section and matches the phase sections.", "status": "pass", "note": "Default gate line, then the table, then prose; names, tiers, sizes and dependencies agree with the sections." },
+    { "gate": "Field blocks are bullet lists; empty lists say \"none\".", "status": "pass", "note": "Consumes reads none for nidana.navigation.2, .4 and .5." },
+    { "gate": "Every contingent phase names the OQ id it waits on; no contingency without a minted OQ.", "status": "n/a", "note": "No phase is contingent; OQ-N1 and OQ-N2 are marked RESOLVED by navigation-api@v1." },
+    { "gate": "The plan names the ordering policy it followed, matching the conventions line (or interfaces-first when absent, fp-progression when only the pre-v0.10 FP ordering: bullet is present).", "status": "pass", "note": "First line after the table: fp-progression." },
+    { "gate": "Every producing phase's Gate includes the contract replay for each contract it produces.", "status": "pass", "note": "nidana.navigation.1 --set surface,reject; .2 to .5 --guarantee cumulative within the closure; .6 unrestricted." },
+    { "gate": "In append mode: no existing id changed, no shipped phase edited, numbering continued from the highest existing id.", "status": "n/a", "note": "First plan for this node." }
+  ],
+  "notes_for_orchestrator": [
+    "Phase count: 6. nidana.navigation.1 Package and declarations, gate-only, ~500 loc, <=6 tasks, deps nidana.model.2, nidana.model.5, nidana.runtime.1; gate replays --set surface,reject.",
+    "nidana.navigation.2 Route, intent and route-state values, spot-check, ~340 loc, <=6 tasks, deps .1, nidana.model.6; --guarantee G1,G4,G5,G6,G7,G8.",
+    "nidana.navigation.3 Access, guard and the resolver template (and resultsFor), full-review, ~400 loc, <=7 tasks, deps .2, nidana.model.8, .9, .10, .11; --guarantee G1,G4 to G13.",
+    "nidana.navigation.4 Executor values and the planner, spot-check, ~330 loc, <=6 tasks, deps .2; --guarantee G1,G4 to G8,G17.",
+    "nidana.navigation.5 In-memory router, spot-check, ~170 loc, <=4 tasks, deps .4; --guarantee G1,G4 to G8,G17,G25.",
+    "nidana.navigation.6 Executor and the live wiring, full-review, ~360 loc, <=7 tasks, deps .3, .5, nidana.runtime.14, nidana.model.12; unrestricted replay (last producing phase).",
+    "Governance, confirm: navigation-api@v1 produced_by [nidana.navigation.1 to .6] with Delivery sub-bullets (declarations at .1; G1,G4-G8 at .2; G9-G13 at .3; G17 at .4; G25 at .5; G14-G16, G18-G24 at .6; G2, G3 and type-level halves from .1; G26/G27 every phase via package_properties_test.dart). topic-model@v1 consumers [.1, .3, .6]; topology-dsl@v1 consumers [.1, .3, .6]; topology-ir@v1 consumers [.3, .6]; bus-api@v1 consumers [.1, .6]; bus-testing@v1 consumers [.6]. Each names the producer phase it waits on.",
+    "Governance, note: the workspace member packages/nidana_dart_navigation is created by nidana.navigation.1 (root pubspec.yaml workspace list and lockfile shared with other nodes' member-creating phases); package_properties_test.dart is this node's check of G26 and G27.",
+    "Governance, amend (compatible): navigation-api@v1 G13 gains the stage functions' names (resolveDeepLinks, applyAuthGuard, FunctionRef.of(principalOf)). Reconcile should route a fixture assertion on G13's first case through hsdd-contract, or add a not-executable line for the clause (ADR-001 item 3). Evidence: docs/auto-run/experiments/navigation-stage-names/.",
+    "Governance, request: none. No gap was found in topic-model@v1, topology-dsl@v1, topology-ir@v1, bus-api@v1 or bus-testing@v1 that this plan needs answered.",
+    "Routed items: OQ-N1 and OQ-N2 marked RESOLVED (2026-10-18) with detail paragraphs; consumed contracts' Delivery paragraphs read and cited in each confirm (nidana.model.5/.8/.9/.10/.11/.12, nidana.runtime.1/.14); topology-ir@v1 listed in the phases replaying G13 (nidana.navigation.3) and G15, G16, G19, G24 (nidana.navigation.6); the executor suite on InMemoryRouter and the navigation suite run in this node's gates, flutter's binding does not (D3).",
+    "Node-local decisions recorded in the spec: D1 what nidana.navigation.1 lands; D2 source layout (no Collides with in the plan); D3 what every gate runs; D4 G26/G27 properties test; D5 named stage functions; D6 no executor error handling.",
+    "For later plans: nidana.flutter's phase that binds the executor suite to FlutterNavigationExecutor waits on nidana.navigation.6 (its cases construct NavigationExecutor; G24 also runs navResolver live); its contract edge for compiling against navigation-api@v1 waits on nidana.navigation.1. nidana.tooling's edges on navigation-api@v1 are names only and wait on nidana.navigation.1. nidana.integration's hard edge waits on nidana.navigation.6. Values compare by identity until nidana.navigation.2 (routes, intents, RouteState), .3 (access values) and .4 (executor values).",
+    "D3 relies on the same reading as DEC-461: a binding whose --guarantee filter admits no case passes (nidana.model D2 items 1 and 4). nidana.model.6's implementation must not treat dart test's exit 79 as a failure; nidana.navigation.2 to .5 depend on it for in_memory_router_test.dart.",
+    "The experiment directory copies the stand-ins of navigation-api-touch (minus the Flutter stand-in); its .dart_tool and pubspec.lock are git-ignored."
+  ]
+}
