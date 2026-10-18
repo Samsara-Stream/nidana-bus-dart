@@ -209,8 +209,8 @@ dropped flag in ADR-002 (nidana.integration D7 records it for the one member tha
 | S44 | 7 | hsdd-contract | topology-ir@v1 touch: private function references (`_name@{key}`, JIT and AOT keys differ) | done | b7428f2 |
 | S45 | 7 | hsdd-contract | nidana-checks@v1 touch: plugin-failure exit codes in app CI; In CI's "same steps" for nidana.integration | done | acc56b2 |
 | S46 | 7 | hsdd-contract | topic-codegen@v1 touch: the stale-registry check must run before build_runner, which silently rewrites the committed registry | done | d3db1a6 |
-| S47 | 7 | hsdd-spec (touch) | root: dev flow and D10 wording, the lint wait sentence, the Contracts paragraph's draft and provisional sentence | running | |
-| S48 | 7 | hsdd-spec (touch) | nidana.model: Owns, Inherited and Isolation lines | planned | |
+| S47 | 7 | hsdd-spec (touch) | root: dev flow and D10 wording, the lint wait sentence, the Contracts paragraph's draft and provisional sentence | done | 902c5a1 |
+| S48 | 7 | hsdd-spec (touch) | nidana.model: Owns, Inherited and Isolation lines | running | |
 | S49 | 7 | hsdd-spec (touch) | nidana.runtime: D1 Consequences and the dev-flow line | planned | |
 | S50 | 7 | hsdd-spec (touch) | nidana.tooling: drained "Carried into" bullets, the lint wait sentence | planned | |
 | S51 | 7 | hsdd-spec (touch) | nidana.tooling.lint: the Development flow's start condition (only nidana.tooling.lint.4 waits on the producers, D5) | planned | |
