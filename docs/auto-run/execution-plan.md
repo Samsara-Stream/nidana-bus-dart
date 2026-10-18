@@ -176,8 +176,8 @@ tree. Done when `node docs/auto-run/tools/gate.mjs --final` passes.
 | S19 | 4 | hsdd-contract | navigation-api@v1 touch: G1 reject line, citations of bus-api@v1 G22, G34, G40, the Flutter executor binding name | done | 31fc505 |
 | S20 | 4 | hsdd-contract | bus-api@v1 touch: widened Topic<Object?> reference case, cite nidana-checks@v1 G5 | done | 27ce541 |
 | S21 | 4 | hsdd-contract | topic-codegen@v1 touch: catalog's claim rule aligned with nidana-checks@v1's recognizer; recorded invocations for G2, G14, G19 under amended ADR-001 item 7 | done | ca0d8ff |
-| S22 | 5 | hsdd-spec | nidana.runtime (mid-level); then its ADRs and internal contracts | running | |
-| next | 5 | hsdd-spec | nidana.tooling (mid-level); then its ADRs and internal contracts | planned | |
+| S22 | 5 | hsdd-spec | nidana.runtime (mid-level): became a leaf-parent; no children, ADRs or internal contracts | done | 5e6e053 |
+| S23 | 5 | hsdd-spec | nidana.tooling (mid-level); then its ADRs and internal contracts | running | |
 | end of 5 | 5 | hsdd-spec (root refresh) | root D1 check table (adds explicit_topic_type_arguments), OQ2 and OQ5, embedded child summaries | planned | |
 
 ## Change log
@@ -278,3 +278,8 @@ tree. Done when `node docs/auto-run/tools/gate.mjs --final` passes.
   kept per (topic, type argument), and an off-type widened publish must not stop delivery (G13).
 - 2026-10-17 (UTC), after S21: the touch batch is done; stage 4 is complete. Note for nidana.model's
   replay tool: run `pub get` before replaying recorded invocations (a stale resolution exits 255).
+- 2026-10-17 (UTC), after S22: nidana.runtime is a leaf-parent (its D1, reversing root D4), with ten
+  internal slices mapped to every guarantee of bus-api@v1 and bus-testing@v1. Root OQ2, OQ-R1..R3 are
+  RESOLVED. The root refresh must restate root D4 and the conventions' RA/RB example; the reconcile sweep
+  must reword bus-api@v1's "the child of nidana.runtime that owns the main library". nidana.runtime's
+  phase plan emits three amends on bus-testing@v1 G16, G18 and bus-api@v1 G41 (its D5, D6, D7).

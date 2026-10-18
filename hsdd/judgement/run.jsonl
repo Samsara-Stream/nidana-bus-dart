@@ -20,3 +20,4 @@
 {"step_ref":"S19","skill":"hsdd-contract","target":"navigation-api@v1 (touch)","started":"2026-10-17T22:48:48Z","finished":"2026-10-17T23:05:07Z","commit":"31fc505","dispatches":1}
 {"step_ref":"S20","skill":"hsdd-contract","target":"bus-api@v1 (touch)","started":"2026-10-17T23:05:16Z","finished":"2026-10-17T23:32:24Z","commit":"27ce541","dispatches":1}
 {"step_ref":"S21","skill":"hsdd-contract","target":"topic-codegen@v1 (touch)","started":"2026-10-17T23:32:33Z","finished":"2026-10-18T00:07:07Z","commit":"ca0d8ff","dispatches":1}
+{"step_ref":"S22","skill":"hsdd-spec","target":"nidana.runtime","started":"2026-10-18T00:07:16Z","finished":"2026-10-18T00:34:30Z","commit":"5e6e053","dispatches":1}

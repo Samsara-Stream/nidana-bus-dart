@@ -1,0 +1,26 @@
+{
+  "step_ref": "S22",
+  "skill": "none",
+  "target": "run-stop judgement on nidana.runtime D1",
+  "status": "completed",
+  "decisions": [
+    {
+      "at": "2026-10-18T00:34:30Z",
+      "artifact": "hsdd/spec/nidana.runtime.md",
+      "question": "S22 reversed root D4: nidana.runtime becomes a leaf-parent (about twelve phases over ten internal slices) instead of an internal node with children. The two leading options (leaf-parent; or two children nidana.runtime.bus and nidana.runtime.topology joined by an internal contract) produce different nodes and contracts, and the Specification is silent. Is this the tree-shape run-stop?",
+      "options": [
+        { "label": "Not a stop; accept the leaf-parent", "consequence": "nidana.runtime is phase-planned directly; no internal contract and no ADR amendment; the root's D4 prose and conventions example are restated at the root refresh. A later hsdd-spec run can still decompose it if the phase plan shows it cannot be kept to independent, window-sized phases." },
+        { "label": "Not a stop; force the two-child split", "consequence": "Needs ADR-001 item 2 amended so an internal contract's fixtures may import lib/src/, one internal contract step, two phase plans; the contract freezes the read-stage seam that three experiments had to patch on both sides." },
+        { "label": "Stop the run", "consequence": "The owner decides the runtime's shape; every runtime-dependent phase plan waits." }
+      ],
+      "chosen": "Not a stop; accept the leaf-parent",
+      "why": "The run reads the shape stop as holding only when neither option has a stated reason to lead (DEC-002). Here accepted governance gives one: ADR-001 item 2 forbids fixtures that import src/, ADR-002 item 3 allows exactly two public libraries, and bus-api@v1 with bus-testing@v1 must share one library (TestBus extends the final Bus), so any internal contract between runtime children could never become stable under the run's own final gate; ADR-001 item 10 with fp-progression then puts both contracts' declarations in one leaf-parent's first phase. HSDD's leaf-parent rule holds (one owner; phases fit one review window). The counter-signal is HSDD's tip to add a level once a leaf-parent passes a handful of phases; twelve is past that, which is why confidence is medium. The reversal changes no root contract, and a later decomposition stays possible, so the choice is reversible at the cost of re-planning one node.",
+      "evidence": ["hsdd/spec/nidana.runtime.md (D1, Slices)", "hsdd/adr/001-executable-contract-validation.md (items 2, 10)", "hsdd/adr/002-package-workspace-layout.md (item 3)", "hsdd/contract/bus-testing.md (Boundary)", "~/git/hsdd/docs/users-guide.md (Tips: add a level, do not widen)", "docs/auto-run/steps/S00.orchestrator.json (DEC-002)"],
+      "blast_radius": "tree",
+      "confidence": "medium",
+      "would_have_asked": true,
+      "stop_class": "shape",
+      "would_upstream": false
+    }
+  ]
+}
