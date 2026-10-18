@@ -1,0 +1,231 @@
+Dart SDK version: 3.13.5 (stable) (Tue Sep 29 01:00:52 2026 -0700) on "macos_arm64"
+
+### P0 the full planned resolution, open constraints (rxdart ^0.28.0, item 7 pins in lb_lint)
+pub get exit: 0
+  package                  T (resolved)  newest
+  analysis_server_plugin   0.3.18        0.3.24   held
+  analyzer                 13.3.0        14.5.0   held
+  analyzer_testing         0.3.2         0.4.3   held
+  args                     2.7.0         2.7.0
+  build                    4.0.11        5.0.0   held
+  build_runner             2.16.1        2.17.1   held
+  build_test               3.5.20        3.5.23   held
+  clock                    1.1.3         1.1.3
+  dart_style               3.1.14        3.1.14
+  json_schema              5.2.2         5.2.2
+  matcher                  0.12.20       0.12.20
+  meta                     1.19.0        1.19.0
+  package_config           2.2.0         3.0.0   held
+  path                     1.9.1         1.9.1
+  rxdart                   0.28.0        0.28.0
+  source_gen               4.2.4         4.3.1   held
+  test                     1.31.1        1.33.0   held
+  yaml                     3.1.4         3.1.4
+  lints                    6.1.0         6.1.0
+  transitive, watched:
+  test_api                 0.7.12        0.7.15
+  test_core                0.6.18        0.6.21
+
+### P1 what holds a direct package below its newest version: the full set with a caret at the newest
+-- analyzer_testing: ^0.4.3 in every member that declares it: pub get exit 1
+   Because analyzer_testing >=0.4.3 depends on analyzer 14.5.0 and lb_lint depends on analyzer 13.3.0, analyzer_testing >=0.4.3 is forbidden.
+   So, because lb_lint depends on analyzer_testing ^0.4.3, version solving failed.
+-- build: ^5.0.0 in every member that declares it: pub get exit 1
+   Because build_test >=3.3.0-dev.1 <3.3.0-dev.3 depends on build 3.0.0-dev.1 and build_test >=3.3.0-dev.3 <3.3.0 depends on build 3.0.0-dev.2, build_test >=3.3.0-dev.1 <3.3.0 requires build 3.0.0-dev.1 or 3.0.0-dev.2.
+   And because build_test <2.0.0 doesn't support null safety and build_test >=2.0.0 <2.1.3 depends on build ^2.0.0, build_test <2.1.3-∞ or >=3.3.0-dev.1 <3.3.0 requires build ^2.0.0 or 3.0.0-dev.1 or 3.0.0-dev.2.
+   And because build_test ^2.1.3 depends on build ^2.1.0 and build_test >=3.0.0 <3.3.0-dev.1 depends on build ^2.5.0, build_test <=3.3.0-dev.3 requires build >=2.0.0 <3.0.0 or 3.0.0-dev.1 or 3.0.0-dev.2.
+   And because build_test >=3.3.0 <3.3.1 depends on build 3.0.0 and build_test >=3.3.1 <3.3.2 depends on build 3.0.1, build_test <3.3.2 requires build >=2.0.0 <3.0.0 or 3.0.0-dev.1 or 3.0.0-dev.2 or 3.0.0 or 3.0.1.
+   And because build_test >=3.3.2 <3.3.3 depends on build 3.0.2 and build_test >=3.3.3 <3.3.4 depends on build 3.1.0, build_test <3.3.4 requires build >=2.0.0 <3.0.0 or 3.0.0-dev.1 or 3.0.0-dev.2 or 3.0.0 or 3.0.1 or 3.0.2 or 3.1.0.
+-- build_runner: ^2.17.1 in every member that declares it: pub get exit 1
+   Because lb_integration depends on build_runner ^2.17.1 which depends on analyzer ^14.3.0, analyzer ^14.3.0 is required.
+   So, because lb_lint depends on analyzer 13.3.0, version solving failed.
+-- build_test: ^3.5.23 in every member that declares it: pub get exit 1
+   Because lb_codegen depends on build_test ^3.5.23 which depends on build_runner 2.17.1, build_runner 2.17.1 is required.
+   So, because build_runner >=2.16.2 depends on analyzer ^14.3.0 and lb_lint depends on analyzer 13.3.0, version solving failed.
+-- package_config: ^3.0.0 in every member that declares it: pub get exit 1
+   Because test >=1.16.6 <1.31.2 depends on package_config ^2.0.0 and test >=1.31.2 <1.32.0 depends on test_api 0.7.13, test >=1.16.6 <1.32.0 requires package_config ^2.0.0 or test_api 0.7.13.
+   And because test >=1.32.0 <1.33.0 depends on test_api 0.7.14, test >=1.16.6 <1.33.0 requires test_api 0.7.13 or 0.7.14 or package_config ^2.0.0.
+   And because test >=1.33.0 depends on test_api 0.7.15 and lb_contract_check depends on package_config ^3.0.0, test >=1.16.6 requires test_api 0.7.13 or 0.7.14 or 0.7.15.
+   And because lb_runtime_flutter depends on flutter_test from sdk which depends on test_api 0.7.12, test >=1.16.6 is forbidden.
+   So, because lb_lint depends on analyzer_testing any which depends on test ^1.25.0, version solving failed.
+-- source_gen: ^4.3.1 in every member that declares it: pub get exit 1
+   Because lb_codegen depends on source_gen ^4.3.1 which depends on analyzer ^14.0.0, analyzer ^14.0.0 is required.
+   So, because lb_lint depends on analyzer 13.3.0, version solving failed.
+-- test: ^1.33.0 in every member that declares it: pub get exit 1
+   Because lb_runtime_flutter depends on flutter_test from sdk which depends on test_api 0.7.12, test_api 0.7.12 is required.
+   So, because lb_contract_check depends on test ^1.33.0 which depends on test_api 0.7.15, version solving failed.
+
+### P2a the accepted rule along the planned order
+  cc  lb_contract_check: writes args: ^2.7.0, json_schema: ^5.2.2, matcher: ^0.12.20, package_config: ^3.0.0, path: ^1.9.1, test: ^1.33.0; pub get exit 0
+  ct  lb_contracts: writes meta: ^1.19.0; pub get exit 0
+  rt  lb_runtime: writes clock: ^1.1.3; pub get exit 0
+  nv  lb_navigation: writes no new constraint; pub get exit 0
+  fl  lb_runtime_flutter: pub get exit 1, before writing any new constraint
+      Because lb_runtime_flutter depends on flutter_test from sdk which depends on test_api 0.7.12, test_api 0.7.12 is required.
+      And because test 1.33.0 depends on test_api 0.7.15, test 1.33.0 is forbidden.
+      Because lb_contract_check depends on test ^1.33.0 and no versions of test match >1.33.0 <2.0.0, test 1.33.0 is required.
+      Thus, version solving failed.
+
+### P2b the accepted rule along the tooling-first order
+  cc  lb_contract_check: writes args: ^2.7.0, json_schema: ^5.2.2, matcher: ^0.12.20, package_config: ^3.0.0, path: ^1.9.1, test: ^1.33.0; pub get exit 0
+  li  lb_lint: writes analyzer_testing: ^0.3.2; pub get exit 0
+  ct  lb_contracts: writes meta: ^1.19.0; pub get exit 0
+  cg  lb_codegen: writes build: ^4.0.11, source_gen: ^4.2.4, analyzer: ^13.3.0, dart_style: ^3.1.14, yaml: ^3.1.4, build_test: ^3.5.20; pub get exit 0
+  rt  lb_runtime: writes clock: ^1.1.3; pub get exit 0
+  nv  lb_navigation: writes no new constraint; pub get exit 0
+  fl  lb_runtime_flutter: pub get exit 1, before writing any new constraint
+      Because lb_contract_check depends on test ^1.33.0 and no versions of test match >1.33.0 <2.0.0, test 1.33.0 is required.
+      And because test 1.33.0 depends on test_api 0.7.15, test_api 0.7.15 is required.
+      So, because lb_runtime_flutter depends on flutter_test from sdk which depends on test_api 0.7.12, version solving failed.
+
+### P2c the accepted rule's package_config ^3.0.0 alone, members through nidana.flutter.1, T elsewhere
+  pub get exit 1
+      Because test >=1.16.6 <1.31.2 depends on package_config ^2.0.0 and test >=1.31.2 <1.32.0 depends on test_api 0.7.13, test >=1.16.6 <1.32.0 requires package_config ^2.0.0 or test_api 0.7.13.
+      And because test >=1.32.0 <1.33.0 depends on test_api 0.7.14 and test >=1.33.0 depends on test_api 0.7.15, test >=1.16.6 requires test_api 0.7.13 or 0.7.14 or 0.7.15 or package_config ^2.0.0.
+      Because lb_runtime_flutter depends on flutter_test from sdk which depends on test_api 0.7.12, test_api 0.7.12 is required.
+      Thus, test >=1.16.6 requires package_config ^2.0.0.
+      So, because lb_contract_check depends on both test ^1.31.1 and package_config ^3.0.0, version solving failed.
+
+### P3a the accepted rule, Flutter anchor in the root from nidana.model.1, planned order
+  cc  lb_contract_check: writes args: ^2.7.0, json_schema: ^5.2.2, matcher: ^0.12.20, package_config: ^2.2.0, path: ^1.9.1, test: ^1.31.1; pub get exit 0
+  ct  lb_contracts: writes meta: ^1.19.0; pub get exit 0
+  rt  lb_runtime: writes clock: ^1.1.3; pub get exit 0
+  nv  lb_navigation: writes no new constraint; pub get exit 0
+  fl  lb_runtime_flutter: writes no new constraint; pub get exit 0
+  li  lb_lint: writes analyzer_testing: ^0.3.2; pub get exit 0
+  cg  lb_codegen: writes build: ^4.0.11, source_gen: ^4.2.4, analyzer: ^13.3.0, dart_style: ^3.1.14, yaml: ^3.1.4, build_test: ^3.5.20; pub get exit 0
+  in  lb_integration: writes build_runner: ^2.16.1; pub get exit 0
+  every stage resolved
+
+### P3b the accepted rule, Flutter anchor in the root from nidana.model.1, tooling-first order
+  cc  lb_contract_check: writes args: ^2.7.0, json_schema: ^5.2.2, matcher: ^0.12.20, package_config: ^2.2.0, path: ^1.9.1, test: ^1.31.1; pub get exit 0
+  li  lb_lint: writes analyzer_testing: ^0.3.2; pub get exit 0
+  ct  lb_contracts: writes meta: ^1.19.0; pub get exit 0
+  cg  lb_codegen: writes build: ^4.0.11, source_gen: ^4.2.4, analyzer: ^13.3.0, dart_style: ^3.1.14, yaml: ^3.1.4, build_test: ^3.5.20; pub get exit 0
+  rt  lb_runtime: writes clock: ^1.1.3; pub get exit 0
+  nv  lb_navigation: writes no new constraint; pub get exit 0
+  fl  lb_runtime_flutter: writes no new constraint; pub get exit 0
+  in  lb_integration: writes build_runner: ^2.16.1; pub get exit 0
+  every stage resolved
+
+### P4 the proposed rule (lower bound from T) on every member set a build order reaches, from no lockfile
+  constraints written:
+    analysis_server_plugin   ^0.3.18 (exact 0.3.18 in lb_lint)
+    analyzer                 ^13.3.0 (exact 13.3.0 in lb_lint)
+    analyzer_testing         ^0.3.2
+    args                     ^2.7.0
+    build                    ^4.0.11
+    build_runner             ^2.16.1
+    build_test               ^3.5.20
+    clock                    ^1.1.3
+    dart_style               ^3.1.14
+    json_schema              ^5.2.2
+    matcher                  ^0.12.20
+    meta                     ^1.19.0
+    package_config           ^2.2.0
+    path                     ^1.9.1
+    rxdart                   ^0.28.0
+    source_gen               ^4.2.4
+    test                     ^1.31.1
+    yaml                     ^3.1.4
+  reachable member sets: 20
+  {cc}: exit 0; differs from T: test 1.33.0
+  {cc ct}: exit 0; differs from T: test 1.33.0
+  {cc ct rt}: exit 0; differs from T: test 1.33.0
+  {cc ct rt nv}: exit 0; differs from T: test 1.33.0
+  {cc ct rt nv fl}: exit 0; differs from T: none
+  {cc li}: exit 0; differs from T: test 1.33.0
+  {cc ct li}: exit 0; differs from T: test 1.33.0
+  {cc ct rt li}: exit 0; differs from T: test 1.33.0
+  {cc ct rt nv li}: exit 0; differs from T: test 1.33.0
+  {cc ct rt nv fl li}: exit 0; differs from T: none
+  {cc ct cg}: exit 0; differs from T: test 1.33.0
+  {cc ct rt cg}: exit 0; differs from T: test 1.33.0
+  {cc ct rt nv cg}: exit 0; differs from T: test 1.33.0
+  {cc ct rt nv fl cg}: exit 0; differs from T: none
+  {cc ct li cg}: exit 0; differs from T: test 1.33.0
+  {cc ct rt li cg}: exit 0; differs from T: test 1.33.0
+  {cc ct rt nv li cg}: exit 0; differs from T: test 1.33.0
+  {cc ct rt nv fl li cg}: exit 0; differs from T: none
+  {cc ct rt nv fl cg in}: exit 0; differs from T: none
+  {cc ct rt nv fl li cg in}: exit 0; differs from T: none
+  sets that failed: 0
+
+### P5a the proposed rule along the planned order, lockfile kept between stages
+  + cc  pub get exit 0, then --enforce-lockfile exit 0; lockfile changes:
+      + analyzer 14.5.0
+      + args 2.7.0
+      + json_schema 5.2.2
+      + matcher 0.12.20
+      + meta 1.19.0
+      + package_config 2.2.0 (3.0.0 available)
+      + path 1.9.1
+      + test 1.33.0
+      + test_api 0.7.15
+      + test_core 0.6.21
+      + yaml 3.1.4
+  + ct  pub get exit 0, then --enforce-lockfile exit 0
+  + rt  pub get exit 0, then --enforce-lockfile exit 0; lockfile changes:
+      + clock 1.1.3
+      + rxdart 0.28.0
+  + nv  pub get exit 0, then --enforce-lockfile exit 0
+  + fl  pub get exit 0, then --enforce-lockfile exit 0; lockfile changes:
+      < analyzer 13.3.0 (was 14.5.0) (14.5.0 available)
+      < test 1.31.1 (was 1.33.0) (1.33.0 available)
+      < test_api 0.7.12 (was 0.7.15) (0.7.15 available)
+      < test_core 0.6.18 (was 0.6.21) (0.6.21 available)
+  + li  pub get exit 0, then --enforce-lockfile exit 0; lockfile changes:
+      + analysis_server_plugin 0.3.18 (0.3.24 available)
+      + analyzer_testing 0.3.2 (0.4.3 available)
+      + dart_style 3.1.14
+  + cg  pub get exit 0, then --enforce-lockfile exit 0; lockfile changes:
+      + build 4.0.11 (5.0.0 available)
+      + build_runner 2.16.1 (2.17.1 available)
+      + build_test 3.5.20 (3.5.23 available)
+      + source_gen 4.2.4 (4.3.1 available)
+  + in  pub get exit 0, then --enforce-lockfile exit 0
+
+### P5b the proposed rule along the tooling-first order, lockfile kept between stages
+  + cc  pub get exit 0, then --enforce-lockfile exit 0; lockfile changes:
+      + analyzer 14.5.0
+      + args 2.7.0
+      + json_schema 5.2.2
+      + matcher 0.12.20
+      + meta 1.19.0
+      + package_config 2.2.0 (3.0.0 available)
+      + path 1.9.1
+      + test 1.33.0
+      + test_api 0.7.15
+      + test_core 0.6.21
+      + yaml 3.1.4
+  + li  pub get exit 0, then --enforce-lockfile exit 0; lockfile changes:
+      + analysis_server_plugin 0.3.18 (0.3.24 available)
+      < analyzer 13.3.0 (was 14.5.0) (14.5.0 available)
+      + analyzer_testing 0.3.2 (0.4.3 available)
+      + dart_style 3.1.14
+  + ct  pub get exit 0, then --enforce-lockfile exit 0
+  + cg  pub get exit 0, then --enforce-lockfile exit 0; lockfile changes:
+      + build 4.0.11 (5.0.0 available)
+      + build_runner 2.16.1 (2.17.1 available)
+      + build_test 3.5.20 (3.5.23 available)
+      + source_gen 4.2.4 (4.3.1 available)
+  + rt  pub get exit 0, then --enforce-lockfile exit 0; lockfile changes:
+      + clock 1.1.3
+      + rxdart 0.28.0
+  + nv  pub get exit 0, then --enforce-lockfile exit 0
+  + fl  pub get exit 0, then --enforce-lockfile exit 0; lockfile changes:
+      < test 1.31.1 (was 1.33.0) (1.33.0 available)
+      < test_api 0.7.12 (was 0.7.15) (0.7.15 available)
+      < test_core 0.6.18 (was 0.6.21) (0.6.21 available)
+  + in  pub get exit 0, then --enforce-lockfile exit 0
+
+### P5c item 7 read literally (pins = what the lockfile resolves when lb_lint is added), tooling-first order, T elsewhere
+  + cc  pub get exit 0
+  + li  pins analysis_server_plugin: 0.3.20, analyzer: 14.1.0; pub get exit 0
+  + ct  pub get exit 0
+  + cg  pub get exit 1
+      Because lb_codegen depends on analyzer ^13.3.0 and lb_lint depends on analyzer 14.1.0, version solving failed.
+
+### P6 P5's final lockfiles against P0's, every package
+  P5a: 88 packages; differences from P0: none
+  P5b: 88 packages; differences from P0: none

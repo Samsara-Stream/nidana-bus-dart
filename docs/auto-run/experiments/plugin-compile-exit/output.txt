@@ -1,0 +1,42 @@
+
+### setup
+pub get exit: 0
+Dart SDK version: 3.13.5 (stable) (Tue Sep 29 01:00:52 2026 -0700) on "macos_arm64"
+
+### E0 plugin builds, app clean: root analyze
+exit: 0
+
+### E1 plugin source broken: root analyze
+ERROR|MISSING_IDENTIFIER|{tmp}/w/packages/pce_lint/lib/src/rule.dart
+An error occurred while executing an analyzer plugin: Failed to compile "{home}/.dartServer/.plugin_manage
+exit: 3
+
+### E2 plugin source broken: packages/pce_app only, app clean
+An error occurred while executing an analyzer plugin: Failed to compile "{home}/.dartServer/.plugin_manage
+exit: 4
+
+### E3 plugin source broken: packages/pce_app only, app holds a WARNING
+WARNING|UNNECESSARY_NON_NULL_ASSERTION|{tmp}/w/packages/pce_app/lib/app.dart
+WARNING|DEAD_CODE|{tmp}/w/packages/pce_app/lib/app.dart
+WARNING|DEAD_NULL_AWARE_EXPRESSION|{tmp}/w/packages/pce_app/lib/app.dart
+An error occurred while executing an analyzer plugin: Failed to compile "{home}/.dartServer/.plugin_manage
+exit: 2
+
+### E4 plugin source broken: packages/pce_app only, app holds an ERROR
+ERROR|INVALID_ASSIGNMENT|{tmp}/w/packages/pce_app/lib/app.dart
+An error occurred while executing an analyzer plugin: Failed to compile "{home}/.dartServer/.plugin_manage
+exit: 3
+
+### E5 plugin source broken: packages/pce_app only, app holds an INFO
+INFO|CAMEL_CASE_TYPES|{tmp}/w/packages/pce_app/lib/app.dart
+An error occurred while executing an analyzer plugin: Failed to compile "{home}/.dartServer/.plugin_manage
+exit: 0
+
+### E6 as E5, under --fatal-infos
+INFO|CAMEL_CASE_TYPES|{tmp}/w/packages/pce_app/lib/app.dart
+An error occurred while executing an analyzer plugin: Failed to compile "{home}/.dartServer/.plugin_manage
+exit: 1
+
+### E7 plugin restored, app holds an ERROR: packages/pce_app
+ERROR|INVALID_ASSIGNMENT|{tmp}/w/packages/pce_app/lib/app.dart
+exit: 3
