@@ -1,0 +1,9 @@
+name: nidana_contract_check
+description: Stand-in for the replay tool's fixture library and its structure, reject and schema sets (experiment only).
+publish_to: none
+environment:
+  sdk: ^3.13.0
+resolution: workspace
+dependencies:
+  json_schema: ^5.2.2
+  matcher: ^0.12.17

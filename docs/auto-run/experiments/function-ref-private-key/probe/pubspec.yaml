@@ -1,0 +1,9 @@
+# function-ref-private-key probe: what FunctionRef.of's rule (topology-ir@v1
+# G9) yields for private names, and what the VM's library key depends on.
+# Standalone; never a workspace member.
+name: probe
+publish_to: none
+environment:
+  sdk: ^3.13.0
+dev_dependencies:
+  test: ^1.25.0

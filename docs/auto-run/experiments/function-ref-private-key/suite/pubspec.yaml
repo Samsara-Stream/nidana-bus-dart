@@ -1,0 +1,13 @@
+# function-ref-private-key suite: replays the topology-ir@v1 suite, with the
+# G9 case S44 adds for private names, against the stand-in of
+# ../../model-reconcile-amends/ (copied unchanged). Its own pub workspace,
+# never a member of the repository's workspace.
+name: frpk_root
+publish_to: none
+environment:
+  sdk: ^3.13.0
+workspace:
+  - packages/nidana_contract_check
+  - packages/nidana_dart_contracts
+dev_dependencies:
+  lints: ^6.1.0

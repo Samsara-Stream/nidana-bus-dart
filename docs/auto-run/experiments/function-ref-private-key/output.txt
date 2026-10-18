@@ -1,0 +1,209 @@
+
+### setup
+Dart SDK version: 3.13.5 (stable) (Tue Sep 29 01:00:52 2026 -0700) on "macos_arm64"
+Flutter 3.47.7 • channel stable • https://github.com/flutter/flutter.git
+node v24.18.0
+probe pub get exit: 0
+
+### P1 program a under every runner and compiler
+-- dart run (JIT), first
+a | private top-level _hidden              | _hidden@22518013               | Closure: (int) => int from Function '_hidden@22518013': static.
+a | public top-level shown                 | shown                          | Closure: (int) => int from Function 'shown': static.
+a | private method _Holder._method         | _method@22518013               | Closure: (int) => int from Function '_method@22518013':.
+a | public method _Holder.method           | method                         | Closure: (int) => int from Function 'method':.
+a | private static _Holder._staticHidden   | _staticHidden@22518013         | Closure: (int) => int from Function '_staticHidden@22518013': static.
+a | private static Holder._staticOfPublic  | _staticOfPublic@22518013       | Closure: (int) => int from Function '_staticOfPublic@22518013': static.
+a | private method of a public class Holder._format | _format@22518013               | Closure: (int) => int from Function '_format@22518013':.
+a | private constructor Holder._internal   | Holder._internal@22518013      | Closure: (int) => Holder from Function 'Holder._internal@22518013': static.
+a | private class constructor _Holder.new  | _Holder@22518013.              | Closure: () => _Holder from Function '_Holder@22518013.': static.
+a | private class constructor _Holder.named | _Holder@22518013.named         | Closure: () => _Holder from Function '_Holder@22518013.named': static.
+a | private class constructor _Holder._secret | _Holder@22518013._secret@22518013 | Closure: () => _Holder from Function '_Holder@22518013._secret@22518013': static.
+-- dart run (JIT), second: private top-level only
+a | private top-level _hidden              | _hidden@22518013               | Closure: (int) => int from Function '_hidden@22518013': static.
+-- a2: a's text under another file name (JIT): private top-level only
+a2 | private top-level _hidden              | _hidden@22518013               | Closure: (int) => int from Function '_hidden@22518013': static.
+-- dart test (JIT)
+test | private top-level _hidden              | _hidden@22518013               | Closure: (int) => int from Function '_hidden@22518013': static.
+test | public top-level shown                 | shown                          | Closure: (int) => int from Function 'shown': static.
+test | private method _Holder._method         | _method@22518013               | Closure: (int) => int from Function '_method@22518013':.
+test | public method _Holder.method           | method                         | Closure: (int) => int from Function 'method':.
+test | private static _Holder._staticHidden   | _staticHidden@22518013         | Closure: (int) => int from Function '_staticHidden@22518013': static.
+test | private static Holder._staticOfPublic  | _staticOfPublic@22518013       | Closure: (int) => int from Function '_staticOfPublic@22518013': static.
+test | private method of a public class Holder._format | _format@22518013               | Closure: (int) => int from Function '_format@22518013':.
+test | private constructor Holder._internal   | Holder._internal@22518013      | Closure: (int) => Holder from Function 'Holder._internal@22518013': static.
+test | private class constructor _Holder.new  | _Holder@22518013.              | Closure: () => _Holder from Function '_Holder@22518013.': static.
+test | private class constructor _Holder.named | _Holder@22518013.named         | Closure: () => _Holder from Function '_Holder@22518013.named': static.
+test | private class constructor _Holder._secret | _Holder@22518013._secret@22518013 | Closure: () => _Holder from Function '_Holder@22518013._secret@22518013': static.
+-- flutter test --no-pub (the Flutter tester, JIT)
+test | private top-level _hidden              | _hidden@21518013               | Closure: (int) => int from Function '_hidden@21518013': static.
+test | public top-level shown                 | shown                          | Closure: (int) => int from Function 'shown': static.
+test | private method _Holder._method         | _method@21518013               | Closure: (int) => int from Function '_method@21518013':.
+test | public method _Holder.method           | method                         | Closure: (int) => int from Function 'method':.
+test | private static _Holder._staticHidden   | _staticHidden@21518013         | Closure: (int) => int from Function '_staticHidden@21518013': static.
+test | private static Holder._staticOfPublic  | _staticOfPublic@21518013       | Closure: (int) => int from Function '_staticOfPublic@21518013': static.
+test | private method of a public class Holder._format | _format@21518013               | Closure: (int) => int from Function '_format@21518013':.
+test | private constructor Holder._internal   | Holder._internal@21518013      | Closure: (int) => Holder from Function 'Holder._internal@21518013': static.
+test | private class constructor _Holder.new  | _Holder@21518013.              | Closure: () => _Holder from Function '_Holder@21518013.': static.
+test | private class constructor _Holder.named | _Holder@21518013.named         | Closure: () => _Holder from Function '_Holder@21518013.named': static.
+test | private class constructor _Holder._secret | _Holder@21518013._secret@21518013 | Closure: () => _Holder from Function '_Holder@21518013._secret@21518013': static.
+-- AOT (dart compile exe)
+a | private top-level _hidden              | _hidden@18518013               | Closure: (int) => int from Function '_hidden@18518013': static.
+a | public top-level shown                 | shown                          | Closure: (int) => int from Function 'shown': static.
+a | private method _Holder._method         | _method@18518013               | Closure: (int) => int from Function '_method@18518013':.
+a | public method _Holder.method           | method                         | Closure: (int) => int from Function 'method':.
+a | private static _Holder._staticHidden   | _staticHidden@18518013         | Closure: (int) => int from Function '_staticHidden@18518013': static.
+a | private static Holder._staticOfPublic  | _staticOfPublic@18518013       | Closure: (int) => int from Function '_staticOfPublic@18518013': static.
+a | private method of a public class Holder._format | _format@18518013               | Closure: (int) => int from Function '_format@18518013':.
+a | private constructor Holder._internal   | Holder._internal@18518013      | Closure: (int) => Holder from Function 'Holder._internal@18518013': static.
+a | private class constructor _Holder.new  | _Holder@18518013.              | Closure: () => _Holder from Function '_Holder@18518013.': static.
+a | private class constructor _Holder.named | _Holder@18518013.named         | Closure: () => _Holder from Function '_Holder@18518013.named': static.
+a | private class constructor _Holder._secret | _Holder@18518013._secret@18518013 | Closure: () => _Holder from Function '_Holder@18518013._secret@18518013': static.
+-- AOT with --obfuscate
+a | private top-level _hidden              | _vF@18518013                   | Closure: (int) => int from Function '_vF@18518013': static.
+a | public top-level shown                 | wF                             | Closure: (int) => int from Function 'wF': static.
+a | private method _Holder._method         | _sF@18518013                   | Closure: (int) => int from Function '_sF@18518013':.
+a | public method _Holder.method           | tF                             | Closure: (int) => int from Function 'tF':.
+a | private static _Holder._staticHidden   | _uF@18518013                   | Closure: (int) => int from Function '_uF@18518013': static.
+a | private static Holder._staticOfPublic  | _oF@18518013                   | Closure: (int) => int from Function '_oF@18518013': static.
+a | private method of a public class Holder._format | _pF@18518013                   | Closure: (int) => int from Function '_pF@18518013':.
+a | private constructor Holder._internal   | Ni._Or@18518013                | Closure: (int) => Ni from Function 'Ni._Or@18518013': static.
+a | private class constructor _Holder.new  | _Mi@18518013.                  | Closure: () => _Mi from Function '_Mi@18518013.': static.
+a | private class constructor _Holder.named | _Mi@18518013.qF                | Closure: () => _Mi from Function '_Mi@18518013.qF': static.
+a | private class constructor _Holder._secret | _Mi@18518013._rF@18518013      | Closure: () => _Mi from Function '_Mi@18518013._rF@18518013': static.
+-- dart2js -O1, run by node
+a | private top-level _hidden              | (anonymous)                    | Closure '_hidden'
+a | public top-level shown                 | (anonymous)                    | Closure 'shown'
+a | private method _Holder._method         | (anonymous)                    | Closure '_method$1' of Instance of '_Holder'
+a | public method _Holder.method           | (anonymous)                    | Closure 'method$1' of Instance of '_Holder'
+a | private static _Holder._staticHidden   | (anonymous)                    | Closure '_Holder__staticHidden'
+a | private static Holder._staticOfPublic  | (anonymous)                    | Closure 'Holder__staticOfPublic'
+a | private method of a public class Holder._format | (anonymous)                    | Closure '_format$1' of Instance of 'Holder'
+a | private constructor Holder._internal   | (anonymous)                    | Closure 'Holder____internal_tearOff'
+a | private class constructor _Holder.new  | (anonymous)                    | Closure '_Holder___new_tearOff'
+a | private class constructor _Holder.named | (anonymous)                    | Closure '_Holder___named_tearOff'
+a | private class constructor _Holder._secret | (anonymous)                    | Closure '_Holder____secret_tearOff'
+-- dart2js -O4, run by node
+a | private top-level _hidden              | (anonymous)                    | Closure 'minified:cd'
+a | public top-level shown                 | (anonymous)                    | Closure 'minified:cS'
+a | private method _Holder._method         | (anonymous)                    | Closure 'H' of Instance of 'minified:l'
+a | public method _Holder.method           | (anonymous)                    | Closure 'M' of Instance of 'minified:l'
+a | private static _Holder._staticHidden   | (anonymous)                    | Closure 'minified:bD'
+a | private static Holder._staticOfPublic  | (anonymous)                    | Closure 'minified:bq'
+a | private method of a public class Holder._format | (anonymous)                    | Closure 'F' of Instance of 'minified:p'
+a | private constructor Holder._internal   | (anonymous)                    | Closure 'minified:bp'
+a | private class constructor _Holder.new  | (anonymous)                    | Closure 'minified:bC'
+a | private class constructor _Holder.named | (anonymous)                    | Closure 'minified:bB'
+a | private class constructor _Holder._secret | (anonymous)                    | Closure 'minified:bA'
+-- dart2wasm, run by node
+a | private top-level _hidden              | (anonymous)                    | Closure: (int) => int
+a | public top-level shown                 | (anonymous)                    | Closure: (int) => int
+a | private method _Holder._method         | (anonymous)                    | Closure: (int) => int
+a | public method _Holder.method           | (anonymous)                    | Closure: (int) => int
+a | private static _Holder._staticHidden   | (anonymous)                    | Closure: (int) => int
+a | private static Holder._staticOfPublic  | (anonymous)                    | Closure: (int) => int
+a | private method of a public class Holder._format | (anonymous)                    | Closure: (int) => int
+a | private constructor Holder._internal   | (anonymous)                    | Closure: (int) => Holder
+a | private class constructor _Holder.new  | (anonymous)                    | Closure: () => _Holder
+a | private class constructor _Holder.named | (anonymous)                    | Closure: () => _Holder
+a | private class constructor _Holder._secret | (anonymous)                    | Closure: () => _Holder
+
+### P2 load order: b (six libraries before fns.dart), c (the same six after it)
+-- b, JIT
+b | padding sum 21
+b | private top-level _hidden              | _hidden@28518013               | Closure: (int) => int from Function '_hidden@28518013': static.
+-- c, JIT
+c | padding sum 21
+c | private top-level _hidden              | _hidden@22518013               | Closure: (int) => int from Function '_hidden@22518013': static.
+-- b, AOT
+b | padding sum 21
+b | private top-level _hidden              | _hidden@24518013               | Closure: (int) => int from Function '_hidden@24518013': static.
+
+### P3 URL: fns.dart and moved/fns.dart in one process (JIT): private top-level only
+both/fns | private top-level _hidden              | _hidden@22518013               | Closure: (int) => int from Function '_hidden@22518013': static.
+both/moved | private top-level _hidden              | _hidden@23284448               | Closure: (int) => int from Function '_hidden@23284448': static.
+
+### S0 the stand-in packages are ../model-reconcile-amends/'s, unchanged
+identical
+before: hsdd/contract at 93fed0e
+suite pub get exit: 0
+
+### S1 what changed among topology-ir@v1's fixtures and schema, before against after
+diff -ru before/hsdd/contract/fixture/topology-ir/behavior/topology_ir_conformance.dart /Users/mohamad.purbo/gitx/nidana-bus-dart/hsdd/contract/fixture/topology-ir/behavior/topology_ir_conformance.dart
+--- before/hsdd/contract/fixture/topology-ir/behavior/topology_ir_conformance.dart	2026-10-18 15:25:39
++++ /Users/mohamad.purbo/gitx/nidana-bus-dart/hsdd/contract/fixture/topology-ir/behavior/topology_ir_conformance.dart	2026-10-18 15:32:43
+@@ -147,8 +147,12 @@
+ 
+ final class Reducers {
+   static int reduceTotal(int state, int event) => _called('reduceTotal');
++  static int _reduceQuietly(int state, int event) => _called('_reduceQuietly');
+ }
+ 
++// Private names, which the VM renders with the library key (G9).
++int _privateTwice(int v) => _called('_privateTwice');
++
+ final class Labeler {
+   const Labeler();
+   String label(int v) => _called('label');
+@@ -950,6 +954,17 @@
+       expect(FunctionRef.of(closure()).name, isNull);
+       expect(calls, 0);
+       expect(() => FunctionRef.named(''), throwsArgumentError);
++    },
++  ),
++  (
++    name: 'G9 FunctionRef.of names a private function and a private static method as the VM renders them, the name followed by @ and the library key, unequal to the name as written',
++    body: (TopologyIrHarness h) async {
++      await h.settle();
++      // The key is not asserted: it moves with the program and the runner.
++      expect(FunctionRef.of(_privateTwice).name, matches(RegExp(r'^_privateTwice@.+$')));
++      expect(FunctionRef.of(Reducers._reduceQuietly).name, matches(RegExp(r'^_reduceQuietly@.+$')));
++      expect(FunctionRef.of(_privateTwice), FunctionRef.of(_privateTwice));
++      expect(FunctionRef.of(_privateTwice), isNot(FunctionRef.named('_privateTwice')));
+     },
+   ),
+   // ------------------------------------------------------------ G10
+fixture diff exit: 1
+schema diff exit: 0
+
+### S2 structure: topology-ir with the stand-in's prototype, then the nine contracts with amended ADR-001's prototype
+guarantees: 23; cases: 43; bindings: 1; fixture files: 7
+exit: 0
+PASS G9 3 fixture(s)
+bus-api (api): 41 guarantees; covered by reject 10, behavior 37; not executable 2; in part 0; data directories none
+bus-testing (api): 20 guarantees; covered by reject 2, behavior 17; not executable 1; in part 0; data directories none
+flutter-binding (api): 19 guarantees; covered by reject 7, behavior 15; not executable 2; in part 0; data directories none
+navigation-api (api): 27 guarantees; covered by reject 5, behavior 23; not executable 2; in part 0; data directories none
+nidana-checks (cli): 18 guarantees; covered by cli 17; not executable 1; in part 2; data directories none
+topic-codegen (file): 21 guarantees; covered by schema 1, file 12, cli 5; not executable 4; in part 3; data directories rejected
+topic-model (shared-model): 27 guarantees; covered by reject 10, behavior 18; not executable 2; in part 0; data directories none
+topology-dsl (api): 30 guarantees; covered by reject 8, behavior 22; not executable 0; in part 0; data directories none
+topology-ir (api): 23 guarantees; covered by reject 3, behavior 22; not executable 0; in part 0; data directories render
+9 contracts, 0 problem(s)
+exit: 0
+
+### S3 the conformance library and its binding analyze clean under the fixture options
+Analyzing behavior...
+No issues found!
+exit: 0
+
+### S4 every case against the stand-in, then the G9 cases alone (--guarantee topology-ir/G9)
+00:00 +43: All tests passed!
+exit: 0
+G9 FunctionRef.of is anonymous for a closure and a local function, and never calls the function
+G9 FunctionRef.of names a private function and a private static method as the VM renders them, the name followed by @ and the library key, unequal to the name as written
+G9 FunctionRef.of names a top-level function, a static method and a method tear-off, as the VM renders them
+00:00 +3: All tests passed!
+
+### S5 seeded defects in FunctionRef.of fail the new case and nothing else
+-- the key stripped from a private name
+G9 FunctionRef.of names a private function and a private static method as the VM renders them, the name followed by @ and the library key, unequal to the name as written [E]
+Some tests failed.
+-- a private name made anonymous
+G9 FunctionRef.of names a private function and a private static method as the VM renders them, the name followed by @ and the library key, unequal to the name as written [E]
+Some tests failed.
+
+### S6 before the amendment, the stripping defect passed every case
+All tests passed!
+
+### cleanup: remove the copied trees; the repository's hsdd/contract/ stays the only copy
+removed

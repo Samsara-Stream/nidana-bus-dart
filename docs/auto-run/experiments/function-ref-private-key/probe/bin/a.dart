@@ -1,0 +1,5 @@
+// Program a: imports the probe library and the report only.
+import 'package:probe/fns.dart';
+import 'package:probe/report.dart';
+
+void main() => report('a', probeFunctions());

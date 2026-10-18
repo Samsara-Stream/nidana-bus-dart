@@ -147,7 +147,11 @@ String to$Label(List<Map<String, int>> v) => _called(r'to$Label');
 
 final class Reducers {
   static int reduceTotal(int state, int event) => _called('reduceTotal');
+  static int _reduceQuietly(int state, int event) => _called('_reduceQuietly');
 }
+
+// Private names, which the VM renders with the library key (G9).
+int _privateTwice(int v) => _called('_privateTwice');
 
 final class Labeler {
   const Labeler();
@@ -950,6 +954,17 @@ final List<ConformanceCase<TopologyIrHarness>> topologyIrConformance =
       expect(FunctionRef.of(closure()).name, isNull);
       expect(calls, 0);
       expect(() => FunctionRef.named(''), throwsArgumentError);
+    },
+  ),
+  (
+    name: 'G9 FunctionRef.of names a private function and a private static method as the VM renders them, the name followed by @ and the library key, unequal to the name as written',
+    body: (TopologyIrHarness h) async {
+      await h.settle();
+      // The key is not asserted: it moves with the program and the runner.
+      expect(FunctionRef.of(_privateTwice).name, matches(RegExp(r'^_privateTwice@.+$')));
+      expect(FunctionRef.of(Reducers._reduceQuietly).name, matches(RegExp(r'^_reduceQuietly@.+$')));
+      expect(FunctionRef.of(_privateTwice), FunctionRef.of(_privateTwice));
+      expect(FunctionRef.of(_privateTwice), isNot(FunctionRef.named('_privateTwice')));
     },
   ),
   // ------------------------------------------------------------ G10
