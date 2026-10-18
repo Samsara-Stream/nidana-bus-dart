@@ -1,0 +1,148 @@
+{
+  "step_ref": "S50",
+  "skill": "hsdd-spec",
+  "target": "nidana.tooling (touch: text outside the phase plan of hsdd/spec/nidana.tooling.md; nidana.tooling.codegen D1 point 3, one sentence)",
+  "status": "completed",
+  "stop": null,
+  "artifacts": [
+    "hsdd/spec/nidana.tooling.md",
+    "hsdd/spec/nidana.tooling.codegen.md"
+  ],
+  "decisions": [
+    {
+      "at": "2026-10-18T09:35:51Z",
+      "artifact": "hsdd/spec/nidana.tooling.md",
+      "question": "\"Carried into the children's phase plans\": both children's plans emitted these entries and hsdd-reconcile drained them. Restate the section as history that points at where each item landed, or remove the bullets that are done?",
+      "options": [
+        { "label": "Restate as pointers", "consequence": "Keeps the section and heading, so the node that fixed the partition still points at where each entry landed (nidana-checks@v1 amendments (a) and (f), topic-codegen@v1 amendment (a), the produced_by union); a reader cold gets the trail without git archaeology. Costs a few lines that only restate contract Versioning entries." },
+        { "label": "Remove the drained bullets", "consequence": "Shorter spec; the section becomes empty and goes. Loses the in-tree pointer from this node to its children's governance outcomes; the trail lives in git history and the contracts' Versioning lines only." }
+      ],
+      "chosen": "Restate as pointers",
+      "why": "hsdd-spec has no rule for this section. The nearest HSDD rules keep resolved governance in place as audit trail: resolved OQs keep their row and detail, and the root's Proposed ADRs section keeps each materialized ADR as a pointer to its file. hsdd-reconcile empties only its own pending section. The signal that would have changed my mind is an hsdd-spec rule that drained hand-off sections are deleted, as hsdd-reconcile does for Governance updates.",
+      "evidence": ["hsdd/spec/nidana.md ## Proposed ADRs", ".agents/skills/hsdd-spec/SKILL.md (Open Questions: resolved entries keep their row as audit trail)", "hsdd/contract/nidana-checks.md ## Versioning (a), (f)", "hsdd/contract/topic-codegen.md ## Versioning (a)"],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T09:36:10Z",
+      "artifact": "hsdd/spec/nidana.tooling.md",
+      "question": "How to mark the restatements inside D1, D2 and D3, whose numbers must be kept: rewrite the stale sentences in place only, or rewrite them and add a dated note to each decision saying what changed?",
+      "options": [
+        { "label": "Rewrite plus dated note", "consequence": "Each corrected decision ends with a 'Corrected 2026-10-18.' paragraph naming what was first written and why it changed, as nidana.runtime D1, D5 to D7 do since S49 and root D10 does since S47. A few more lines; the decision's history is readable in place." },
+        { "label": "Rewrite in place only", "consequence": "Shorter; the first wording is visible only in git history, and the step's rule that a corrected decision says what changed and when is not met." }
+      ],
+      "chosen": "Rewrite plus dated note",
+      "why": "The step rules require a corrected decision to say what changed and when, and the sibling touches S47 and S49 used this form, so the tree reads one way. No evidence would favor the other option here.",
+      "evidence": ["hsdd/spec/nidana.runtime.md D1, D5, D6, D7 (Corrected 2026-10-18)", "hsdd/spec/nidana.md D10 (2026-10-18: restated for the reconciled plans)"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T09:36:10Z",
+      "artifact": "hsdd/spec/nidana.tooling.md",
+      "question": "D1 point 4 gives phase estimates (about nine for codegen, about three for lint) that the plans exceeded (eleven and four). Leave the estimates, replace them, or show both?",
+      "options": [
+        { "label": "Estimate and planned count", "consequence": "Keeps the reasoning as taken (estimates) and adds the planned counts, the form root D4 took in S47 ('estimated at about twelve phases and planned as fourteen'). The planned total, fifteen, strengthens point 4." },
+        { "label": "Leave the estimates", "consequence": "No edit; the point reads as if the plans matched the estimate." },
+        { "label": "Replace with planned counts", "consequence": "Hides that the decision was taken on estimates." }
+      ],
+      "chosen": "Estimate and planned count",
+      "why": "Consistency with root D4 and nidana.runtime D1 as corrected in S47 and S49; the decision rests on the estimate, so it should stay visible.",
+      "evidence": ["hsdd/spec/nidana.md D4", "hsdd/spec/nidana.tooling.codegen.md Phase Plan (11 phases)", "hsdd/spec/nidana.tooling.lint.md Phase Plan (4 phases)"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T09:36:28Z",
+      "artifact": "hsdd/spec/nidana.tooling.md",
+      "question": "D2's Replays bullet presents its reading of ADR-001 item 10 for two producers as this node's own, and calls the other reading 'the literal reading'. ADR-001 item 10 now states the rule itself. Rewrite the bullet to cite item 10, or leave it?",
+      "options": [
+        { "label": "Cite amended item 10", "consequence": "The bullet keeps its reasoning in the past tense and adds that item 10 has stated the rule since its amendment of 2026-10-18; 'the literal reading' becomes the reading of item 10 as first written. Exact against ADR-001." },
+        { "label": "Leave as is", "consequence": "Not wrong, but reads as if ADR-001 still left the two-producer case open, which the ADR's own text contradicts." }
+      ],
+      "chosen": "Cite amended item 10",
+      "why": "ADR-001 item 10's third bullet states the several-producer rule and names nidana.tooling D2 as the decision that sets the shares; the bullet is a restatement and the step rules say to fix restatements.",
+      "evidence": ["hsdd/adr/001-executable-contract-validation.md item 10", "hsdd/spec/nidana.md ## Proposed ADRs, ADR-001 entry"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T09:37:26Z",
+      "artifact": "hsdd/spec/nidana.tooling.codegen.md",
+      "question": "How to qualify nidana.tooling.codegen D1 point 3's sentence that the Flutter tester records the same document as dart run, within the one sentence this step may edit, while saying what changed and when?",
+      "options": [
+        { "label": "Qualify inline with date", "consequence": "The sentence says 'for public transformers', notes T4's transformers were public, gives the measured keys (@22518013 under dart run or dart test, @21518013 under the Flutter tester) and dates the qualification, citing the experiment and topology-ir@v1 Private names. Stays inside the sentence; no separate correction paragraph in D1." },
+        { "label": "Qualify inline plus a Corrected paragraph in D1", "consequence": "Matches the D1 to D3 form in nidana.tooling, but edits text outside the one sentence the step allows." }
+      ],
+      "chosen": "Qualify inline with date",
+      "why": "The step allows this sentence only; folding the date and source into it meets both the scope rule and the rule that a corrected decision says what changed and when. T4's registration used public transformers (countAdded, flatRate in catalog-loading/src/packages/domain/lib/domain.dart), so the byte-identical claim holds for them.",
+      "evidence": ["docs/auto-run/experiments/function-ref-private-key/output.txt (lines 10, 26, 38)", "docs/auto-run/experiments/catalog-loading/output.txt T4", "hsdd/contract/topology-ir.md Private names"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    }
+  ],
+  "experiments": [],
+  "self_check": [
+    { "gate": "The spec stays high-level; it is not an implementation plan.", "status": "pass", "note": "Only phase ids from the children's Depends on columns were added to Development flow and D3; no task or scope detail." },
+    { "gate": "Every node has explicit consumed/produced contract ids.", "status": "pass", "note": "Header and both embedded child summaries unchanged; Consumes and Produces lists intact." },
+    { "gate": "Every node is testable in isolation (fixtures, mocks, schemas).", "status": "pass", "note": "Isolation strategies unchanged and consistent with the children's specs." },
+    { "gate": "Every dependency edge is typed; parallel lanes are called out.", "status": "pass", "note": "Edge table unchanged; Development flow now names both lanes of each child with phase ids." },
+    { "gate": "Each child is marked internal or leaf-parent.", "status": "pass", "note": "Both leaf-parent, unchanged." },
+    { "gate": "Mermaid DAG matches the dependency table.", "status": "pass", "note": "Neither changed; still 8 edges each." },
+    { "gate": "`conventions.md` exists/updated at the root.", "status": "n/a", "note": "Not a root run; conventions.md not touched (no item asked for it)." },
+    { "gate": "The decomposition axis at each level matches ownership stated by the human, not assumed, and no node is owned by two teams (skill text reworded only to drop its em-dash).", "status": "pass", "note": "single-team; no change to the decomposition." },
+    { "gate": "Every child node has its own `hsdd/spec/{child-id}.md` file.", "status": "pass", "note": "Both files exist; gate.mjs reports no missing child." },
+    { "gate": "Every input source appears in the Sources of at least one node, or is marked in the root `## Sources` as \"informative only, not decomposed\", with a reason.", "status": "n/a", "note": "Root-level gate; Sources fields untouched." },
+    { "gate": "No node's Sources lists a document that does not govern it.", "status": "pass", "note": "Sources untouched." },
+    { "gate": "Field blocks are bullet lists and empty lists say \"none\".", "status": "pass", "note": "No field block edited." },
+    { "gate": "Every open question is defined once, in its owning spec, with a table row and a `### {ID}` detail subsection; child views carry `[inherits …]`; no cited ID lacks a definition.", "status": "pass", "note": "OQ-T1 and OQ-T2 rows and details untouched; gate.mjs finds no undefined OQ." },
+    { "gate": "OQ prefixes used by node specs are declared in `conventions.md`.", "status": "pass", "note": "T, TA, TB declared; no new OQ." },
+    { "gate": "Under `multi-team`, every node whose team differs from its parent's carries `- **Team:**`; no node is owned by two teams.", "status": "n/a", "note": "single-team." },
+    { "gate": "Where children exchange contracts, an integration node exists or the decision not to add one is stated in the parent (one line).", "status": "pass", "note": "D1 Consequences still states no nidana.tooling.integration and why." },
+    { "gate": "A graft kept every existing child id and touched only the new child's file, the parent's summaries and the parent's DAG.", "status": "n/a", "note": "Not a graft." },
+    { "gate": "A retired node's file is kept; its contracts' retirement went through `hsdd-reconcile`.", "status": "n/a", "note": "No retirement." },
+    { "gate": "Promotion: the human confirmed before `- **Adopted:** promoted` was written; `## Observed surface` kept; `v0` contracts unchanged unless redesigned.", "status": "n/a", "note": "Not a promotion." },
+    { "gate": "Orchestrator gate: node docs/auto-run/tools/gate.mjs --skill hsdd-spec, then --final", "status": "pass", "note": "Both: 0 errors, 0 warnings, 2 changed files. No em-dash and no banned phrase in either file." }
+  ],
+  "notes_for_orchestrator": [
+    "Changed, hsdd/spec/nidana.tooling.md:32 (Inherited from the root, plugin pins). Before: pins analyzer and analysis_server_plugin 'to the lockfile's versions'. After: to the exact versions the full planned resolution holds, which ADR-002 item 4's table lists (13.3.0 and 0.3.18 on the current pin), as ADR-002 item 7 reads since its third amendment. Outside the step's list; a restatement.",
+    "Changed, nidana.tooling.md:118 (Development flow opener). Before: root D10 lets a child start once 'the producer's first phase' has merged. After: once the phase the contract's Delivery paragraph names for a consumer's edge has merged, and a phase whose gate runs a replay set waits on the nidana.model phase that lands it (conventions, Phase design); the children's Depends on columns hold every phase-level wait. Matches root D10 and root Development flow item 2 as S47 wrote them.",
+    "Changed, nidana.tooling.md:120 (item 2, 'Two lanes, side by side'). Before: nidana.tooling.lint starts once nidana.model's and nidana.runtime's first phases have merged; codegen starts on nidana.model's first phase. After: nidana.tooling.lint.1 to .3 wait only on nidana.model.1 and .7 (replay sets); nidana.tooling.lint.4 alone waits on nidana.model.5 and nidana.runtime.1 (lint D5); codegen starts once nidana.model.5 and .7 have merged (codegen.1's Depends on). Same facts and order as root item 2 Lane B.",
+    "Changed, nidana.tooling.md:121 ('The plugin early'). 'nidana.tooling.lint's first phase' became nidana.tooling.lint.1; 'its rules accept every member's code' now says from nidana.tooling.lint.4 on, where the rules start to report (lint D2, D3).",
+    "Changed, nidana.tooling.md:122 (item 3, 'What codegen's later phases wait on'). It was wrong: the registry lane does not run 'on the model's first phase alone', and it is not 'ahead of' the workspace lane (both lanes share only codegen.1). After, with ids from codegen's Depends on column: .2 to .4 on nidana.model.5 and .7 through .1; .5 on nidana.model.13 and .14; .6 follows .5; .7 on .1 only; .8 on nidana.model.11, nidana.runtime.1, nidana.navigation.1, nidana.flutter.1 (codegen D5 point 3); .9 on nidana.model.12 and .13; .10 on nidana.model.11 and .13; .11 closes both lanes.",
+    "Changed, nidana.tooling.md:123. Before: 'nidana.integration last, after both children ship (root DAG)'. After: nidana.integration.1 waits on nidana.tooling.codegen.11 and nidana.tooling.lint.4 (root Development flow item 4; nidana.integration D2).",
+    "Changed, nidana.tooling.md:141 (D1 point 1, outside the list). The codegen's dependencies 'build, source_gen, dart_style, yaml' became 'build, analyzer, dart_style, yaml', citing nidana.tooling.codegen D3, which declares no source_gen and declares analyzer.",
+    "Changed, nidana.tooling.md:144 (D1 point 4). 'about nine phases' and 'about three phases' became 'estimated at about nine phases and planned as eleven' and 'estimated at about three phases and planned as four' (root D4's form).",
+    "Changed, nidana.tooling.md:145 (D1 point 5). 'its own Boundary leaves ... to this decomposition' became past tense, adding that the row now points at D1 and D2 (nidana-checks@v1 Boundary; Versioning (f)).",
+    "Changed, nidana.tooling.md:149 (D1 first alternative, item 5). 'the contracts' \"checked by nidana.tooling's gates\" lines stay exact' became 'the contracts' not-executable lines can name nidana.tooling's gates instead of a child's'.",
+    "Added, nidana.tooling.md:155, D1 'Corrected 2026-10-18.' paragraph covering points 1, 4, 5 and the first alternative. The decision did not change.",
+    "Changed, nidana.tooling.md:162 (D2 Replays). Names the last replaying phases, nidana.tooling.lint.4 and nidana.tooling.codegen.11; the reading of ADR-001 item 10 is past tense and says item 10 has stated the several-producer rule since its 2026-10-18 amendment; 'the literal reading' became 'the literal reading of item 10 as first written'.",
+    "Changed, nidana.tooling.md:163 (D2 Gate-checked guarantees, item 5). Before: the not-executable lines 'say \"checked by nidana.tooling's gates\": they are nidana.tooling.codegen's gates'. After: they are checked by nidana.tooling.codegen's gates, and their not-executable lines say so (true in both contracts since S40).",
+    "Changed, nidana.tooling.md:164 (D2 Reconcile). Future tense became past: both confirms emitted and applied; produced_by names nidana.tooling.lint.1 to .4 and nidana.tooling.codegen.7, .8, .9, .11; phase_ids flipped to final once nidana.integration's entry was confirmed.",
+    "Added, nidana.tooling.md:166, D2 'Corrected 2026-10-18.' paragraph. The decision did not change.",
+    "Changed, nidana.tooling.md:175 (D3 edge paragraph, item 4). Before: each edge waits 'for the producer's first phase'; 'within nidana.tooling.codegen only the phases whose replays resolve those packages wait'; the root 'take[s] these edges at the root refresh'. After: each waits on the phase its Delivery paragraph names, here nidana.runtime.1, nidana.navigation.1, nidana.flutter.1; in codegen, nidana.tooling.codegen.8 (claim-site fixtures import the packages) and .9 and .11 through it; in lint, only nidana.tooling.lint.4; the root took the edges at its refresh of 2026-10-18. Wording matches root line 201.",
+    "Changed, nidana.tooling.md:177 (D3 alternative, item 4). 'after nidana.flutter's first phase, which waits for nidana.runtime to ship (root DAG, hard)' became 'after nidana.flutter.1, which itself waits on nidana.runtime.1 and nidana.navigation.1 (root Development flow item 3)'; 'a scan phase planned on the model's first phase alone' became 'a claim-site or scan phase planned on nidana.model's phases alone'.",
+    "Added, nidana.tooling.md:179, D3 'Corrected 2026-10-18.' paragraph. The decision and its edges did not change.",
+    "Changed, nidana.tooling.md:181 to 187 (item 1, 'Carried into the children's phase plans'). Heading kept. New intro: each item went into a child's plan and hsdd-reconcile drained it on 2026-10-18; the items are pointers to where each landed. Bullet 1 (global_bus_accessor, which 'still says' the old definition) now points at nidana-checks@v1 Versioning (a). Bullet 2 now points at topic-codegen@v1 Registration points 1 to 4 (Versioning (a)) and nidana-checks@v1 Versioning (f). Bullet 3 states the produced_by union with phase_ids final.",
+    "Changed, hsdd/spec/nidana.tooling.codegen.md:116 (D1 point 3, item 6, the one sentence). Before: 'the Flutter tester records the same document as dart run: T4 recorded the domain package's registration under both, byte for byte'. After: for public transformers it does (T4's transformers were public); with a private transformer the documents differ in the library key, @22518013 under dart run or dart test against @21518013 under the Flutter tester; dated 2026-10-18, citing function-ref-private-key/ and topology-ir@v1 Private names. Nothing else in that file changed (D3 to D5 and the plan untouched).",
+    "Checked and left as is in nidana.tooling.md: header, Overview, the child table, both embedded child summaries (in step with the children's headers), the DAG and edge table, the Contract matrix (codegen.7 and .8 run --set structure, which the matrix's 'cli restricted to its delivered ids' covers because nothing is delivered before .9), D1 Consequences, OQ-T1 and OQ-T2.",
+    "Left inexact, not this step's files (the children's own text outside their plans): hsdd/spec/nidana.tooling.lint.md:70 (Development flow: 'The node starts once nidana.model's and nidana.runtime's first phases have merged', which its own D5 refines to lint.4); lint.md:132 to 135 ('Carried into the phase plan', drained in S37); lint.md:25 ('about three phases', planned as four). hsdd/spec/nidana.tooling.codegen.md:99 ('The node starts once nidana.model's first phase has merged', where codegen.1 waits on nidana.model.5 and .7) and :102 ('The registry lane ... needs only the model's first phase'); codegen.md:171 to 175 ('Carried into the phase plan', drained in S40). A touch of each child would make them exact.",
+    "Left inexact, the plan's (hsdd-phase-plan or the reconcile sweep): codegen.md:202, the Function references note, says a private transformer's key differs 'between the JIT recording and an AOT build'; S44 measured it also differs between catalog's two JIT runners. Its conclusion (fixture transformers public) still holds. Also S40's note on codegen.6 ('seventeen recorded invocations', now twenty) and codegen.10 ('G20 and G21 have no case', G21 now has two).",
+    "No new D{n}, ADR, OQ, contract or conventions change; no tree-shape or contract-interface question arose, so nothing here is a run-stop candidate."
+  ]
+}
