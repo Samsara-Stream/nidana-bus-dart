@@ -1,0 +1,119 @@
+[
+  {
+    "at": "2026-10-18T08:13:10Z",
+    "artifact": "docs/auto-run/execution-plan.md",
+    "question": "How does the run fix the stale and inexact text the stage-6 steps collected, now that every contract is stable and gate.mjs --final already passes?",
+    "options": [
+      {
+        "label": "Owning skill per artifact, one reconcile sweep for plan lines",
+        "consequence": "ADR-001 through hsdd-adr, two contracts through hsdd-contract, five node specs' non-plan text (root, nidana.model, nidana.runtime, nidana.tooling, nidana.tooling.lint) through hsdd-spec touches, and every phase scope, gate and plan-written decision through one hsdd-reconcile sweep; nine steps."
+      },
+      {
+        "label": "Owning skill per artifact, a phase-plan revision per leaf-parent",
+        "consequence": "The same, with each leaf-parent's plan lines corrected by its own hsdd-phase-plan invocation; about fourteen steps, and hsdd-phase-plan's only mode for an existing plan is append, which cannot correct an unshipped phase's text."
+      },
+      {
+        "label": "Leave the text and list it in the report",
+        "consequence": "No steps. Implementing sessions meet scopes that contradict amended ADR-002 item 4 (nidana.model.1 would write test ^1.33.0, which stops resolving at nidana.flutter.1), a lint.1 Verification expecting exit 4 where the root analyze gives 3, and a replay tool without ADR-001's empty-selection rule, so a restricted binding replay exits 79."
+      }
+    ],
+    "chosen": "Owning skill per artifact, one reconcile sweep for plan lines",
+    "why": "Several items are defects an implementing session would act on, not wording: nidana.model.1's constraint rule, the lint exit code, nidana.model's --guarantee lists that omit topology-dsl@v1 G30 and topology-ir@v1 G23, and ADR-001 item 9's missing empty-selection and suite-keyed restriction rules. hsdd-reconcile already updates 'any phase scope that assumed otherwise' after a governance decision (its step 3), and the S38 and S43 ADR amendments are such decisions; hsdd-phase-plan documents only Append Mode for a plan that has phases. Close call on the owner of plan lines: if hsdd-phase-plan documented in-place revision of unshipped phases, per-node revision would be the cleaner owner.",
+    "evidence": [
+      ".agents/skills/hsdd-reconcile/SKILL.md step 3",
+      ".agents/skills/hsdd-phase-plan/SKILL.md Append Mode",
+      "docs/auto-run/steps/S38.json",
+      "docs/auto-run/steps/S31.json",
+      "docs/auto-run/steps/S29.json"
+    ],
+    "blast_radius": "node-local",
+    "confidence": "medium",
+    "would_have_asked": false,
+    "stop_class": null,
+    "would_upstream": false
+  },
+  {
+    "at": "2026-10-18T08:13:10Z",
+    "artifact": "docs/auto-run/execution-plan.md",
+    "question": "Does ADR-002 item 4's constraint table need an amendment to list pub_semver ^2.2.1, which nidana.tooling.codegen D3 declares?",
+    "options": [
+      {
+        "label": "Leave ADR-002 as is",
+        "consequence": "Item 4's rule for a package outside the table (a resolution probe and a node D{n}) already covers it; codegen D3 records the probe (docs/auto-run/experiments/codegen-plan-facts/). The table stops being the full list."
+      },
+      {
+        "label": "Amend ADR-002 to list it",
+        "consequence": "One more hsdd-adr step; the table stays the complete planned resolution."
+      }
+    ],
+    "chosen": "Leave ADR-002 as is",
+    "why": "The ADR anticipated exactly this case and the node decision carries the evidence; an amendment would restate D3. Would have amended if a second node needed pub_semver, since a shared constraint belongs in the table.",
+    "evidence": [
+      "hsdd/adr/002-package-and-workspace-layout.md item 4",
+      "hsdd/spec/nidana.tooling.codegen.md D3",
+      "docs/auto-run/experiments/codegen-plan-facts/"
+    ],
+    "blast_radius": "node-local",
+    "confidence": "high",
+    "would_have_asked": false,
+    "stop_class": null,
+    "would_upstream": false
+  },
+  {
+    "at": "2026-10-18T08:13:10Z",
+    "artifact": "docs/auto-run/execution-plan.md",
+    "question": "Should the nine contracts' provenance bullet ('the first replay against the real package, once nidana.model's first phase lands the replay tool') be reworded, now that the tool lands over nidana.model.1, .2, .6 and .7?",
+    "options": [
+      {
+        "label": "Leave the nine bullets",
+        "consequence": "The sentence stays approximate; the conventions' replay-tool bullet and each contract's Delivery paragraph say which phase lands which set."
+      },
+      {
+        "label": "Reword through nine hsdd-contract touches",
+        "consequence": "Nine steps for one provenance sentence, each a compatible amendment on a stable contract."
+      },
+      {
+        "label": "Reword only in S44's and S45's contracts",
+        "consequence": "Two contracts say it one way and seven another."
+      }
+    ],
+    "chosen": "Leave the nine bullets",
+    "why": "No gate or schedule is read from the bullet; gates name commands and Delivery paragraphs name phases. S29 judged the same. Would have reworded if any phase context drew its replay wait from the bullet.",
+    "evidence": [
+      "docs/auto-run/steps/S29.json",
+      "hsdd/conventions.md (replay tool bullet)"
+    ],
+    "blast_radius": "contract",
+    "confidence": "medium",
+    "would_have_asked": false,
+    "stop_class": null,
+    "would_upstream": false
+  },
+  {
+    "at": "2026-10-18T08:13:10Z",
+    "artifact": "docs/auto-run/execution-plan.md",
+    "question": "Should ADR-002 record that build_runner 2.16.1 dropped --delete-conflicting-outputs and silently rewrites a stale committed output (S41 note, S42 optional follow-up)?",
+    "options": [
+      {
+        "label": "Keep it in nidana.integration D7",
+        "consequence": "The one member that runs build_runner carries the fact and the gate ordering it needs; ADR-002 stays silent."
+      },
+      {
+        "label": "Add it to ADR-002",
+        "consequence": "One more hsdd-adr step for a fact one member uses."
+      }
+    ],
+    "chosen": "Keep it in nidana.integration D7",
+    "why": "ADR-002 Consequences already confine build_runner to nidana_integration; D7 orders the staleness check before build_runner. Would move it into the ADR if a second member adopted build_runner.",
+    "evidence": [
+      "hsdd/spec/nidana.integration.md D7",
+      "docs/auto-run/experiments/integration-plan-facts/",
+      "docs/auto-run/steps/S42.json"
+    ],
+    "blast_radius": "node-local",
+    "confidence": "high",
+    "would_have_asked": false,
+    "stop_class": null,
+    "would_upstream": false
+  }
+]

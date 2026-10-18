@@ -205,8 +205,8 @@ dropped flag in ADR-002 (nidana.integration D7 records it for the one member tha
 | S40 | 6 | hsdd-reconcile | nidana.tooling.codegen's pending section | done | 162c13c |
 | S41 | 6 | hsdd-phase-plan | nidana.integration (8 phases) | done | b47b883 |
 | S42 | 6 | hsdd-reconcile | nidana.integration's pending section (every contract to final and stable) | done | a313ab0 |
-| S43 | 7 | hsdd-adr | ADR-001 update: item 9 landing phases, CLI semantics, empty selection and suite-keyed binding restriction; "first producing phase" wording | running | |
-| S44 | 7 | hsdd-contract | topology-ir@v1 touch: private function references (`_name@{key}`, JIT and AOT keys differ) | planned | |
+| S43 | 7 | hsdd-adr | ADR-001 update: item 9 landing phases, CLI semantics, empty selection and suite-keyed binding restriction; "first producing phase" wording | done | 9a05120 |
+| S44 | 7 | hsdd-contract | topology-ir@v1 touch: private function references (`_name@{key}`, JIT and AOT keys differ) | running | |
 | S45 | 7 | hsdd-contract | nidana-checks@v1 touch: plugin-failure exit codes in app CI; In CI's "same steps" for nidana.integration | planned | |
 | S46 | 7 | hsdd-spec (touch) | root: dev flow and D10 wording, the lint wait sentence, the Contracts paragraph's draft and provisional sentence | planned | |
 | S47 | 7 | hsdd-spec (touch) | nidana.model: Owns, Inherited and Isolation lines | planned | |
@@ -380,3 +380,8 @@ dropped flag in ADR-002 (nidana.integration D7 records it for the one member tha
   --final` passes. Stage 7 is now a consistency pass of eight steps (S43 to S50) with the decisions in
   `docs/auto-run/steps/S43.plan.json`; the step log's stale S10..S14 planned row is replaced by S16's
   row, which it had displaced.
+- 2026-10-18 (UTC), after S43: a ninth stage-7 step, nidana.tooling.lint's touch (S50), joined
+  before the sweep (now S51; REPORT is S52). ADR-001 now states the tool's landing phases, its
+  command line and the two S31 rules; S51 also takes nidana.model.6's scope and tests (suite-keyed
+  restriction, empty selection, a cross-slug binding) and D2's restatements; S46 also takes the root's
+  "Amended in place twice" line and the conventions' sentence naming ADR-001 for the first-phase tool.

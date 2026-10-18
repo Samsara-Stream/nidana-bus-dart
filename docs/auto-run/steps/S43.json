@@ -1,0 +1,215 @@
+{
+  "step_ref": "S43",
+  "skill": "hsdd-adr",
+  "target": "ADR-001 (hsdd/adr/001-executable-contract-validation.md)",
+  "status": "completed",
+  "stop": null,
+  "artifacts": [
+    "hsdd/adr/001-executable-contract-validation.md",
+    "hsdd/adr/INDEX.md (regenerated, no diff)",
+    "hsdd/contract/INDEX.md (regenerated, no diff)",
+    "docs/auto-run/experiments/cli-dart-resolution/"
+  ],
+  "decisions": [
+    {
+      "at": "2026-10-18T08:18:44Z",
+      "artifact": "hsdd/adr/001-executable-contract-validation.md",
+      "question": "Does stating the replay tool's landing phases, its command-line semantics and the 'first producing phase' wording amend ADR-001 in place, or does it need a superseding ADR?",
+      "options": [
+        { "label": "amend in place", "consequence": "Item numbers, status, date and every Governed by link stay; a fourth dated entry under ## Amendments lists what moved." },
+        { "label": "supersede with ADR-004", "consequence": "A new file restating ADR-001 with the additions; ADR-001 becomes superseded and all eighteen Governed by links and every 'ADR-001 item N' citation in specs and contracts move, with no change to what binds." }
+      ],
+      "chosen": "amend in place",
+      "why": "No decision changes: every rule written down was taken in nidana.model D1 or D2 (or nidana.model.7's scope) and is what the reconciled gates already assume. hsdd-adr reserves supersession for a later ADR that replaces this one; the two earlier in-place amendments set the precedent for clarifications of this kind, and nidana.model D2 itself calls these 'a candidate clarification at its next touch'.",
+      "evidence": [".agents/skills/hsdd-adr/SKILL.md (Status Lifecycle)", "hsdd/adr/001-executable-contract-validation.md ## Amendments", "hsdd/spec/nidana.model.md D2"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T08:18:44Z",
+      "artifact": "hsdd/adr/001-executable-contract-validation.md",
+      "question": "Item 9 'written in its first phase': state the four landing phases in the ADR, or only point at nidana.model D1 and the conventions' replay-tool list?",
+      "options": [
+        { "label": "state the phases, citing D1", "consequence": "A third copy of the list (D1, conventions, ADR), but the one hsdd-config injects into every phase context, including phases of other nodes that run a set." },
+        { "label": "point at D1 and the conventions", "consequence": "One fewer copy to drift, but a consuming node's phase context, which never carries nidana.model's D{n}, would read only a pointer." }
+      ],
+      "chosen": "state the phases, citing D1",
+      "why": "hsdd-config injects an ADR's Decision into every governed phase's context, while a node-local D{n} reaches only that node's phases, so stating the phases is what makes a lint or codegen phase see its edge on nidana.model.7. Drift risk is low because every contract's phase_ids are final (S42). Close call: had the plans still been provisional, the pointer would have been the better choice.",
+      "evidence": ["hsdd/spec/nidana.model.md D1", "hsdd/conventions.md (Phase design, replay-tool bullet)", ".agents/skills/hsdd-adr/SKILL.md (Decision and Consequences are injected)"],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T08:18:44Z",
+      "artifact": "hsdd/adr/001-executable-contract-validation.md",
+      "question": "Where do the command-line semantics go: new sub-bullets of item 9, or a new item 13?",
+      "options": [
+        { "label": "item 9 sub-bullets", "consequence": "Item 9 keeps owning the command, sets, restriction and runners; every existing 'ADR-001 item 9' citation (PENDING, --guarantee, runners) now lands on the full rule." },
+        { "label": "new item 13", "consequence": "Item 9 untouched apart from the landing phases, but the restriction and PENDING rules would be split across two items and the existing citations would point at half of each." }
+      ],
+      "chosen": "item 9 sub-bullets",
+      "why": "Contracts and plans cite item 9 for PENDING, --guarantee and the runners (bus-api@v1, bus-testing@v1, navigation-api@v1, flutter-binding@v1 Validation; nidana.runtime replay schedule), so completing item 9 keeps those citations exact and moves no item number.",
+      "evidence": ["hsdd/contract/bus-api.md:414", "hsdd/spec/nidana.runtime.md:269"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T08:19:14Z",
+      "artifact": "hsdd/adr/001-executable-contract-validation.md",
+      "question": "With the suite-keyed restriction, does item 9 also state that a {slug}/G{n} may name a slug the command does not replay?",
+      "options": [
+        { "label": "state it", "consequence": "nidana.runtime.12's and .13's gates, which pass topology-dsl/G18 to G29 to a bus-api replay, are legal by the ADR's text." },
+        { "label": "leave it implicit", "consequence": "A tool that treats an id of an unreplayed slug as D2's 'unknown slug' usage error would fail those two gates with exit 64." }
+      ],
+      "chosen": "state it",
+      "why": "It is what those gates already assume, and the suite-keying rule S31 asked for has no use without it, since a cross-slug binding's cases can only be named by a qualified id of a slug other than the replayed one. No gate command changes.",
+      "evidence": ["hsdd/spec/nidana.runtime.md:417", "hsdd/spec/nidana.runtime.md:430", "docs/auto-run/steps/S31.json", "docs/auto-run/experiments/empty-guarantee-selection/ (E3)"],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T08:19:14Z",
+      "artifact": "hsdd/adr/001-executable-contract-validation.md",
+      "question": "Does the empty-selection rule (no admitted case: not run, counts as passing) cover bindings only, as S31 stated it, or bindings, file replays and recorded invocations alike?",
+      "options": [
+        { "label": "bindings, file replays and recorded invocations", "consequence": "One rule covers nidana.navigation.2 to .5 and nidana.flutter.2 to .6 (bindings) and nidana.tooling.lint.1 to .3 (a cli selection with no case), which today read it from nidana.model D2 items 1 and 4." },
+        { "label": "bindings only", "consequence": "The file and cli case follows from 'runs only when every id is in the restriction' by inference, as lint D3 item 2 reads it, with the ADR silent." }
+      ],
+      "chosen": "bindings, file replays and recorded invocations",
+      "why": "Every gate that admits no case relies on the same outcome; for file and cli it is already implied, so stating it once costs nothing and removes the inference. The binding half is the one that matters at run time, since dart test exits 79 on a filter that admits nothing.",
+      "evidence": ["docs/auto-run/experiments/empty-guarantee-selection/ (E2)", "hsdd/spec/nidana.navigation.md:89", "hsdd/spec/nidana.flutter.md:96", "hsdd/spec/nidana.tooling.lint.md:107"],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T08:19:14Z",
+      "artifact": "hsdd/adr/001-executable-contract-validation.md",
+      "question": "Does item 9 state the one 'pub get --enforce-lockfile' before the file or cli set and its failure as an environment error (S21), which only nidana.model.7's scope and D2 item 1 hold today?",
+      "options": [
+        { "label": "state it", "consequence": "A stale resolution becomes exit 2 by the ADR, never a case failing with dart run's exit 255 from a files/ directory." },
+        { "label": "leave it to nidana.model.7", "consequence": "The ADR stays silent; the rule binds only through nidana.model's plan, which nidana.tooling's phase contexts never carry." }
+      ],
+      "chosen": "state it",
+      "why": "nidana.tooling.codegen's and nidana.tooling.lint's gates rely on recorded invocations never reporting a resolution problem as the case's exit code; the rule is already planned (nidana.model.7 scope (4)), so writing it down changes no gate.",
+      "evidence": ["hsdd/spec/nidana.model.md D2 item 1", "hsdd/spec/nidana.model.md:305 (nidana.model.7 scope (4))", "docs/auto-run/experiments/topic-codegen-invocations/ (run.sh note on modification times)", "docs/auto-run/steps/S21.json"],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T08:19:37Z",
+      "artifact": "hsdd/adr/001-executable-contract-validation.md",
+      "question": "How does item 10 (and Context bullet 1) define 'first producing phase': the first phase produced_by names, or the first phase of the producing leaf-parent that produced_by names?",
+      "options": [
+        { "label": "first phase of its producing leaf-parent in produced_by", "consequence": "Exact for one-producer contracts and gives each producer of nidana-checks@v1 its own first producing phase." },
+        { "label": "first phase produced_by names", "consequence": "Shorter, but nidana-checks@v1's produced_by lists nidana.tooling.lint.1 first while nidana.tooling.codegen's first producing phase is nidana.tooling.codegen.7." }
+      ],
+      "chosen": "first phase of its producing leaf-parent in produced_by",
+      "why": "produced_by lists are in phase order per leaf-parent, but a contract with two producers concatenates them, so 'the first listed' misreads it. What item 10 requires of a gate is unchanged.",
+      "evidence": ["hsdd/contract/nidana-checks.md:8", "hsdd/conventions.md:121-138"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T08:19:37Z",
+      "artifact": "hsdd/adr/001-executable-contract-validation.md",
+      "question": "Item 11 'once the producer's first phase has merged': replace with 'first producing phase', or with the phase the contract's Delivery paragraph names for a consumer's edge?",
+      "options": [
+        { "label": "the Delivery paragraph's phase", "consequence": "Matches the conventions' reading rule and every Delivery paragraph: topology-dsl@v1's consumers wait on nidana.model.5." },
+        { "label": "first producing phase", "consequence": "Uniform wording with item 10, but wrong for topology-dsl@v1, whose first producing phase is nidana.model.4 while its consumers must wait on nidana.model.5 for the shared main library to complete." }
+      ],
+      "chosen": "the Delivery paragraph's phase",
+      "why": "The conventions (Phase design, line 133) already read 'the producer's first phase' this way, and topology-dsl@v1's Delivery paragraph shows the two phases differ. Item 10 keeps 'first producing phase' because it is about where declarations land, item 11 about when a consumer may start.",
+      "evidence": ["hsdd/conventions.md:132-137", "hsdd/contract/topology-dsl.md:44", "hsdd/spec/nidana.model.md D1 item 3"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T08:19:58Z",
+      "artifact": "hsdd/adr/001-executable-contract-validation.md",
+      "question": "The Consequences bullet 'Replaying a contract before its producer's first phase has merged fails with PENDING': re-key it to the first producing phase, or to the producing package's absence?",
+      "options": [
+        { "label": "the producing package's absence", "consequence": "True for every contract: PENDING is about package_config, and a gate placed before the package exists fails, never passes." },
+        { "label": "the first producing phase", "consequence": "False for topology-dsl@v1 and topology-ir@v1: nidana_dart_contracts exists from nidana.model.3, so a replay between nidana.model.3 and .4 fails on missing declarations, not with PENDING." }
+      ],
+      "chosen": "the producing package's absence",
+      "why": "The literal swap would make the bullet wrong for two contracts that share a package created by another contract's first producing phase. No gate replays a contract in that window, since each contract's sets beyond structure and schema first run at its own first producing phase.",
+      "evidence": ["hsdd/spec/nidana.model.md:248-259 (nidana.model.3 creates the package)", "hsdd/spec/nidana.model.md D2 item 2"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T08:23:33Z",
+      "artifact": "hsdd/adr/001-executable-contract-validation.md",
+      "question": "Item 9 says which flutter a Flutter binding runs (the SDK of the running dart), and nidana.model.7 says a file command's leading 'fvm dart' runs as the running dart, but nothing says which dart a recorded invocation whose args first line is 'dart' runs (the eight analyze-* cases of nidana-checks@v1). State it in this amendment?",
+      "options": [
+        { "label": "leave the ADR silent", "consequence": "No new rule in a step that adds none; under 'fvm dart run' the child's PATH begins with the pinned SDK, so 'dart' by name is the pinned one." },
+        { "label": "state it", "consequence": "Uniform with the binding rule, but a rule neither D2 nor any plan has taken, written in a pass that only records taken decisions." }
+      ],
+      "chosen": "leave the ADR silent",
+      "why": "The experiment shows fvm prepends the pinned SDK's bin to PATH for the tool's children, even with every other dart removed from PATH, so every gate (which runs the tool through fvm dart) gets the pinned SDK either way. Decided after the experiment ran; the timestamp was taken when recording. Signal that would change it: a gate or CI job that runs the tool without fvm beside another Dart SDK on PATH.",
+      "evidence": ["docs/auto-run/experiments/cli-dart-resolution/"],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    }
+  ],
+  "experiments": [
+    {
+      "path": "docs/auto-run/experiments/cli-dart-resolution/",
+      "question": "Under 'fvm dart run', which dart does a child process started by the name 'dart' get, compared with the SDK of the running dart?",
+      "finding": "Platform.resolvedExecutable is the pinned SDK (3.47.7, Dart 3.13.5), and fvm puts /Users/mohamad.purbo/fvm/versions/3.47.7/bin first on the child's PATH, so 'dart' by name resolves to the pinned SDK, also with PATH stripped of every other dart. No ADR change needed for the cli set's 'dart' first line while gates run the tool through fvm."
+    }
+  ],
+  "self_check": [
+    { "gate": "Frontmatter has `id`, `status`, `affects`, `date`.", "status": "pass", "note": "Frontmatter unchanged: ADR-001, accepted, eighteen affects ids, date 2026-10-17 kept as the earlier amendments kept it." },
+    { "gate": "The decision is genuinely cross-cutting; a node-local one stayed a `D{n}`.", "status": "pass", "note": "What moved into the ADR is what other nodes' gates rely on (restriction, PENDING, exit codes, landing phases); nidana.model D1 and D2 keep the node-internal parts (sizing, pure-core layout of the tool)." },
+    { "gate": "`## Decision` and `## Consequences` are self-contained (no reliance on Context).", "status": "pass", "note": "Each rule carries its own short reason in the Decision (exit 79, stale resolution); the new Context paragraph holds only the evidence." },
+    { "gate": "Every id in `affects` carries a matching `Governed by: [ADR-NNN]`.", "status": "pass", "note": "Checked all eighteen: nine node specs and nine contracts carry ADR-001 in Governed by. affects unchanged." },
+    { "gate": "A superseding ADR set both `supersedes` and the old ADR's `superseded_by`.", "status": "n/a", "note": "Amended in place; nothing superseded." },
+    { "gate": "No invented decision was written as `accepted`; an unknown decision is `proposed` with a TODO.", "status": "pass", "note": "Every added rule is sourced: nidana.model D1, D2 and phase scopes .1, .2, .6, .7; S31's two rules from docs/auto-run/experiments/empty-guarantee-selection/ and the gates that assume them." },
+    { "gate": "The registry was regenerated.", "status": "pass", "note": "node hsdd/scripts/gen-registry.mjs: 9 contracts, 3 ADRs; both INDEX.md files unchanged. node docs/auto-run/tools/gate.mjs --skill hsdd-adr: 0 errors, 0 warnings." },
+    { "gate": "Open questions are cited by ID only; an ADR that resolves one names the ID in its Decision, and the owning spec's OQ row is updated to point at this ADR (RESOLVED (date)).", "status": "pass", "note": "No OQ resolved or minted; OQ8 stays resolved by this ADR as before." }
+  ],
+  "notes_for_orchestrator": [
+    "What moved in ADR-001. Item 9: 'written in its first phase' replaced by the four landing phases (structure at nidana.model.1; surface, reject, schema, fixture.dart and PENDING detection at nidana.model.2; behavior at nidana.model.6; file and cli at nidana.model.7) and the edge another node's phase takes on the phase landing a set it runs; structure runs whether --set names it or not, and --set never adds a set a slug lacks; --guarantee takes {slug}/G{n} and bare G{n}, a bare id belongs to the one slug named and is a usage error with several, a {slug}/G{n} may name an unreplayed slug; a binding's restriction is keyed by the slug whose conformance library it imports; file replays and recorded invocations run only when every declared id is admitted, and a slug with no id of its own runs none; a binding, file replay or recorded invocation with no admitted case is not run and passes, and no runner gets a filter that admits nothing (dart test exits 79); one pub get --enforce-lockfile before the file or cli set; PENDING for every surface, reject or behavior library, file replay or recorded invocation naming an absent package; exit codes 0, 1, 2, 64 replace 'non-zero on any failure'.",
+    "What moved, continued. Item 10: 'the first phase of the producing leaf-parent' and 'one first phase' now read 'first producing phase, the first phase of its producing leaf-parent that its produced_by names'; a sentence says the tool's phases produce no contract, so nidana.model's first producing phases are .3 to .5; the api/shared-model sub-bullet notes a declaration of another contract is included (nidana.model.4 lands TopologyDefinition). Gate requirements unchanged. Item 11: consumers wait on the phase the contract's Delivery paragraph names for a consumer's edge (topology-dsl@v1: nidana.model.5). Context bullet 1 says first producing phase; a new Context paragraph records the stale-resolution, exit-79 and E3 facts. Consequences: bullet 1 names the phase per set; the PENDING bullet is keyed by the producing package's absence; one new bullet on restricted bindings. ## Amendments has a fourth entry dated 2026-10-18. No Governed by, frontmatter or registry change.",
+    "Contradicts the amended ADR (plan text, for the S50 reconcile sweep): hsdd/spec/nidana.model.md:292, nidana.model.6 scope: '--guarantee becomes a test-name filter anchored at the start of the name ... and a slug with no id in the restriction runs no binding (D2)' lacks the suite-keyed filter (built from the ids of the binding's suite slug, so bare ids never reach a cross-slug binding) and the no-admitted-case rule; its 'a slug with no id ... runs no binding' would skip bus_activation_test.dart under a bus-api replay restricted by topology-dsl ids alone, which item 9 now runs.",
+    "Contradicts or omits (S50): hsdd/spec/nidana.model.md:295, nidana.model.6 Verification and its 'Tests bind synthetic suites' (line 292): add a cross-slug binding restricted by {slug}/G{n} ids only, with bare ids not reaching it, and a binding with no admitted case that is not run and passes instead of exiting 79 (S31's note).",
+    "Restates the old ADR text (S50, plan-written decisions): hsdd/spec/nidana.model.md:71, D1 opening 'ADR-001 item 9 writes the replay tool in this node's first phase'; hsdd/spec/nidana.model.md:84, D2 item 2 'ADR-001 item 9 states this for bindings' (it now states it for every fixture kind); hsdd/spec/nidana.model.md:89, D2 'Not an ADR change: ADR-001 leaves these open, and they are a candidate clarification at its next touch' (now stated in item 9). Optional at hsdd/spec/nidana.model.md:229 (nidana.model.1 scope (3)): the request parser accepts a {slug}/G{n} naming an unreplayed slug.",
+    "Restates the old text, node-spec prose (hsdd-spec touches, already recommended at S29): hsdd/spec/nidana.model.md:17 (Owns: 'written in this node's first phase (ADR-001)', now contradicts item 9 directly), hsdd/spec/nidana.model.md:37 (Inherited from the root: first phase lands the skeleton and the replay tool), hsdd/spec/nidana.md:205 (root Development flow item 1). hsdd/spec/nidana.md:341, root ADR-001 entry, says 'Amended in place twice'; it now needs the third amendment (2026-10-18, consistency pass) named.",
+    "Conventions (not edited; hsdd-spec at the root): hsdd/conventions.md:182-184 says 'Where root D10, ADR-001 or a contract says the replay tool or fixture.dart comes with nidana.model's first phase, read this list'; ADR-001 no longer says it, so 'ADR-001' can be dropped there. hsdd/conventions.md:132-137 reading rule names 'an ADR'; ADR-001 now uses the first-producing-phase and Delivery wording directly. Both harmless as they stand.",
+    "Contracts restating the old Consequences bullet (S43.plan chose to leave them): provenance bullet 'once nidana.model's first phase lands the replay tool ... (ADR-001 Consequences)' at hsdd/contract/bus-api.md:423, bus-testing.md:244, flutter-binding.md:406, topic-model.md:439, nidana-checks.md:218, topic-codegen.md:309, navigation-api.md:574, topology-dsl.md:470, topology-ir.md:485. The cited Consequences bullet now names the phase per set.",
+    "Consistent, could now cite ADR-001 item 9 instead of nidana.model D2 for the empty-selection rule: hsdd/spec/nidana.navigation.md:89, hsdd/spec/nidana.flutter.md:96, hsdd/spec/nidana.tooling.lint.md:107. Consistent subsets citing item 9 for binding PENDING: bus-api.md:414, bus-testing.md:240, navigation-api.md:569, flutter-binding.md:401. hsdd/spec/nidana.runtime.md:269 ('--guarantee takes no ranges (ADR-001 item 9)') matches the amended text.",
+    "Left as is in ADR-001 Alternatives considered: 'Generator failures left to the producing node's gates in v1' names 'the replay tool not fitting nidana.model's first phase' as its signal. The tool was split (nidana.model D1), but file and cli land at nidana.model.7, which nidana.tooling.codegen.1 and nidana.tooling.lint.1 depend on, so the concern behind the signal did not materialize. Alternatives are not injected into phase contexts.",
+    "Working tree: docs/auto-run/execution-plan.md shows as modified and docs/auto-run/steps/S43.plan.json as untracked; neither was written by this step. This step wrote the ADR, docs/auto-run/experiments/cli-dart-resolution/ (probe.dart, run.sh, output.txt) and this report."
+  ]
+}
