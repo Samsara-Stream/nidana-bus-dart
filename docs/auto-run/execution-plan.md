@@ -213,8 +213,8 @@ dropped flag in ADR-002 (nidana.integration D7 records it for the one member tha
 | S48 | 7 | hsdd-spec (touch) | nidana.model: Owns, Inherited and Isolation lines | done | e2e2dfb |
 | S49 | 7 | hsdd-spec (touch) | nidana.runtime: D1 Consequences and the dev-flow line | done | 85dd85f |
 | S50 | 7 | hsdd-spec (touch) | nidana.tooling: drained "Carried into" bullets, the lint wait sentence | done | 8c6ed87 |
-| S51 | 7 | hsdd-spec (touch) | nidana.tooling.lint: the Development flow's start condition (only nidana.tooling.lint.4 waits on the producers, D5) | running | |
-| S52 | 7 | hsdd-spec (touch) | nidana.tooling.codegen: Development flow start conditions and the drained "Carried into" section | planned | |
+| S51 | 7 | hsdd-spec (touch) | nidana.tooling.lint: the Development flow's start condition (only nidana.tooling.lint.4 waits on the producers, D5) | done | 8a6b513 |
+| S52 | 7 | hsdd-spec (touch) | nidana.tooling.codegen: Development flow start conditions and the drained "Carried into" section | running | |
 | S53 | 7 | hsdd-reconcile (sweep) | phase scopes, gates and plan-written decisions that contradict amended ADR-001, ADR-002 and the contracts; then `gate.mjs --final` | planned | |
 | S54 | 8 | none (orchestrator) | REPORT.md | planned | |
 

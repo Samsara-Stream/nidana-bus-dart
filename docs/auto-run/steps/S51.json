@@ -1,0 +1,155 @@
+{
+  "step_ref": "S51",
+  "skill": "hsdd-spec",
+  "target": "nidana.tooling.lint (touch: text outside the phase plan of hsdd/spec/nidana.tooling.lint.md)",
+  "status": "completed",
+  "stop": null,
+  "artifacts": [
+    "hsdd/spec/nidana.tooling.lint.md"
+  ],
+  "decisions": [
+    {
+      "at": "2026-10-18T09:44:45Z",
+      "artifact": "hsdd/spec/nidana.tooling.lint.md",
+      "question": "How should the Development flow state this node's start condition, which as written has the whole node wait on nidana.model's and nidana.runtime's first phases, while D5 and the plan's Depends on column have only nidana.tooling.lint.4 wait on producers?",
+      "options": [
+        { "label": "Phase-level start condition", "consequence": "The opener says the node starts once nidana.model.1 and nidana.model.7 have merged, names lint.1 to .3's waits on the replay tool's sets and lint.4's waits on nidana.model.5 and nidana.runtime.1, and points at the Depends on column. Same facts and order as root Development flow item 2 (S47) and nidana.tooling's 'Two lanes' bullet (S50)." },
+        { "label": "Keep a node-level sentence qualified to lint.4", "consequence": "Keeps the first sentence's shape and adds that it holds for lint.4 only. Shorter, but the node's actual start (nidana.model.1 and .7) stays unstated, and the wording would differ from the root and parent lines it must match." }
+      ],
+      "chosen": "Phase-level start condition",
+      "why": "D5 and the plan already decided the waits; the parent and root restate them at phase level, and the step asks this node's lines to stay consistent with them. No new decision: the waits are D3 item 3, D5 and the Depends on column.",
+      "evidence": ["hsdd/spec/nidana.tooling.lint.md D3 item 3, D5, Phase Plan Depends on", "hsdd/spec/nidana.md Development flow item 2", "hsdd/spec/nidana.tooling.md Development flow, 'Two lanes, side by side'", "hsdd/conventions.md Phase design (replay tool lands by set)"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T09:45:01Z",
+      "artifact": "hsdd/spec/nidana.tooling.lint.md",
+      "question": "D5, which this step may not edit, refers to the Development flow's node-level start condition ('what the Development flow above states for the node'; its alternative 'as the Development flow reads at node level'). After the restatement that text is gone. Add a dated note to the Development flow that keeps D5's references intelligible, or leave D5 pointing at text that no longer exists?",
+      "options": [
+        { "label": "Dated Corrected note in Development flow", "consequence": "A 'Corrected 2026-10-18.' paragraph at the end of the section says what the opener first said and that D5 refines it, so D5's sentences still resolve for a cold reader. Two sentences more." },
+        { "label": "No note", "consequence": "Shorter; D5's alternative then names a reading the spec no longer contains, until a sweep restates D5." }
+      ],
+      "chosen": "Dated Corrected note in Development flow",
+      "why": "D3 to D5 are out of this step's scope, so the only way to keep D5's references meaningful is on the Development flow side; the tree already uses 'Corrected 2026-10-18.' paragraphs for in-place restatements (S47, S49, S50). The signal that would have changed my mind: permission to edit D5 in this step, where restating D5's two sentences would be cleaner.",
+      "evidence": ["hsdd/spec/nidana.tooling.lint.md D5 paragraphs 2 and 3", "hsdd/spec/nidana.tooling.md D1 to D3 (Corrected 2026-10-18)"],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T09:45:06Z",
+      "artifact": "hsdd/spec/nidana.tooling.lint.md",
+      "question": "Overview line 25 says 'about three phases'; the plan has four. Name the count only, or the estimate and the planned count?",
+      "options": [
+        { "label": "Estimate and planned count", "consequence": "'estimated at about three phases and planned as four (D2)', the form root D4 and nidana.tooling D1 point 4 use since S47 and S50." },
+        { "label": "Planned count only", "consequence": "'four phases'; shorter, and hides that the leaf-parent call rested on an estimate." }
+      ],
+      "chosen": "Estimate and planned count",
+      "why": "Consistency with root D4 and nidana.tooling D1 point 4, which use this exact form; the step names it as the preferred form.",
+      "evidence": ["hsdd/spec/nidana.md D4", "hsdd/spec/nidana.tooling.md D1 point 4"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T09:45:12Z",
+      "artifact": "hsdd/spec/nidana.tooling.lint.md",
+      "question": "Inherited line 29 says a plugin that does not build fails every root analyze and every gate. ADR-002 Consequences, as amended in S38, says it fails every root analyze under --fatal-infos, and that an analysis without --fatal-infos whose only diagnostics are INFOs exits 0. Qualify with --fatal-infos only, or also state the exit codes?",
+      "options": [
+        { "label": "Qualify with --fatal-infos", "consequence": "Exact against amended ADR-002 Consequences, and true of every gate in the tree, all of which run 'fvm dart analyze --fatal-infos' (checked across hsdd/spec). Leaves exit codes to ADR-002 and nidana-checks@v1 When the plugin does not load." },
+        { "label": "Also state exit 3 and 4", "consequence": "More complete, but repeats ADR-002 and puts a visible contradiction beside D3 item 4 ('exit 4'), which this step may not edit and S53 corrects." }
+      ],
+      "chosen": "Qualify with --fatal-infos",
+      "why": "The sentence's claim is that the gates fail, which holds under --fatal-infos; the exit codes belong to ADR-002 and nidana-checks@v1, and D3 item 4's exit code is S53's.",
+      "evidence": ["hsdd/adr/002-package-workspace-layout.md Consequences (plugin-failure bullet), Amendments S38", "hsdd/contract/nidana-checks.md When the plugin does not load", "grep of 'fvm dart analyze' across hsdd/spec: every gate passes --fatal-infos"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T09:45:29Z",
+      "artifact": "hsdd/spec/nidana.tooling.lint.md",
+      "question": "D1 (written in S23) puts the application-code test in the recognition helper; the plan lands the helper at nidana.tooling.lint.1 without it and the application-code guard, in each rule's registration, at nidana.tooling.lint.4 (D2 items 1 and 3; lint.1 and lint.4 Scope). Correct D1, or leave it as not strictly wrong against nidana-checks@v1 and ADR-002?",
+      "options": [
+        { "label": "Name the guard apart, with Corrected note", "consequence": "D1 keeps the helper's recognition by package and element name and names the application-code guard and its phase, nidana.tooling.lint.4; a Corrected paragraph says what changed. A phase context for lint.1 no longer reads D1 as asking for the guard there." },
+        { "label": "Leave D1 as written", "consequence": "No edit; D1 agrees with nidana-checks@v1 Terms and ADR-002 item 7, but tells lint.1's implementer the helper includes application code, which the plan places in lint.4." }
+      ],
+      "chosen": "Name the guard apart, with Corrected note",
+      "why": "D1 is checked clean against nidana-checks@v1 (as amended in S37 and S45) and ADR-002 (as amended in S38); the only inexactness is against the plan, which the step rules say to fix when it is a restatement. This one restates D2 items 1 and 3. The signal that would have favored leaving it: a plan line that lands an application-code predicate in lint.1's helper.",
+      "evidence": ["hsdd/spec/nidana.tooling.lint.md D2 items 1 and 3; nidana.tooling.lint.1 Scope (recognition helper); nidana.tooling.lint.4 Scope (first bullet)", "hsdd/contract/nidana-checks.md Terms both hosts use"],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T09:45:40Z",
+      "artifact": "hsdd/spec/nidana.tooling.lint.md",
+      "question": "'Carried into the phase plan': both items were emitted by this node's plan and drained by hsdd-reconcile in S37. Restate as pointers to where each landed, or remove the section?",
+      "options": [
+        { "label": "Restate as pointers", "consequence": "Heading kept; an intro says the items were drained on 2026-10-18; each bullet points at its landing: nidana-checks@v1 Versioning (a) for the global_bus_accessor amend, the produced_by union with phase_ids final and Versioning (e) for the confirm. Same form as S50's 'Carried into the children's phase plans'." },
+        { "label": "Remove the section", "consequence": "Shorter; loses the in-tree pointer from this node to its governance outcomes, which then live only in git history and the contract's Versioning." }
+      ],
+      "chosen": "Restate as pointers",
+      "why": "The step names this form, and S50 used it for the parent, so the tree reads one way; HSDD keeps resolved governance as audit trail (resolved OQs keep their rows).",
+      "evidence": ["hsdd/spec/nidana.tooling.md ## Carried into the children's phase plans", "hsdd/contract/nidana-checks.md Versioning (a), (e); frontmatter produced_by, phase_ids", "docs/auto-run/steps/S37.json"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    }
+  ],
+  "experiments": [],
+  "self_check": [
+    { "gate": "The spec stays high-level; it is not an implementation plan.", "status": "pass", "note": "Only phase ids from the plan's Depends on column and D2/D3 were added outside the plan; no task or scope detail." },
+    { "gate": "Every node has explicit consumed/produced contract ids.", "status": "pass", "note": "Header Consumes and Produces unchanged." },
+    { "gate": "Every node is testable in isolation (fixtures, mocks, schemas).", "status": "pass", "note": "Isolation strategy restated to say when the analyze-* replay runs; stand-ins and replay unchanged." },
+    { "gate": "Every dependency edge is typed; parallel lanes are called out.", "status": "pass", "note": "Contracts table unchanged; Development flow names the parallel decision phases lint.2 and lint.3 and every producer wait." },
+    { "gate": "Each child is marked internal or leaf-parent.", "status": "pass", "note": "Kind: leaf-parent, unchanged." },
+    { "gate": "Mermaid DAG matches the dependency table.", "status": "pass", "note": "Neither the slice diagram nor the plan's graph changed." },
+    { "gate": "`conventions.md` exists/updated at the root.", "status": "n/a", "note": "Not a root run; no item asked for conventions." },
+    { "gate": "The decomposition axis at each level matches ownership stated by the human, not assumed, and no node is owned by two teams (skill text reworded only to drop its em-dash).", "status": "pass", "note": "single-team; no decomposition change." },
+    { "gate": "Every child node has its own `hsdd/spec/{child-id}.md` file.", "status": "n/a", "note": "Leaf-parent; no children." },
+    { "gate": "Every input source appears in the Sources of at least one node, or is marked in the root `## Sources` as \"informative only, not decomposed\", with a reason.", "status": "n/a", "note": "Root-level gate; Sources untouched." },
+    { "gate": "No node's Sources lists a document that does not govern it.", "status": "pass", "note": "Sources untouched." },
+    { "gate": "Field blocks are bullet lists and empty lists say \"none\".", "status": "pass", "note": "Only the Isolation strategy bullet's value changed." },
+    { "gate": "Every open question is defined once, in its owning spec, with a table row and a `### {ID}` detail subsection; child views carry `[inherits …]`; no cited ID lacks a definition.", "status": "pass", "note": "This node has no OQ and cites none; gate.mjs finds no undefined OQ." },
+    { "gate": "OQ prefixes used by node specs are declared in `conventions.md`.", "status": "pass", "note": "TB declared; no OQ minted." },
+    { "gate": "Under `multi-team`, every node whose team differs from its parent's carries `- **Team:**`; no node is owned by two teams.", "status": "n/a", "note": "single-team." },
+    { "gate": "Where children exchange contracts, an integration node exists or the decision not to add one is stated in the parent (one line).", "status": "n/a", "note": "Leaf-parent; nidana.tooling D1 Consequences states no nidana.tooling.integration." },
+    { "gate": "A graft kept every existing child id and touched only the new child's file, the parent's summaries and the parent's DAG.", "status": "n/a", "note": "Not a graft." },
+    { "gate": "A retired node's file is kept; its contracts' retirement went through `hsdd-reconcile`.", "status": "n/a", "note": "No retirement." },
+    { "gate": "Promotion: the human confirmed before `- **Adopted:** promoted` was written; `## Observed surface` kept; `v0` contracts unchanged unless redesigned.", "status": "n/a", "note": "Not a promotion." },
+    { "gate": "Orchestrator gate: node docs/auto-run/tools/gate.mjs --skill hsdd-spec, then --final", "status": "pass", "note": "Both: 0 errors, 0 warnings, 1 changed file. No em-dash and no banned phrase in the file." }
+  ],
+  "notes_for_orchestrator": [
+    "Changed, hsdd/spec/nidana.tooling.lint.md:19 (Isolation strategy). Before: every producing phase replays the analyze-* recorded invocations, restricted to the rules delivered so far, over trees resolving the real declarations. After: every producing phase replays nidana-checks@v1 restricted to the ids delivered so far, which admits no analyze-* case before nidana.tooling.lint.4, where all eight run against the real declarations (adds D3 to the citation).",
+    "Changed, lint.md:25 (Overview). 'about three phases' became 'estimated at about three phases and planned as four (D2)', root D4's form.",
+    "Changed, lint.md:29 (Inherited, ADR-002 item 7). Names the creating phase, nidana.tooling.lint.1; 'a plugin that does not build fails them all' became 'fails every root analyze under --fatal-infos, which every gate runs, and so fails every gate', after ADR-002 Consequences as amended in S38.",
+    "Changed, lint.md:33 (Inherited, nidana-checks@v1 shared). 'its last producing phase all of them' became 'all of them at its last producing phase, nidana.tooling.lint.4, and none before it (nidana.tooling D2; D3)'.",
+    "Changed, lint.md:70 (Development flow opener). Before: the node starts once nidana.model's and nidana.runtime's first phases have merged. After: the node starts once nidana.model.1 and nidana.model.7 have merged and only its replaying phase waits on a producer (D5); root D10 and conventions Phase design state the rule; lint.1 to .3 wait only on the replay tool's structure and cli sets at nidana.model.1 and .7 (D3); lint.4 alone waits on nidana.model.5 and nidana.runtime.1 (D5; nidana.tooling D3); the Depends on column holds every phase-level wait. Matches root Development flow item 2 (S47) and nidana.tooling 'Two lanes, side by side' (S50).",
+    "Changed, lint.md:72 (bullet 1). 'The plugin surface is phase 1 ... reports nothing until the later slices add detection' became 'The plugin surface, all but the application-code guard, is nidana.tooling.lint.1 ... registers every rule with no node processor ... reports nothing until nidana.tooling.lint.4 adds the visitors and the guard (ADR-002 item 7; D2)'.",
+    "Changed, lint.md:74 (bullet 3). 'The two rule slices can run in parallel once the surface lands' became: their decisions run in parallel as nidana.tooling.lint.2 and .3; their visitors land together in nidana.tooling.lint.4, the one phase that replays the whole share (D2).",
+    "Changed, lint.md:75 (bullet 4). 'which the phase gates budget for' became 'which nidana.tooling.lint.4's gate, the only one that runs them, budgets for (D3)'.",
+    "Added, lint.md:77, a 'Corrected 2026-10-18.' paragraph closing the Development flow: what the opener first said, that D5 refines it and its alternative names it, and that the bullets now name the phases. Kept so D5's references to the node-level reading still resolve (D5 not editable here).",
+    "Changed, lint.md:83 (D1, written in S23). The application-code clause left the recognition helper: application code is read through the application-code guard, which registers a rule's node processors only when RuleContext.isInTestDirectory is false and lands with the visitors in nidana.tooling.lint.4 (D2). 'The helper re-implements' became 'The helper and the guard re-implement'; 'the two share no code' became 'the two hosts share no code'. Added lint.md:87, D1 'Corrected 2026-10-18.' paragraph; the decision did not change. D1 otherwise checked clean against nidana-checks@v1 (Terms both hosts use, as amended in S37 and S45) and ADR-002 item 7 and Context Q12 (as amended in S38): its alternative still holds because nidana_dart_codegen's hosted constraint on nidana_dart_contracts cannot resolve in the plugin's synthetic package before publication (ADR-002 item 4, Q12).",
+    "Changed, lint.md:136 to 141 ('Carried into the phase plan'). Heading kept. New intro: each item went into this node's plan and hsdd-reconcile drained it on 2026-10-18; the items are pointers. Bullet 1 (the global_bus_accessor amend, which quoted the old detail in the present tense) now points at nidana-checks@v1 Versioning (a). Bullet 2 (the produced_by confirm) now states the union, lint.1 to .4 and codegen.7, .8, .9, .11, with phase_ids final, and the Delivery paragraph, pointing at Versioning (e) and nidana.tooling D2 Reconcile.",
+    "Not edited, D2: the step says D1 and D2 were written by nidana.tooling's decomposition (S23), but git shows S23 wrote only D1; D2 was written by this node's phase plan (S36, commit ae2277a), like D3 to D5. D2 was checked anyway against nidana-checks@v1 Delivery and ADR-002 item 7 and is exact; nothing changed.",
+    "Checked and left as is: header (Owns pins 0.3.18 and 13.3.0 match ADR-002 item 7 and item 4's table), Overview paragraph 1, Inherited lines 30 to 32, the Contracts table, the Slices table and its diagram. The Slices table's plugin surface row still lists 'application code through RuleContext.isInTestDirectory' and the diagram labels the surface '(phase 1)'; both describe the slice partition from S23, which the plan cuts along D2's decision and visitor split. I left them, since the Development flow now states the cut (lint.1 holds the surface but the guard; lint.4 the guard and visitors), and a slice is not a phase. A later touch could add the phase ids to the table if wanted.",
+    "Left inexact, in D3 to D5 (not editable here), against this step's edits or an amended ADR or contract: (1) D3 item 4, lint.md:113, 'a plugin that does not compile fails dart analyze with exit 4': at the root analyze it exits 3 (ADR-002 Context and Consequences as amended in S38; nidana-checks@v1 When the plugin does not load); S53 owns it. Not contradicted by my line 29 edit, which states no exit code. (2) D4, lint.md:124, package_properties_test checks each dependency 'pinned to the version the root pubspec.lock resolves': ADR-002 item 7 since S38 pins to the exact versions of item 4's table (13.3.0 and 0.3.18); the test passes in practice, since the pins force the lockfile, but the rule it states is the pre-S38 wording. (3) D5, lint.md:132 and 134, 'what the Development flow above states for the node' and 'as the Development flow reads at node level': the Development flow no longer reads at node level; the new Corrected paragraph keeps both references resolvable, and a D5 restatement in S53 would make them exact.",
+    "Left inexact, the plan's (hsdd-phase-plan or the S53 reconcile sweep): lint.md:208, nidana.tooling.lint.1 Scope, 'analyzer_testing and test as dev dependencies with caret constraints at the versions the lockfile resolves (test with the constraint the other members carry)', where ADR-002 item 4's table gives analyzer_testing ^0.3.2 and test ^1.31.1 (S38 note 3); lint.md:216, nidana.tooling.lint.1 Verification, 'a plugin that fails to build (exit 4)' (3 when its source does not compile; S38, S45) and 'its two pins equal the lockfile's versions' (item 7 now names the table's versions).",
+    "No new D{n}, ADR, OQ, contract or conventions change; no tree-shape or contract-interface question arose, so nothing here is a run-stop candidate."
+  ]
+}
