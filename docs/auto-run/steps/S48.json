@@ -1,0 +1,110 @@
+{
+  "step_ref": "S48",
+  "skill": "hsdd-spec",
+  "target": "nidana.model (touch: Owns, Inherited from the root, Isolation strategy)",
+  "status": "completed",
+  "stop": null,
+  "artifacts": ["hsdd/spec/nidana.model.md"],
+  "decisions": [
+    {
+      "at": "2026-10-18T09:16:44Z",
+      "artifact": "hsdd/spec/nidana.model.md",
+      "question": "How should the Owns bullet for the replay tool state where it lands, now that ADR-001 item 9 (as amended in S43) no longer says 'written in this node's first phase'?",
+      "options": [
+        { "label": "name the four landing phases", "consequence": "The bullet names nidana.model.1, .2, .6 and .7 and the rule 'each set before the first gate that runs it', and cites ADR-001 item 9 and D1 for the set-by-phase list. One place fewer repeats the list, so one place fewer can drift." },
+        { "label": "name each set with its phase", "consequence": "The Owns line becomes self-contained, but it is the fourth copy of the list already in ADR-001 item 9, the conventions' replay-tool bullet and D1 item 1, and a later change to the sets would have to touch it too." }
+      ],
+      "chosen": "name the four landing phases",
+      "why": "Owns states what the node owns, not the schedule; the phase ids are enough to correct the stale claim, and ADR-001 item 9 and D1 carry the per-set list. The wording follows ADR-001 item 9's own sentence ('lands by set over four of nidana.model's phases, each set before the first gate that runs it'). If the orchestrator wanted every restatement self-contained, the second option would have been the one.",
+      "evidence": ["hsdd/adr/001-executable-contract-validation.md item 9", "hsdd/spec/nidana.model.md D1 item 1", "hsdd/conventions.md Phase design, replay-tool bullet", "docs/auto-run/steps/S29.json notes_for_orchestrator"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T09:16:50Z",
+      "artifact": "hsdd/spec/nidana.model.md",
+      "question": "How should the 'Inherited from the root' fp-progression bullet read, given D1 replaced 'the first phase lands the type-level skeleton of all three contracts and the replay tool' and S47 rewrote root Development flow item 1 and D10?",
+      "options": [
+        { "label": "restate D1 and root item 1 with the consumer waits", "consequence": "The bullet names the tool's first sets (nidana.model.1, .2), the type-level band one contract per phase (nidana.model.3 to .5), the tool's remaining sets beside it (nidana.model.6, .7), and why the order matters to other nodes: a consumer edge waits on nidana.model.3 or .5 and a gate that runs a set waits on the phase that lands it. Longer, but it says what the root actually hands this node." },
+        { "label": "phase order only", "consequence": "Shorter, but it drops the 'because' the old bullet carried, and the old reason ('every other node's first edge waits on it') would be gone with nothing in its place." }
+      ],
+      "chosen": "restate D1 and root item 1 with the consumer waits",
+      "why": "The bullet is this node's view of root ordering, so it keeps the old bullet's reason, corrected. The old reason was also inexact in itself: nidana.tooling.lint.1 to .3 wait only on the tool's sets at nidana.model.1 and .7, not on any skeleton (root Development flow item 2). So the corrected reason names both kinds of wait. 'Every other node's edges start there' is root item 1's wording, kept so the two texts agree.",
+      "evidence": ["hsdd/spec/nidana.md Development flow item 1 and item 2", "hsdd/spec/nidana.md D10", "hsdd/conventions.md Phase design, fp-progression paragraph and replay-tool bullet", "hsdd/contract/topic-model.md Delivery", "hsdd/contract/topology-dsl.md Delivery", "hsdd/contract/topology-ir.md Delivery", "hsdd/spec/nidana.model.md D1"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T09:17:09Z",
+      "artifact": "hsdd/spec/nidana.model.md",
+      "question": "Does the Isolation strategy line make the stale first-phase claim, and should it change?",
+      "options": [
+        { "label": "leave unchanged", "consequence": "The line says the gates replay the three contracts with the node's own tool, surface, reject and schema in full and behavior restricted to the guarantees delivered so far (ADR-001 item 10). It names no phase, so nothing in it is stale." },
+        { "label": "add when replay starts", "consequence": "Adding 'from each contract's first producing phase, nidana.model.3 to nidana.model.5' would be more precise, but it corrects nothing, and D5 already states it. That is new wording in a step that only corrects stale text." }
+      ],
+      "chosen": "leave unchanged",
+      "why": "The step says to fix the Isolation line only 'if it makes it', and it does not. I checked it against D5, ADR-001 items 9 and 10 and topology-dsl@v1 Validation (the live suite is bound by bus-api@v1's fixtures and run by nidana.runtime's gate, not nidana.model's). It agrees with all of them, and 'schema in full' holds for topology-ir@v1, the only one of the three with a schema.",
+      "evidence": ["hsdd/spec/nidana.model.md D5", "hsdd/adr/001-executable-contract-validation.md items 9 and 10", "hsdd/contract/topology-dsl.md Validation (live binding bullet)", "hsdd/contract/schema/"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T09:17:18Z",
+      "artifact": "hsdd/spec/nidana.model.md",
+      "question": "The Overview names 'the activation-time checks of Spec §3.8 and §7.2' as shared with CI, while root D4 and topology-ir@v1 Refinement 4 name §3.8, §3.11 and §7.2. Fix it here or list it?",
+      "options": [
+        { "label": "list it", "consequence": "The step stays within the stale text later planning created. The Overview leaves out §3.11 but still says nothing false, and that wording predates later planning." },
+        { "label": "add §3.11 now", "consequence": "One more word fixed now, but the change goes beyond the step's charter. It touches a sentence that contradicts nothing, only leaves something out." }
+      ],
+      "chosen": "list it",
+      "why": "The step's rule covers text that contradicts the plan, an ADR or a contract. Leaving §3.11 out of the Overview does not contradict anything: the Owns analyses bullet on line 16 already names the §3.11 single-writer check and says the runtime and CI both run it. If the orchestrator wants the Overview to list the root's set exactly, it is a one-token fix at the next touch.",
+      "evidence": ["hsdd/spec/nidana.md D4 bullet 1", "hsdd/contract/topology-ir.md Refinement 4", "hsdd/spec/nidana.model.md Owns, pure-analyses bullet"],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    }
+  ],
+  "experiments": [],
+  "self_check": [
+    { "gate": "The spec stays high-level; it is not an implementation plan.", "status": "pass", "note": "Two header-area sentences restated; no implementation detail added." },
+    { "gate": "Every node has explicit consumed/produced contract ids.", "status": "pass", "note": "Consumes none; Produces [topic-model@v1, topology-dsl@v1, topology-ir@v1]; unchanged." },
+    { "gate": "Every node is testable in isolation (fixtures, mocks, schemas).", "status": "pass", "note": "Isolation strategy unchanged and checked against D5 and ADR-001 items 9 and 10." },
+    { "gate": "Every dependency edge is typed; parallel lanes are called out.", "status": "n/a", "note": "Leaf-parent touch; no edge changed. The root's DAG is untouched." },
+    { "gate": "Each child is marked internal or leaf-parent.", "status": "n/a", "note": "No children; Kind: leaf-parent unchanged." },
+    { "gate": "Mermaid DAG matches the dependency table.", "status": "n/a", "note": "No decomposition DAG in a leaf-parent spec; the phase graph belongs to the plan and was not edited." },
+    { "gate": "`conventions.md` exists/updated at the root.", "status": "pass", "note": "Exists; not edited, as the step requires." },
+    { "gate": "The decomposition axis at each level matches ownership stated by the human, not assumed, and no node is owned by two teams.", "status": "pass", "note": "single-team; unchanged." },
+    { "gate": "Every child node has its own `hsdd/spec/{child-id}.md` file.", "status": "n/a", "note": "No children." },
+    { "gate": "Every input source appears in the Sources of at least one node, or is marked in the root `## Sources` as \"informative only, not decomposed\", with a reason.", "status": "n/a", "note": "Root concern; Sources line unchanged." },
+    { "gate": "No node's Sources lists a document that does not govern it.", "status": "pass", "note": "Sources unchanged." },
+    { "gate": "Field blocks are bullet lists and empty lists say \"none\".", "status": "pass", "note": "Owns stays a nested bullet; Consumes reads none." },
+    { "gate": "Every open question is defined once, in its owning spec, with a table row and a `### {ID}` detail subsection; child views carry `[inherits …]`; no cited ID lacks a definition.", "status": "pass", "note": "OQ-M1 to OQ-M3 unchanged; their resolution pointers (topology-ir@v1 G9, G4; topology-dsl@v1 G18, Refinement 3; topic-model@v1 G5) and phase ids (nidana.model.3, .4, .9, .10, .11) checked against the contracts and the plan." },
+    { "gate": "OQ prefixes used by node specs are declared in `conventions.md`.", "status": "pass", "note": "OQ-M unchanged." },
+    { "gate": "Under `multi-team`, every node whose team differs from its parent's carries `- **Team:**`; no node is owned by two teams.", "status": "n/a", "note": "single-team." },
+    { "gate": "Where children exchange contracts, an integration node exists or the decision not to add one is stated in the parent (one line).", "status": "n/a", "note": "No children." },
+    { "gate": "A graft kept every existing child id and touched only the new child's file, the parent's summaries and the parent's DAG.", "status": "n/a", "note": "Not a graft." },
+    { "gate": "A retired node's file is kept; its contracts' retirement went through `hsdd-reconcile`.", "status": "n/a", "note": "No retirement." },
+    { "gate": "Promotion: the human confirmed before `- **Adopted:** promoted` was written; `## Observed surface` kept; `v0` contracts unchanged unless redesigned.", "status": "n/a", "note": "Not a promotion." },
+    { "gate": "Run rules: only text outside ## Phase Plan, ## Governance updates and ## Decisions edited; no em-dash; no banned phrase", "status": "pass", "note": "git diff touches lines 17 and 37 only; em-dash count 0; banned-phrase count 0. node docs/auto-run/tools/gate.mjs --skill hsdd-spec: 0 errors, 0 warnings." }
+  ],
+  "notes_for_orchestrator": [
+    "Changed, hsdd/spec/nidana.model.md:17 (Owns, replay tool bullet). Before: 'written in this node's first phase (ADR-001)'. After: 'which lands by set over nidana.model.1, nidana.model.2, nidana.model.6 and nidana.model.7, each set before the first gate that runs it (ADR-001 item 9; D1)'.",
+    "Changed, hsdd/spec/nidana.model.md:37 (Inherited from the root, fp-progression bullet). Before: 'the first phase lands the type-level skeleton of all three contracts and the replay tool, because every other node's first edge waits on it (root D10)'. After: the tool's first sets at nidana.model.1 and .2 (gate infrastructure ADR-001 item 9 places first); the type-level band, one contract per phase, nidana.model.3 to .5, each that contract's first producing phase (ADR-001 item 10); the tool's remaining sets beside it at nidana.model.6 and .7 (D1). The reason now reads 'Every other node's edges start there' (root Development flow item 1, as S47 wrote it): a consumer edge waits on nidana.model.3 (topic-model@v1 alone) or .5 (topology-dsl@v1 or topology-ir@v1), per root D10 and the Delivery paragraphs, and a phase that runs a replay set or imports fixture.dart waits on the phase that lands it (conventions, Phase design). The old reason was inexact in itself, since nidana.tooling.lint.1 to .3 wait only on the tool's sets.",
+    "Not changed, Isolation strategy (line 27): it does not make the first-phase claim, and it agrees with D5, ADR-001 items 9 and 10 and topology-dsl@v1 Validation.",
+    "Disagreements left for the S52 reconcile sweep (item 4; Decisions not edited). D1 opening sentence (line 71): 'ADR-001 item 9 writes the replay tool in this node's first phase, and the conventions' fp-progression line and root Development flow item 1 put the type-level skeleton of all three contracts there too'. Since S43 and S47 none of the three says that, so the sentence now disagrees with the corrected lines 17 and 37. D1 item 3 (line 75): 'Root D10's \"the producer's first phase\"' and '`fixture.dart`, which root D10 has this node's first phase write'. Root D10 as S47 wrote it uses neither phrase; it names the phase the Delivery paragraph gives. D2 (lines 81, 84, 89): 'This plan settles what it leaves open', 'ADR-001 item 9 states this for bindings' and 'Not an ADR change: ADR-001 leaves these open, and they are a candidate clarification at its next touch'. Amended item 9 now states the exit codes, PENDING for every surface, reject or behavior library, the structure and --set rule and the bare-id rule, so D2 items 1 to 4 now restate it and no longer add to it. D1's and D2's decisions (the phase order and the tool semantics) agree with the corrected lines. Only their premises are stale.",
+    "Left inexact on purpose, Overview line 31: 'the activation-time checks of Spec §3.8 and §7.2' leaves out §3.11, which root D4 bullet 1 and topology-ir@v1 Refinement 4 name. It contradicts nothing, because the Owns analyses bullet (line 16) names the §3.11 check run at activation and in CI. It predates later planning, so it is outside this step's charter. It is a one-token fix at the next touch.",
+    "Checked and found current, outside the plan and the decisions: Purpose; every Owns bullet's citations (topic-model@v1 G27, topology-dsl@v1 Refinements 1 to 3, topology-ir@v1 Refinement 3, `TopologyDefinition.toGraph()` in topology-ir@v1's Interface); Does not own; Governed by [ADR-001, ADR-002, ADR-003] against the ADRs' affects lists; the Overview's root D4 and D7 citations; the root D6 and D8 bullets; the OQ-M1 to OQ-M3 rows and details (topology-ir@v1 G9, G4 and Versioning; topology-dsl@v1 G18 and Refinement 3; topic-model@v1 G5, Versioning and no_dispatcher_hint.dart; the phase ids match the plan).",
+    "No new decision of record beyond these wording choices; no tree shape, contract, ADR or conventions change. No ADR proposed, no OQ minted, no contract id named that was not already there."
+  ]
+}
