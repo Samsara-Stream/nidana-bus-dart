@@ -1,0 +1,41 @@
+{
+  "step_ref": "S23",
+  "skill": "none",
+  "target": "run-stop judgement on nidana.tooling D1, and the next steps",
+  "status": "completed",
+  "decisions": [
+    {
+      "at": "2026-10-18T01:00:56Z",
+      "artifact": "hsdd/spec/nidana.tooling.md",
+      "question": "S23 decomposed nidana.tooling into two leaf-parents, nidana.tooling.codegen (about nine phases) and nidana.tooling.lint (about three), with nidana-checks@v1 produced by both; the alternative is one leaf-parent of about twelve phases. Is this the tree-shape run-stop?",
+      "options": [
+        { "label": "Not a stop; accept two children", "consequence": "Two phase plans, planned independently; nidana-checks@v1 has two producing nodes, each replaying its own host's cases; reconcile applies the union of their produced_by confirms." },
+        { "label": "Not a stop; one leaf-parent", "consequence": "One plan of about twelve phases spanning two packages with different hosts and toolchains (a build_runner package and an analysis server plugin pinned to an exact analyzer)." },
+        { "label": "Stop the run", "consequence": "The owner decides; only the tooling phase plans wait." }
+      ],
+      "chosen": "Not a stop; accept two children",
+      "why": "The test that kept nidana.runtime whole, whether a boundary needs an internal contract that could never be stable, passes here: the two packages share no code (ADR-002 item 4: the plugin depends on no nidana package), so no internal contract is needed, and ADR-002 item 3 already gives each package one owning node. HSDD's leaf-parent rule and its tip to add a level past a handful of phases both favour two children. That is a stated reason for one option, so the shape stop does not hold under DEC-002's reading.",
+      "evidence": ["hsdd/spec/nidana.tooling.md (D1, D2)", "hsdd/adr/002-package-workspace-layout.md (items 3, 4)", "docs/auto-run/steps/S22.orchestrator.json", "~/git/hsdd/docs/users-guide.md (Tips)"],
+      "blast_radius": "tree",
+      "confidence": "high",
+      "would_have_asked": false,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T01:00:56Z",
+      "artifact": "docs/auto-run/execution-plan.md",
+      "question": "S23 recommends two ADR touches (ADR-001 item 10 for a contract two leaf-parents produce; ADR-002's stale 'Plugin rules report at INFO severity', which nidana-checks@v1 G1 contradicts for three rules) and lists what the root refresh must restate. Run the ADR touches before phase planning, or leave them to reconcile?",
+      "options": [
+        { "label": "Before phase planning", "consequence": "Two small hsdd-adr steps, then the root refresh; phase plans and the phase contexts hsdd-config later injects read ADRs that match the contracts." },
+        { "label": "Leave to reconcile", "consequence": "Phase planners read an ADR-001 item 10 whose 'last phase that produces the contract' has no single reading for nidana-checks@v1, and an ADR-002 consequence that contradicts a contract both lint phases will consume." }
+      ],
+      "chosen": "Before phase planning",
+      "why": "hsdd-config injects an ADR's Decision and Consequences into every phase context it governs; a stale or ambiguous line there reaches every implementing session. Reconcile drains only what phase plans emit, and no plan owns an ADR. The cost is two short steps.",
+      "evidence": ["docs/auto-run/steps/S23.json (notes_for_orchestrator)", ".agents/skills/hsdd-config/SKILL.md", "hsdd/contract/nidana-checks.md (G1)"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "would_upstream": false
+    }
+  ]
+}

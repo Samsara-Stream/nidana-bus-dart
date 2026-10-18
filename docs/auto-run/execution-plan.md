@@ -177,8 +177,10 @@ tree. Done when `node docs/auto-run/tools/gate.mjs --final` passes.
 | S20 | 4 | hsdd-contract | bus-api@v1 touch: widened Topic<Object?> reference case, cite nidana-checks@v1 G5 | done | 27ce541 |
 | S21 | 4 | hsdd-contract | topic-codegen@v1 touch: catalog's claim rule aligned with nidana-checks@v1's recognizer; recorded invocations for G2, G14, G19 under amended ADR-001 item 7 | done | ca0d8ff |
 | S22 | 5 | hsdd-spec | nidana.runtime (mid-level): became a leaf-parent; no children, ADRs or internal contracts | done | 5e6e053 |
-| S23 | 5 | hsdd-spec | nidana.tooling (mid-level); then its ADRs and internal contracts | running | |
-| end of 5 | 5 | hsdd-spec (root refresh) | root D1 check table (adds explicit_topic_type_arguments), OQ2 and OQ5, embedded child summaries | planned | |
+| S23 | 5 | hsdd-spec | nidana.tooling (mid-level): two leaf-parents, codegen and lint; no ADRs or internal contracts | done | 5b09188 |
+| S24 | 5 | hsdd-adr | ADR-001 update: item 10 for a contract two leaf-parents produce | running | |
+| S25 | 5 | hsdd-adr | ADR-002 update: stale plugin-severity consequence; tooling children as owners | planned | |
+| S26 | 5 | hsdd-spec (root refresh) | root D1 check table (explicit_topic_type_arguments), D4 (runtime leaf-parent, tooling children), OQ5, three new tooling edges (bus-testing, navigation-api, flutter-binding), embedded summaries and Sources, conventions' RA/RB example | planned | |
 
 ## Change log
 
@@ -283,3 +285,8 @@ tree. Done when `node docs/auto-run/tools/gate.mjs --final` passes.
   RESOLVED. The root refresh must restate root D4 and the conventions' RA/RB example; the reconcile sweep
   must reword bus-api@v1's "the child of nidana.runtime that owns the main library". nidana.runtime's
   phase plan emits three amends on bus-testing@v1 G16, G18 and bus-api@v1 G41 (its D5, D6, D7).
+- 2026-10-18 (UTC), after S23: nidana.tooling has two leaf-parents (codegen about nine phases, lint
+  about three); nidana-checks@v1 is produced by both (reconcile applies the union of their produced_by
+  confirms). OQ-T1 and OQ-T2 are RESOLVED. Stage 6 leaf-parents, producer-first: nidana.model,
+  nidana.runtime, nidana.navigation, nidana.flutter, nidana.tooling.lint, nidana.tooling.codegen,
+  nidana.integration.

@@ -1,0 +1,238 @@
+{
+  "step_ref": "S23",
+  "skill": "hsdd-spec",
+  "target": "nidana.tooling (mid-level decomposition)",
+  "status": "completed",
+  "stop": null,
+  "artifacts": [
+    "hsdd/spec/nidana.tooling.md",
+    "hsdd/spec/nidana.tooling.codegen.md",
+    "hsdd/spec/nidana.tooling.lint.md",
+    "hsdd/spec/nidana.md",
+    "hsdd/conventions.md",
+    "docs/auto-run/experiments/catalog-loading/",
+    "docs/auto-run/steps/S23.json"
+  ],
+  "decisions": [
+    {
+      "at": "2026-10-18T00:44:28Z",
+      "artifact": "hsdd/spec/nidana.tooling.md",
+      "question": "Is nidana.tooling decomposed into children, and along which boundary, or is it itself a leaf-parent as S22 concluded for the runtime?",
+      "options": [
+        { "label": "Two leaf-parent children, one per package", "consequence": "nidana.tooling.codegen (nidana_dart_codegen: builder, generate, catalog, scan, recognizer; about nine phases) and nidana.tooling.lint (nidana_dart_lint: four plugin rules; about three phases). No internal contract, since neither package imports the other. nidana-checks@v1 gets two producers, so its replays and reconcile confirms need the partition nidana.tooling D2 states." },
+        { "label": "One leaf-parent", "consequence": "One plan of about twelve phases in two lanes that share no file. Each root contract keeps one producing node, so ADR-001 item 10 and reconcile apply verbatim and every 'checked by nidana.tooling's gates' line stays exact; goes against HSDD's 'add a level, do not widen' tip." },
+        { "label": "Three children (registry; catalog and scan; plugin)", "consequence": "Two nodes in one package, or a third package, against ADR-002 item 3 and its rejected separate scan package; catalog and scan share the claim recognizer (nidana-checks@v1 G18), which would sit on the boundary." }
+      ],
+      "chosen": "Two leaf-parent children, one per package",
+      "why": "The tests S22 applied give this split a stated reason to lead. Root D3 makes the published packages the axis, and these two are different deploy targets with different hosts, dependency sets and test harnesses (ADR-002 Context and items 3, 7, 8), which is the reason root D4 gave for making tooling internal. The boundary needs no internal contract, because ADR-002 item 4 means neither package imports the other; this is the test that kept the runtime whole (nidana.runtime D1 point 3), and here it passes. Neither child can split further: ADR-002 item 3 gives each member one owning node, and catalog and scan share the recognizer. A single leaf-parent would reach about twelve phases, past HSDD's handful. The leaf-parent alternative also has a stated reason, which is why confidence is medium: one producer per contract keeps ADR-001 item 10's 'last phase that produces the contract' and reconcile's confirm handling literal. I counted that as mechanics that D2 settles, not a rule the split breaks, so this did not read as a tree-shape stop. Two signals would have changed my mind. One is the run reading the two complementary 'confirm nidana-checks@v1 produced_by' entries as a reconcile collision despite D2. The other is the owner preferring one plan to two.",
+      "evidence": ["hsdd/spec/nidana.md (D3, D4)", "hsdd/adr/002-package-workspace-layout.md (items 3, 4, 7, 8; Alternatives: separate scan package)", "hsdd/adr/001-executable-contract-validation.md (items 2, 9, 10)", "hsdd/contract/nidana-checks.md (Boundary row on how nidana.tooling's children divide the two hosts; Refinement 1)", "hsdd/spec/nidana.runtime.md (D1)", "~/git/hsdd/docs/users-guide.md (Tips: add a level, do not widen)", "docs/auto-run/steps/S22.orchestrator.json"],
+      "blast_radius": "tree",
+      "confidence": "medium",
+      "would_have_asked": true,
+      "stop_class": "shape",
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T00:44:28Z",
+      "artifact": "hsdd/spec/nidana.tooling.md",
+      "question": "What are the children's ids and OQ prefixes?",
+      "options": [
+        { "label": "nidana.tooling.codegen and nidana.tooling.lint, prefixes TA and TB", "consequence": "Ids follow the package names nidana_dart_codegen and nidana_dart_lint, so the package-to-node mapping reads directly; 'codegen' also covers the scan, which lives in that package." },
+        { "label": "nidana.tooling.workspace and nidana.tooling.plugin", "consequence": "Names by host, which reads better for the scan, but they no longer match the package names that ADR-002 and both contracts use." }
+      ],
+      "chosen": "nidana.tooling.codegen and nidana.tooling.lint, prefixes TA and TB",
+      "why": "Both contracts and ADR-002 name the packages, and D1 cuts at the packages. There is no evidence beyond consistency. The prefixes follow the conventions' rule (parent prefix plus one letter) and are declared even though neither child mints an OQ yet.",
+      "evidence": ["hsdd/conventions.md (Naming)", "hsdd/adr/002-package-workspace-layout.md (item 3)"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T00:50:12Z",
+      "artifact": "hsdd/spec/nidana.tooling.codegen.md",
+      "question": "OQ-T1 residual: how does a package register its topologies for catalog, and how are their constructor arguments supplied (Spec §6.5's build-time DI)?",
+      "options": [
+        { "label": "A registration library the app writes", "consequence": "tool/nidana_catalog.dart declares Iterable<Topology> catalogTopologies(), which constructs every topology with its arguments in plain Dart; one mechanism for zero-argument classes, topology(...) values and factories such as navResolver; no topology-dsl@v1 change; topic-codegen@v1 takes it by a compatible amend. Drift risk: an unregistered topology is missing from the static graph." },
+        { "label": "An annotation (Spec §6.5's @Topology)", "consequence": "Needs a declaration in nidana_dart_contracts (amend topology-dsl@v1), a builder writing an entry point (a file layout in topic-codegen@v1), and annotated factories for topologies with dependencies; Topology is already topology-dsl@v1's base class, so the name is taken." },
+        { "label": "A convention scan of zero-argument Topology subclasses and top-level values", "consequence": "No listing for simple topologies, but it still needs a second mechanism for factories, cannot reach private or local declarations from a generated entry point, and has to rule on duplicates." }
+      ],
+      "chosen": "A registration library the app writes",
+      "why": "It is the one mechanism that also covers topologies with dependencies, the case Spec §6.5's build-time DI exists for. The example app's nav-resolver is such a topology: navResolver takes the auth topic and the app's pure functions, and the experiment shows the transformer names come from the arguments (T1: flatRate). It needs no new declaration in the contracts package and no builder. The tool/ placement keeps build-time configuration out of the package's public API. Close call against the convention scan; the signal that would have changed my mind is an adopter whose registration lists drift, since an unregistered topology escapes the scan's checks and is caught only at activation. Marked for upstreaming because Spec §6.5 names a @Topology registration that Dart cannot declare under that name.",
+      "evidence": ["Spec §6.5", "hsdd/contract/topic-codegen.md (catalog bullets, G20, G21)", "hsdd/contract/topology-dsl.md (Topology, topology(...))", "hsdd/contract/navigation-api.md (navResolver)", "docs/auto-run/experiments/catalog-loading/"],
+      "blast_radius": "contract",
+      "confidence": "medium",
+      "would_have_asked": true,
+      "stop_class": "upstream",
+      "would_upstream": true
+    },
+    {
+      "at": "2026-10-18T00:50:12Z",
+      "artifact": "hsdd/spec/nidana.tooling.codegen.md",
+      "question": "OQ-T1 residual: how does catalog load topology libraries that import Flutter, since dart run has no dart:ui?",
+      "options": [
+        { "label": "dart run, or flutter test when the registration reaches dart:ui", "consequence": "Pure packages need only the Dart SDK (about 2.6 s each); Flutter-importing registrations run under the Flutter tester of the same SDK (about 5.6 s), which exits 79 having run a main() that declares no test; both record byte-identical documents." },
+        { "label": "flutter test for every package", "consequence": "One runner path, but pure-Dart packages then need the Flutter SDK, and each run takes about twice as long." },
+        { "label": "Require pure-Dart topology libraries", "consequence": "dart run only, but page topologies declared next to their widgets would be rejected, a rule the Specification does not state." },
+        { "label": "Record inside catalog's own process", "consequence": "No subprocess, but catalog runs on dart run, which cannot load dart:ui, and its dependencies would join the app's resolution." }
+      ],
+      "chosen": "dart run, or flutter test when the registration reaches dart:ui",
+      "why": "The experiment settled the runtime facts. T2: dart run fails with exit 254 on dart:ui. T3: the Flutter tester runs a parameterless main() in a file outside test/ and writes the document, with exit 79. T4: the two runners record byte-identical documents for the same registration. T5: the package needs no flutter_test dependency. T6: a throwing registration exits 1 and writes nothing. Both runners are the JIT VM that topic-codegen@v1 G20 requires. The rule for finding flutter is the one ADR-001 item 9 already uses for the replay tool.",
+      "evidence": ["docs/auto-run/experiments/catalog-loading/ (output.txt, T1 to T7)", "docs/auto-run/experiments/topic-codegen-fixtures/ (probe/flutter-vm, T13)", "hsdd/adr/001-executable-contract-validation.md (item 9)"],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T00:50:12Z",
+      "artifact": "hsdd/spec/nidana.tooling.codegen.md",
+      "question": "Does a builder write a committed catalog entry point (which would join topic-codegen@v1 as a file layout), or does catalog generate a transient one?",
+      "options": [
+        { "label": "catalog writes a transient entry under .dart_tool", "consequence": "{package}/.dart_tool/nidana_dart_codegen/catalog_entry.dart, written and removed by each run; nothing new in topic-codegen@v1's file layout; no build_runner step before catalog." },
+        { "label": "A builder writes a committed entry point", "consequence": "One more generated file per package and a file-layout amendment to topic-codegen@v1; catalog then depends on build_runner having run." }
+      ],
+      "chosen": "catalog writes a transient entry under .dart_tool",
+      "why": "The entry point only imports the registration library and records it, so it carries no information a reviewer needs to see committed. .dart_tool is the tools' cache directory, and T1 and T3 ran from it under both runners. T7 shows a pure package can also run it from outside the package with dart run --packages. That option is left to the phase plan for pure packages; it was not tested for the Flutter tester.",
+      "evidence": ["docs/auto-run/experiments/catalog-loading/ (T1, T3, T7)", "hsdd/contract/topic-codegen.md (catalog bullet on a builder-written entry point)"],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T00:54:06Z",
+      "artifact": "hsdd/spec/nidana.tooling.codegen.md",
+      "question": "Does the registration mechanism enter topic-codegen@v1 now, through a contract touch step, or as an amend from nidana.tooling.codegen's phase plan?",
+      "options": [
+        { "label": "amend topic-codegen@v1 from the phase plan", "consequence": "hsdd-reconcile folds it in after the codegen plan, as S20 routed the other producer-side follow-ups; until then the contract's catalog bullet says the form is left to the decomposition, and this node's D1 holds it." },
+        { "label": "An hsdd-contract touch step now", "consequence": "The contract states the form before any plan reads it, at the cost of one more step, and a touch can surface further follow-ups, as earlier touches did." }
+      ],
+      "chosen": "amend topic-codegen@v1 from the phase plan",
+      "why": "This is a producer-side semantic of a contract whose producer has not been planned yet, which is the case hsdd-phase-plan's amend entry exists for. It is compatible, because v1 left the form open. No other node reads it before the codegen plan: nidana.integration's example app writes the registration library only when it is planned, after codegen. This is the same routing the orchestrator chose in S20.",
+      "evidence": ["docs/auto-run/steps/S20.orchestrator.json", "hsdd/contract/topic-codegen.md (Versioning: compatible changes)"],
+      "blast_radius": "contract",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T00:54:06Z",
+      "artifact": "hsdd/spec/nidana.tooling.md",
+      "question": "nidana-checks@v1 is produced by both children: how do the producing phases replay it under ADR-001 item 10, and how does reconcile treat two producers?",
+      "options": [
+        { "label": "Partition by host; each child's last phase runs its host's full id set", "consequence": "lint delivers G1, G2, G4 to G8 and G3 (plugin); codegen delivers G9 to G18 and G3 (scan). Because a case runs only when every id it covers is in the restriction, the two last replays together run all seventeen cases. nidana.integration's --all is the one unrestricted command. Neither child waits on the other. Two complementary confirm entries go to reconcile." },
+        { "label": "Literal item 10: the later child's last phase runs unrestricted", "consequence": "The child that finishes second also replays the other host's cases, an ordering edge between the children that no contract carries." },
+        { "label": "Amend ADR-001 item 10 before planning", "consequence": "An hsdd-adr step now; the text would read like the first option." }
+      ],
+      "chosen": "Partition by host; each child's last phase runs its host's full id set",
+      "why": "nidana-checks@v1 Refinement 1 puts every check in one host, and its Validation table gives each analyze-* case ids within G1 to G8 and each scan-* case ids within G3 and G9 to G17. So the two restricted final replays select disjoint sets whose union is every case, which is what the unrestricted replay checks. ADR-001 item 10 says 'the node's phases', which assumes one producer. This reading changes no fixture and adds no edge. I recommend an editorial ADR-001 amendment that names the case, but nothing blocks on it.",
+      "evidence": ["hsdd/contract/nidana-checks.md (Refinement 1, Validation table)", "hsdd/adr/001-executable-contract-validation.md (items 9, 10)", ".agents/skills/hsdd-reconcile/SKILL.md (steps 3, 4)"],
+      "blast_radius": "contract",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T00:54:06Z",
+      "artifact": "hsdd/spec/nidana.tooling.md",
+      "question": "Do the children consume bus-testing@v1, navigation-api@v1 and flutter-binding@v1, whose declarations the checks recognize by name and whose packages the recorded invocations import?",
+      "options": [
+        { "label": "Consume them as contract edges", "consequence": "nidana.tooling's Consumes grows from four contracts to seven. Lint waits on runtime phase 1, which also lands bus-testing@v1. The codegen phases whose scan replays import nidana_dart_navigation and nidana_dart_runtime_flutter wait on those nodes' first phases. The root DAG, edge table and contract matrix need three edges at the root refresh." },
+        { "label": "Name recognition is not consumption", "consequence": "The DAG stays as it is, but nothing would schedule the scan replays after nidana.flutter's first phase. That phase waits for the runtime to ship, so a scan phase planned on the model's first phase alone would fail its gate." }
+      ],
+      "chosen": "Consume them as contract edges",
+      "why": "The root already counts bus-api@v1 as consumed for exactly this reason: 'the checks recognize bus.publisher(...) claims in source'. The fixtures confirm the dependency. analyze-clean and analyze-global-bus-accessor import nidana_dart_runtime/testing.dart. scan-clean, scan-writer-conflict, scan-scope-violation and scan-unresolved-claim import nidana_dart_runtime_flutter, and two of them also import nidana_dart_navigation. I found this before the shape decision and recorded it when I wrote it.",
+      "evidence": ["hsdd/contract/fixture/nidana-checks/invocation/ (imports)", "hsdd/contract/nidana-checks.md (Recognition, Claim sites)", "hsdd/spec/nidana.md (DAG table: nidana.runtime to nidana.tooling, D10)"],
+      "blast_radius": "tree",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T00:54:06Z",
+      "artifact": "hsdd/spec/nidana.tooling.codegen.md",
+      "question": "OQ-T2 remainder: which library holds the claim recognizer that catalog and scan share?",
+      "options": [
+        { "label": "One package-internal library of nidana_dart_codegen", "consequence": "package:nidana_dart_codegen/src/recognizer.dart holds application-code selection, recognition, declarations, claim sites and their resolution, site and type-name rendering. Both commands call it, so nidana-checks@v1 G18 holds by construction." },
+        { "label": "A public library of nidana_dart_codegen", "consequence": "No consumer needs it: neither contract makes the package's libraries part of it, and the plugin may not depend on the package." },
+        { "label": "In nidana_dart_contracts", "consequence": "Puts analyzer into a package whose only dependency is meta (ADR-002 item 4)." },
+        { "label": "A package of its own", "consequence": "ADR-002 rejected a separate scan package." }
+      ],
+      "chosen": "One package-internal library of nidana_dart_codegen",
+      "why": "This is the only placement ADR-002 allows that gives both commands one implementation. The plugin re-implements per-library recognition from nidana-checks@v1's 'Terms both hosts use' (nidana.tooling.lint D1), because ADR-002 item 7 forbids it any nidana dependency.",
+      "evidence": ["hsdd/adr/002-package-workspace-layout.md (items 3, 4, 7; Alternatives)", "hsdd/contract/nidana-checks.md (Refinement 2, G18)", "hsdd/contract/topic-codegen.md (G20)"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T00:54:06Z",
+      "artifact": "hsdd/spec/nidana.tooling.lint.md",
+      "question": "Routed item (S20.orchestrator): which leaf-parent's plan emits the amend of nidana-checks@v1's global-accessor note, which still describes bus-api@v1's earlier, narrower definition?",
+      "options": [
+        { "label": "nidana.tooling.lint's plan", "consequence": "The plan that produces global_bus_accessor (G5) emits amend nidana-checks@v1, so that the rule detail cites bus-api@v1 For static analysis (its amendment f, getters included) instead of extending it. The change is editorial: no rule, code or case changes." },
+        { "label": "nidana.tooling.codegen's plan", "consequence": "That plan does not produce the rule, so the amend would come from a node that does not own the semantics." }
+      ],
+      "chosen": "nidana.tooling.lint's plan",
+      "why": "hsdd-phase-plan's amend entry belongs to the plan that settled the producer-side semantic, and the global_bus_accessor rule is the plugin's alone (nidana-checks@v1 Refinement 1).",
+      "evidence": ["docs/auto-run/steps/S20.orchestrator.json", "hsdd/contract/bus-api.md (For static analysis; Versioning item f)", "hsdd/contract/nidana-checks.md (global_bus_accessor rule detail)"],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    }
+  ],
+  "experiments": [
+    {
+      "path": "docs/auto-run/experiments/catalog-loading/",
+      "question": "Given a registration library at tool/nidana_catalog.dart and an entry point catalog would generate under the package's .dart_tool/nidana_dart_codegen/, which runner loads which package, and do the runners record the same definitions?",
+      "finding": "Results on the pinned SDK with the stand-in nidana_dart_contracts. T1: dart run of the entry in a pure package exits 0 in about 2.6 s and records transformer names from the factory arguments (flatRate). T2: the same entry in a package whose page library imports Flutter exits 254 on dart:ui. T3: flutter test --no-pub runs a parameterless main() in a file outside test/ that is not named _test.dart, writes the document and exits 79 ('No tests ran'), in about 5.6 s; a main(List<String>) fails to compile in the tester's listener. T4: the Flutter tester records a byte-identical document to dart run's. T5: no flutter_test dev dependency is needed. T6: a throwing registration exits 1 under the Flutter tester and writes nothing. T7: dart run --packages from outside the package gives the same document."
+    }
+  ],
+  "self_check": [
+    { "gate": "The spec stays high-level; it is not an implementation plan.", "status": "pass", "note": "The children's specs give slices and constraints. Phases, tasks and gates are left to hsdd-phase-plan. codegen D1 fixes the app-facing registration form because OQ-T1 asks for it." },
+    { "gate": "Every node has explicit consumed/produced contract ids.", "status": "pass", "note": "nidana.tooling has seven consumed contracts and two produced. codegen has six consumed and produces topic-codegen@v1 and nidana-checks@v1. lint has four consumed and produces nidana-checks@v1." },
+    { "gate": "Every node is testable in isolation (fixtures, mocks, schemas).", "status": "pass", "note": "Each child has an Isolation strategy over the contracts' fixtures and in-memory or fixture packages. Neither child needs the other." },
+    { "gate": "Every dependency edge is typed; parallel lanes are called out.", "status": "pass", "note": "nidana.tooling's edge table has twelve typed rows. Its Development flow names two side-by-side lanes and codegen's registry and workspace lanes." },
+    { "gate": "Each child is marked internal or leaf-parent.", "status": "pass", "note": "Both children are leaf-parents (D1)." },
+    { "gate": "Mermaid DAG matches the dependency table.", "status": "pass", "note": "Twelve contract labels on eight Mermaid edges match the table's twelve rows. No edge joins the children." },
+    { "gate": "`conventions.md` exists/updated at the root.", "status": "pass", "note": "Prefixes TA (nidana.tooling.codegen) and TB (nidana.tooling.lint) are declared. Nothing else changed." },
+    { "gate": "The decomposition axis at each level matches ownership stated by the human, not assumed, and no node is owned by two teams.", "status": "pass", "note": "Single team (owner's facts; root D3). The cut follows the published packages, which root D3 makes the axis." },
+    { "gate": "Every child node has its own `hsdd/spec/{child-id}.md` file.", "status": "pass", "note": "hsdd/spec/nidana.tooling.codegen.md and hsdd/spec/nidana.tooling.lint.md." },
+    { "gate": "Every input source appears in the Sources of at least one node, or is marked in the root `## Sources` as \"informative only, not decomposed\", with a reason.", "status": "pass", "note": "Spec and Guide sections are split across the children. The parent keeps §6.3, §6.4 and §7.6 for its deferral statements. Spec §3.1 and §4.2 were added to the parent's Sources for the accessor and type-argument rules." },
+    { "gate": "No node's Sources lists a document that does not govern it.", "status": "pass", "note": "Each child lists only the sections its rules or artifacts cite." },
+    { "gate": "Field blocks are bullet lists and empty lists say \"none\".", "status": "pass", "note": "There are no empty lists." },
+    { "gate": "Every open question is defined once, in its owning spec, with a table row and a `### {ID}` detail subsection; child views carry `[inherits …]`; no cited ID lacks a definition.", "status": "pass", "note": "OQ-T1 and OQ-T2 are RESOLVED in nidana.tooling.md and keep their history. The children mint no OQ." },
+    { "gate": "OQ prefixes used by node specs are declared in `conventions.md`.", "status": "pass", "note": "No new prefix is used. TA and TB are declared for future use." },
+    { "gate": "Under `multi-team`, every node whose team differs from its parent's carries `- **Team:**`; no node is owned by two teams.", "status": "n/a", "note": "single-team" },
+    { "gate": "Where children exchange contracts, an integration node exists or the decision not to add one is stated in the parent (one line).", "status": "pass", "note": "The children exchange no contract. D1's Consequences states that there is no nidana.tooling.integration and that nidana.integration replays both contracts with --all." },
+    { "gate": "A graft kept every existing child id and touched only the new child's file, the parent's summaries and the parent's DAG.", "status": "n/a", "note": "not a graft" },
+    { "gate": "A retired node's file is kept; its contracts' retirement went through `hsdd-reconcile`.", "status": "n/a", "note": "no retirement" },
+    { "gate": "Promotion: the human confirmed before `- **Adopted:** promoted` was written; `## Observed surface` kept; `v0` contracts unchanged unless redesigned.", "status": "n/a", "note": "not a promotion" },
+    { "gate": "node docs/auto-run/tools/gate.mjs --skill hsdd-spec --contracts-pending", "status": "pass", "note": "0 errors, 0 warnings." }
+  ],
+  "notes_for_orchestrator": [
+    "SHAPE: nidana.tooling stays internal and has two leaf-parent children (nidana.tooling D1, would_have_asked: true, stop_class: shape, confidence medium). (1) nidana.tooling.codegen owns nidana_dart_codegen: builder, generate, catalog, scan and the shared claim recognizer. It produces topic-codegen@v1 (G1 to G21) and nidana-checks@v1's scan host (G3 scan, G9 to G18), about nine phases over eight slices. (2) nidana.tooling.lint owns nidana_dart_lint: four plugin rules and the root options' plugins: section. It produces nidana-checks@v1's plugin host (G1 to G8, G3 plugin), about three phases over three slices. No edge between them. No nidana.tooling.integration.",
+    "If you read D1 as the tree-shape stop instead, the question is: one leaf-parent of about twelve phases (each contract keeps one producer, so ADR-001 item 10 and reconcile apply verbatim), or two package children of about nine and three phases (no internal contract, nidana-checks@v1 with two producers)? My recommendation is the two children. It blocks only the tooling phase plans.",
+    "INTERNAL CONTRACTS: none, so stage 5 has no contract step to schedule for nidana.tooling. PROPOSED ADRs: none. Recommended ADR touches, none blocking: (a) ADR-001 item 10, an editorial amendment for a contract that two leaf-parents produce, worded as nidana.tooling D2 reads it (each producer's last phase replays with its full id set; --all at nidana.integration). (b) ADR-002 Consequences says 'Plugin rules report at INFO severity, so only --fatal-infos makes one fail a gate'. That is stale against nidana-checks@v1 G1, where three rules default to WARNING and exit 2, as the S16 stand-in shows by setting DiagnosticSeverity per code. (c) ADR-001 and ADR-002 affects lists, and ADR-002 item 3's Owner column, could name the two children. gate.mjs does not require it.",
+    "OQs: none minted. Prefixes TA (codegen) and TB (lint) are declared in conventions.md. OQ-T1 is RESOLVED (2026-10-18): topic-codegen@v1 G20 for content, and nidana.tooling.codegen D1 for registration through tool/nidana_catalog.dart's catalogTopologies(), plain-Dart build-time configuration, and dart run, or flutter test when dart:ui is reached (experiment catalog-loading). OQ-T2 is RESOLVED: ADR-002 item 8, then nidana-checks@v1 Refinement 2, then D1 and nidana.tooling.codegen D2 (recognizer at package:nidana_dart_codegen/src/recognizer.dart).",
+    "ROUTED AMEND (S20.orchestrator): nidana.tooling.lint's phase plan emits 'amend nidana-checks@v1' on the global_bus_accessor rule detail, citing bus-api@v1 For static analysis (amendment f) instead of the earlier narrower definition. The edit is editorial.",
+    "Other plan entries the children carry. nidana.tooling.codegen: 'amend topic-codegen@v1', where the catalog bullet left to OQ-T1 becomes the registration mechanism of codegen D1 points 1 to 4; compatible. Also an editorial 'amend nidana-checks@v1' for its Boundary row that leaves OQ-T1 and the division of hosts to this decomposition. Both children: 'confirm nidana-checks@v1 produced_by: [own phases]'. RECONCILE: these two confirms are complementary by nidana.tooling D2, not a collision under hsdd-reconcile step 3. Apply their union, and flip phase_ids to final only when both are confirmed. owner: nidana.tooling stays. The 'checked by nidana.tooling's gates' lines in both contracts mean nidana.tooling.codegen's gates. An optional editorial note may name the child.",
+    "NEW EDGES INTO TOOLING (nidana.tooling D3), for the root refresh. nidana.tooling's own Consumes now lists bus-testing@v1, navigation-api@v1 and flutter-binding@v1. The root's embedded block for nidana.tooling (Consumes, and Sources: add Spec §3.1, §4.2), the root DAG and its edge table (runtime to tooling bus-testing@v1 contract; navigation to tooling navigation-api@v1 contract; flutter to tooling flutter-binding@v1 contract), and the root contract matrix's consumer cells for bus-testing@v1, navigation-api@v1 and flutter-binding@v1 should take them. Reconcile will also see those contracts' consumers frontmatter gain tooling phases through the children's confirms. I did not edit these in nidana.md because they fall outside this step's write scope (they name neither tooling's children nor its kind).",
+    "ROOT REFRESH must also restate: root D1's v1 check table, adding explicit_topic_type_arguments (Spec §4.2; nidana-checks@v1 Refinement 4); this node's Owns line already has it. Root D4's tooling clause: tooling stays internal, so it is still true, but it could cite nidana.tooling D1. The conventions' example '(children of nidana.runtime are RA, RB, and so on)' is hypothetical since S22, and 'children of nidana.tooling are TA, TB' is now real. What this step changed in nidana.md: the embedded block's Decomposes into, development-flow Lane B, and the critical-path line.",
+    "PHASE PLANNING ORDER: both children can be phase-planned independently and in either order. Neither plan reads the other, and neither needs another node's plan. lint's phases start after nidana.model's and nidana.runtime's first phases. codegen's registry lane starts after nidana.model's first phase. Its workspace lane's scan replays also wait on nidana.navigation's and nidana.flutter's first phases (D3).",
+    "UPSTREAM (would_upstream, for REPORT.md): Spec §6.5 names 'a @Topology registration mechanism per platform'. On Dart, Topology is topology-dsl@v1's abstract base class, so the registration is a library (nidana.tooling.codegen D1). 'a registration mechanism per platform' would cover it.",
+    "Timestamps: 00:44:28Z is the shape and naming decision, at the end of the analysis and before the experiment. 00:50:12Z is the three OQ-T1 decisions, right after the experiment's final run. 00:54:06Z is the two-producer, consumes, recognizer, routed-amend and contract-routing decisions, taken while drafting nidana.tooling.md. The consumes finding came from the fixture imports before 00:44:28Z and was recorded when written. All times 2026-10-18 UTC.",
+    "Experiment side effects: run.sh copies src/ to work/, adds the stand-in nidana_dart_contracts from ../flutter-binding-fixtures/, runs fvm flutter pub get --offline there, and removes work/ and its temp directory at the end. Nothing remains beyond README.txt, run.sh, src/ and output.txt. The experiment is not part of any workspace."
+  ]
+}
