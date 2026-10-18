@@ -188,8 +188,9 @@ tree. Done when `node docs/auto-run/tools/gate.mjs --final` passes.
 | S31 | 6 | hsdd-reconcile | nidana.runtime's pending section | done | 59e7c4c |
 | S32 | 6 | hsdd-phase-plan | nidana.navigation (6 phases) | done | b8137e4 |
 | S33 | 6 | hsdd-reconcile | nidana.navigation's pending section | done | a218bd7 |
-| S34 | 6 | hsdd-phase-plan | nidana.flutter | running | |
-| S35.. | 6 | hsdd-phase-plan then hsdd-reconcile | (nidana.flutter's reconcile), nidana.flutter, nidana.tooling.lint, nidana.tooling.codegen, nidana.integration, in that order | planned | |
+| S34 | 6 | hsdd-phase-plan | nidana.flutter (7 phases) | done | 3dfed85 |
+| S35 | 6 | hsdd-reconcile | nidana.flutter's pending section | running | |
+| S36.. | 6 | hsdd-phase-plan then hsdd-reconcile | nidana.flutter, nidana.tooling.lint, nidana.tooling.codegen, nidana.integration, in that order | planned | |
 
 ## Change log
 
