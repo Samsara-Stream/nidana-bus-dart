@@ -1,0 +1,24 @@
+{
+  "step_ref": "S37",
+  "skill": "none",
+  "target": "ADR-002's dependency lower-bound rule",
+  "status": "completed",
+  "decisions": [
+    {
+      "at": "2026-10-18T05:49:25Z",
+      "artifact": "docs/auto-run/execution-plan.md",
+      "question": "S37 found that ADR-002 item 4's rule (a third-party caret constraint's lower bound is the version the committed lockfile resolves when the dependency is added) produces constraints that cannot resolve: nidana.model.1 runs with no Flutter member, resolves test 1.33.0 and writes test: ^1.33.0, which beside a Flutter member does not resolve (flutter_test holds test at 1.31.1), so nidana.flutter.1's pub get fails; analyzer ^14.5.0 fails the same way against the plugin's 13.3.0 pin. Fix it now with an hsdd-adr step before nidana.tooling.codegen's plan, or carry it to the stage-7 pass?",
+      "options": [
+        { "label": "Amend ADR-002 now, before codegen's plan", "consequence": "One hsdd-adr step; codegen's plan (which creates a member) and integration's plan are written against a rule that resolves; the member-creating phase scopes already written by model, runtime, navigation, flutter and lint are updated to match in the stage-7 pass, as hsdd-reconcile updates scopes that assumed otherwise." },
+        { "label": "Carry it to stage 7", "consequence": "Two more plans would copy the broken rule into their scopes, widening the later sweep." }
+      ],
+      "chosen": "Amend ADR-002 now, before codegen's plan",
+      "why": "This is a defect in an accepted decision, demonstrated by experiment (docs/auto-run/experiments/lint-reconcile-amends/constraints.sh, K1 to K6), and it would make the first Flutter phase fail at pub get. The policy has the run write and accept ADRs, so amending one is within it; it is not a run-stop. Fixing the rule before the remaining two plans keeps them from repeating it.",
+      "evidence": ["docs/auto-run/steps/S37.json (notes_for_orchestrator)", "docs/auto-run/experiments/lint-reconcile-amends/output-constraints.txt", "hsdd/adr/002-package-workspace-layout.md (items 4, 9; Context Q1)"],
+      "blast_radius": "tree",
+      "confidence": "high",
+      "would_have_asked": false,
+      "would_upstream": false
+    }
+  ]
+}

@@ -1,0 +1,438 @@
+{
+  "step_ref": "S37",
+  "skill": "hsdd-reconcile",
+  "target": "nidana.tooling.lint (pending section of hsdd/spec/nidana.tooling.lint.md)",
+  "status": "completed",
+  "stop": null,
+  "artifacts": [
+    "hsdd/contract/nidana-checks.md",
+    "hsdd/contract/topic-model.md",
+    "hsdd/contract/topology-dsl.md",
+    "hsdd/contract/bus-api.md",
+    "hsdd/contract/bus-testing.md",
+    "hsdd/contract/INDEX.md",
+    "hsdd/contract/fixture/nidana-checks/invocation/analyze-raw-string-topic/files/lib/topics.dart",
+    "hsdd/contract/fixture/nidana-checks/invocation/analyze-sensitive-fatal-infos/files/lib/topics.dart",
+    "hsdd/contract/fixture/nidana-checks/invocation/analyze-sensitive-fatal-infos/stdout",
+    "hsdd/spec/nidana.tooling.lint.md",
+    "docs/auto-run/experiments/lint-reconcile-amends/run.sh",
+    "docs/auto-run/experiments/lint-reconcile-amends/output.txt",
+    "docs/auto-run/experiments/lint-reconcile-amends/constraints.sh",
+    "docs/auto-run/experiments/lint-reconcile-amends/output-constraints.txt"
+  ],
+  "decisions": [
+    {
+      "at": "2026-10-18T05:33:03Z",
+      "artifact": "hsdd/contract/nidana-checks.md",
+      "question": "hsdd-reconcile step 3: is `confirm nidana-checks@v1 produced_by: [nidana.tooling.lint.1 to .4]` a collision (two nodes claiming the same artifact), given that nidana.tooling.codegen also produces nidana-checks@v1?",
+      "options": [
+        {
+          "label": "complementary share, apply union",
+          "consequence": "Apply lint's ids now, keep codegen's share as a placeholder, flip phase_ids only once codegen's and nidana.integration's sides are confirmed."
+        },
+        {
+          "label": "collision, stop for the owner",
+          "consequence": "Blocks this drain on a question nidana.tooling D2 already answered before either plan existed."
+        }
+      ],
+      "chosen": "complementary share, apply union",
+      "why": "nidana.tooling D2 partitions the guarantees by host before either plan existed (lint: G1, G2, G4 to G8, G3 for the plugin; codegen: G9 to G18, G3 for the scan) and states that the two confirm entries are complementary and that reconcile applies their union. Codegen has no plan yet, so no second claim exists in any pending section. No other entry in the section touches a contract another pending section names.",
+      "evidence": [
+        "hsdd/spec/nidana.tooling.md D2 (Reconcile bullet)",
+        "hsdd-reconcile step 3"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T05:33:03Z",
+      "artifact": "hsdd/contract/nidana-checks.md, topic-model.md, topology-dsl.md, bus-api.md",
+      "question": "Which id stands for nidana.tooling.codegen's still-unplanned share in nidana-checks@v1 produced_by and in the consumers of topic-model@v1, topology-dsl@v1 and bus-api@v1, once lint's phase ids replace lint's share of the `nidana.tooling` placeholder?",
+      "options": [
+        {
+          "label": "name nidana.tooling.codegen",
+          "consequence": "The frontmatter names exactly the side that is still unplanned; codegen's confirm replaces that one id; the gate resolves it to hsdd/spec/nidana.tooling.codegen.md."
+        },
+        {
+          "label": "keep nidana.tooling",
+          "consequence": "Next to lint's phase ids, the internal node id reads as if lint still had an unplanned share; codegen's drain must know which part of the placeholder is left."
+        }
+      ],
+      "chosen": "name nidana.tooling.codegen",
+      "why": "It is the exact remaining unplanned side, and the gate and gen-registry accept a node id in produced_by and consumers. `owner: nidana.tooling` stays, as nidana.tooling D2 requires. The signal that would have favored keeping nidana.tooling: a tool that resolves only root-level node ids in frontmatter; none does.",
+      "evidence": [
+        "hsdd/spec/nidana.tooling.md D2",
+        "docs/auto-run/tools/gate.mjs (phase and node id resolution)",
+        "node docs/auto-run/tools/gate.mjs --skill hsdd-reconcile: 0 errors"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T05:33:03Z",
+      "artifact": "hsdd/contract/bus-testing.md",
+      "question": "bus-testing@v1 consumers did not name nidana.tooling at all: does the confirm add lint's ids only, or also a nidana.tooling.codegen placeholder?",
+      "options": [
+        {
+          "label": "lint's ids only",
+          "consequence": "consumers gain nidana.tooling.lint.1, .2, .4; codegen's drain does not touch bus-testing@v1."
+        },
+        {
+          "label": "lint's ids and a codegen placeholder",
+          "consequence": "Names a consumer whose spec does not consume the contract."
+        }
+      ],
+      "chosen": "lint's ids only",
+      "why": "nidana.tooling D3 assigns bus-testing@v1 to nidana.tooling.lint alone, and nidana.tooling.codegen's Consumes line omits it.",
+      "evidence": [
+        "hsdd/spec/nidana.tooling.md D3",
+        "hsdd/spec/nidana.tooling.codegen.md Consumes"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T05:33:50Z",
+      "artifact": "hsdd/contract/fixture/nidana-checks/invocation/analyze-raw-string-topic/",
+      "question": "Amendment (c) states that raw_string_topic accepts the whole initializer of any static field, of any declaration kind, const, final, late or none of these. No recorded case held such a field (ADR-001 item 3). Where is it covered?",
+      "options": [
+        {
+          "label": "accepted forms appended to analyze-raw-string-topic",
+          "consequence": "Five declarations (mixin, enum, extension, extension type, and a class with a late final and a mutable static field) at the end of the file: stdout and every recorded site unchanged; nidana.tooling.lint.2's tests already cover every accepted form of this case, so the plan needs no change."
+        },
+        {
+          "label": "accepted forms in analyze-clean",
+          "consequence": "Also stdout-neutral, but mixes G4's boundary into the whole-plugin clean case."
+        },
+        {
+          "label": "not-executable line naming nidana.tooling.lint's gates",
+          "consequence": "No fixture work; the clause rests on lint.2's unit tests and is never replayed against the real packages."
+        }
+      ],
+      "chosen": "accepted forms appended to analyze-raw-string-topic",
+      "why": "The case is G4's own and the change is small. The stand-in plugin passes it, and stand-ins seeded with either narrower reading (class only; const or final only, not late) fail it while passing the committed fixtures, so the new forms add the coverage that was missing.",
+      "evidence": [
+        "docs/auto-run/experiments/lint-reconcile-amends/ (T1, T2, T3 C1 and C2)"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T05:33:50Z",
+      "artifact": "hsdd/contract/fixture/nidana-checks/invocation/analyze-sensitive-fatal-infos/",
+      "question": "Amendment (d) fixes unflagged_sensitive_topic's {1} for a value type that contains several known-sensitive types (depth-first, alias first). No recorded case held two. Where is it covered?",
+      "options": [
+        {
+          "label": "four topics appended to analyze-sensitive-fatal-infos, Covers G1, G2, G7",
+          "consequence": "Four reported lines added to its stdout, exit still 1; the case still replays only at nidana.tooling.lint.4 and under nidana.integration's --all; every statement of the lint plan stays true."
+        },
+        {
+          "label": "topics added to analyze-unflagged-sensitive-topic",
+          "consequence": "The natural home, but nidana.tooling.lint.3's Verification counts 'the seven reported topics' of that case, which this step may not edit, so the plan would be left wrong."
+        },
+        {
+          "label": "not-executable line naming nidana.tooling.lint's gates",
+          "consequence": "No fixture work; the order rests on lint.3's unit tests only."
+        }
+      ],
+      "chosen": "four topics appended to analyze-sensitive-fatal-infos, Covers G1, G2, G7",
+      "why": "Small and replayable, and it keeps the plan exact: nidana.tooling.lint.3's scope already tests every reported form of analyze-sensitive-fatal-infos and cites no count for it. Adding G2 to its Covers moves no replay point, because every analyze-* case runs at lint.4 only (lint D3). Each topic separates one rule of the order: type arguments in order, positional before named fields, named fields by name (the analyzer sorts them, shown by the named record's display string), the alias before the type it names. The stand-in passes; stand-ins seeded with each other order fail the amended case and pass the committed one. The signal that would have put it in analyze-unflagged-sensitive-topic: no count of its topics in the lint plan.",
+      "evidence": [
+        "docs/auto-run/experiments/lint-reconcile-amends/ (T0, T1, T3 D1 to D4)",
+        "hsdd/spec/nidana.tooling.lint.md nidana.tooling.lint.3 Scope and Verification, D3"
+      ],
+      "blast_radius": "contract",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T05:35:23Z",
+      "artifact": "hsdd/contract/nidana-checks.md",
+      "question": "Apply amendments (a) (the global_bus_accessor detail cites bus-api@v1 For static analysis) and (b) (Refinement 4 says root D1 lists explicit_topic_type_arguments) as editorial within v1?",
+      "options": [
+        {
+          "label": "apply as editorial",
+          "consequence": "Two sentences change; no rule, code, message, guarantee or case changes."
+        },
+        {
+          "label": "hold for hsdd-contract",
+          "consequence": "The detail keeps describing bus-api@v1's superseded wording, and Refinement 4 keeps saying root D1 omits the rule."
+        }
+      ],
+      "chosen": "apply as editorial",
+      "why": "Both checked against their sources: bus-api@v1 For static analysis now defines a global bus accessor exactly as G5 reports it, getters included (its amendment f), and hsdd/spec/nidana.md's D1 table lists explicit_topic_type_arguments and says it joined on 2026-10-18.",
+      "evidence": [
+        "hsdd/contract/bus-api.md For static analysis, Versioning (f)",
+        "hsdd/spec/nidana.md D1 plugin-rules row"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T05:35:23Z",
+      "artifact": "hsdd/contract/nidana-checks.md",
+      "question": "Is amendment (c), widening the raw_string_topic detail from 'static const or static final, of any class' to G4's 'any static field', compatible within v1?",
+      "options": [
+        {
+          "label": "compatible, keep v1",
+          "consequence": "One Versioning line; consumers and external app CI see the rule report no more than G4 always stated."
+        },
+        {
+          "label": "breaking, stop for the owner",
+          "consequence": "A v2 or an owner decision over a change that makes the rule report less."
+        }
+      ],
+      "chosen": "compatible, keep v1",
+      "why": "G4, the table and the guarantee text already said 'a static field'; the detail alone was narrower. Versioning lists 'reporting less, by narrowing a rule to a case it reported in error, in the same change as its recordings' as compatible, and the recordings land in the same change. topic-model@v1's sentence that registries use static const or static final members describes how registries are written, not what the rule accepts, so no consumer assumption conflicts.",
+      "evidence": [
+        "hsdd/contract/nidana-checks.md G4, Versioning",
+        "hsdd/contract/topic-model.md (registries paragraph)",
+        "docs/auto-run/experiments/lint-reconcile-amends/"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T05:35:23Z",
+      "artifact": "hsdd/contract/nidana-checks.md",
+      "question": "Is amendment (d), the search order for {1} with several known-sensitive types, compatible within v1?",
+      "options": [
+        {
+          "label": "compatible, keep v1",
+          "consequence": "The Placeholders paragraph gains one sentence and G2 reads it; one Versioning line."
+        },
+        {
+          "label": "breaking, stop for the owner",
+          "consequence": "A v2 over a message argument that had no single defined value."
+        }
+      ],
+      "chosen": "compatible, keep v1",
+      "why": "Versioning lists a change of message wording, made with every recording in the same change, as compatible because tools match on codes; the earlier wording had no single answer for such a type, so no conforming output is excluded; the order is the one the stand-in plugin already followed (T2 passes the committed fixtures on it).",
+      "evidence": [
+        "hsdd/contract/nidana-checks.md Placeholders, G2, Versioning",
+        "docs/auto-run/experiments/lint-reconcile-amends/ (T2)"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T05:35:23Z",
+      "artifact": "hsdd/contract/nidana-checks.md",
+      "question": "What does nidana-checks@v1's Delivery paragraph say while only one of its two producers is planned, and does the code-owner sentence change?",
+      "options": [
+        {
+          "label": "plugin share now, scan share at codegen's drain",
+          "consequence": "Consumers and hsdd-config get the plugin's phases now (lint.1 registration and G1; lint.4 delivers G2, G3 for the plugin, G4 to G8 and is the phase nidana.integration's hard edge waits on for the plugin); codegen's drain adds the scan."
+        },
+        {
+          "label": "defer the whole paragraph to codegen's drain",
+          "consequence": "The conventions' rule that reconcile writes Delivery when it applies a producer's confirm is not met for this producer."
+        }
+      ],
+      "chosen": "plugin share now, scan share at codegen's drain",
+      "why": "The conventions (Contracts) require the paragraph when a producer's confirm is applied, and the step brief asks for this node's share. The code-owner sentence now names nidana.tooling's children per host, as S35 and S31 did for their contracts. The paragraph also states that no analyze-* case replays before lint.4, since each covers an id among G2 to G8.",
+      "evidence": [
+        "hsdd/conventions.md Contracts",
+        "hsdd/spec/nidana.tooling.lint.md D2, D3 and the confirm entry's Delivery sub-bullet",
+        "hsdd/spec/nidana.tooling.md D2"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T05:35:23Z",
+      "artifact": "hsdd/contract/bus-api.md, bus-testing.md, topic-model.md, topology-dsl.md",
+      "question": "Do the consumed contracts' Delivery paragraphs change with lint's consumer confirms?",
+      "options": [
+        {
+          "label": "leave them unchanged",
+          "consequence": "Their statements stay true: nidana.tooling's contract edge waits on nidana.runtime.1 (bus-api, bus-testing) and on nidana.model.5 for a topology-dsl consumer (topic-model, topology-dsl), which is exactly lint.4's wait; lint.1 to .3 have no edge."
+        },
+        {
+          "label": "name nidana.tooling.lint.4 in each",
+          "consequence": "More words in four contracts with no new fact for any consumer."
+        }
+      ],
+      "chosen": "leave them unchanged",
+      "why": "S35 refined these paragraphs where a consumer's phases waited on different producer phases (nidana.flutter.1 against .4 to .7). Here every waiting lint phase waits on the phase the paragraph already names, so nothing a consumer reads changes.",
+      "evidence": [
+        "hsdd/spec/nidana.tooling.lint.md D5",
+        "docs/auto-run/steps/S35.json"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T05:35:23Z",
+      "artifact": "hsdd/contract/flutter-binding.md",
+      "question": "flutter-binding@v1's Delivery paragraph says nidana.tooling.lint's recorded invocations resolve nidana_dart_runtime_flutter and wait on nidana.flutter.1; lint D5 shows no analyze-* case imports it. Correct it in this drain?",
+      "options": [
+        {
+          "label": "leave it, report it",
+          "consequence": "The sentence stays inexact until codegen's drain, which rewrites that parenthetical when it confirms its flutter-binding@v1 consumer ids; no lint phase context carries it, because lint does not consume flutter-binding@v1."
+        },
+        {
+          "label": "correct it now",
+          "consequence": "A contract edit no drained entry asks for, outside this step's write scope ('as the entries require')."
+        }
+      ],
+      "chosen": "leave it, report it",
+      "why": "No entry of this section names flutter-binding@v1, and the inexact clause misleads no planner or executor: codegen's half of it is correct and lint never reads it.",
+      "evidence": [
+        "hsdd/spec/nidana.tooling.lint.md D5",
+        "hsdd/contract/flutter-binding.md Delivery"
+      ],
+      "blast_radius": "contract",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T05:39:23Z",
+      "artifact": "hsdd/conventions.md (unchanged)",
+      "question": "Do notes 1 to 3 (the new package and three shared root files; every root analyze loads the plugin from lint.1, exit 4 on a plugin that does not compile; from lint.4 the rules report over every member's application code) change a convention?",
+      "options": [
+        {
+          "label": "drop as derived",
+          "consequence": "conventions.md unchanged; the facts stay where they are stated: ADR-002 item 7 and Consequences, nidana-checks@v1 The plugin and its new Delivery paragraph, the conventions' Shared workspace files bullet."
+        },
+        {
+          "label": "add a Phase design bullet",
+          "consequence": "Repeats ADR-002 Consequences ('fvm dart analyze --fatal-infos at the root checks every member against ... nidana_dart_lint', 'a plugin that does not build fails them all') and contract text in a second home."
+        }
+      ],
+      "chosen": "drop as derived",
+      "why": "hsdd-reconcile step 10 drops notes that duplicate derived data. The Shared workspace files bullet already names lint's member-creating phase; the root analysis_options.yaml is created by nidana.model.1 and edited afterwards by nidana.tooling.lint.1 alone, so no contention rule is needed; ADR-002 Consequences already tells every phase governed by it that the root analyze runs the plugin and that every plugin diagnostic fails it. A member that breaks a rule fails its own gate with the rule's correction message. The signal that would have added the bullet: a phase context that carries neither ADR-002 nor nidana-checks@v1 for a node whose code the rules read.",
+      "evidence": [
+        "hsdd/adr/002-package-workspace-layout.md item 7, Consequences",
+        "hsdd/conventions.md Shared workspace files",
+        "hsdd/spec/nidana.model.md nidana.model.1 Scope"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T05:39:23Z",
+      "artifact": "hsdd/conventions.md (unchanged)",
+      "question": "Note 4 (nidana_dart_codegen's analyzer constraint must admit 13.3.0 whichever of its phase and nidana.tooling.lint.1 lands first): a conventions bullet, or an amendment of ADR-002 item 9?",
+      "options": [
+        {
+          "label": "route to an hsdd-adr amendment of ADR-002 item 9",
+          "consequence": "conventions.md unchanged; the orchestrator schedules hsdd-adr before nidana.tooling.codegen's phase plan; one home for the lower-bound rule, which also has to cover `test`."
+        },
+        {
+          "label": "conventions bullet for analyzer",
+          "consequence": "Contradicts ADR-002 item 9 ('Item 7's exact pins are the only exception') in a second home, and leaves the same defect for `test` unaddressed."
+        }
+      ],
+      "chosen": "route to an hsdd-adr amendment of ADR-002 item 9",
+      "why": "conventions.md defers code layout to ADR-002, and item 9 is the rule that produces the hazard: it sets a constraint's lower bound to what the lockfile resolves when the dependency is added. The probe shows the same defect already applies to `test`: nidana_contract_check's row resolves test 1.33.0 at nidana.model.1 (K6), item 9 then gives `test: ^1.33.0`, and a member with that constraint beside a Flutter member does not resolve (K1), so nidana.flutter.1's `fvm dart pub get` would fail; analyzer ^14.5.0 fails beside Flutter too (K3) as well as beside the plugin (lint-pin-resolution L3). A rule for analyzer alone in conventions would fix half and contradict the ADR. The signal that would have put it in conventions: an ADR-002 item 9 that already allowed a lower bound below the current resolution.",
+      "evidence": [
+        "docs/auto-run/experiments/lint-reconcile-amends/output-constraints.txt (K1 to K6)",
+        "docs/auto-run/experiments/lint-pin-resolution/ (L1 to L3)",
+        "hsdd/adr/002-package-workspace-layout.md item 9, Context (Q1, Q2), Consequences"
+      ],
+      "blast_radius": "tree",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    }
+  ],
+  "experiments": [
+    {
+      "path": "docs/auto-run/experiments/lint-reconcile-amends/ (run.sh, output.txt)",
+      "question": "Do the new accepted static fields in analyze-raw-string-topic and the four multi-sensitive topics in analyze-sensitive-fatal-infos pass on the stand-in plugin, do the committed fixtures still pass, and does each new form fail a stand-in that reads (c) or (d) another way?",
+      "finding": "T1: amended fixtures 17 of 17 on the stand-in plugin (analyzer 13.3.0, analysis_server_plugin 0.3.18); analyze-raw-string-topic's stdout is unchanged. T2: committed fixtures 17 of 17. T3: C1 (class-only static fields) and C2 (const or final only, not late) fail amended analyze-raw-string-topic and pass every committed case; D1 (type arguments reversed), D2 (named fields before positional), D3 (named fields against name order) and D4 (alias after the type it names) fail amended analyze-sensitive-fatal-infos and pass every committed case. The analyzer displays a record's named fields sorted by name ('({ApiCredential api, RefreshToken refresh})'), and an alias's {0} shows the aliased type ('Map<String, ApiCredential>' for SessionToken)."
+    },
+    {
+      "path": "docs/auto-run/experiments/lint-reconcile-amends/ (constraints.sh, output-constraints.txt)",
+      "question": "What does a member's caret constraint, written while the workspace has no Flutter member and no plugin pins (ADR-002 item 9), do once a Flutter member lands?",
+      "finding": "K6: nidana_contract_check's dependency row alone resolves test 1.33.0 and analyzer 14.5.0, so item 9 gives `test: ^1.33.0`. K1: `test: ^1.33.0` beside a Flutter member fails (flutter_test pins test_api 0.7.12; test 1.33.0 needs 0.7.15). K2: `test: ^1.31.1` resolves. K3: `analyzer: ^14.5.0` beside a Flutter member fails. K4 and K5: `analyzer: ^13.3.0` resolves 13.3.0 with or without Flutter."
+    }
+  ],
+  "self_check": [
+    {
+      "gate": "Every pending section drained, or explicitly deferred with a reason.",
+      "status": "pass",
+      "note": "nidana.tooling.lint's section stamped with the one line; nidana.model, nidana.runtime, nidana.navigation and nidana.flutter were already stamped; no other pending section exists."
+    },
+    {
+      "gate": "No contract with both sides fully planned remains `phase_ids: provisional`; none with `phase_ids: final`, no open request and an existing validation artifact remains `status: draft`; none was flipped without its artifact.",
+      "status": "pass",
+      "note": "Every touched contract still names an unplanned side (nidana.tooling.codegen and/or nidana.integration), so all stay provisional and draft; no contract in the tree is final."
+    },
+    {
+      "gate": "Grandfather marks were added only to pre-existing fixtureless `stable` contracts named by the plan step (the upgrade step or one carrying it forward), none re-marked after a discharge, and removed wherever the artifact now exists.",
+      "status": "n/a",
+      "note": "No grandfather step was named; no contract is stable."
+    },
+    {
+      "gate": "No contract was retired while a consumer or external consumer still names it.",
+      "status": "n/a",
+      "note": "No retired node."
+    },
+    {
+      "gate": "Every collision was decided by the human, and the losing plan was updated to match.",
+      "status": "n/a",
+      "note": "No collision: the produced_by share is complementary under nidana.tooling D2."
+    },
+    {
+      "gate": "Contract edits follow hsdd-contract versioning (breaking change = new version + migration note).",
+      "status": "pass",
+      "note": "All four amends compatible within v1, recorded in one 'Amended within v1' Versioning line; fixtures changed in the same edit and checked against the stand-in plugin."
+    },
+    {
+      "gate": "`node hsdd/scripts/gen-registry.mjs` ran after the last contract edit.",
+      "status": "pass",
+      "note": "contract/INDEX.md regenerated (consumer counts of bus-api 13, bus-testing 8, topic-model 27, topology-dsl 18); adr/INDEX.md unchanged. node docs/auto-run/tools/gate.mjs --skill hsdd-reconcile: 0 errors, 0 warnings."
+    },
+    {
+      "gate": "No artifact still cites a resolved OQ as open; sweep locations reported.",
+      "status": "pass",
+      "note": "The drained entries resolve no OQ; nidana.tooling.lint has none (no OQ-TB id anywhere in hsdd/). Nothing to sweep."
+    }
+  ],
+  "notes_for_orchestrator": [
+    "Entries and what was done: (1) confirm nidana-checks@v1 produced_by [lint.1 to .4]: applied as lint's share; produced_by is now [nidana.tooling.lint.1, .2, .3, .4, nidana.tooling.codegen], owner stays nidana.tooling; Delivery paragraph written for the plugin, code-owner sentence names the children per host. (2) confirm topic-model@v1 consumers [lint.1 to .4]: applied, nidana.tooling replaced by lint's ids plus nidana.tooling.codegen. (3) confirm topology-dsl@v1 consumers [lint.3, .4]: applied likewise. (4) confirm bus-api@v1 consumers [lint.1 to .4]: applied likewise. (5) confirm bus-testing@v1 consumers [lint.1, .2, .4]: applied, adding nidana.tooling.lint (no codegen placeholder: codegen does not consume it). (6 to 8) notes 1 to 3: dropped as derived (ADR-002 item 7 and Consequences, nidana-checks@v1 The plugin and Delivery, conventions Shared workspace files). (9) note 4: not written to conventions; routed to an hsdd-adr step (below). (10) amend (a): applied. (11) amend (b): applied. (12) amend (c): applied, accepted forms appended to analyze-raw-string-topic, stdout unchanged. (13) amend (d): applied, four topics appended to analyze-sensitive-fatal-infos with a re-recorded stdout, its Covers now G1, G2, G7. No request entries; no collision.",
+    "Resulting contract state: nidana-checks@v1 draft, provisional, produced_by [nidana.tooling.lint.1, .2, .3, .4, nidana.tooling.codegen], consumers [nidana.integration]. topic-model@v1 draft, provisional, consumers ... nidana.flutter.7, nidana.tooling.lint.1 to .4, nidana.tooling.codegen, nidana.integration. topology-dsl@v1 draft, provisional, consumers ... nidana.flutter.7, nidana.tooling.lint.3, .4, nidana.tooling.codegen, nidana.integration. bus-api@v1 draft, provisional, consumers [nidana.navigation.1, .6, nidana.flutter.1, .4, .5, .6, .7, nidana.tooling.lint.1 to .4, nidana.tooling.codegen, nidana.integration]. bus-testing@v1 draft, provisional, consumers [nidana.navigation.6, nidana.flutter.1, .6, .7, nidana.tooling.lint.1, .2, .4, nidana.integration]. Nothing flipped.",
+    "hsdd-adr step needed, before nidana.tooling.codegen's phase plan and before nidana.model.1 executes: amend ADR-002 item 9. As written, a third-party constraint's lower bound is the version the lockfile resolves when the dependency is added; nidana.model.1 adds `test` with no Flutter member present, resolves 1.33.0 (K6) and so writes `test: ^1.33.0`, which every later member copies, and a member with `test: ^1.33.0` beside a Flutter member does not resolve (K1), so nidana.flutter.1's `fvm dart pub get` fails. The same holds for analyzer (K3; lint-pin-resolution L3), which is lint's note 4 for nidana_dart_codegen. Evidence: docs/auto-run/experiments/lint-reconcile-amends/output-constraints.txt (K1 to K6). A likely fix: the lower bound is the version the full planned resolution holds (ADR-002 Context Q1: analyzer 13.3.0, test 1.31.1, build 4.0.11, source_gen 4.2.4, build_runner 2.16.1), with plan scopes that say 'caret constraint at the version the lockfile resolves' or 'the constraint the other members carry' swept (nidana.model.1, nidana.navigation.1, nidana.flutter.1, nidana.tooling.lint.1, and nidana.runtime's member-creating phase). The same ADR touch can correct ADR-002 Context Q11c (exit 3 for a plugin that does not compile, where plugin-rebuild R6 saw exit 4), which S36 flagged.",
+    "No hsdd-contract step is needed: the amended clauses' fixtures landed here and passed against the stand-in plugin (docs/auto-run/experiments/lint-reconcile-amends/).",
+    "Left inexact, for the drain of nidana.tooling.codegen's plan: flutter-binding@v1's Delivery paragraph says nidana.tooling.lint's recorded invocations resolve nidana_dart_runtime_flutter and wait on nidana.flutter.1; lint D5 shows no analyze-* case imports it. Codegen's confirm for flutter-binding@v1 rewrites that parenthetical. Also stale but not OQ citations, so outside this step's sweep: nidana.tooling.md 'Carried into the children's phase plans' says the global_bus_accessor detail 'still says' the old definition; and S36's note that the root and nidana.tooling Development flow sentences saying nidana.tooling.lint waits on nidana.runtime's first phase hold for nidana.tooling.lint.4 only.",
+    "For nidana.tooling.codegen's planner: its share is held by the id nidana.tooling.codegen in nidana-checks@v1 produced_by and in the consumers of topic-model@v1, topology-dsl@v1 and bus-api@v1; its confirm entries replace that id with its phase ids (topology-ir@v1's consumers and topic-codegen@v1's produced_by still carry the `nidana.tooling` node id, which codegen alone now stands for; navigation-api@v1 and flutter-binding@v1 do not name nidana.tooling as a consumer yet, so its confirms add it there). nidana-checks@v1's Delivery paragraph has a scan sentence to be completed at its drain. nidana-checks@v1 can reach phase_ids final only after codegen's and nidana.integration's confirms. Its analyzer constraint question waits on the ADR-002 step above.",
+    "The lint plan stays exact: nidana.tooling.lint.2's tests cover every accepted form of analyze-raw-string-topic and nidana.tooling.lint.3's every reported form of analyze-sensitive-fatal-infos, so they pick up the new forms; lint.3's 'seven reported topics' of analyze-unflagged-sensitive-topic still holds. Every analyze-* case still covers an id among G2 to G8, so none replays before nidana.tooling.lint.4."
+  ]
+}

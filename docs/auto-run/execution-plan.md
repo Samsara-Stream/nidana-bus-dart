@@ -191,8 +191,9 @@ tree. Done when `node docs/auto-run/tools/gate.mjs --final` passes.
 | S34 | 6 | hsdd-phase-plan | nidana.flutter (7 phases) | done | 3dfed85 |
 | S35 | 6 | hsdd-reconcile | nidana.flutter's pending section | done | badc78f |
 | S36 | 6 | hsdd-phase-plan | nidana.tooling.lint (4 phases) | done | ae2277a |
-| S37 | 6 | hsdd-reconcile | nidana.tooling.lint's pending section | running | |
-| S38.. | 6 | hsdd-phase-plan then hsdd-reconcile | nidana.flutter, nidana.tooling.lint, nidana.tooling.codegen, nidana.integration, in that order | planned | |
+| S37 | 6 | hsdd-reconcile | nidana.tooling.lint's pending section | done | 745673a |
+| S38 | 6 | hsdd-adr | ADR-002 update: third-party lower bounds from the full planned resolution; Context Q11c (exit 4) | running | |
+| S39.. | 6 | hsdd-phase-plan then hsdd-reconcile | nidana.tooling.codegen, nidana.integration (each then its reconcile) | nidana.flutter, nidana.tooling.lint, nidana.tooling.codegen, nidana.integration, in that order | planned | |
 
 ## Change log
 
@@ -335,3 +336,9 @@ tree. Done when `node docs/auto-run/tools/gate.mjs --final` passes.
 - 2026-10-18 (UTC), after S36: the stage-7 pass also takes ADR-002's Q11c (exit 3 recorded, exit 4
   observed for a plugin that does not compile) and the root, nidana.tooling and nidana.tooling.lint
   dev-flow sentences that say lint waits on nidana.runtime.1 (only lint.4 does).
+- 2026-10-18 (UTC), after S37: inserted S38, an ADR-002 amendment: its rule for third-party
+  constraint lower bounds produced constraints that do not resolve once a Flutter member joins
+  (test ^1.33.0 against flutter_test's 1.31.1). The stage-7 pass updates the member-creating phase scopes
+  already written (nidana.model.1, the runtime's member phase, navigation.1, flutter.1, lint.1) to the
+  amended rule, as hsdd-reconcile updates scopes that assumed otherwise. Also for stage 7:
+  flutter-binding@v1's Delivery clause about lint's invocations, nidana.tooling.md's carried-items bullet.
