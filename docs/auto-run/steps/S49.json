@@ -1,0 +1,188 @@
+{
+  "step_ref": "S49",
+  "skill": "hsdd-spec",
+  "target": "nidana.runtime (touch: D1 Consequences, Development flow, Isolation strategy, Contracts edge line; text outside the phase plan)",
+  "status": "completed",
+  "stop": null,
+  "artifacts": ["hsdd/spec/nidana.runtime.md"],
+  "decisions": [
+    {
+      "at": "2026-10-18T09:25:27Z",
+      "artifact": "hsdd/spec/nidana.runtime.md",
+      "question": "Isolation strategy says 'builds against the model's contracts only, from nidana.model's first phase on (root D10)'. nidana.runtime.1's Depends on column names nidana.model.2 and nidana.model.5. Which nidana.model phase should the line name?",
+      "options": [
+        { "label": "nidana.model.5 for the contracts, .2 and .6 for the replay sets", "consequence": "Matches root D10 (a contract edge waits on the phase the Delivery paragraph names: nidana.model.5 for topology-dsl@v1 and topology-ir@v1) and keeps the replay-tool waits, which are not contract edges, under the conventions' replay-tool bullet; the line gets longer." },
+        { "label": "nidana.model.5 only", "consequence": "Shortest and exact for the contracts, but leaves unstated why nidana.runtime.1 also waits on nidana.model.2 and nidana.runtime.5 on nidana.model.6." },
+        { "label": "nidana.model.2 and .5 as the start", "consequence": "Copies the Depends on column, but files the replay tool's set under 'the model's contracts', which root D10 and the conventions keep apart." }
+      ],
+      "chosen": "nidana.model.5 for the contracts, .2 and .6 for the replay sets",
+      "why": "The line is about building against contracts, and root D10 plus the three model contracts' Delivery paragraphs put a topology-dsl@v1 or topology-ir@v1 consumer's edge at nidana.model.5. nidana.model.2 and .6 are replay-tool set waits (conventions, Phase design), which the same line already touches when it describes the replays, so they are cited there. Also added that a phase calling into a model body waits on its delivering phase (root D10), which is why nidana.runtime.2 to .4 wait on nidana.model.8.",
+      "evidence": ["hsdd/spec/nidana.runtime.md Phase Plan (nidana.runtime.1, .5 Depends on)", "hsdd/spec/nidana.md D10 and Development flow item 2", "hsdd/contract/topology-dsl.md Delivery", "hsdd/contract/topology-ir.md Delivery", "hsdd/conventions.md Phase design (replay-tool bullet)"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T09:25:27Z",
+      "artifact": "hsdd/spec/nidana.runtime.md",
+      "question": "Isolation strategy says 'the phases that deliver activation also bind the behavior/ fixtures of topology-dsl@v1'. nidana.runtime.11 delivers the activation checks, but only nidana.runtime.12 onward selects topology-dsl ids. Restate or leave?",
+      "options": [
+        { "label": "restate with nidana.runtime.12", "consequence": "Agrees with the plan's gates and topology-dsl@v1 Delivery ('replay through bus_activation_test.dart from nidana.runtime.12 on')." },
+        { "label": "leave", "consequence": "Reads as if nidana.runtime.11's gate replays the live suite, which its --guarantee list does not." }
+      ],
+      "chosen": "restate with nidana.runtime.12",
+      "why": "A restatement: the step asks that a sentence pointing at a phase cite the plan's phase id, and the existing wording covers nidana.runtime.11, whose gate selects no topology-dsl id.",
+      "evidence": ["hsdd/contract/topology-dsl.md Delivery", "hsdd/spec/nidana.runtime.md Phase Plan (nidana.runtime.11 and .12 gates)"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T09:25:27Z",
+      "artifact": "hsdd/spec/nidana.runtime.md",
+      "question": "Contracts section line: 'Every edge out of this node waits on its first phase ... (root D10); the hard edges wait for the node to ship.' Is it right against the conventions' reading rule, root D10 as restated in S47 and the bus-api@v1 and bus-testing@v1 Delivery paragraphs?",
+      "options": [
+        { "label": "restate per phase", "consequence": "contract edges on nidana.runtime.1; a hard edge binds per phase, nidana.runtime.14 for a consumer phase that runs the behavior, nidana.runtime.1 for one that only compiles (nidana.flutter.1), as root D10 and both Delivery paragraphs say." },
+        { "label": "leave", "consequence": "Keeps two clauses that contradict each other ('every edge waits on its first phase' and 'hard edges wait for the node to ship') and misses the per-phase hard-edge reading root D10 now states." }
+      ],
+      "chosen": "restate per phase",
+      "why": "The old line was wrong in its first clause (hard edges do not all wait on the first phase) and coarse in its second (only consumer phases that run the behavior wait on nidana.runtime.14). The new text restates root D10 (S47) and the Delivery paragraphs; no edge or edge type changes.",
+      "evidence": ["hsdd/spec/nidana.md D10", "hsdd/contract/bus-api.md Delivery", "hsdd/contract/bus-testing.md Delivery", "hsdd/conventions.md Phase design (reading rule for 'the producer's first phase')"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T09:25:43Z",
+      "artifact": "hsdd/spec/nidana.runtime.md",
+      "question": "Development flow: correct only 'Virtual time comes next', or restate the flow in the phase plan's order with phase ids?",
+      "options": [
+        { "label": "restate the whole flow with phase ids", "consequence": "Fixes four stale statements together: the opening line (nidana.model's first phase, now nidana.model.2 and .5), the bullet order (pure band nidana.runtime.2 to .4 before virtual time nidana.runtime.5), the lanes (nidana.runtime.9 needs only .2 and nidana.model.9; test support and telemetry, nidana.runtime.13, follow activation wiring and precede module scopes, not 'beside' them) and the lifecycle reason (G34 replays at nidana.runtime.12 and start() lands at nidana.runtime.7 per D8, so only G36 explains why .14 closes the plan)." },
+        { "label": "replace the virtual-time sentence only", "consequence": "Smallest diff, but leaves the opening line, the lane bullet and the lifecycle bullet contradicting the plan." }
+      ],
+      "chosen": "restate the whole flow with phase ids",
+      "why": "Each corrected sentence restates the plan's Depends on column, its Lanes bullet, D8 or bus-api@v1's Delivery paragraph; leaving them would keep three more contradictions than the one the step named. The constraint the plan's ordering paragraph cites ('no behavior replay runs before virtual time') is kept word for word in substance.",
+      "evidence": ["hsdd/spec/nidana.runtime.md Phase Plan (summary table, Ordering policy, Lanes)", "hsdd/spec/nidana.runtime.md D8", "hsdd/contract/bus-api.md Delivery", "hsdd/spec/nidana.md Development flow item 2", "docs/auto-run/experiments/runtime-replay-schedule/output.txt (bus-testing G18 and bus-api G33 cases activate topologies)"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T09:26:10Z",
+      "artifact": "hsdd/spec/nidana.runtime.md",
+      "question": "D1 Consequences: the clause calling bus-api@v1's old Interface wording 'a wording for hsdd-reconcile's sweep' is done (S31). Drop the clause, or say so? The same paragraph's 'Root D4's clause that calls this node internal is the root's to update' is also done.",
+      "options": [
+        { "label": "state the current fact and add a dated correction", "consequence": "Consequences now say what bus-api@v1, bus-testing@v1 and root D4 hold; a 'Corrected 2026-10-18' paragraph records what the first text said and that both follow-ups are done, keeping the audit trail in the decision." },
+        { "label": "drop both clauses", "consequence": "Shorter, but loses the record that D1 once routed two follow-ups, against the step's rule that a corrected decision says what changed and when." }
+      ],
+      "chosen": "state the current fact and add a dated correction",
+      "why": "The step requires a corrected decision to say what changed and when. Root D4 restated the kinds on 2026-10-18, so its clause is handled the same way. The correction paragraph also records that the plan cut fourteen phases where point 5 estimated about twelve, the same fact root D4 records.",
+      "evidence": ["hsdd/contract/bus-api.md Interface (Code owner)", "hsdd/contract/bus-testing.md Interface (Code owner)", "hsdd/spec/nidana.md D4 (Kinds restated on 2026-10-18)", "docs/auto-run/steps/S31.json"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T09:26:10Z",
+      "artifact": "hsdd/spec/nidana.runtime.md",
+      "question": "D1 point 1 cites a conventions rule, 'phase 1 of a leaf-parent lands every declaration of the contracts it produces', which S29 replaced with each contract's first producing phase (ADR-001 item 10 now says nidana.model's first producing phases are not the node's first phase). Fix the premise here or list it?",
+      "options": [
+        { "label": "fix as a restatement", "consequence": "Point 1 reads ADR-001 item 10 as amended (a first producing phase lands every declaration its surface and reject sets use, another contract's included) and cites bus-testing@v1's Interface for nidana.runtime.1; the conclusion is unchanged." },
+        { "label": "leave and list for the orchestrator", "consequence": "Keeps a premise that contradicts ADR-001 item 10 in a decision this skill wrote." }
+      ],
+      "chosen": "fix as a restatement",
+      "why": "D1 is S22's decision, so this skill's to correct; the step allows fixing a restatement that contradicts an ADR. The rule cited no longer exists in that form, while the conclusion (one node, both contracts' declarations in nidana.runtime.1) still holds and is what bus-testing@v1's Code owner line states. Recorded in D1's correction paragraph.",
+      "evidence": ["hsdd/adr/001-executable-contract-validation.md item 10", "hsdd/conventions.md Phase design", "git show 5e6e053:hsdd/conventions.md (the old line)", "hsdd/contract/bus-testing.md Interface"],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T09:26:26Z",
+      "artifact": "hsdd/spec/nidana.runtime.md",
+      "question": "D5, D6 and D7 (S22) describe bus-api@v1 G41, bus-testing@v1 G16 and G18 in their pre-amend wording, in the present tense, and say the phase plan 'may emit' or 'emits' the amends. S31 applied all three. Fix them or list them?",
+      "options": [
+        { "label": "fix as restatements with dated corrections", "consequence": "Each decision says the contract's first wording in the past tense, that the plan emitted the amend, and adds a 'Corrected 2026-10-18' paragraph; the decisions' rules do not change." },
+        { "label": "list only", "consequence": "Leaves three decisions contradicting the stable contracts they describe." }
+      ],
+      "chosen": "fix as restatements with dated corrections",
+      "why": "They contradict the current contracts (G41 now states D5's behavior; G16 and G18 now carry D6's and D7's rules), and D5 to D7 were written by S22, not with the phase plan, so they are this skill's. The step's 'fix it when it is a restatement' applies.",
+      "evidence": ["hsdd/contract/bus-api.md G41, G8", "hsdd/contract/bus-testing.md G16, G18", "docs/auto-run/steps/S31.json (entries 10 to 12)"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T09:27:26Z",
+      "artifact": "hsdd/spec/nidana.runtime.md",
+      "question": "The Slices table places 'its recorder' in the virtual time row and 'the startup barrier' with G34 in the lifecycle row, while the plan lands the recorder seam at nidana.runtime.7 and start() at nidana.runtime.7, with G34 replayed from nidana.runtime.12 (D8). Edit the table?",
+      "options": [
+        { "label": "leave the Slices table", "consequence": "The table stays a slice-level map; the plan's moves are explained by D8 and by the table's own rule that a phase may deliver part of a slice." },
+        { "label": "edit the rows to the plan's phases", "consequence": "Turns the slice map into a second copy of the plan and rewrites what D8, a plan-time decision for the S52 sweep, states as moves of lifecycle mechanisms." }
+      ],
+      "chosen": "leave the Slices table",
+      "why": "The table describes slices, which the plan cuts; D8 says in so many words that the plan moves two lifecycle mechanisms into earlier phases, and the table's intro allows a phase to deliver part of a slice. Neither row contradicts a contract. The signal that would have changed my mind: a contract's Delivery paragraph citing the Slices table for a phase, which none does.",
+      "evidence": ["hsdd/spec/nidana.runtime.md Slices intro and D8", "hsdd/contract/bus-testing.md Delivery"],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    }
+  ],
+  "experiments": [],
+  "self_check": [
+    { "gate": "The spec stays high-level; it is not an implementation plan.", "status": "pass", "note": "Only restatements of the plan, root D10, ADR-001 and the contracts; no new mechanism." },
+    { "gate": "Every node has explicit consumed/produced contract ids.", "status": "pass", "note": "Consumes and Produces lines unchanged." },
+    { "gate": "Every node is testable in isolation (fixtures, mocks, schemas).", "status": "pass", "note": "Isolation strategy restated with the phases it waits on; substance unchanged." },
+    { "gate": "Every dependency edge is typed; parallel lanes are called out.", "status": "pass", "note": "Contracts table unchanged; the edge line now states the per-phase hard reading; Development flow names both lanes with phase ids." },
+    { "gate": "Each child is marked internal or leaf-parent.", "status": "n/a", "note": "Leaf-parent, no children (D1)." },
+    { "gate": "Mermaid DAG matches the dependency table.", "status": "pass", "note": "Slices DAG unchanged except the surface label, now 'nidana.runtime.1'." },
+    { "gate": "`conventions.md` exists/updated at the root.", "status": "pass", "note": "Exists; not touched by this step." },
+    { "gate": "The decomposition axis at each level matches ownership stated by the human, not assumed, and no node is owned by two teams.", "status": "pass", "note": "single-team; unchanged." },
+    { "gate": "Every child node has its own `hsdd/spec/{child-id}.md` file.", "status": "n/a", "note": "No children." },
+    { "gate": "Every input source appears in the Sources of at least one node, or is marked in the root `## Sources` as \"informative only, not decomposed\", with a reason.", "status": "n/a", "note": "Root-level gate; this node's Sources unchanged." },
+    { "gate": "No node's Sources lists a document that does not govern it.", "status": "pass", "note": "Sources unchanged." },
+    { "gate": "Field blocks are bullet lists and empty lists say \"none\".", "status": "pass", "note": "Header block still a bullet list." },
+    { "gate": "Every open question is defined once, in its owning spec, with a table row and a `### {ID}` detail subsection; child views carry `[inherits …]`; no cited ID lacks a definition.", "status": "pass", "note": "OQ-R1 to OQ-R3 unchanged, all RESOLVED; no new OQ." },
+    { "gate": "OQ prefixes used by node specs are declared in `conventions.md`.", "status": "pass", "note": "R = nidana.runtime declared." },
+    { "gate": "Under `multi-team`, every node whose team differs from its parent's carries `- **Team:**`; no node is owned by two teams.", "status": "n/a", "note": "single-team." },
+    { "gate": "Where children exchange contracts, an integration node exists or the decision not to add one is stated in the parent (one line).", "status": "pass", "note": "D1 Consequences still states no nidana.runtime.integration." },
+    { "gate": "A graft kept every existing child id and touched only the new child's file, the parent's summaries and the parent's DAG.", "status": "n/a", "note": "No graft." },
+    { "gate": "A retired node's file is kept; its contracts' retirement went through `hsdd-reconcile`.", "status": "n/a", "note": "No retirement." },
+    { "gate": "Promotion: the human confirmed before `- **Adopted:** promoted` was written; `## Observed surface` kept; `v0` contracts unchanged unless redesigned.", "status": "n/a", "note": "Greenfield node." },
+    { "gate": "Step rule: edits only outside ## Phase Plan and ## Governance updates; every D{n} number kept; corrected decisions say what changed and when.", "status": "pass", "note": "git diff hunks are at lines 30, 56, 80, 122 to 128, 136, 148, 181 to 205, all before line 245 (## Phase Plan). D1, D5, D6, D7 keep their numbers and each carries a 'Corrected 2026-10-18.' paragraph. D8 and D9 (plan-time) untouched." },
+    { "gate": "node docs/auto-run/tools/gate.mjs --skill hsdd-spec", "status": "pass", "note": "0 errors, 0 warnings, 1 changed file; no em-dash, no banned phrase." }
+  ],
+  "notes_for_orchestrator": [
+    "Changed, hsdd/spec/nidana.runtime.md:30 (Isolation strategy). Before: 'from nidana.model's first phase on (root D10)'; 'the phases that deliver activation also bind the behavior/ fixtures of topology-dsl@v1'. After: from nidana.model.5 on, where the three consumed contracts' declarations complete their shared library, and a phase calling into a model body waits on its delivering phase (root D10; the three Delivery paragraphs); nidana.runtime.1 also waits on nidana.model.2 for the structure, surface and reject sets and nidana.runtime.5 on nidana.model.6 for the behavior set (conventions, Phase design); from nidana.runtime.12 the gates replay topology-dsl@v1's live suite through bus_activation_test.dart (topology-dsl@v1 Delivery).",
+    "Changed, nidana.runtime.md:56 (Contracts edge line). Before: every edge waits on the first phase; hard edges wait for the node to ship. After: contract edges wait on nidana.runtime.1; a hard edge binds per phase, nidana.runtime.14 for a consumer phase that runs the behavior, nidana.runtime.1 for one that only compiles (nidana.flutter.1) (root D10; the Delivery paragraphs).",
+    "Changed, nidana.runtime.md:80 (Slices DAG label). 'surface<br/>(phase 1)' became 'surface<br/>(nidana.runtime.1)'.",
+    "Changed, nidana.runtime.md:122 (Development flow opening). Before: starts once nidana.model's first phase has merged (root D10). After: starts once nidana.model.2 and nidana.model.5 have merged, with why (root D10; root Development flow item 2; conventions); later phases also wait on the nidana.model phase delivering a body they call or a set their gate runs (Phase Plan, Depends on).",
+    "Changed, nidana.runtime.md:124 to :128 (Development flow bullets, reordered to the plan's sequence). Surface is nidana.runtime.1, the type band. The pure-band bullet moved before virtual time, names nidana.runtime.2 to .4, adds the scheduler agenda to its examples and says the band runs no behavior replay. 'Virtual time comes next' became 'Virtual time is the first effect phase, nidana.runtime.5, after the pure band', reason kept. Lanes before: two lanes open after virtual time; test support once ownership lands and telemetry once activation does, beside module scopes. After: pipeline lane nidana.runtime.9 and .10 (.9 needs only .2 and its nidana.model edge, .10 waits on virtual time); bus lane after virtual time, .6, .7, .8, .11; .12 joins; .13 follows it because cases it replays activate topologies (bus-testing@v1 G18, bus-api@v1 G33). Lifecycle before: closes the plan because G34 and G36 involve every slice. After: module scopes and the lifecycle close the plan in nidana.runtime.14 because G36 orders every slice's shutdown; start() lands at nidana.runtime.7 and each effect phase adds its shutdown part (D8); .14 replays both contracts unrestricted.",
+    "Changed, nidana.runtime.md:136 (D1 point 1). Before: 'phase 1 of a leaf-parent lands every declaration of the contracts it produces (conventions, fp-progression). The declarations of both contracts therefore land in one phase of one node.' After: a contract's first producing phase lands every declaration its surface and reject sets use, another contract's included (ADR-001 item 10; conventions); both land in one node, and in one phase of it, nidana.runtime.1 (bus-testing@v1 Interface).",
+    "Changed, nidana.runtime.md:148 to :150 (D1 Consequences). The 'a wording for hsdd-reconcile's sweep' and 'Root D4's clause ... is the root's to update' clauses became the current facts (both contracts' Interfaces name nidana.runtime.1; root D4 records a leaf-parent), plus a 'Corrected 2026-10-18.' paragraph: both follow-ups done (S31 reconcile; root D4 restatement), point 1's conventions citation replaced, and the plan cut fourteen phases where point 5 estimated about twelve. Decision unchanged.",
+    "Changed, nidana.runtime.md:181 and :187 to :189 (D5). 'bus-api@v1 G41 leaves it outside its guarantee' dropped from the opening sentence; 'the phase plan may emit it' became 'emitted it'; new 'Corrected 2026-10-18.' paragraph: hsdd-reconcile applied the amend, G41 now states the behavior and G8 names its TypeError.",
+    "Changed, nidana.runtime.md:193, :195, :199 (D6). 'G16 says' became 'G16, as first written, said'; 'emits' became 'emitted'; 'Corrected 2026-10-18.' paragraph at the end of the decision.",
+    "Changed, nidana.runtime.md:203, :207 (D7). 'G18 says' became 'G18, as first written, said'; 'emits' became 'emitted'; 'Corrected 2026-10-18.' paragraph at the end, naming the TestBus.stub comment S31 also amended.",
+    "Left as is, by choice: the Slices table's virtual time row lists 'its recorder' (the TestBus constructor's recorder), while the plan lands the recorder seam (EnvelopeRecorder.attach, envelopes) at nidana.runtime.7 and nidana.runtime.5's scope names no recorder; and the lifecycle row holds 'the startup barrier' and G34, which D8 moves to nidana.runtime.7 (start()) with G34 replaying from nidana.runtime.12. Slice-level map, explained by D8 and the table's 'part of one' rule. If the S52 sweep or a reviewer wants the table phase-exact, it is a two-cell edit. Worth a look by whoever executes nidana.runtime.5: if the TestBus constructor attaches its recorder and attach throws UnimplementedError until nidana.runtime.7, the .5 gate's bus-api G3 replay constructs TestBus instances; the plan's experiment derived G3 at .5, so presumably the harness or the constructor handles it, but the plan text does not say so.",
+    "Left as is: Overview line 36 'The root marked this node internal (root D4) before its contracts existed' is past tense and accurate history; root D4 now records the restatement itself.",
+    "Left as is: D1 point 2 ('declarations the producing node lands in its phase 1') and the Two children alternative ('a second producer of bus-api@v1 whose phase 1 lands nothing of it') describe hypothetical splits, not this plan, so 'phase 1' there is not a pointer at a plan phase.",
+    "Not touched, the sweep's (S52): D8 and D9, written with the phase plan. Both agree with the corrected Development flow; D8's 'The lifecycle slice keeps ... It closes the plan together with module scopes' is what the new lifecycle bullet restates.",
+    "No new D{n}, ADR, OQ, contract change or conventions change. No tree-shape or contract-interface question arose; nothing here is a run-stop candidate."
+  ]
+}
