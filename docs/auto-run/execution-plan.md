@@ -180,7 +180,8 @@ tree. Done when `node docs/auto-run/tools/gate.mjs --final` passes.
 | S23 | 5 | hsdd-spec | nidana.tooling (mid-level): two leaf-parents, codegen and lint; no ADRs or internal contracts | done | 5b09188 |
 | S24 | 5 | hsdd-adr | ADR-001 update: item 10 for a contract two leaf-parents produce | done | cd87e32 |
 | S25 | 5 | hsdd-adr | ADR-002 update: stale plugin-severity consequence; tooling children as owners and in affects | done | 6aa8688 |
-| S26 | 5 | hsdd-spec (root refresh) | root D1 check table (explicit_topic_type_arguments), D4 (runtime leaf-parent, tooling children), OQ5, three new tooling edges (bus-testing, navigation-api, flutter-binding), embedded summaries and Sources, conventions' RA/RB example | running | |
+| S26 | 5 | hsdd-spec (root refresh) | root D1 check table (explicit_topic_type_arguments), D4 (runtime leaf-parent, tooling children), OQ5, three new tooling edges (bus-testing, navigation-api, flutter-binding), embedded summaries and Sources, conventions' RA/RB example | done | 9239917 |
+| S27 | 5 | hsdd-spec (touch) | topology-ir@v1 edges into nidana.navigation and nidana.flutter (headers, root DAG, edge table, matrix) | running | |
 
 ## Change log
 
@@ -280,7 +281,7 @@ tree. Done when `node docs/auto-run/tools/gate.mjs --final` passes.
   kept per (topic, type argument), and an off-type widened publish must not stop delivery (G13).
 - 2026-10-17 (UTC), after S21: the touch batch is done; stage 4 is complete. Note for nidana.model's
   replay tool: run `pub get` before replaying recorded invocations (a stale resolution exits 255).
-- 2026-10-17 (UTC), after S22: nidana.runtime is a leaf-parent (its D1, reversing root D4), with ten
+- 2026-10-18 (UTC), after S22: nidana.runtime is a leaf-parent (its D1, reversing root D4), with ten
   internal slices mapped to every guarantee of bus-api@v1 and bus-testing@v1. Root OQ2, OQ-R1..R3 are
   RESOLVED. The root refresh must restate root D4 and the conventions' RA/RB example; the reconcile sweep
   must reword bus-api@v1's "the child of nidana.runtime that owns the main library". nidana.runtime's
@@ -293,3 +294,10 @@ tree. Done when `node docs/auto-run/tools/gate.mjs --final` passes.
 - 2026-10-18 (UTC), after S25: a plugin diagnostic's severity is its LintCode's declared severity
   (default INFO); ADR-002's earlier "plugin rules report at INFO" generalised from a stand-in and is
   corrected; S04's evidence for that line is superseded by docs/auto-run/experiments/plugin-severity/.
+- 2026-10-18 (UTC), after S26: root refreshed. Inserted S27, a short hsdd-spec touch adding the
+  topology-ir@v1 edge to nidana.navigation and nidana.flutter. Routed to phase plans: the producers'
+  plans and reconcile confirm nidana.tooling as a consumer of bus-testing@v1, navigation-api@v1 and
+  flutter-binding@v1, and nidana.tooling.codegen and .lint as producers of topic-codegen@v1 and
+  nidana-checks@v1; nidana.tooling.lint's plan amends nidana-checks@v1 Refinement 4's "Root D1 does not
+  list it"; nidana.runtime's plan fixes its own Contracts table (bus-testing@v1 row lacks nidana.tooling).
+  Stage 6 now starts at S28.
