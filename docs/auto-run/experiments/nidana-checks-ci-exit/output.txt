@@ -1,0 +1,79 @@
+
+### setup
+app pub get exit: 0
+Dart SDK version: 3.13.5 (stable) (Tue Sep 29 01:00:52 2026 -0700) on "macos_arm64"
+
+### A0 plugin builds, app holds flagMe
+WARNING|FLAG_RULE
+plugin failure line: stdout 0, stderr 0
+exit: 2
+
+### A1 plugin builds, app clean, --fatal-infos
+plugin failure line: stdout 0, stderr 0
+exit: 0
+
+### A2 plugin source broken, app clean
+plugin failure line: stdout 0, stderr 1
+  stderr next line:   pluginFolder = {home}/.dartServer/.plugin_manager/1261f707fda64cf820cb6598f057df24
+exit: 4
+
+### A3 plugin source broken, app clean, --fatal-infos
+plugin failure line: stdout 0, stderr 1
+  stderr next line:   pluginFolder = {home}/.dartServer/.plugin_manager/1261f707fda64cf820cb6598f057df24
+exit: 4
+
+### A4 plugin source broken, app holds an INFO only
+INFO|CAMEL_CASE_TYPES
+plugin failure line: stdout 0, stderr 1
+  stderr next line:   pluginFolder = {home}/.dartServer/.plugin_manager/1261f707fda64cf820cb6598f057df24
+exit: 0
+
+### A5 plugin source broken, app holds an INFO only, --fatal-infos
+INFO|CAMEL_CASE_TYPES
+plugin failure line: stdout 0, stderr 1
+  stderr next line:   pluginFolder = {home}/.dartServer/.plugin_manager/1261f707fda64cf820cb6598f057df24
+exit: 1
+
+### A6 plugin source broken, app holds an analyzer WARNING
+WARNING|UNNECESSARY_NON_NULL_ASSERTION
+plugin failure line: stdout 0, stderr 1
+  stderr next line:   pluginFolder = {home}/.dartServer/.plugin_manager/1261f707fda64cf820cb6598f057df24
+exit: 2
+
+### A7 plugin source broken, app holds an ERROR
+ERROR|INVALID_ASSIGNMENT
+plugin failure line: stdout 0, stderr 1
+  stderr next line:   pluginFolder = {home}/.dartServer/.plugin_manager/1261f707fda64cf820cb6598f057df24
+exit: 3
+
+### A8 plugin source broken, app holds flagMe only, --fatal-infos
+plugin failure line: stdout 0, stderr 1
+  stderr next line:   pluginFolder = {home}/.dartServer/.plugin_manager/1261f707fda64cf820cb6598f057df24
+exit: 4
+
+### A9 as A3, default output format
+plugin failure line: stdout 0, stderr 1
+  stderr next line:   pluginFolder = {home}/.dartServer/.plugin_manager/1261f707fda64cf820cb6598f057df24
+exit: 4
+
+### A10 plugin does not resolve, app clean, --fatal-infos
+plugin failure line: stdout 0, stderr 1
+  stderr next line:   exitCode = 69
+exit: 4
+
+### A11 plugin does not resolve, app holds an INFO only
+INFO|CAMEL_CASE_TYPES
+plugin failure line: stdout 0, stderr 1
+  stderr next line:   exitCode = 69
+exit: 0
+
+### A12 plugin does not resolve, app holds an analyzer WARNING
+WARNING|UNNECESSARY_NON_NULL_ASSERTION
+plugin failure line: stdout 0, stderr 1
+  stderr next line:   exitCode = 69
+exit: 2
+
+### A13 plugin restored, app holds flagMe
+WARNING|FLAG_RULE
+plugin failure line: stdout 0, stderr 0
+exit: 2
