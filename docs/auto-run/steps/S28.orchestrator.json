@@ -1,0 +1,41 @@
+{
+  "step_ref": "S28",
+  "skill": "none",
+  "target": "review of nidana.model's phase plan",
+  "status": "completed",
+  "decisions": [
+    {
+      "at": "2026-10-18T02:25:10Z",
+      "artifact": "hsdd/spec/nidana.model.md",
+      "question": "S28's plan fails one item of hsdd-phase-plan's Phase Design Checklist on purpose, 'Phase 1 defines all shared types and contract-bounded interfaces': the replay tool comes first and each contract's declarations land in its own first producing phase (.3 to .5). Rework the plan once, or accept the deviation?",
+      "options": [
+        { "label": "Accept the deviation", "consequence": "The plan stands: shared types land as a band (.3 to .5) before any logic phase, and every producing gate can replay because the tool's sets land before the contracts that need them." },
+        { "label": "Rework so phase 1 holds every type", "consequence": "Phase 1 would hold about 2,900 lines, about seven PEs, against the checklist's own 'Each phase has at most 8 OpenSpec tasks' and the review window; or the tool would follow the types and the first producing gates could not replay, against ADR-001 item 9." }
+      ],
+      "chosen": "Accept the deviation",
+      "why": "Two checklist items conflict here, and the plan keeps the intent of the one it breaks: every shared type and contract-bounded surface lands before any phase that uses it, and logic follows types under fp-progression. A rework could only trade one checklist failure for another. The plan records the reasoning as its D1, and the root development flow wording is a note for reconcile.",
+      "evidence": ["hsdd/spec/nidana.model.md (D1, Phase Plan)", ".agents/skills/hsdd-phase-plan/SKILL.md (Phase Design Checklist)", "hsdd/adr/001-executable-contract-validation.md (items 9, 10)"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T02:25:10Z",
+      "artifact": "hsdd/spec/nidana.model.md",
+      "question": "nidana.model now has 14 phases, past HSDD's 'add a level, do not widen' tip. Decompose it into children before going on, or keep it a leaf-parent?",
+      "options": [
+        { "label": "Keep it a leaf-parent", "consequence": "One plan of 14 phases with three parallel pairs; consumers can start after .3 or .5." },
+        { "label": "Decompose it", "consequence": "Children would split nidana_dart_contracts (one public library holding all three contracts' declarations) or give the replay tool a node of its own; ADR-002 item 3 gives each package one owning node and ADR-001 item 10 one producing leaf-parent per api or shared-model contract, so either split needs an ADR change, and a replay-tool node would produce no contract." }
+      ],
+      "chosen": "Keep it a leaf-parent",
+      "why": "Accepted governance gives the leaf-parent a stated reason (ADR-002 item 3, ADR-001 item 10 as amended in S24), so this is not the shape stop. The cost is a long plan; the plan already marks its parallel lanes. The signal that would change this: phases that cannot be kept to one review sitting.",
+      "evidence": ["hsdd/adr/002-package-workspace-layout.md (item 3)", "hsdd/adr/001-executable-contract-validation.md (item 10)", "~/git/hsdd/docs/users-guide.md (Tips)"],
+      "blast_radius": "tree",
+      "confidence": "medium",
+      "would_have_asked": true,
+      "stop_class": "shape",
+      "would_upstream": false
+    }
+  ]
+}

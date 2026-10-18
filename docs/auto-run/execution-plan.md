@@ -182,8 +182,8 @@ tree. Done when `node docs/auto-run/tools/gate.mjs --final` passes.
 | S25 | 5 | hsdd-adr | ADR-002 update: stale plugin-severity consequence; tooling children as owners and in affects | done | 6aa8688 |
 | S26 | 5 | hsdd-spec (root refresh) | root D1 check table (explicit_topic_type_arguments), D4 (runtime leaf-parent, tooling children), OQ5, three new tooling edges (bus-testing, navigation-api, flutter-binding), embedded summaries and Sources, conventions' RA/RB example | done | 9239917 |
 | S27 | 5 | hsdd-spec (touch) | topology-ir@v1 edges into nidana.navigation and nidana.flutter (headers, root DAG, edge table, matrix) | done | b39c80d |
-| S28 | 6 | hsdd-phase-plan | nidana.model | running | |
-| S29 | 6 | hsdd-reconcile | nidana.model's pending section | planned | |
+| S28 | 6 | hsdd-phase-plan | nidana.model (14 phases) | done | 2fdd513 |
+| S29 | 6 | hsdd-reconcile | nidana.model's pending section | running | |
 | S30.. | 6 | hsdd-phase-plan then hsdd-reconcile | nidana.runtime, nidana.navigation, nidana.flutter, nidana.tooling.lint, nidana.tooling.codegen, nidana.integration, in that order | planned | |
 
 ## Change log
@@ -304,3 +304,8 @@ tree. Done when `node docs/auto-run/tools/gate.mjs --final` passes.
   nidana-checks@v1; nidana.tooling.lint's plan amends nidana-checks@v1 Refinement 4's "Root D1 does not
   list it"; nidana.runtime's plan fixes its own Contracts table (bus-testing@v1 row lacks nidana.tooling).
   Stage 6 now starts at S28.
+- 2026-10-18 (UTC), after S28: nidana.model has 14 phases (tool first, types as a band .3 to .5).
+  The gate now lets hsdd-reconcile edit ADR text for step 13's OQ citation sweeps (ADR-003's stale
+  OQ-M3 sentence). A final root touch after stage 6 will restate stale "phase 1 lands the skeleton and
+  the tool" wording in nidana.model's Isolation line and the root's embedded block, if reconcile's
+  notes have not.

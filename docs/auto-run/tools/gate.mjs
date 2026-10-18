@@ -50,7 +50,8 @@ const ALLOW = {
   "hsdd-adr": [/^hsdd\/adr\/[^/]+\.md$/, /^hsdd\/spec\/[^/]+\.md$/, /^hsdd\/contract\/[^/]+\.md$/, /^hsdd\/scripts\/gen-registry\.mjs$/],
   "hsdd-contract": [/^hsdd\/contract\//, /^hsdd\/scripts\/gen-registry\.mjs$/, /^hsdd\/adr\/INDEX\.md$/],
   "hsdd-phase-plan": node ? [new RegExp(`^hsdd/spec/${node.replace(/\./g, "\\.")}\\.md$`)] : [],
-  "hsdd-reconcile": [/^hsdd\/contract\//, /^hsdd\/spec\/[^/]+\.md$/, /^hsdd\/conventions\.md$/, /^hsdd\/adr\/INDEX\.md$/],
+  // reconcile's step 13 sweeps OQ citations across specs, contracts and ADRs
+  "hsdd-reconcile": [/^hsdd\/contract\//, /^hsdd\/spec\/[^/]+\.md$/, /^hsdd\/conventions\.md$/, /^hsdd\/adr\/[^/]+\.md$/],
 };
 const files = changed();
 if (skill) {

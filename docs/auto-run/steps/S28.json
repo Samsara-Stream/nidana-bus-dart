@@ -1,0 +1,721 @@
+{
+  "step_ref": "S28",
+  "skill": "hsdd-phase-plan",
+  "target": "nidana.model (hsdd/spec/nidana.model.md)",
+  "status": "completed",
+  "stop": null,
+  "artifacts": [
+    "hsdd/spec/nidana.model.md",
+    "docs/auto-run/experiments/model-gate-commands/"
+  ],
+  "decisions": [
+    {
+      "at": "2026-10-18T02:13:28Z",
+      "artifact": "hsdd/spec/nidana.model.md",
+      "question": "ADR-001 item 9 puts the replay tool in this node's first phase, and the conventions' fp-progression line and root Development flow item 1 put the type-level skeleton of all three contracts there too; the pair does not fit one PE. How is the first band cut?",
+      "options": [
+        {
+          "label": "one oversized phase 1",
+          "consequence": "honors the conventions' and ADR-001's 'first phase' wording literally; about 2,900 lines, seven PEs in one review, breaking the sizing rule"
+        },
+        {
+          "label": "tool phases first, then one type-level phase per contract",
+          "consequence": "sizing rule holds and every producing gate can replay; consumers wait on nidana.model.3 or nidana.model.5 instead of a phase 1; the conventions' 'Phase 1 is the type-level skeleton' holds only as a band"
+        },
+        {
+          "label": "type-level phases first, gated by analyzing fixtures by path",
+          "consequence": "consumers start one or two phases earlier, but no ADR-001 replay runs and the reject comparison is done by hand"
+        },
+        {
+          "label": "the whole tool before the first type-level phase",
+          "consequence": "simplest order, but behavior, file and cli sets sit on every consumer's critical path although no type-level gate runs them"
+        }
+      ],
+      "chosen": "tool phases first, then one type-level phase per contract",
+      "why": "The sizing rule is the one rule the skill states as non-negotiable ('If a phase cannot fit, it is too big: split it'), and the gate rule (a producing gate replays its contract with the tool) orders the split: the sets a gate runs must land before it. The step prompt anticipated this split (S03's warning). Each contract's declarations still land in exactly one phase, its first producing phase, as ADR-001 item 10 requires. The signal that would have changed my mind: a measured structure set small enough that structure, surface and reject fit with the workspace root in one PE, which would fold nidana.model.2 into nidana.model.1.",
+      "evidence": [
+        "ADR-001 items 9, 10",
+        "hsdd/conventions.md Phase design",
+        "hsdd/spec/nidana.md D10 and Development flow",
+        "docs/auto-run/experiments/file-invocations/",
+        "docs/auto-run/experiments/topology-ir-fixtures/packages/nidana_contract_check/",
+        "docs/auto-run/experiments/topic-model-multi-writer/packages/nidana_dart_contracts/"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T02:13:28Z",
+      "artifact": "hsdd/spec/nidana.model.md",
+      "question": "In which order do the three type-level phases land, given that the surface sets cross-reference (topology-dsl@v1's surface names TopologyDefinition; topology-ir@v1's names topology(), TopologyBuilder and buildDefinition())?",
+      "options": [
+        {
+          "label": "topic-model, then topology-dsl with TopologyDefinition, then topology-ir",
+          "consequence": "each contract's surface resolves at its first producing phase; one IR declaration lands a phase early"
+        },
+        {
+          "label": "topic-model, then topology-ir with the DSL declarations its surface uses, then topology-dsl",
+          "consequence": "splits the DSL's declarations across two phases by which ones the IR surface happens to name"
+        },
+        {
+          "label": "topology-dsl and topology-ir together",
+          "consequence": "about 870 lines of declarations in one phase, over one PE"
+        }
+      ],
+      "chosen": "topic-model, then topology-dsl with TopologyDefinition, then topology-ir",
+      "why": "topology-dsl@v1's surface and reject sets need only the TopologyDefinition type from topology-ir@v1 (a factory and five getters), while topology-ir@v1's surface needs the DSL's builder and topology forms; declaring one small IR type early is the smallest cross-contract spill. Fixture greps confirmed the cross-references.",
+      "evidence": [
+        "hsdd/contract/fixture/topology-dsl/surface/topologies.dart",
+        "hsdd/contract/fixture/topology-dsl/surface/plan.dart",
+        "hsdd/contract/fixture/topology-dsl/reject/topology_is_a_base_class.dart",
+        "hsdd/contract/fixture/topology-ir/surface/definitions.dart",
+        "hsdd/contract/fixture/topology-ir/surface/graphs.dart"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T02:13:28Z",
+      "artifact": "hsdd/spec/nidana.model.md",
+      "question": "How is the replay tool split across phases?",
+      "options": [
+        {
+          "label": "four phases by first use",
+          "consequence": "structure (.1); surface, reject, schema, fixture.dart and PENDING (.2); behavior (.6); file and cli (.7); each about one PE, and .6 and .7 run beside the type-level phases"
+        },
+        {
+          "label": "three phases, behavior with file and cli",
+          "consequence": "one fewer phase, but about 750 lines in the last one"
+        },
+        {
+          "label": "two phases",
+          "consequence": "each well over one PE"
+        }
+      ],
+      "chosen": "four phases by first use",
+      "why": "Each split point is the first gate that needs the set: the type-level gates need structure, surface, reject and schema; the first behavior delivery (nidana.model.8) needs behavior; only nidana.tooling's producing gates need file and cli. Sizes estimated from the prototypes plus tests.",
+      "evidence": [
+        "ADR-001 items 4 to 10",
+        "docs/auto-run/experiments/file-invocations/replay.dart",
+        "docs/auto-run/experiments/file-invocations/structure_check.dart",
+        "docs/auto-run/experiments/topology-ir-fixtures/packages/nidana_contract_check/"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T02:13:28Z",
+      "artifact": "hsdd/spec/nidana.model.md",
+      "question": "Do the tool's behavior and file/cli phases run before the type-level phases or beside them?",
+      "options": [
+        {
+          "label": "beside them, after nidana.model.2",
+          "consequence": "critical path to consumers is five phases; consumers whose gates need behavior or file/cli wait on .6 or .7 explicitly"
+        },
+        {
+          "label": "before them",
+          "consequence": "every consumer waits two more phases for sets no type-level gate runs"
+        }
+      ],
+      "chosen": "beside them, after nidana.model.2",
+      "why": "The type-level gates run structure, surface, reject and schema only; behavior is first needed at nidana.model.8. The two lanes edit disjoint files (the tool declares its whole dependency row in nidana.model.1, so no later tool phase touches the root files).",
+      "evidence": [
+        "ADR-001 item 10",
+        "hsdd/spec/nidana.md D10"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T02:13:28Z",
+      "artifact": "hsdd/spec/nidana.model.md",
+      "question": "Does the tool package declare all of ADR-002 item 3's dependencies in its first phase, or add each when first used?",
+      "options": [
+        {
+          "label": "whole row in nidana.model.1",
+          "consequence": "the lockfile changes once in the tool lane, so later tool phases do not collide with member-creating phases on pubspec.lock"
+        },
+        {
+          "label": "add per phase",
+          "consequence": "each tool phase edits pubspec.lock and collides with nidana.model.3 and other nodes' member-creating phases"
+        }
+      ],
+      "chosen": "whole row in nidana.model.1",
+      "why": "Avoids textual contention on the root lockfile between the tool lane and the type-level lane, which run side by side. No lint in the root set flags an unused dependency.",
+      "evidence": [
+        "ADR-002 items 3 and 4"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T02:13:28Z",
+      "artifact": "hsdd/spec/nidana.model.md",
+      "question": "What does a type-level phase land: are value equality and simple getters part of the skeleton?",
+      "options": [
+        {
+          "label": "declarations with final fields, constructors and asserts; computing bodies throw; Object equality until the values phases",
+          "consequence": "matches the reject codes confirmed against stand-ins; topic-model@v1 equality lands in one phase; consumers see UnimplementedError until the delivering phase"
+        },
+        {
+          "label": "value equality in the skeleton",
+          "consequence": "about 150 more lines in nidana.model.3, topic-model@v1's equality guarantees split across two phases"
+        },
+        {
+          "label": "stub getters everywhere",
+          "consequence": "the G4 and G3 reject codes would read assignment_to_final_no_setter, not the confirmed assignment_to_final"
+        }
+      ],
+      "chosen": "declarations with final fields, constructors and asserts; computing bodies throw; Object equality until the values phases",
+      "why": "S06 and S08 confirmed the reject codes against stand-ins with final fields; const constructors need fields and the ReplayTopic and source asserts are what the reject set expects. Consumers learn the delivery phase of each body from the confirm entries.",
+      "evidence": [
+        "docs/auto-run/experiments/topic-model-fixtures/",
+        "docs/auto-run/experiments/topology-ir-fixtures/",
+        "hsdd/contract/topology-ir.md Validation (G3 reject code note)",
+        "hsdd/spec/nidana.runtime.md Development flow (same stub pattern)"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T02:13:28Z",
+      "artifact": "hsdd/spec/nidana.model.md",
+      "question": "How are the pure-band phases cut and ordered?",
+      "options": [
+        {
+          "label": "values; recording beside IR values; projection with graphs and claims; analyses beside JSON; renderers last",
+          "consequence": "seven phases of about one PE each, two parallel pairs, deterministic last producing phase for each contract"
+        },
+        {
+          "label": "projection with IR values",
+          "consequence": "about 490 lines, and IR values would wait on recording, losing the parallel pair"
+        },
+        {
+          "label": "projection with recording",
+          "consequence": "about 590 lines in one phase"
+        }
+      ],
+      "chosen": "values; recording beside IR values; projection with graphs and claims; analyses beside JSON; renderers last",
+      "why": "Real data dependencies decide the edges: recording's one-sink-per-StateTopic check uses topic equality (.8); IR equality uses TopicRef equality (.8); projection needs recording and FunctionRef (.9, .10); the codec and the analyses need graphs (.11); G22's JSON case needs JsonRenderer (.13). The renderers phase also depends on the analyses so that its unrestricted replay finds every guarantee delivered.",
+      "evidence": [
+        "hsdd/contract/fixture/topology-dsl/behavior/recording_conformance.dart",
+        "hsdd/contract/fixture/topology-ir/behavior/topology_ir_conformance.dart",
+        "hsdd/contract/topology-ir.md From a plan"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T02:13:28Z",
+      "artifact": "hsdd/spec/nidana.model.md",
+      "question": "At which phase does each behavior guarantee join the --guarantee restriction, given that the tool restricts by case-name prefix?",
+      "options": [
+        {
+          "label": "by the phase that makes every case of the id pass",
+          "consequence": "topology-ir@v1 G3 and G7 wait for graphs (.11), G4 for the codec (.13), G22 for the renderers (.14); topology-dsl@v1 G9 waits for projection (.11)"
+        },
+        {
+          "label": "by the phase that delivers the guarantee's main part",
+          "consequence": "a gate would run a case whose dependency is absent and fail"
+        }
+      ],
+      "chosen": "by the phase that makes every case of the id pass",
+      "why": "A restriction admits every case whose name begins with the id; the G3 and G7 cases of topology-ir@v1 also cover graphs and claims, G4's case encodes and decodes, and G9's second recording case compares buildDefinition with a plan's definition. Checked against the case names of the three conformance libraries.",
+      "evidence": [
+        "hsdd/contract/fixture/topology-ir/behavior/topology_ir_conformance.dart",
+        "hsdd/contract/fixture/topology-dsl/behavior/recording_conformance.dart",
+        "ADR-001 item 9"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T02:13:28Z",
+      "artifact": "hsdd/spec/nidana.model.md",
+      "question": "What does each gate replay beyond the contracts its phase produces?",
+      "options": [
+        {
+          "label": "every node contract in the phase's dependency closure, at the closure's restriction, plus structure over all nine",
+          "consequence": "catches a phase that breaks a sibling contract's surface in the shared main library; parallel phases restrict to their own closure so no gate depends on merge order"
+        },
+        {
+          "label": "only the produced contracts",
+          "consequence": "a phase producing one contract could break another's surface unnoticed until that contract's next producing phase"
+        }
+      ],
+      "chosen": "every node contract in the phase's dependency closure, at the closure's restriction, plus structure over all nine",
+      "why": "The three contracts share one package and one main library. The default gate uses pub get --enforce-lockfile, which the experiment showed fails (exit 65) when the committed lockfile lacks a dependency, and fvm dart test packages/{member} from the root works with a root that depends only on lints.",
+      "evidence": [
+        "docs/auto-run/experiments/model-gate-commands/",
+        "ADR-001 item 10",
+        "ADR-002 item 1"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T02:13:28Z",
+      "artifact": "hsdd/spec/nidana.model.md",
+      "question": "How are topic-model@v1 G25 and G26, not executable and left to this node's gates, checked by a concrete fvm gate?",
+      "options": [
+        {
+          "label": "a purity test in nidana_dart_contracts' test/",
+          "consequence": "runs under fvm dart test at every gate from nidana.model.3; a text scan misses an aliased import, which review and the run-time checks of topology-dsl@v1 G10 and topology-ir@v1 G22 cover"
+        },
+        {
+          "label": "a shell search in the gate",
+          "consequence": "not an fvm command"
+        },
+        {
+          "label": "a lint rule",
+          "consequence": "none in v1 (root D1)"
+        }
+      ],
+      "chosen": "a purity test in nidana_dart_contracts' test/",
+      "why": "The run's rules require every gate to be an fvm command from the workspace root; ADR-003 Consequences already suggests a source search for clock and timer calls; S06 listed the tokens.",
+      "evidence": [
+        "hsdd/contract/topic-model.md Validation (G25, G26)",
+        "ADR-003 item 8 and Consequences",
+        "ADR-002 item 3"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T02:13:28Z",
+      "artifact": "hsdd/spec/nidana.model.md",
+      "question": "How is nidana_dart_contracts laid out below its three public libraries?",
+      "options": [
+        {
+          "label": "one directory per area, the DSL as one library with parts",
+          "consequence": "parallel phases (.9 and .10, .12 and .13) edit disjoint files; CHANGELOG.md is written once and not per phase"
+        },
+        {
+          "label": "one file per contract",
+          "consequence": "the parallel pairs would collide on the IR and graph files"
+        }
+      ],
+      "chosen": "one directory per area, the DSL as one library with parts",
+      "why": "Dart requires the subclasses of a sealed class in its library, so the DSL's stage classes share one library; other areas split freely. Collides with entries follow from the layout.",
+      "evidence": [
+        "ADR-002 item 3",
+        "hsdd/contract/topology-dsl.md The plan"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T02:13:28Z",
+      "artifact": "hsdd/spec/nidana.model.md",
+      "question": "Which review tier does each phase get?",
+      "options": [
+        {
+          "label": "tool phases and analyses full-review; declarations gate-only; other pure phases spot-check",
+          "consequence": "the tool is the trust anchor of every gate, and the analyses are the single implementation of the activation and CI checks; the codec and lineage are fixture-constrained"
+        },
+        {
+          "label": "lineage and codec full-review too",
+          "consequence": "more review time on phases the conformance suites already constrain tightly"
+        }
+      ],
+      "chosen": "tool phases and analyses full-review; declarations gate-only; other pure phases spot-check",
+      "why": "A tool defect that passes a failing fixture would silently disable every gate in the tree; an analysis false negative lets a cycle or second writer through both hosts (root D4). The lineage functions and the decoder have exhaustive fixture coverage (Spec §2.4 examples, 38 invalid documents) plus property tests. Signal that would raise the codec to full-review: the decoder being fed untrusted input outside CI.",
+      "evidence": [
+        "hsdd-phase-plan Review Tiers",
+        "hsdd/contract/topology-ir.md Refinement 4",
+        "hsdd/spec/nidana.md D4"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T02:18:22Z",
+      "artifact": "hsdd/spec/nidana.model.md",
+      "question": "Which exit codes does the replay tool use?",
+      "options": [
+        {
+          "label": "0 pass, 1 fail or PENDING, 2 environment error, 64 usage error",
+          "consequence": "a gate distinguishes a broken environment and a mistyped command from a failing fixture"
+        },
+        {
+          "label": "0 pass, 1 anything else",
+          "consequence": "simplest; a stale resolution or a missing flutter reads as a fixture failure"
+        }
+      ],
+      "chosen": "0 pass, 1 fail or PENDING, 2 environment error, 64 usage error",
+      "why": "ADR-001 item 9 asks only for non-zero on any failure. S21 found that a stale workspace resolution surfaces as a case's exit 255; reporting it separately keeps a gate failure attributable. 64 follows the sysexits usage convention. No evidence beyond that; any distinct codes would serve.",
+      "evidence": [
+        "ADR-001 item 9",
+        "docs/auto-run/experiments/topic-codegen-invocations/output.txt"
+      ],
+      "blast_radius": "contract",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T02:18:22Z",
+      "artifact": "hsdd/spec/nidana.model.md",
+      "question": "Does PENDING cover only bindings (ADR-001 item 9's text) or every fixture that names an absent package?",
+      "options": [
+        {
+          "label": "every fixture: surface, reject, behavior, file replays and recorded invocations",
+          "consequence": "a replay before the producer exists reports PENDING throughout, as ADR-001's Consequences describe"
+        },
+        {
+          "label": "bindings only",
+          "consequence": "surface and reject fixtures of an absent package fail with uri_does_not_exist, which reads as a defect"
+        }
+      ],
+      "chosen": "every fixture: surface, reject, behavior, file replays and recorded invocations",
+      "why": "ADR-001 Consequences: 'Replaying a contract before its producer's first phase has merged fails with PENDING'. The fixtures already import the implementing package directly so the tool can see it (S06's convention). A candidate ADR-001 clarification, recorded as a note.",
+      "evidence": [
+        "ADR-001 item 9 and Consequences",
+        "hsdd/contract/fixture/topic-model/behavior/nidana_dart_contracts_test.dart"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T02:18:22Z",
+      "artifact": "hsdd/spec/nidana.model.md",
+      "question": "How do --set and --guarantee behave across several slugs and sets a slug lacks?",
+      "options": [
+        {
+          "label": "structure always runs; --set never adds a set; under --guarantee a slug with no id runs no behavior, file or cli case; a bare id needs exactly one slug",
+          "consequence": "a gate never runs more than it names and never silently runs a slug unrestricted"
+        },
+        {
+          "label": "a slug with no id in the restriction runs unrestricted",
+          "consequence": "a restricted gate naming several slugs could run cases whose producer has not delivered them"
+        },
+        {
+          "label": "a bare id applies to every slug named",
+          "consequence": "one id would name different guarantees in one command"
+        }
+      ],
+      "chosen": "structure always runs; --set never adds a set; under --guarantee a slug with no id runs no behavior, file or cli case; a bare id needs exactly one slug",
+      "why": "ADR-001 item 9: structure always runs first; a bare G{n} means 'the slug being replayed' (singular); a case runs only when every id it covers is in the restriction. This plan's gates name one slug per restricted command.",
+      "evidence": [
+        "ADR-001 item 9"
+      ],
+      "blast_radius": "contract",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T02:18:22Z",
+      "artifact": "hsdd/spec/nidana.model.md",
+      "question": "How does the tool avoid a stale workspace resolution showing as a recorded invocation's exit 255?",
+      "options": [
+        {
+          "label": "run dart pub get --enforce-lockfile once before the file or cli set; a failure is an environment error",
+          "consequence": "never changes the committed lockfile; fixes a stale package configuration"
+        },
+        {
+          "label": "run plain pub get",
+          "consequence": "could rewrite pubspec.lock during a gate"
+        },
+        {
+          "label": "detect and report only",
+          "consequence": "every gate run after a pubspec edit would need a manual pub get"
+        }
+      ],
+      "chosen": "run dart pub get --enforce-lockfile once before the file or cli set; a failure is an environment error",
+      "why": "S21's finding: dart run re-resolves from a files/ directory when a member's pubspec is newer than the resolution and fails with exit 255. --enforce-lockfile refuses to change the lockfile (experiment G7).",
+      "evidence": [
+        "docs/auto-run/experiments/topic-codegen-invocations/output.txt",
+        "docs/auto-run/experiments/model-gate-commands/"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T02:18:22Z",
+      "artifact": "hsdd/spec/nidana.model.md",
+      "question": "How does the file set find the generator command in a contract's Validation prose?",
+      "options": [
+        {
+          "label": "the backticked span of the '- file:' bullet that holds {output}, a leading fvm dart or dart run as the tool's own dart",
+          "consequence": "works for topic-codegen@v1 as written; a contract with two such spans would need a clearer form"
+        },
+        {
+          "label": "a dedicated 'command:' bullet",
+          "consequence": "needs a contract change before any replay"
+        }
+      ],
+      "chosen": "the backticked span of the '- file:' bullet that holds {output}, a leading fvm dart or dart run as the tool's own dart",
+      "why": "ADR-001 item 6 says Validation names the generator command with {input} and {output}; topic-codegen@v1 is the only file contract and its bullet has one such span. Signal that would change it: a second file contract whose bullet holds two commands.",
+      "evidence": [
+        "ADR-001 item 6",
+        "hsdd/contract/topic-codegen.md Validation"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T02:18:22Z",
+      "artifact": "hsdd/spec/nidana.model.md",
+      "question": "Do stages, sinks, builders and plans compare by identity or by value, and is that stated to consumers?",
+      "options": [
+        {
+          "label": "identity, stated as an amend",
+          "consequence": "a live interpreter may key maps by stage and two reads of one topic stay two stages"
+        },
+        {
+          "label": "value equality",
+          "consequence": "stages holding closures would compare oddly and two equal reads could merge into one subscription"
+        },
+        {
+          "label": "leave it unstated",
+          "consequence": "the runtime's interpreter would rely on an unspecified property"
+        }
+      ],
+      "chosen": "identity, stated as an amend",
+      "why": "Live interpretation item 2 interprets each stage once per activation; the runtime stand-in keys stages by an identity HashMap; the DSL stand-in overrides == on no stage. Non-breaking.",
+      "evidence": [
+        "hsdd/contract/topology-dsl.md Live interpretation",
+        "docs/auto-run/experiments/bus-api-widened/packages/nidana_dart_runtime/lib/src/interpreter.dart",
+        "docs/auto-run/experiments/topology-dsl-fixtures/"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T02:18:22Z",
+      "artifact": "hsdd/spec/nidana.model.md",
+      "question": "Do the finding and collision constructors keep the list order given or normalize it to the orders the Interface comments name?",
+      "options": [
+        {
+          "label": "normalize",
+          "consequence": "the documented orders become invariants of every value; a hand-built finding equals the analysis's regardless of argument order"
+        },
+        {
+          "label": "keep the order given",
+          "consequence": "matches the stand-in; a hand-built expected finding must be sorted by its author"
+        }
+      ],
+      "chosen": "normalize",
+      "why": "The Interface's comments ('sorted', 'ascending', 'canonical order') are ambiguous between constructor invariant and analysis output; normalizing makes illegal orders unrepresentable, the owner's functional-first preference. The conformance suite passes either way (it builds sorted findings), and no other contract's fixtures construct a finding. Close call: the signal that would change it is a consumer needing a finding to carry a caller's order.",
+      "evidence": [
+        "hsdd/contract/topology-ir.md Analyses",
+        "hsdd/contract/fixture/topology-ir/behavior/topology_ir_conformance.dart",
+        "docs/auto-run/experiments/topology-ir-fixtures/"
+      ],
+      "blast_radius": "contract",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T02:18:22Z",
+      "artifact": "hsdd/spec/nidana.model.md",
+      "question": "Which order should the shared root workspace list follow, as a proposed convention?",
+      "options": [
+        {
+          "label": "path order, one member per line",
+          "consequence": "each member-creating phase inserts one line without knowing the others' order"
+        },
+        {
+          "label": "ADR-002 item 3's table order",
+          "consequence": "the first-created member (nidana_contract_check) sits seventh, so early phases insert above lines that later phases also touch"
+        },
+        {
+          "label": "append order",
+          "consequence": "depends on merge order"
+        }
+      ],
+      "chosen": "path order, one member per line",
+      "why": "No evidence beyond merge mechanics; proposed as a note for reconcile, which applies it only if it changes a convention.",
+      "evidence": [
+        "ADR-002 item 1"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "low",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T02:18:22Z",
+      "artifact": "hsdd/spec/nidana.model.md",
+      "question": "How are the three open questions this node owns recorded?",
+      "options": [
+        {
+          "label": "RESOLVED rows pointing at the contract guarantees, detail subsections extended",
+          "consequence": "one definition home kept; the landing artifact is the contract, as the conventions' resolving rule allows"
+        },
+        {
+          "label": "a D{n} per question restating the contract",
+          "consequence": "two homes for one decision"
+        }
+      ],
+      "chosen": "RESOLVED rows pointing at the contract guarantees, detail subsections extended",
+      "why": "The step prompt names the landing guarantees (topology-ir@v1 G9; topology-dsl@v1 Refinement 3 and G18 with topology-ir@v1 G4; topic-model@v1 G5); the conventions' resolving rule lands a decision in its artifact (ADR, contract or D{n}).",
+      "evidence": [
+        "hsdd/conventions.md Open questions",
+        "hsdd/contract/topology-ir.md G9",
+        "hsdd/contract/topology-dsl.md Refinement 3, G18",
+        "hsdd/contract/topic-model.md G5"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    }
+  ],
+  "experiments": [
+    {
+      "path": "docs/auto-run/experiments/model-gate-commands/",
+      "question": "Do this plan's gate command forms work from a workspace root whose only dependency is lints: fvm dart test with a member directory, fvm dart run of a member executable, and pub get --enforce-lockfile against a lockfile that lacks a new dependency?",
+      "finding": "fvm dart test packages/{member} and packages/{member}/test both run from the root (cwd is the root, G1, G2); fvm dart run {member} runs from the root (G4); a missing member directory fails (G5); pub get --enforce-lockfile passes with a current lockfile (G6) and exits 65 when a member adds json_schema the lockfile lacks (G7); root analyze --fatal-infos is clean (G8)."
+    }
+  ],
+  "self_check": [
+    {
+      "gate": "Phase 1 defines all shared types and contract-bounded interfaces.",
+      "status": "fail",
+      "note": "Deliberate and recorded (D1). Phase 1 is the workspace root and the replay tool's structure set; the types band is nidana.model.3 to nidana.model.5, one contract per phase, behind nidana.model.2. The tool plus the three skeletons is about 2,900 lines (seven PEs), and the skill's own gate rule ('when the project has no such command yet, the phase's Scope includes creating it') forces the tool before the first producing phase. Every shared type still lands before any phase that uses it, and no consumer starts before the band (consumer edges read nidana.model.3 or nidana.model.5). The step prompt anticipated the split."
+    },
+    {
+      "gate": "Phases 2..N-1 are maximally independent (parallelizable where possible).",
+      "status": "pass",
+      "note": "Three parallel opportunities where data dependencies allow: the tool lane (.6, .7) beside the types band, .9 beside .10, .12 beside .13. The remaining edges are real data dependencies (topic equality, recorded plans, graphs)."
+    },
+    {
+      "gate": "Each phase has <= 8 OpenSpec tasks (split if more).",
+      "status": "pass",
+      "note": "Between 5 and 8 plan tasks per phase."
+    },
+    {
+      "gate": "Adjacent same-tier phases were checked against the sizing floor; every merge candidate kept separate names its reason (tier boundary, parallel lane, isolated risk).",
+      "status": "pass",
+      "note": "Recorded under the summary table: no pair is a merge candidate (each merged pair exceeds one PE); .6 with .7 also fails condition iii."
+    },
+    {
+      "gate": "Contract ids are defined before the phase that implements them.",
+      "status": "pass",
+      "note": "All three contracts exist; each contract's declarations land at its first producing phase before any behavior phase."
+    },
+    {
+      "gate": "Phase N is testable against contract fixtures even if Phase N-1 is not implemented.",
+      "status": "pass",
+      "note": "Every pure phase's gate replays only the guarantees its dependency closure delivers (--guarantee), and parallel phases restrict to their own closure."
+    },
+    {
+      "gate": "No phase couples to another phase's internals.",
+      "status": "pass",
+      "note": "Phases build on the public declarations of the three libraries; tool phases are used through the tool's CLI."
+    },
+    {
+      "gate": "Each phase has a concrete gate, a verification description, and a review tier.",
+      "status": "pass",
+      "note": "Every gate is written out in full as fvm commands from the workspace root."
+    },
+    {
+      "gate": "The phase dependency graph is included as a Mermaid flowchart and matches the Dependencies fields.",
+      "status": "pass",
+      "note": "Sixteen edges, one per direct dependency; no dashed edge because the node consumes no contract."
+    },
+    {
+      "gate": "Summary table opens the section and matches the phase sections.",
+      "status": "pass",
+      "note": "Default gate line, then the table, then commentary."
+    },
+    {
+      "gate": "Field blocks are bullet lists; empty lists say \"none\".",
+      "status": "pass",
+      "note": ""
+    },
+    {
+      "gate": "Every contingent phase names the OQ id it waits on; no contingency without a minted OQ.",
+      "status": "n/a",
+      "note": "No phase is contingent; the node's three OQs are resolved by committed contracts."
+    },
+    {
+      "gate": "The plan names the ordering policy it followed, matching the conventions line (or interfaces-first when absent, fp-progression when only the pre-v0.10 FP ordering: bullet is present).",
+      "status": "pass",
+      "note": "First line after the table: fp-progression."
+    },
+    {
+      "gate": "Every producing phase's Gate includes the contract replay for each contract it produces.",
+      "status": "pass",
+      "note": "Type-level phases replay structure, surface, reject (and schema for topology-ir@v1) in full; pure phases add behavior restricted cumulatively; each contract's last producing phase (.8, .11, .14) replays it unrestricted."
+    },
+    {
+      "gate": "In append mode: no existing id changed, no shipped phase edited, numbering continued from the highest existing id.",
+      "status": "n/a",
+      "note": "First plan for the node."
+    },
+    {
+      "gate": "Orchestrator gate: node docs/auto-run/tools/gate.mjs --skill hsdd-phase-plan --node nidana.model",
+      "status": "pass",
+      "note": "0 errors, 0 warnings."
+    }
+  ],
+  "notes_for_orchestrator": [
+    "14 phases. nidana.model.1 Workspace root and replay tool core (full-review, ~450, deps none). nidana.model.2 Replay tool: surface, reject and schema sets (full-review, ~420, deps .1). nidana.model.3 topic-model@v1 declarations (gate-only, ~430, deps .2). nidana.model.4 topology-dsl@v1 declarations (gate-only, ~470, deps .3). nidana.model.5 topology-ir@v1 declarations (gate-only, ~400, deps .4). nidana.model.6 Replay tool: behavior set (full-review, ~300, deps .2). nidana.model.7 Replay tool: file and cli sets (full-review, ~450, deps .6). nidana.model.8 Topic model values and lineage (spot-check, ~420, deps .5, .6). nidana.model.9 Recording builder (spot-check, ~400, deps .8). nidana.model.10 IR values and function references (spot-check, ~400, deps .8). nidana.model.11 Projection, graphs and claims (spot-check, ~400, deps .9, .10). nidana.model.12 Analyses (full-review, ~380, deps .11). nidana.model.13 JSON form (spot-check, ~420, deps .11). nidana.model.14 Mermaid and Graphviz renderers (spot-check, ~260, deps .12, .13).",
+    "Governance, confirm (3): topic-model@v1 produced_by [nidana.model.3, nidana.model.8]; topology-dsl@v1 produced_by [nidana.model.4, nidana.model.9, nidana.model.11]; topology-ir@v1 produced_by [nidana.model.5, nidana.model.10, nidana.model.11, nidana.model.12, nidana.model.13, nidana.model.14]. Each carries a delivery-schedule sub-bullet for consumer plans. No consumers confirm: the node consumes no contract.",
+    "Governance, amend (2, both non-breaking): topology-dsl@v1 stages, sinks, builders and plans compare by identity (proposed new guarantee after G29); topology-ir@v1 finding and collision constructors normalize their lists to the Interface's documented orders.",
+    "Governance, note (4): the workspace root files and the shared workspace list and lockfile (proposed convention: workspace list in path order); the replay tool's sets by phase and the non-contract edges they create (.6 for consumers' behavior replays, .7 for nidana.tooling's file and cli replays; fixture.dart at .2, not 'the first phase' as root D10 says); the conventions' and root dev flow's 'phase 1 is the type-level skeleton' holding as a band (.3 for topic-model@v1 alone, .5 for the DSL and IR); the tool's CLI semantics (exit codes, PENDING scope, --set, --guarantee), a candidate ADR-001 item 9 clarification.",
+    "Governance, request: none. No question needs answering at reconcile; the amends need only the non-breaking check.",
+    "Checklist deviation to weigh: 'Phase 1 defines all shared types' is reported as fail by design (D1); see self_check. If the orchestrator wants the conventions text aligned, the third note proposes wording for reconcile.",
+    "For later plans (consumer edges, root D10): start after nidana.model.3 if consuming topic-model@v1 alone, after nidana.model.5 otherwise. Bodies throw UnimplementedError until: topic-model@v1 values and lineage nidana.model.8; recording (planOf, stages, visitors) nidana.model.9; IR values, TransformEdge rules, FunctionRef, isStateBearing, definition equality nidana.model.10; buildDefinition()/TopologyPlan.definition, ShellClaim, TopologyGraph nidana.model.11; analyses nidana.model.12; JSON codec and JsonRenderer nidana.model.13; Mermaid and Graphviz nidana.model.14. Replay tool: fixture.dart and surface/reject/schema at nidana.model.2, behavior at nidana.model.6, file and cli at nidana.model.7. nidana.runtime's activation checks need .12 (and .9, .10, .11); nidana.tooling.codegen's --graph replays need .13 and .14 and its workspace lane .11 and .12; nidana.navigation and nidana.flutter suites need .11 and .12.",
+    "The plan names its own D1 to D6 (new ## Decisions section in the node spec). OQ-M1, OQ-M2, OQ-M3 rows are RESOLVED (2026-10-18) with detail subsections extended. One citation still treats one of them as open, for the reconcile sweep: ADR-003 Consequences, 'whether topic-model@v1 carries one stays OQ-M3'. The contracts' 'decides OQ-M1/M2/M3' citations are already correct.",
+    "Experiment added: docs/auto-run/experiments/model-gate-commands/ (gate command forms; pub get --enforce-lockfile exits 65 on a stale lockfile). Its pubspec.lock and .dart_tool are git-ignored.",
+    "Unchanged by this step but worth a later spec touch: the node's Isolation strategy line and the root embedded block still say the first phase lands the skeleton and the tool; both now read as the band of D1."
+  ]
+}
