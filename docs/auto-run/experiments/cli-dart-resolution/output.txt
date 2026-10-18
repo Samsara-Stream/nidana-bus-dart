@@ -1,0 +1,13 @@
+### fvm dart run probe.dart (PATH as the shell has it)
+Platform.resolvedExecutable: /Users/mohamad.purbo/fvm/versions/3.47.7/bin/cache/dart-sdk/bin/dart
+PATH (first three entries): /Users/mohamad.purbo/fvm/versions/3.47.7/bin:/Users/mohamad.purbo/.bun/bin:/Users/mohamad.purbo/.sdkman/candidates/java/current/bin
+which dart: /Users/mohamad.purbo/fvm/versions/3.47.7/bin/dart (exit 0)
+dart --version by name: Dart SDK version: 3.13.5 (stable) (Tue Sep 29 01:00:52 2026 -0700) on "macos_arm64"
+running dart --version: Dart SDK version: 3.13.5 (stable) (Tue Sep 29 01:00:52 2026 -0700) on "macos_arm64"
+
+### fvm dart run probe.dart with PATH stripped of every dart
+Platform.resolvedExecutable: /Users/mohamad.purbo/fvm/versions/3.47.7/bin/cache/dart-sdk/bin/dart
+PATH (first three entries): /Users/mohamad.purbo/fvm/versions/3.47.7/bin:/usr/bin:/bin
+which dart: /Users/mohamad.purbo/fvm/versions/3.47.7/bin/dart (exit 0)
+dart --version by name: Dart SDK version: 3.13.5 (stable) (Tue Sep 29 01:00:52 2026 -0700) on "macos_arm64"
+running dart --version: Dart SDK version: 3.13.5 (stable) (Tue Sep 29 01:00:52 2026 -0700) on "macos_arm64"

@@ -146,10 +146,10 @@ before them):
 After S42 nothing is provisional, draft or pending, and `gate.mjs --final` passes. What remains is text
 the stage-6 steps found stale or inexact (the change log entries after S28 list it). Each item goes
 through the skill that owns its file: ADR-001 through hsdd-adr (S43); two contracts through
-hsdd-contract (S44, S45), as compatible amendments within v1 now that every contract is `stable`; four
-node specs' non-plan text through hsdd-spec touches (S46 to S49); and every phase scope, gate and
-plan-written decision that assumed the pre-amendment ADR text through one hsdd-reconcile sweep (S50),
-which updates phase scopes that assumed otherwise. Done when S50's `gate.mjs --final` passes. Left as
+hsdd-contract (S44, S45), as compatible amendments within v1 now that every contract is `stable`; five
+node specs' non-plan text through hsdd-spec touches (S46 to S50); and every phase scope, gate and
+plan-written decision that assumed the pre-amendment ADR text through one hsdd-reconcile sweep (S51),
+which updates phase scopes that assumed otherwise. Done when S51's `gate.mjs --final` passes. Left as
 is, with a decision each: the nine contracts' replay-tool provenance bullet; `pub_semver` in ADR-002's
 table (item 4's outside-the-table rule covers it through nidana.tooling.codegen D3); build_runner's
 dropped flag in ADR-002 (nidana.integration D7 records it for the one member that runs build_runner).
@@ -212,8 +212,9 @@ dropped flag in ADR-002 (nidana.integration D7 records it for the one member tha
 | S47 | 7 | hsdd-spec (touch) | nidana.model: Owns, Inherited and Isolation lines | planned | |
 | S48 | 7 | hsdd-spec (touch) | nidana.runtime: D1 Consequences and the dev-flow line | planned | |
 | S49 | 7 | hsdd-spec (touch) | nidana.tooling: drained "Carried into" bullets, the lint wait sentence | planned | |
-| S50 | 7 | hsdd-reconcile (sweep) | phase scopes, gates and plan-written decisions that contradict amended ADR-001, ADR-002 and the contracts; then `gate.mjs --final` | planned | |
-| S51 | 8 | none (orchestrator) | REPORT.md | planned | |
+| S50 | 7 | hsdd-spec (touch) | nidana.tooling.lint: the Development flow's start condition (only nidana.tooling.lint.4 waits on the producers, D5) | planned | |
+| S51 | 7 | hsdd-reconcile (sweep) | phase scopes, gates and plan-written decisions that contradict amended ADR-001, ADR-002 and the contracts; then `gate.mjs --final` | planned | |
+| S52 | 8 | none (orchestrator) | REPORT.md | planned | |
 
 ## Change log
 
