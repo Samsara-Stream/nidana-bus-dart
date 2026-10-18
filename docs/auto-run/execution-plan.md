@@ -208,8 +208,8 @@ dropped flag in ADR-002 (nidana.integration D7 records it for the one member tha
 | S43 | 7 | hsdd-adr | ADR-001 update: item 9 landing phases, CLI semantics, empty selection and suite-keyed binding restriction; "first producing phase" wording | done | 9a05120 |
 | S44 | 7 | hsdd-contract | topology-ir@v1 touch: private function references (`_name@{key}`, JIT and AOT keys differ) | done | b7428f2 |
 | S45 | 7 | hsdd-contract | nidana-checks@v1 touch: plugin-failure exit codes in app CI; In CI's "same steps" for nidana.integration | done | acc56b2 |
-| S46 | 7 | hsdd-contract | topic-codegen@v1 touch: the stale-registry check must run before build_runner, which silently rewrites the committed registry | running | |
-| S47 | 7 | hsdd-spec (touch) | root: dev flow and D10 wording, the lint wait sentence, the Contracts paragraph's draft and provisional sentence | planned | |
+| S46 | 7 | hsdd-contract | topic-codegen@v1 touch: the stale-registry check must run before build_runner, which silently rewrites the committed registry | done | d3db1a6 |
+| S47 | 7 | hsdd-spec (touch) | root: dev flow and D10 wording, the lint wait sentence, the Contracts paragraph's draft and provisional sentence | running | |
 | S48 | 7 | hsdd-spec (touch) | nidana.model: Owns, Inherited and Isolation lines | planned | |
 | S49 | 7 | hsdd-spec (touch) | nidana.runtime: D1 Consequences and the dev-flow line | planned | |
 | S50 | 7 | hsdd-spec (touch) | nidana.tooling: drained "Carried into" bullets, the lint wait sentence | planned | |

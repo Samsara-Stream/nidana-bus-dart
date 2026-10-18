@@ -1,0 +1,110 @@
+{
+  "step_ref": "S46",
+  "skill": "hsdd-contract",
+  "target": "topic-codegen@v1 (hsdd/contract/topic-codegen.md), in-version amendment",
+  "status": "completed",
+  "stop": null,
+  "artifacts": [
+    "hsdd/contract/topic-codegen.md"
+  ],
+  "decisions": [
+    {
+      "at": "2026-10-18T08:56:41Z",
+      "artifact": "hsdd/contract/topic-codegen.md",
+      "question": "How should the app-build paragraph state the stale-registry check so that it can fail on a stale committed lib/topics.g.dart, given that build_runner 2.16.1 rewrites a stale committed output from lib/topics.yaml and exits 0?",
+      "options": [
+        { "label": "before build_runner, generate without --graph", "consequence": "The check runs `generate` on lib/topics.yaml into a scratch directory and compares its topics.g.dart with the committed file before build_runner touches it. Keeps the paragraph's existing reasoning (G11: generate writes the builder's bytes), needs no graph (G14) and so no compiled app, names no VCS, and matches nidana.integration D7. Costs one extra `generate` run, pure over one file." },
+        { "label": "after build_runner, against the checked-out file", "consequence": "One command such as `git diff --exit-code lib/topics.g.dart` after build_runner. Compares the builder's output with the commit, so the paragraph's G11 sentence no longer carries the check; ties contract text to git; differs from the order nidana.integration's gates use." },
+        { "label": "state both", "consequence": "Gives an app a choice, at the cost of a longer paragraph and two methods to keep correct in a contract whose job is the tooling's files." }
+      ],
+      "chosen": "before build_runner, generate without --graph",
+      "why": "It is the smallest change that makes the existing sentence true: the comparison and its G11 justification stay, only its position and the scratch directory change. `generate` is pure over its two input files (Refinement 2) and the registry's bytes do not depend on --graph (G14), so the check needs neither build_runner nor catalog, which matters for an app whose registration only compiles once a registry exists. nidana.integration D7 chose the same order for the same reason. The sentence explaining why it must precede build_runner is scoped to a fresh checkout, which is what I7d observed and what CI builds; the before-build_runner check is sound whatever build_runner does, since the file is then as checked out. No new experiment: I7 settles the runtime fact and the rest follows from G11 and G14. The signal that would have favored the git form: the contract already prescribing VCS commands elsewhere, which it does not.",
+      "evidence": ["docs/auto-run/experiments/integration-plan-facts/ I7 (I7b, I7d)", "hsdd/spec/nidana.integration.md D7", "topic-codegen@v1 G11, G14, Refinement 2", "docs/auto-run/steps/S45.json (notes_for_orchestrator, topic-codegen line 52)"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T08:56:41Z",
+      "artifact": "hsdd/contract/topic-codegen.md",
+      "question": "Does any guarantee or recorded invocation depend on the order of the staleness check, so that the amendment needs a guarantee, fixture or recorded case?",
+      "options": [
+        { "label": "guidance only, no coverage change", "consequence": "The paragraph stays advice to an app's CI; G1 to G21, the fixtures and the twenty-two recorded invocations are untouched; ADR-001 item 3 coverage is unchanged." },
+        { "label": "add a guarantee with a recorded case", "consequence": "Would make an app's CI order a contract promise that no producer phase can deliver (the order is the app's) and would need a recorded case running build_runner, which the replay does not run (G11 not-executable line)." }
+      ],
+      "chosen": "guidance only, no coverage change",
+      "why": "G11 is about bytes (the builder and `generate` write the same bytes for the same document) and G14 about the registry's independence from --graph; neither says when an app compares. No guarantee mentions staleness or an app's CI order, and no recorded invocation runs build_runner. The structure check reports the same coverage as before the edit (topic-codegen: 21 guarantees; schema 1, file 12, cli 5; not executable 4; in part 3), matching docs/auto-run/experiments/reconcile-final-checks/output.txt line 8.",
+      "evidence": ["topic-codegen@v1 Guarantees G11, G14", "docs/auto-run/experiments/file-invocations/structure_check.dart (run: 9 contracts, 0 problems)", "docs/auto-run/experiments/reconcile-final-checks/output.txt line 8"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T08:56:41Z",
+      "artifact": "hsdd/contract/topic-codegen.md",
+      "question": "Validation's G11 not-executable line says G11 is 'exercised by nidana.integration's gate comparing its committed lib/topics.g.dart with generate's output'. Does it need the same correction?",
+      "options": [
+        { "label": "tighten it", "consequence": "Names the gates of nidana.integration.1 and .8 and both comparisons (before build_runner rewrites the file, and after), which is where G11's builder bytes are actually compared with the current builder (D7's second run)." },
+        { "label": "leave it", "consequence": "Not wrong, since the committed file was written by the builder in nidana.integration.1, but 'its committed lib/topics.g.dart' is inexact for the comparison after build_runner, the one that exercises the current builder." }
+      ],
+      "chosen": "tighten it",
+      "why": "The step asks for Validation to be checked for the same order. The line states no unsound order, but it describes the G11 exercise by the comparison that, after build_runner, no longer reads the committed file. Phase ids are final, so naming nidana.integration.1 and .8 is exact; .6 and .7 run the registry test without build_runner and exercise only the first comparison. The structure check's pattern (`checked by nidana.tooling.codegen's gates`) is preserved. When close: had the line claimed nothing about which file is compared, leaving it would have been right.",
+      "evidence": ["hsdd/spec/nidana.integration.md D7; gates of nidana.integration.1 (line 172) and .8 (line 256)", "docs/auto-run/experiments/file-invocations/structure_check.dart line 150"],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T08:57:08Z",
+      "artifact": "hsdd/contract/topic-codegen.md",
+      "question": "Could the amendment break a consumer, so that it needs v2 and a migration note rather than an in-version amendment?",
+      "options": [
+        { "label": "compatible, keep v1", "consequence": "A Versioning line records (e) and (f); status stable, phase_ids final and version v1 stay; no fixture or schema changes." },
+        { "label": "breaking, stop for v2", "consequence": "Would stop the run; justified only if a path, builder key, executable, argument, exit code, output byte, content rule or guarantee changed (the contract's Breaking list)." }
+      ],
+      "chosen": "compatible, keep v1",
+      "why": "Nothing on the contract's Breaking list changes: no document accepted or rejected differently, no class or member name, type, variant, argument or import, no path, builder key, executable, argument or exit code, no content rule of topology-graph.json, no guarantee weakened or renumbered, no fixture or recorded invocation. The three commands keep their order. Consumers checked: nidana.integration.1 (Scope line 170: registry_test compares generate with the committed registry; Gate line 172: the member's tests, then build_runner, then registry_test again, the order the amended text prescribes), nidana.integration.6 and .7 (Gates lines 232 and 244: the member's tests, registry_test among them, with no build_runner, so the comparison reads the committed file), nidana.integration.8 (Scope line 254: the test/ci generate --graph comparison runs under flutter test before build_runner; Gate line 256: build_runner, registry_test, then catalog, scan and generate into .dart_tool/nidana_integration, where the last generate compares nothing). Consumer fixtures: none (Validation 'Consumers' stand-ins: none'); every file under hsdd/contract/fixture/topic-codegen/ unchanged. External consumers (app builds and app CI): the paragraph corrects their check; their commands are unchanged. Producer phases: nidana.tooling.codegen.6 Verification (line 347) and .11 (line 407) state no staleness check.",
+      "evidence": ["hsdd/spec/nidana.integration.md lines 170 to 256 (phases .1, .6, .7, .8)", "hsdd/contract/fixture/topic-codegen/ (unchanged)", "topic-codegen@v1 Versioning (Breaking and Compatible lists)", "docs/auto-run/experiments/file-invocations/structure_check.dart (run: 9 contracts, 0 problems)"],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    }
+  ],
+  "experiments": [],
+  "self_check": [
+    { "gate": "Frontmatter has id, version, status, kind, owner, compatibility, produced_by, consumers; external_consumers when any exist.", "status": "pass", "note": "Frontmatter unchanged; all keys present, external_consumers lists the three." },
+    { "gate": "`consumers` lists phase ids that actually consume this contract.", "status": "pass", "note": "Unchanged [nidana.integration.1, .6, .7, .8]; each phase's Consumes in hsdd/spec/nidana.integration.md names topic-codegen@v1." },
+    { "gate": "The Interface section is concrete enough to mock against.", "status": "pass", "note": "Only the app-build paragraph changed; tables, formats, commands, exit codes and Registration unchanged." },
+    { "gate": "At least one guarantee/invariant is stated.", "status": "pass", "note": "G1 to G21 unchanged." },
+    { "gate": "A breaking change bumped the version and added a migration note.", "status": "n/a", "note": "Compatible amendment (decision 'compatible, keep v1'); Versioning records (e) and (f)." },
+    { "gate": "The registry was regenerated.", "status": "pass", "note": "node hsdd/scripts/gen-registry.mjs: contract 9, adr 3; INDEX.md unchanged since frontmatter is unchanged." },
+    { "gate": "`phase_ids` is present (`provisional` until `hsdd-reconcile` finalizes it).", "status": "pass", "note": "phase_ids: final, untouched." },
+    { "gate": "Every code-level artifact both sides consume (types file, fixtures, shared package) names its canonical path and its owner in the Interface or Validation section: the owning phase for code, `hsdd-contract` for validation artifacts.", "status": "pass", "note": "Package, code owner and Validation artifacts sentence (Interface line 40) unchanged." },
+    { "gate": "A contract or version created by this run has its schema and its kind's fixtures written at the canonical paths.", "status": "n/a", "note": "No contract or version created." },
+    { "gate": "Open questions are cited by ID only, never defined here; prose justifying behavior as \"pending OQ-x\" is swept when the OQ resolves (hsdd-reconcile).", "status": "pass", "note": "The amended text cites no OQ; no OQ defined." },
+    { "gate": "A `stable` contract names a schema or a fixtures directory at the canonical paths and the artifact exists, or it carries `validation: grandfathered` (never on a contract authored after the upgrade).", "status": "pass", "note": "hsdd/contract/schema/topic-codegen.schema.json and hsdd/contract/fixture/topic-codegen/ exist, unchanged." },
+    { "gate": "No version is `retired` while a consumer or an external consumer still names it.", "status": "n/a", "note": "Nothing retired." },
+    { "gate": "A `v0` contract carries `## Observed completeness`, and the block changed in any commit that added fixtures to it.", "status": "n/a", "note": "v1 contract." },
+    { "gate": "ADR-001 item 3 (every guarantee stays covered), checked with docs/auto-run/experiments/file-invocations/structure_check.dart", "status": "pass", "note": "9 contracts, 0 problem(s); topic-codegen coverage identical to reconcile-final-checks/output.txt line 8. No fixture changed, so no stand-in replay was needed." },
+    { "gate": "node docs/auto-run/tools/gate.mjs --skill hsdd-contract", "status": "pass", "note": "0 error(s), 0 warning(s), 1 changed file(s); --final also 0 errors, 0 warnings. Run before writing this report." },
+    { "gate": "Prose rules: no em-dash, no banned phrase", "status": "pass", "note": "grep finds no em-dash and no banned phrase in hsdd/contract/topic-codegen.md." }
+  ],
+  "notes_for_orchestrator": [
+    "What changed, line by line in hsdd/contract/topic-codegen.md. Line 52 (Interface, app-build paragraph): the first sentence (build_runner, then catalog, then generate --graph) is unchanged. The old second sentence 'Because `generate` writes the registry library with the builder's bytes (G11), a CI step can compare `{output}/topics.g.dart` with the committed `lib/topics.g.dart` to catch a stale registry.' is replaced by three: an app that commits lib/topics.g.dart checks it for staleness before build_runner runs, by `generate` on lib/topics.yaml into a scratch directory with no --graph (G14) and a byte comparison with the committed file; because generate writes the builder's bytes (G11), a difference is a stale registry, one that no longer matches lib/topics.yaml; the comparison must run before build_runner, because in a fresh checkout build_runner 2.16.1 rewrites a stale committed lib/topics.g.dart and exits 0 (integration-plan-facts I7), after which the working tree's registry and generate's output agree whatever was committed. Line 260 (Versioning): new bullet. Line 305 (Validation, G11 not-executable line, line 304 before the edit): 'exercised by nidana.integration's gate comparing its committed `lib/topics.g.dart` with `generate`'s output' becomes 'exercised by the gates of nidana.integration.1 and .8, which compare `generate`'s output with the member's `lib/topics.g.dart` before build_runner rewrites it and again after (nidana.integration D7)'.",
+    "Versioning line (line 260): '- Amended within v1 through hsdd-contract on 2026-10-18, a consistency pass after every phase plan was reconciled: (e) the app-build paragraph under Interface places the stale-registry comparison before build_runner, with `generate` run without `--graph` (G14), where v1 placed it after the three commands; build_runner 2.16.1 rewrites a stale committed `lib/topics.g.dart` in a fresh checkout and exits 0 (`docs/auto-run/experiments/integration-plan-facts/` I7), so the comparison as v1 placed it could not fail; (f) Validation's G11 line names the gates of nidana.integration.1 and .8 and the two comparisons they make (nidana.integration D7). Compatible: the paragraph is guidance to an app's CI, and no guarantee, path, executable, argument, exit code, output byte, content rule, fixture or recorded invocation changes; the three commands keep their order.' Letters continue the earlier in-v1 amendments (a) to (d). status stable, phase_ids final, version v1 unchanged.",
+    "Rest of the contract checked for the same order: the generate bullets (lines 150 to 161) and Delivery (line 42) state no comparison or app order; The builder (line 142) states what build_runner writes, not when an app compares; Versioning's 'Not in v1: a --check mode' stays consistent (the check writes to a scratch directory).",
+    "No phase scope or gate contradicts the amended text: nidana.integration.1 (Scope line 170, Gate line 172), .6 (Gate line 232), .7 (Gate line 244) and .8 (Scope line 254, Gate line 256) all compare the committed registry before build_runner, and .1 and .8 again after it.",
+    "Plan prose now slightly stale (a decision's Alternatives text, not a scope or gate), for S52: hsdd/spec/nidana.integration.md line 124 (D7 Alternatives) 'build_runner first, as an app's CI runs it (a stale committed registry rewritten in the working tree before any check sees it)': topic-codegen@v1 now tells an app's CI to compare before build_runner, so 'as an app's CI runs it' is true only of build_runner's position among the three commands. A reading such as 'build_runner first, then the comparison' would match.",
+    "Optional, outside this step's write set: nidana-checks@v1 In CI (hsdd/contract/nidana-checks.md line 155) opens the app's CI sequence with build_runner and does not mention topic-codegen@v1's staleness check, which runs before it. Not a contradiction (In CI fixes the checks' order, and topic-codegen@v1 owns the registry, Boundary row 1); a later nidana-checks@v1 touch could add a pointer.",
+    "Pre-existing, unchanged by this step (already listed by S45): hsdd/spec/nidana.tooling.codegen.md line 407 (nidana.tooling.codegen.11 Verification) calls 'catalog, then scan --graph, then generate --graph' nidana-checks@v1's In CI sequence.",
+    "No ADR proposed, no OQ minted, no fixture, schema or recorded invocation changed, no other contract touched, no new experiment (I7 settles the runtime fact; the rest follows from G11, G14 and Refinement 2)."
+  ]
+}
