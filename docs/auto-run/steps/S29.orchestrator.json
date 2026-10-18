@@ -1,0 +1,24 @@
+{
+  "step_ref": "S29",
+  "skill": "none",
+  "target": "follow-ups of the nidana.model reconcile",
+  "status": "completed",
+  "decisions": [
+    {
+      "at": "2026-10-18T02:47:08Z",
+      "artifact": "docs/auto-run/execution-plan.md",
+      "question": "S29 lists wording follow-ups: ADR-001 item 9 ('written in its first phase', and the replay tool's command-line semantics from nidana.model D2), 'first phase' to 'first producing phase' in ADR-001 and the root's dev flow and D10, nidana.model's own Owns, Inherited and Isolation lines, and the provenance bullet in all nine contracts. Run them now, before nidana.runtime's plan, or in one consistency pass after stage 6?",
+      "options": [
+        { "label": "One consistency pass after stage 6", "consequence": "The remaining plans read the wording under the conventions' new reading rule, which says how 'the producer's first phase' is read; every stale phrase is fixed once, together with whatever the later plans expose." },
+        { "label": "Now", "consequence": "Three or four steps before the next plan, each likely to be touched again as later plans settle their own delivery phases." }
+      ],
+      "chosen": "One consistency pass after stage 6",
+      "why": "None of the items changes what a planner must do: the conventions' reading rule and each contract's new Delivery paragraph already state the facts, and the stale phrases are wording. The earlier touch batches showed that each pass exposes the next; one pass after the last plan settles them together.",
+      "evidence": ["docs/auto-run/steps/S29.json (notes_for_orchestrator)", "hsdd/conventions.md (Phase design, Contracts)"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "would_upstream": false
+    }
+  ]
+}

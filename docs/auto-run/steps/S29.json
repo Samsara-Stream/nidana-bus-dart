@@ -1,0 +1,397 @@
+{
+  "step_ref": "S29",
+  "skill": "hsdd-reconcile",
+  "target": "nidana.model (hsdd/spec/nidana.model.md, pending governance section)",
+  "status": "completed",
+  "stop": null,
+  "artifacts": [
+    "hsdd/contract/topic-model.md",
+    "hsdd/contract/topology-dsl.md",
+    "hsdd/contract/topology-ir.md",
+    "hsdd/contract/fixture/topology-dsl/behavior/recording_conformance.dart",
+    "hsdd/contract/fixture/topology-ir/behavior/topology_ir_conformance.dart",
+    "hsdd/conventions.md",
+    "hsdd/adr/003-time-source-virtual-scheduler.md",
+    "hsdd/spec/nidana.model.md",
+    "hsdd/contract/INDEX.md (regenerated, unchanged)",
+    "hsdd/adr/INDEX.md (regenerated, unchanged)",
+    "docs/auto-run/experiments/model-reconcile-amends/"
+  ],
+  "decisions": [
+    {
+      "at": "2026-10-18T02:32:45Z",
+      "artifact": "hsdd/contract/topology-ir.md",
+      "question": "topology-ir@v1's consumers frontmatter is [nidana.runtime, nidana.tooling, nidana.integration], while root D10 (S27) added nidana.navigation and nidana.flutter as consumers. Add them now, or wait for those nodes' confirm entries?",
+      "options": [
+        {
+          "label": "wait for their confirm entries",
+          "consequence": "the frontmatter stays two consumers short until the navigation and flutter plans are reconciled; the registry's consumer count reads 3 meanwhile; no reconcile writes a consumer no plan emitted"
+        },
+        {
+          "label": "add the two node ids now",
+          "consequence": "the frontmatter matches root D10 at once, but reconcile writes a consumers entry that no pending section carries, outside step 4's rule"
+        }
+      ],
+      "chosen": "wait for their confirm entries",
+      "why": "hsdd-reconcile step 4 applies confirm entries only, and S27's notes already route the two consumers through the navigation and flutter plans' confirm entries. phase_ids stays provisional either way, so nothing depends on the count before then.",
+      "evidence": [
+        "docs/auto-run/steps/S27.json (notes_for_orchestrator)",
+        "hsdd/spec/nidana.md D10 (2026-10-18 bullet)",
+        ".agents/skills/hsdd-reconcile/SKILL.md step 4"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T02:34:09Z",
+      "artifact": "hsdd/contract/topic-model.md, hsdd/contract/topology-dsl.md, hsdd/contract/topology-ir.md",
+      "question": "The three confirm entries carry 'for consumer plans' sub-bullets (which producing phase delivers which guarantees, which phase a consumer's edge waits on). Consumer planners never read the producer's plan, and the registry projects no produced_by. Where does that schedule land, and what happens to each contract's 'Code owner: nidana.model, whose first phase lands every declaration below', which now misreads as nidana.model.1?",
+      "options": [
+        {
+          "label": "frontmatter only",
+          "consequence": "produced_by lists six phases for topology-ir@v1 with no hint which one delivers the analyses; consumer planners either wait on the last producing phase (nidana.runtime on nidana.model.14 instead of .12) or guess; the stale 'first phase' text stays"
+        },
+        {
+          "label": "a Delivery paragraph in each contract",
+          "consequence": "each contract names the phase that lands its declarations, the phase a consumer's edge waits on and the phase that delivers each guarantee group, read from the plan's entries and gates; hsdd-config injects it with the body; reconcile must rewrite it if nidana.model is re-planned"
+        },
+        {
+          "label": "the schedule in conventions.md",
+          "consequence": "planners read it first, but one node's delivery schedule would sit in a tree-wide file, and hsdd-config would not carry it into consuming phase contexts"
+        }
+      ],
+      "chosen": "a Delivery paragraph in each contract",
+      "why": "HSDD makes contracts the only inter-node knowledge (conventions, Parallel development protocol), so information addressed to consumer plans has to sit in the contract. The 'Code owner' clause now reads 'first producing phase' and points at the paragraph; topology-ir@v1's two Validation sentences that named nidana.model's first phase (expectMatchesSchema, consumers' stand-ins) now name nidana.model.2 and the Delivery paragraph. Guarantee lists come from the plan's --guarantee gates. The signal that would have changed my mind: a registry or hsdd-config feature that projects per-phase delivery from the producer's plan.",
+      "evidence": [
+        "hsdd/spec/nidana.model.md (Phase Plan gates; confirm sub-bullets as drained)",
+        "hsdd/conventions.md (Parallel development protocol)",
+        ".agents/skills/hsdd-contract/SKILL.md (Core principle: the body is injected into a consuming phase's context)",
+        "hsdd/contract/INDEX.md (no produced_by column)"
+      ],
+      "blast_radius": "contract",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T02:34:09Z",
+      "artifact": "hsdd/contract/topology-dsl.md",
+      "question": "amend topology-dsl@v1 (stages, sinks, builders and plans compare by identity) was 'proposed as a new guarantee after G29, or as a sentence under The plan'. Which, and how is it covered per ADR-001 item 3?",
+      "options": [
+        {
+          "label": "G30 plus a sentence under The plan, with one recording case",
+          "consequence": "a consumer (the live interpreter) can rely on it by id; the producer's recording replay checks it, identityHashCode included; one more case in recording_conformance.dart"
+        },
+        {
+          "label": "a sentence under The plan only",
+          "consequence": "no guarantee id, so no fixture is needed, but nothing checks it and a later value-equality override would pass every gate"
+        }
+      ],
+      "chosen": "G30 plus a sentence under The plan, with one recording case",
+      "why": "The plan names a consumer that relies on it (an interpreter keying a map by stage, Live interpretation items 2 and 3), so it is a guarantee. The case is small: two reads of one topic, one handle written twice, two planOf calls; it passes against the existing stand-in and four seeded value-equality defects (stage, sink, builder, plan) each fail it alone. Compatible: no declaration changes and every existing case still passes. Version stays v1 with a Versioning line.",
+      "evidence": [
+        "docs/auto-run/experiments/model-reconcile-amends/ (T1 to T4, T7, T9)",
+        "docs/auto-run/experiments/topology-dsl-fixtures/",
+        "hsdd/spec/nidana.model.md D3"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T02:34:09Z",
+      "artifact": "hsdd/contract/topology-ir.md",
+      "question": "amend topology-ir@v1 (finding and collision constructors sort their lists into the Interface's orders): a new guarantee, or a change to G7's equality text? And is it compatible?",
+      "options": [
+        {
+          "label": "G23 plus a sentence under Analyses, with one behavior case",
+          "consequence": "the orders become invariants of every value with an id consumers can cite; one more case in topology_ir_conformance.dart that sorting stand-ins pass and order-keeping ones fail"
+        },
+        {
+          "label": "widen G7",
+          "consequence": "no new id, but G7's existing cases would have to grow and the change would read as an edit of an existing guarantee"
+        },
+        {
+          "label": "constructors keep the order given (the plan's named alternative)",
+          "consequence": "no contract change; a hand-built finding equals an analysis's only when its author sorted it"
+        }
+      ],
+      "chosen": "G23 plus a sentence under Analyses, with one behavior case",
+      "why": "The plan settled the sorting (nidana.model.10) and judged it compatible; the experiment confirms it: the full suite passes against a sorting stand-in, the old order-keeping stand-in fails only G23, and each constructor reverted alone fails only G23. No other contract's fixtures construct a finding or a collision, and bus-api@v1 G20 and nidana-checks@v1 read analyses' results, already in these orders. A new id keeps G7 unchanged, which the contract's Versioning lists as compatible ('a new guarantee that existing fixtures still pass'). The signal that would favor keeping the order given: a consumer that needs a finding to carry a caller's order; none exists.",
+      "evidence": [
+        "docs/auto-run/experiments/model-reconcile-amends/ (T5, T6, T8, T9)",
+        "hsdd/contract/bus-api.md G20",
+        "hsdd/contract/nidana-checks.md (The analysis graph)",
+        "grep of hsdd/contract/fixture/ for finding constructors"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T02:34:09Z",
+      "artifact": "hsdd/spec/nidana.model.md",
+      "question": "nidana.model's plan restricts its gates by --guarantee lists written before G30 and G23 existed: nidana.model.9's topology-dsl list and nidana.model.10 to .13's topology-ir lists omit them, so they first run at the unrestricted replays of nidana.model.11 and nidana.model.14. Edit the plan's gates here?",
+      "options": [
+        {
+          "label": "leave the plan; report it",
+          "consequence": "G30 is first checked at nidana.model.11, G23 at nidana.model.14, one or four phases after their code lands; no gate fails"
+        },
+        {
+          "label": "edit the gates",
+          "consequence": "earlier checks, but reconcile edits a plan only to apply a collision's outcome (step 3), and the gates are hsdd-phase-plan's"
+        }
+      ],
+      "chosen": "leave the plan; report it",
+      "why": "hsdd-reconcile updates a plan only for a collision's losing side; the gate lists are hsdd-phase-plan's. Nothing breaks: the unrestricted replays run both cases. Listed for the orchestrator.",
+      "evidence": [
+        ".agents/skills/hsdd-reconcile/SKILL.md step 3",
+        "hsdd/spec/nidana.model.md (nidana.model.9 to .14 gates)"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T02:41:15Z",
+      "artifact": "hsdd/conventions.md",
+      "question": "note 1 (root pubspec.yaml workspace list and pubspec.lock shared by every member-creating phase; proposed: list in path order, one member per line): does it change a convention, and where does it land?",
+      "options": [
+        {
+          "label": "conventions, Execution protocol",
+          "consequence": "a 'Shared workspace files' bullet: path order, one line per member, cross-node changes reach the root one at a time, the lockfile re-resolved with fvm dart pub get and never hand-merged; every planner and executor reads it"
+        },
+        {
+          "label": "an ADR-002 amendment through hsdd-adr",
+          "consequence": "the list's form sits beside item 1's content rule, but a merge-discipline rule lands in a layout ADR and waits for a scheduled step"
+        },
+        {
+          "label": "drop it",
+          "consequence": "Collides with cannot name another node's phases, so the cross-node contention on these two files is recorded nowhere"
+        }
+      ],
+      "chosen": "conventions, Execution protocol",
+      "why": "It governs how phases on different lineages merge, which is the Execution protocol's subject (Textual contention serializes); ADR-002 item 1 stays the source of what the files contain. I added the lockfile rule the note implies: pub get --enforce-lockfile in every gate fails on a stale lockfile (exit 65), so a hand-merged lockfile is never acceptable. The signal for the ADR route: an ADR-002 amendment scheduled for other reasons.",
+      "evidence": [
+        "hsdd/adr/002-package-workspace-layout.md items 1 and 2",
+        "docs/auto-run/experiments/model-gate-commands/ (G7: exit 65 on a stale lockfile)",
+        "hsdd/spec/nidana.model.md (nidana.model.1, nidana.model.3 scopes)"
+      ],
+      "blast_radius": "tree",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T02:41:15Z",
+      "artifact": "hsdd/conventions.md",
+      "question": "note 2 (the replay tool's sets land in nidana.model.1, .2, .6 and .7, which adds non-contract waits for other nodes' gates): does it change a convention?",
+      "options": [
+        {
+          "label": "conventions, Phase design",
+          "consequence": "a bullet beside the replay rule lists where each set lands and makes a phase that runs a set, or imports fixture.dart, depend on that phase; it tells readers to read ADR-001's, root D10's and the contracts' 'first phase' wording through it"
+        },
+        {
+          "label": "only an ADR-001 item 9 amendment",
+          "consequence": "the canonical home, but the next consumer plan (nidana.runtime, producer-first order) could run before the hsdd-adr step and would read 'written in its first phase'"
+        },
+        {
+          "label": "drop it as derived data",
+          "consequence": "no registry projects it, so consumer planners, who never read nidana.model's plan, would miss the behavior-set wait on nidana.model.6 and the file and cli wait on nidana.model.7"
+        }
+      ],
+      "chosen": "conventions, Phase design",
+      "why": "These are dependency edges no contract carries, and hsdd-phase-plan reads conventions first. A consumer waiting on nidana.model.5 does not reach nidana.model.6 transitively, so the behavior-set edge has to be stated. ADR-001 item 9 still needs its wording aligned (listed as an hsdd-adr step); the conventions line carries the facts until then.",
+      "evidence": [
+        "hsdd/spec/nidana.model.md D1 and dependency graph",
+        "hsdd/adr/001-executable-contract-validation.md items 9 to 11",
+        ".agents/skills/hsdd-phase-plan/SKILL.md (process step 1)"
+      ],
+      "blast_radius": "tree",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T02:41:15Z",
+      "artifact": "hsdd/conventions.md",
+      "question": "note 3 (the conventions' 'Phase 1 of a leaf-parent is the type-level skeleton' holds for nidana.model only as a band; proposed text 'the type-level band, which opens the plan after any gate infrastructure an ADR places first'): apply, and how much?",
+      "options": [
+        {
+          "label": "rewrite the fp-progression paragraph",
+          "consequence": "the band opens the plan after ADR-placed gate infrastructure, each contract's declarations land in its first producing phase (ADR-001 item 10), and 'the producer's first phase' in root D10, the Development flow, an ADR or a contract reads as the phase the contract's Delivery paragraph names"
+        },
+        {
+          "label": "keep the old sentence",
+          "consequence": "the conventions contradict an accepted plan (nidana.model D1, accepted by the orchestrator at S28) and every later planner reads 'phase 1' literally"
+        }
+      ],
+      "chosen": "rewrite the fp-progression paragraph",
+      "why": "The sentence is a convention and the accepted plan departs from it with a stated reason (D1, S28 orchestrator decision 'Accept the deviation'). The proposed wording is kept and extended with the reading rule, so root D10's and ADR-001's 'first phase' need no edit before their owners next touch them. A topology-dsl@v1 consumer waiting on nidana.model.5 rather than .4 is named as the shared-library case.",
+      "evidence": [
+        "hsdd/spec/nidana.model.md D1",
+        "docs/auto-run/steps/S28.orchestrator.json",
+        "hsdd/adr/001-executable-contract-validation.md item 10"
+      ],
+      "blast_radius": "tree",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T02:41:15Z",
+      "artifact": "hsdd/conventions.md",
+      "question": "Should the Delivery paragraph this pass wrote become a convention for every later reconcile, so the steps that drain nidana.runtime's and the other plans do the same?",
+      "options": [
+        {
+          "label": "state it under Contracts",
+          "consequence": "every later reconcile writes a Delivery paragraph when it drains a producer's confirms, and rewrites it on a re-plan; contracts stay uniform"
+        },
+        {
+          "label": "leave it to each reconcile",
+          "consequence": "later passes, run by other agents, may or may not repeat it, and consumers of different producers would find the schedule in some contracts only"
+        }
+      ],
+      "chosen": "state it under Contracts",
+      "why": "A practice that only one contract family follows is worse than none: consumers would not know whether a missing paragraph means 'first phase delivers everything' or 'not written'. The conventions are where every reconcile looks first (hsdd-reconcile step 1).",
+      "evidence": [
+        ".agents/skills/hsdd-reconcile/SKILL.md step 1",
+        "hsdd/conventions.md (Contracts)"
+      ],
+      "blast_radius": "tree",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T02:41:15Z",
+      "artifact": "hsdd/conventions.md",
+      "question": "note 4 (the replay tool's command semantics: exit codes 0, 1, 2 and 64, PENDING for every fixture naming an absent package, --set never adds a set, --guarantee with no id for a slug runs none of its behavior, file or cli cases, a bare G{n} belongs to the one slug named): does it change a convention?",
+      "options": [
+        {
+          "label": "no conventions change; an hsdd-adr step",
+          "consequence": "the semantics stay in nidana.model D2 until an hsdd-adr step clarifies ADR-001 item 9; every node's gates see only pass or fail meanwhile"
+        },
+        {
+          "label": "copy the semantics into conventions",
+          "consequence": "a second home for tool behavior ADR-001 owns, which drifts when the ADR is clarified"
+        }
+      ],
+      "chosen": "no conventions change; an hsdd-adr step",
+      "why": "The note is about the tool's behavior, which ADR-001 item 9 owns, not about a convention; the step prompt also bars an ADR edit here. Other nodes' gates depend only on exit status 0 versus non-zero, which ADR-001 item 9 already states, so nothing waits on the clarification.",
+      "evidence": [
+        "hsdd/adr/001-executable-contract-validation.md item 9",
+        "hsdd/spec/nidana.model.md D2"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T02:41:07Z",
+      "artifact": "hsdd/adr/003-time-source-virtual-scheduler.md",
+      "question": "ADR-003's Consequences say 'whether topic-model@v1 carries one stays OQ-M3', but OQ-M3 is RESOLVED (topic-model@v1 G5). Sweep the line only, or also add a dated Amendments entry as the ADR's earlier in-place edits did?",
+      "options": [
+        {
+          "label": "sweep the line only",
+          "consequence": "the citation reads 'topic-model@v1 carries none (its G5, which resolved OQ-M3)'; git history records the change; the Amendments list does not"
+        },
+        {
+          "label": "line plus an Amendments entry",
+          "consequence": "the ADR's own history is complete, but the step allows no ADR edit beyond the OQ citation sweep"
+        }
+      ],
+      "chosen": "sweep the line only",
+      "why": "The step prompt limits ADR edits to step 13's citation sweep, and the change alters no decision, item or link. The next hsdd-adr touch of ADR-003 can record it in Amendments.",
+      "evidence": [
+        "hsdd/spec/nidana.model.md OQ-M3 (RESOLVED 2026-10-18)",
+        "hsdd/contract/topic-model.md G5"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    }
+  ],
+  "experiments": [
+    {
+      "path": "docs/auto-run/experiments/model-reconcile-amends/",
+      "question": "Do the new cases for topology-dsl@v1 G30 (identity equality of stages, sinks, builders and plans) and topology-ir@v1 G23 (constructors sort their lists) pass against a stand-in that implements them, fail against seeded defects, and leave every existing case passing, so both amends are compatible?",
+      "finding": "Against ../topology-ir-fixtures' stand-in with the four finding and collision constructors made to sort: the recording suite passes 24 of 24 and the topology-ir suite 42 of 42; the prototype structure set passes both slugs (30 and 23 guarantees covered) and the amended ADR-001 prototype passes all nine contracts. Value equality seeded into a read stage, a write sink, the builder or the plan fails G30 alone; each constructor reverted to keep the order given fails G23 alone; the original order-keeping stand-in fails G23 and nothing else. Both libraries and bindings analyze clean under --fatal-infos on Dart 3.13.5."
+    }
+  ],
+  "self_check": [
+    {
+      "gate": "Every pending section drained, or explicitly deferred with a reason.",
+      "status": "pass",
+      "note": "One pending section (hsdd/spec/nidana.model.md), drained and stamped '> Reconciled 2026-10-18 by hsdd-reconcile. Drained entries are in git history.' No other spec has one."
+    },
+    {
+      "gate": "No contract with both sides fully planned remains `phase_ids: provisional`; none with `phase_ids: final`, no open request and an existing validation artifact remains `status: draft`; none was flipped without its artifact.",
+      "status": "pass",
+      "note": "No contract has both sides planned: every consumer of topic-model@v1, topology-dsl@v1 and topology-ir@v1 is unplanned, so all three keep phase_ids: provisional and status: draft. No contract has phase_ids: final. Nothing flipped."
+    },
+    {
+      "gate": "Grandfather marks were added only to pre-existing fixtureless `stable` contracts named by the plan step (the upgrade step or one carrying it forward), none re-marked after a discharge, and removed wherever the artifact now exists.",
+      "status": "n/a",
+      "note": "No grandfather step named; no contract carries or gained validation: grandfathered."
+    },
+    {
+      "gate": "No contract was retired while a consumer or external consumer still names it.",
+      "status": "n/a",
+      "note": "No node retired; no status changed."
+    },
+    {
+      "gate": "Every collision was decided by the human, and the losing plan was updated to match.",
+      "status": "n/a",
+      "note": "Step 3 found no collision: one section, no contradictory confirms, no other node claims the three contracts or the root workspace files, and no other node's spec, contract or fixture assumes stage value equality or a finding that keeps a caller's order (grep of hsdd/contract/fixture/ for finding constructors and plan stages; bus-api@v1 G20, nidana-checks@v1 read analyses' results)."
+    },
+    {
+      "gate": "Contract edits follow hsdd-contract versioning (breaking change = new version + migration note).",
+      "status": "pass",
+      "note": "Both amends compatible (checked against every fixture and consumer contract text, and by experiment); v1 kept; each records an 'Amended within v1' Versioning line; the new guarantees G30 and G23 are covered by new behavior cases in the same edit (ADR-001 item 3)."
+    },
+    {
+      "gate": "`node hsdd/scripts/gen-registry.mjs` ran after the last contract edit.",
+      "status": "pass",
+      "note": "Ran at 2026-10-18T02:44Z after the last contract edit; INDEX.md files unchanged (the registry projects no produced_by)."
+    },
+    {
+      "gate": "No artifact still cites a resolved OQ as open; sweep locations reported.",
+      "status": "pass",
+      "note": "OQ-M1, OQ-M2, OQ-M3 grepped across hsdd/. One stale citation swept: hsdd/adr/003-time-source-virtual-scheduler.md Consequences ('stays OQ-M3' now 'topic-model@v1 carries none (its G5, which resolved OQ-M3)'). Already correct: topology-ir.md Boundary row, FunctionRef.of comment and G9 (OQ-M1); topology-dsl.md Boundary row, Refinement 3, Live interpretation item 1, G18, Versioning (OQ-M1, OQ-M2); topic-model.md Interface sentence and G5, fixture reject/no_dispatcher_hint.dart (OQ-M3); nidana.model.md OQ rows and details, nidana.model.3 and nidana.model.10 scopes. hsdd/judgement/decisions.jsonl mentions them as history and is not this step's."
+    },
+    {
+      "gate": "Orchestrator gate: node docs/auto-run/tools/gate.mjs --skill hsdd-reconcile",
+      "status": "pass",
+      "note": "0 errors, 0 warnings, 25 changed files (8 under hsdd/, the experiment directory)."
+    }
+  ],
+  "notes_for_orchestrator": [
+    "Entries and what was done: confirm topic-model@v1 produced_by [nidana.model.3, nidana.model.8], applied; confirm topology-dsl@v1 produced_by [nidana.model.4, nidana.model.9, nidana.model.11], applied; confirm topology-ir@v1 produced_by [nidana.model.5, nidana.model.10, nidana.model.11, nidana.model.12, nidana.model.13, nidana.model.14], applied. Their 'for consumer plans' sub-bullets became a Delivery paragraph in each contract (new convention under Contracts). amend topology-dsl@v1 identity equality, applied as G30 with a sentence under The plan and one recording case. amend topology-ir@v1 constructor sorting, applied as G23 with a sentence under Analyses and one behavior case. note 1 (workspace list and lockfile), applied as the Execution protocol bullet 'Shared workspace files'. note 2 (replay tool sets by phase), applied as a Phase design bullet. note 3 (type-level band), applied by rewriting the fp-progression paragraph. note 4 (tool CLI semantics), not a convention; no change. No request entries; no collision.",
+    "Resulting contract state: topic-model@v1, topology-dsl@v1, topology-ir@v1 all status: draft, phase_ids: provisional (consumers unplanned). consumers unchanged: topic-model and topology-dsl [nidana.runtime, nidana.navigation, nidana.flutter, nidana.tooling, nidana.integration]; topology-ir [nidana.runtime, nidana.tooling, nidana.integration], which is two short of root D10 (nidana.navigation, nidana.flutter); those come through the navigation and flutter plans' confirm entries, as S27 planned.",
+    "hsdd-adr step recommended (ADR-001, amend in place): item 9 'written in its first phase' to the four landing phases (nidana.model.1, .2, .6, .7, nidana.model D1), plus D2's CLI semantics as the clarification note 4 asks for: exit codes 0 (pass), 1 (a fixture failed or is PENDING), 2 (environment error), 64 (usage error); PENDING for every surface, reject or behavior library, file replay or recorded invocation that names an absent package, not bindings only; structure always runs and --set never adds a set a slug lacks; under --guarantee a slug with no id in the restriction runs no behavior, file or cli case; a bare G{n} belongs to the one slug named, and is a usage error with several. Also align 'first phase' in Context bullet 1, item 10 ('the first phase of the producing leaf-parent lands every declaration'), item 11 and two Consequences bullets with 'first producing phase'. Optional: record the S29 OQ-M3 citation sweep in ADR-003's Amendments at its next touch.",
+    "hsdd-spec touch recommended (not reconcile's to write): root nidana.md Development flow item 1 and D10 ('its first phase lands the type-level skeleton ... and the contract replay tool'; 'nidana.model's first phase, which writes it' of fixture.dart, now nidana.model.2); nidana.model.md Owns bullet ('written in this node's first phase'), Inherited from the root bullet and Isolation strategy line, which still say the first phase lands the skeleton and the tool. The conventions' new reading rule covers them meanwhile.",
+    "Later sweep (hsdd-contract or a reconcile, after the ADR-001 amendment): the provenance bullet 'The first replay against the real package, once nidana.model's first phase lands the replay tool' in topic-model, topology-dsl, topology-ir, bus-api, bus-testing, navigation-api, flutter-binding, topic-codegen and nidana-checks. Left as is: it cites ADR-001 Consequences, and the conventions' replay-tool bullet says how to read it.",
+    "nidana.model's plan (hsdd-phase-plan's, not edited): G30 lands at nidana.model.4 and its case runs once planOf does (nidana.model.9), but nidana.model.9's topology-dsl --guarantee list omits it, so it is first replayed at nidana.model.11 (unrestricted). G23 lands at nidana.model.10, absent from the topology-ir lists of nidana.model.10 to .13, so first replayed at nidana.model.14. Adding G30 to .9 and G23 to .10 to .13 would check them where the code lands; nothing fails as it stands.",
+    "For the next plans (nidana.runtime first under producer-first order): read each nidana.model contract's Delivery paragraph. A consumer's edge waits on nidana.model.3 for topic-model@v1 alone, nidana.model.5 for topology-dsl@v1 or topology-ir@v1. Activation checks need nidana.model.12 (analyses), definition equality nidana.model.10, buildDefinition() and graphs nidana.model.11, the JSON codec nidana.model.13, Mermaid and Graphviz nidana.model.14. Gate edges no contract carries (conventions, Phase design): surface, reject, schema and fixture.dart at nidana.model.2, behavior at nidana.model.6, file and cli at nidana.model.7. Member-creating phases follow the new 'Shared workspace files' rule. nidana.runtime.md D1 Consequences asks a later reconcile to read bus-api@v1's 'the child of nidana.runtime that owns the main library lands every declaration below in its first phase' as nidana.runtime's first phase; that belongs to nidana.runtime's reconcile.",
+    "Experiment: docs/auto-run/experiments/model-reconcile-amends/ (run.sh, output.txt; stand-in copied from topology-ir-fixtures with sorting constructors). Its pubspec.lock and .dart_tool are git-ignored."
+  ]
+}

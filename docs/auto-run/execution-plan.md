@@ -183,8 +183,9 @@ tree. Done when `node docs/auto-run/tools/gate.mjs --final` passes.
 | S26 | 5 | hsdd-spec (root refresh) | root D1 check table (explicit_topic_type_arguments), D4 (runtime leaf-parent, tooling children), OQ5, three new tooling edges (bus-testing, navigation-api, flutter-binding), embedded summaries and Sources, conventions' RA/RB example | done | 9239917 |
 | S27 | 5 | hsdd-spec (touch) | topology-ir@v1 edges into nidana.navigation and nidana.flutter (headers, root DAG, edge table, matrix) | done | b39c80d |
 | S28 | 6 | hsdd-phase-plan | nidana.model (14 phases) | done | 2fdd513 |
-| S29 | 6 | hsdd-reconcile | nidana.model's pending section | running | |
-| S30.. | 6 | hsdd-phase-plan then hsdd-reconcile | nidana.runtime, nidana.navigation, nidana.flutter, nidana.tooling.lint, nidana.tooling.codegen, nidana.integration, in that order | planned | |
+| S29 | 6 | hsdd-reconcile | nidana.model's pending section | done | add3540 |
+| S30 | 6 | hsdd-phase-plan | nidana.runtime | running | |
+| S31.. | 6 | hsdd-phase-plan then hsdd-reconcile | (nidana.runtime's reconcile), nidana.navigation, nidana.flutter, nidana.tooling.lint, nidana.tooling.codegen, nidana.integration, in that order | planned | |
 
 ## Change log
 
@@ -309,3 +310,9 @@ tree. Done when `node docs/auto-run/tools/gate.mjs --final` passes.
   OQ-M3 sentence). A final root touch after stage 6 will restate stale "phase 1 lands the skeleton and
   the tool" wording in nidana.model's Isolation line and the root's embedded block, if reconcile's
   notes have not.
+- 2026-10-18 (UTC), after S29: contracts carry Delivery paragraphs (which producer phase a consumer
+  waits on); conventions gained the shared-workspace-files rule, the replay-tool landing phases and a
+  reading rule for "the producer's first phase". A stage-7 consistency pass (before the final reconcile)
+  now collects the wording follow-ups: ADR-001 item 9 and "first producing phase"; the root's dev flow
+  and D10; nidana.model's Owns, Inherited and Isolation lines; the provenance bullet of all nine contracts;
+  nidana.model's gates whose --guarantee lists omit topology-dsl@v1 G30 and topology-ir@v1 G23.
