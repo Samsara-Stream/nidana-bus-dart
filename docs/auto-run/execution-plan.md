@@ -184,8 +184,9 @@ tree. Done when `node docs/auto-run/tools/gate.mjs --final` passes.
 | S27 | 5 | hsdd-spec (touch) | topology-ir@v1 edges into nidana.navigation and nidana.flutter (headers, root DAG, edge table, matrix) | done | b39c80d |
 | S28 | 6 | hsdd-phase-plan | nidana.model (14 phases) | done | 2fdd513 |
 | S29 | 6 | hsdd-reconcile | nidana.model's pending section | done | add3540 |
-| S30 | 6 | hsdd-phase-plan | nidana.runtime | running | |
-| S31.. | 6 | hsdd-phase-plan then hsdd-reconcile | (nidana.runtime's reconcile), nidana.navigation, nidana.flutter, nidana.tooling.lint, nidana.tooling.codegen, nidana.integration, in that order | planned | |
+| S30 | 6 | hsdd-phase-plan | nidana.runtime (14 phases) | done | a8f81c8 |
+| S31 | 6 | hsdd-reconcile | nidana.runtime's pending section | running | |
+| S32.. | 6 | hsdd-phase-plan then hsdd-reconcile | nidana.navigation, nidana.flutter, nidana.tooling.lint, nidana.tooling.codegen, nidana.integration, in that order | planned | |
 
 ## Change log
 

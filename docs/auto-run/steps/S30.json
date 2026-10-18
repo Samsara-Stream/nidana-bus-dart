@@ -1,0 +1,592 @@
+{
+  "step_ref": "S30",
+  "skill": "hsdd-phase-plan",
+  "target": "nidana.runtime (hsdd/spec/nidana.runtime.md)",
+  "status": "completed",
+  "stop": null,
+  "artifacts": [
+    "hsdd/spec/nidana.runtime.md",
+    "docs/auto-run/experiments/runtime-replay-schedule/schedule.dart",
+    "docs/auto-run/experiments/runtime-replay-schedule/output.txt"
+  ],
+  "decisions": [
+    {
+      "at": "2026-10-18T03:06:50Z",
+      "artifact": "hsdd/spec/nidana.runtime.md",
+      "question": "How are the ten slices of D2 ordered under fp-progression: every slice's pure part in one pure band before any effect phase, or each pure part just before its own slice's effects, with virtual time as phase 2 as the node's Development flow words it?",
+      "options": [
+        {
+          "label": "Strict bands",
+          "consequence": "Pure band nidana.runtime.2 to .4 as three parallel lanes right after the surface; virtual time becomes phase 5. Matches the conventions line 'pure-core phases precede every effect phase'; the pure phases run no behavior replay, so 'no behavior replay before virtual time' still holds."
+        },
+        {
+          "label": "Pure part before its own effects",
+          "consequence": "Virtual time is phase 2 as the Development flow's literal order reads; module counts, telemetry mapping and recorder queries land late, interleaved with effect phases, against the conventions' band rule."
+        }
+      ],
+      "chosen": "Strict bands",
+      "why": "The conventions' fp-progression line is the governing text and says pure-core phases precede every effect phase. The node's Development flow constraint behind 'virtual time comes next' is about behavior replays, and the pure band runs none. Signal that would change it: the owner reading 'Virtual time comes next' as a phase number rather than as the first effect.",
+      "evidence": [
+        "hsdd/conventions.md (Phase design, fp-progression)",
+        "hsdd/spec/nidana.runtime.md (Development flow)"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T03:06:50Z",
+      "artifact": "hsdd/spec/nidana.runtime.md",
+      "question": "Where do start() and shutdown() land, given that the Slices table puts the startup barrier and shutdown in the lifecycle slice, which closes the plan?",
+      "options": [
+        {
+          "label": "start with the publish path, shutdown incremental (D8)",
+          "consequence": "start() and the startup queue land with the publish path; shutdown() lands as the lifecycle transition with bus construction and each effect phase adds its slice's teardown and its rejection after shutdown; the last phase keeps the startup window, onShutdown and G36's order. Delivery guarantees replay from the ownership phase on."
+        },
+        {
+          "label": "Lifecycle whole in the last phase",
+          "consequence": "One diff for shutdown, but 66 of 95 bus-api@v1 cases and 23 of 45 bus-testing@v1 cases call start(), and bus-api@v1 G8, G18 and bus-testing@v1 G5, G9, G14, G17, G18 call shutdown(), so almost no behavior replays before the last phase."
+        }
+      ],
+      "chosen": "start with the publish path, shutdown incremental (D8)",
+      "why": "The suites cannot replay delivery without start(), and several non-lifecycle guarantees assert on shutdown; incremental teardown keeps each slice's shutdown with the code that owns the resource. Recorded as D8. Signal that would change it: a reviewer who wants all of shutdown in one diff.",
+      "evidence": [
+        "docs/auto-run/experiments/runtime-replay-schedule/",
+        "hsdd/contract/fixture/bus-api/behavior/bus_api_conformance.dart",
+        "hsdd/contract/fixture/bus-testing/behavior/bus_testing_conformance.dart"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T03:06:50Z",
+      "artifact": "hsdd/spec/nidana.runtime.md",
+      "question": "How do gates check bus-api@v1 G38, G39 and bus-testing@v1 G20 ('checked by nidana.runtime's gates'), given that every gate must be an fvm command?",
+      "options": [
+        {
+          "label": "Package test plus one provider library (D9)",
+          "consequence": "A test in packages/nidana_dart_runtime/test checks the pubspec and the sources; every timer and microtask goes through one internal provider library, so the check can forbid Timer( and the global scheduleMicrotask( elsewhere; the pipeline gets its timer through its port."
+        },
+        {
+          "label": "grep in each gate",
+          "consequence": "Not an fvm command, not run with the package's tests."
+        },
+        {
+          "label": "Review only",
+          "consequence": "zone.run at each call site cannot be told apart from a timer outside the zone by a source check."
+        }
+      ],
+      "chosen": "Package test plus one provider library (D9)",
+      "why": "ADR-003 Consequences anticipates a source search for DateTime.now(, Stopwatch( and timers outside the provider implementation; a Dart test keeps the gate an fvm command, and model-gate-commands showed fvm dart test packages/{member} runs from the workspace root. Recorded as D9.",
+      "evidence": [
+        "hsdd/adr/003-time-source-virtual-scheduler.md (Consequences)",
+        "docs/auto-run/experiments/model-gate-commands/"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T03:06:50Z",
+      "artifact": "hsdd/spec/nidana.runtime.md",
+      "question": "Is the delivery slice one phase or several?",
+      "options": [
+        {
+          "label": "Pure core, registry and cells, publish path; ownership separate",
+          "consequence": "Four phases of about 330 to 420 lines each (nidana.runtime.2, .6, .7, .8); .6 replays no guarantee of its own because its cases publish through publishers."
+        },
+        {
+          "label": "One delivery phase plus ownership",
+          "consequence": "About 850 lines, two PEs in one review sitting."
+        }
+      ],
+      "chosen": "Pure core, registry and cells, publish path; ownership separate",
+      "why": "The stand-in's registry, cells, publish path, observers and recorder seam are about 400 lines without docs or tests (docs/auto-run/experiments/bus-api-widened/packages/nidana_dart_runtime/lib/src/bus.dart); the PE ceiling forces the split.",
+      "evidence": [
+        "docs/auto-run/experiments/bus-api-widened/"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T03:06:50Z",
+      "artifact": "hsdd/spec/nidana.runtime.md",
+      "question": "Is the pipeline one phase or two?",
+      "options": [
+        {
+          "label": "Two phases",
+          "consequence": "Synchronous stages and sinks first (.9), then switchMap, retry, time stages and cancellation (.10), which need the virtual scheduler."
+        },
+        {
+          "label": "One phase",
+          "consequence": "About 750 lines with tests; one review sitting cannot hold it."
+        }
+      ],
+      "chosen": "Two phases",
+      "why": "The stand-in interpreter alone is 438 lines; the split follows ADR-003 items 3 and 4, which govern the second half only.",
+      "evidence": [
+        "docs/auto-run/experiments/bus-api-widened/packages/nidana_dart_runtime/lib/src/interpreter.dart"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T03:06:50Z",
+      "artifact": "hsdd/spec/nidana.runtime.md",
+      "question": "Is activation one phase or two?",
+      "options": [
+        {
+          "label": "Checks and handles, then wiring",
+          "consequence": "nidana.runtime.11 (planOf, idempotency, limits, analyses, handles, ownership, live graph, activation observers) runs beside the pipeline lane; nidana.runtime.12 implements the port and the connection timing and binds the live suite. Each replays guarantees of its own."
+        },
+        {
+          "label": "One activation phase",
+          "consequence": "About 660 lines and 8 or more tasks, above the PE; the connection timing reviewed together with the checks."
+        }
+      ],
+      "chosen": "Checks and handles, then wiring",
+      "why": "Merged it exceeds the PE; the read path's timing (D3) is the seam that moved most in the experiments (D1 point 4), which is a stated reason to review it in isolation. The fixtures confirm the split has replay value: G1, G10, G20, G21, G24, G32, G37 pass without wiring.",
+      "evidence": [
+        "docs/auto-run/experiments/runtime-replay-schedule/",
+        "hsdd/spec/nidana.runtime.md (D1 point 4, D3)"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T03:06:50Z",
+      "artifact": "hsdd/spec/nidana.runtime.md",
+      "question": "Where do the small slices go: telemetry (about 100 lines) and the residual lifecycle (startup window, onShutdown, G36 order)?",
+      "options": [
+        {
+          "label": "Telemetry with test support, lifecycle with module scopes",
+          "consequence": "Two phases of about 330 and 400 lines; each pair is a sizing-floor merge (same tier, no third phase needs one without the other)."
+        },
+        {
+          "label": "Separate phases",
+          "consequence": "Two phases below the floor whose process artifacts would exceed their diffs."
+        }
+      ],
+      "chosen": "Telemetry with test support, lifecycle with module scopes",
+      "why": "The sizing floor: a phase must earn its cycle; telemetry alone and the residual lifecycle alone do not. Signal that would change it: a separate owner for observability.",
+      "evidence": [
+        ".agents/skills/hsdd-phase-plan/SKILL.md (Sizing floor)"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T03:06:50Z",
+      "artifact": "hsdd/spec/nidana.runtime.md",
+      "question": "When does a guarantee join a producing gate's --guarantee list?",
+      "options": [
+        {
+          "label": "When every case of it can pass",
+          "consequence": "Lists derived case by case from the fixtures; several guarantees replay later than the phase that implements their slice (delivery guarantees from the ownership phase on)."
+        },
+        {
+          "label": "When its slice lands",
+          "consequence": "Gates would fail: most cases publish through publishers, call start(), or activate a topology."
+        }
+      ],
+      "chosen": "When every case of it can pass",
+      "why": "ADR-001 item 10 restricts behavior to the guarantees delivered so far, and a gate must pass; a case runs only when every id it covers is in the restriction (item 9). The derivation is mechanical and reproducible.",
+      "evidence": [
+        "docs/auto-run/experiments/runtime-replay-schedule/",
+        "hsdd/adr/001-executable-contract-validation.md (items 9, 10)"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T03:06:50Z",
+      "artifact": "hsdd/spec/nidana.runtime.md",
+      "question": "How are producing phases' gates written: 'node default plus' the replay, or the full command?",
+      "options": [
+        {
+          "label": "Full command per producing phase",
+          "consequence": "Each producing phase's Gate is a complete fvm chain; hsdd-config copies it verbatim into the phase context and the superpowers derivative."
+        },
+        {
+          "label": "node default plus replay",
+          "consequence": "Shorter, but hsdd-config replaces only a Gate that is exactly 'node default', so the context could carry an unresolved phrase."
+        }
+      ],
+      "chosen": "Full command per producing phase",
+      "why": "hsdd-config's switch rule resolves 'node default' only as the whole Gate value; the full command avoids an implementing session guessing the default.",
+      "evidence": [
+        ".agents/skills/hsdd-config/SKILL.md (The Generic Phase Context, The Superpowers Derivative)"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T03:06:50Z",
+      "artifact": "hsdd/spec/nidana.runtime.md",
+      "question": "How are the pipeline phases verified before activation composes them?",
+      "options": [
+        {
+          "label": "Unit tests against a port of the test's own",
+          "consequence": "As D2 and the Isolation strategy state; the live suite replays through Bus.activate from the wiring phase on."
+        },
+        {
+          "label": "Bind the live suite to a test-local mini bus",
+          "consequence": "Earlier coverage of topology-dsl@v1 G18 to G29, but the harness would re-implement delivery, dedup and reentrancy in test code, about 150 to 200 lines more per phase."
+        }
+      ],
+      "chosen": "Unit tests against a port of the test's own",
+      "why": "D2 already decided it; a test-local bus that passes the live suite is a second runtime to maintain. Signal that would change it: a pipeline defect that the unit tests missed and the live suite caught at the wiring phase.",
+      "evidence": [
+        "hsdd/spec/nidana.runtime.md (D2, Isolation strategy)"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T03:06:50Z",
+      "artifact": "hsdd/spec/nidana.runtime.md",
+      "question": "Does the pipeline reuse the delivery core's per-read dedup state, making nidana.runtime.9 depend on nidana.runtime.2?",
+      "options": [
+        {
+          "label": "Reuse the delivery core's dedup",
+          "consequence": "One implementation for observed subscriptions and topology reads (bus-api@v1 G16, topology-dsl@v1 G19); .9 waits on .2."
+        },
+        {
+          "label": "Pipeline's own dedup",
+          "consequence": ".9 depends only on the package; two implementations of one rule."
+        }
+      ],
+      "chosen": "Reuse the delivery core's dedup",
+      "why": "G16 and live G19 state the same rule; one function keeps them from drifting, and .2 is an early pure phase, so the wait is short.",
+      "evidence": [
+        "hsdd/contract/bus-api.md (G16)",
+        "hsdd/contract/topology-dsl.md (G19)"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T03:06:50Z",
+      "artifact": "hsdd/spec/nidana.runtime.md",
+      "question": "Does test support and telemetry (nidana.runtime.13) wait on activation wiring, or run beside it after ownership with a smaller replay?",
+      "options": [
+        {
+          "label": "Wait on activation wiring",
+          "consequence": "Its gate replays bus-testing@v1 G3, G12 to G19 and bus-api@v1 G33, whose cases activate topologies; serial anyway, since both edit lib/src/bus.dart."
+        },
+        {
+          "label": "Run beside activation",
+          "consequence": "Its gate could replay only bus-testing@v1 G15 and G16; the rest would join at a later gate, and the two phases would still serialize on bus.dart."
+        }
+      ],
+      "chosen": "Wait on activation wiring",
+      "why": "The collision on bus.dart (TestBus) serializes them regardless; waiting lets the phase replay what it delivers.",
+      "evidence": [
+        "docs/auto-run/experiments/runtime-replay-schedule/"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T03:06:50Z",
+      "artifact": "hsdd/spec/nidana.runtime.md",
+      "question": "Which phases are listed as producing bus-api@v1 and bus-testing@v1?",
+      "options": [
+        {
+          "label": "Phases that implement public members",
+          "consequence": "bus-api@v1 [.1, .5, .6, .7, .8, .11, .12, .13, .14], bus-testing@v1 [.1, .5, .7, .13, .14]; .6 and .7 produce members whose guarantees replay later; pure and pipeline phases produce none."
+        },
+        {
+          "label": "Phases that add a replayed guarantee",
+          "consequence": "Drops .6 and bus-testing's .7, hiding where observe, getCurrentValue and the recorder seam are implemented."
+        }
+      ],
+      "chosen": "Phases that implement public members",
+      "why": "Reconcile writes the Delivery paragraph from the confirms and the gates' lists; naming the implementing phases and saying when their guarantees replay tells consumers both facts.",
+      "evidence": [
+        "hsdd/conventions.md (Contracts, Delivery paragraph)"
+      ],
+      "blast_radius": "contract",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T03:06:50Z",
+      "artifact": "hsdd/spec/nidana.runtime.md",
+      "question": "Phase 1 is above the ~400-line PE (about 420 lines). Split it?",
+      "options": [
+        {
+          "label": "Keep one phase",
+          "consequence": "Gate-only, mostly declarations and doc comments; the replay checks it mechanically."
+        },
+        {
+          "label": "Split",
+          "consequence": "ADR-001 item 10 runs surface and reject in full from the first producing phase, so each contract's declarations must land in one phase, and the two contracts share a library (D1 point 1)."
+        }
+      ],
+      "chosen": "Keep one phase",
+      "why": "The split is not allowed by ADR-001 item 10; the overage is small and declaration-heavy.",
+      "evidence": [
+        "hsdd/adr/001-executable-contract-validation.md (item 10)",
+        "hsdd/spec/nidana.runtime.md (D1)"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T03:06:50Z",
+      "artifact": "hsdd/spec/nidana.runtime.md",
+      "question": "Review tiers for the effect phases: full-review throughout, or spot-check for the ownership phase?",
+      "options": [
+        {
+          "label": "full-review for every effect phase but test support",
+          "consequence": "Ownership (single-writer enforcement), delivery timing, activation and the scheduler are business logic and orchestration; test support and telemetry are well constrained by their suites."
+        },
+        {
+          "label": "spot-check for ownership",
+          "consequence": "Lighter review of the claims check, which enforces Spec §3.11 layer 1."
+        }
+      ],
+      "chosen": "full-review for every effect phase but test support",
+      "why": "The skill puts orchestration and business logic at full-review; single-writer enforcement is a guarantee consumers rely on for correctness.",
+      "evidence": [
+        ".agents/skills/hsdd-phase-plan/SKILL.md (Review Tiers)"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T03:08:51Z",
+      "artifact": "hsdd/spec/nidana.runtime.md",
+      "question": "amend bus-api@v1 G41's outside clause per D5: can it break a consumer?",
+      "options": [
+        {
+          "label": "Compatible",
+          "consequence": "The clause stated no behavior for an off-type value; nothing changes for a value of the topic's value type."
+        },
+        {
+          "label": "Breaking",
+          "consequence": "Reconcile takes it to the human."
+        }
+      ],
+      "chosen": "Compatible",
+      "why": "It adds behavior where the contract was silent, and no fixture of any contract publishes an off-type value; evidence in docs/auto-run/experiments/off-type-delivery/.",
+      "evidence": [
+        "docs/auto-run/experiments/off-type-delivery/",
+        "hsdd/contract/bus-api.md (G41)"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T03:08:51Z",
+      "artifact": "hsdd/spec/nidana.runtime.md",
+      "question": "amend bus-testing@v1 G16 per D6: can it break a consumer?",
+      "options": [
+        {
+          "label": "Compatible",
+          "consequence": "Identity holds wherever G16 could hold it; only a widened envelope gets an equal copy where the old wording threw."
+        },
+        {
+          "label": "Breaking",
+          "consequence": "Reconcile takes it to the human."
+        }
+      ],
+      "chosen": "Compatible",
+      "why": "Probe P2 showed the earlier wording threw a TypeError for exactly the case that changes; == comparisons hold in both cases.",
+      "evidence": [
+        "docs/auto-run/experiments/bus-api-widened/"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T03:08:51Z",
+      "artifact": "hsdd/spec/nidana.runtime.md",
+      "question": "amend bus-testing@v1 G18 per D7: can it break a consumer?",
+      "options": [
+        {
+          "label": "Compatible",
+          "consequence": "Only calls for one topic at two type arguments change, where the old wording could not hold; one publisher per topic keeps one claim."
+        },
+        {
+          "label": "Breaking",
+          "consequence": "Reconcile takes it to the human."
+        }
+      ],
+      "chosen": "Compatible",
+      "why": "T7 in bus-api-widened showed the old wording fails at run time for that case.",
+      "evidence": [
+        "docs/auto-run/experiments/bus-api-widened/"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    }
+  ],
+  "experiments": [
+    {
+      "path": "docs/auto-run/experiments/runtime-replay-schedule/",
+      "question": "For each conformance case of bus-api@v1, bus-testing@v1 and topology-dsl@v1's live suite, after which phase of this plan can it pass, and so at which phase does each guarantee join the cumulative --guarantee list? How many cases call start() and shutdown()?",
+      "finding": "bus-api@v1: G3 at .5; G4, G11 at .7; G7, G8, G12, G13, G15, G17 to G19, G29 to G31 at .8; G1, G10, G20, G21, G24, G32, G37 at .11; G6, G9, G14, G16, G22, G23, G25, G26, G34, G41 at .12; G33 at .13; G5, G27, G28, G35, G36 at .14. bus-testing@v1: G5 to G8, G10, G11 at .5; G3, G12 to G19 at .13; G4, G9 at .14. Live suite G18 to G29 at .12. 66 of 95 bus-api cases and 23 of 45 bus-testing cases call start(); shutdown() appears in bus-api G8, G18, G36 and bus-testing G5, G9, G14, G17, G18. The classification is a regex over case bodies plus a hand list of activation cases that need no pipeline wiring; it is a planning estimate that the first real gates confirm."
+    }
+  ],
+  "self_check": [
+    {
+      "gate": "Phase 1 defines all shared types and contract-bounded interfaces.",
+      "status": "pass",
+      "note": "nidana.runtime.1 lands every declaration of bus-api@v1 and bus-testing@v1 and the slice libraries' declarations. The pipeline's port is a package-internal seam the pipeline phase declares (D2) and only the wiring phase, downstream of it, implements; no parallel phase needs it earlier."
+    },
+    {
+      "gate": "Phases 2..N-1 are maximally independent (parallelizable where possible).",
+      "status": "pass",
+      "note": "Three parallel pure lanes (.2, .3, .4); the pipeline lane (.9, .10) beside the bus lane (.6, .7, .8, .11); the remaining order is forced by dependencies and by the shared composition root."
+    },
+    {
+      "gate": "Each phase has <= 8 OpenSpec tasks (split if more).",
+      "status": "pass",
+      "note": "5 to 7 plan tasks per phase."
+    },
+    {
+      "gate": "Adjacent same-tier phases were checked against the sizing floor; every merge candidate kept separate names its reason (tier boundary, parallel lane, isolated risk).",
+      "status": "pass",
+      "note": ".11/.12 meet conditions i to iii but fail iv (~660 lines) and are also kept apart for isolated review of D3's read path; .2/.3/.4 fail iii; telemetry and the residual lifecycle were merged into .13 and .14."
+    },
+    {
+      "gate": "Contract ids are defined before the phase that implements them.",
+      "status": "pass",
+      "note": "All five contracts exist; bus-api@v1 and bus-testing@v1 declarations land at .1 before any implementing phase."
+    },
+    {
+      "gate": "Phase N is testable against contract fixtures even if Phase N-1 is not implemented.",
+      "status": "pass",
+      "note": "Each producing phase replays exactly the guarantees whose cases can pass with the phases it depends on; pure and pipeline phases test against their own seams (D2)."
+    },
+    {
+      "gate": "No phase couples to another phase's internals.",
+      "status": "pass",
+      "note": "Slices meet only through the declarations of their lib/src/ libraries (D2); no part files; the pipeline does not import the delivery slice."
+    },
+    {
+      "gate": "Each phase has a concrete gate, a verification description, and a review tier.",
+      "status": "pass",
+      "note": "Producing phases carry full fvm command chains; the others use the node default."
+    },
+    {
+      "gate": "The phase dependency graph is included as a Mermaid flowchart and matches the Dependencies fields.",
+      "status": "pass",
+      "note": "Every Dependencies entry is an edge; cross-node edges dashed with the contract or replay set on the label."
+    },
+    {
+      "gate": "Summary table opens the section and matches the phase sections.",
+      "status": "pass",
+      "note": "Default gate line, then the table, then commentary."
+    },
+    {
+      "gate": "Field blocks are bullet lists; empty lists say \"none\".",
+      "status": "pass",
+      "note": ""
+    },
+    {
+      "gate": "Every contingent phase names the OQ id it waits on; no contingency without a minted OQ.",
+      "status": "n/a",
+      "note": "No phase is contingent; every OQ-R row is already RESOLVED."
+    },
+    {
+      "gate": "The plan names the ordering policy it followed, matching the conventions line (or `interfaces-first` when absent, `fp-progression` when only the pre-v0.10 `FP ordering:` bullet is present).",
+      "status": "pass",
+      "note": "First line after the table: fp-progression."
+    },
+    {
+      "gate": "Every producing phase's Gate includes the contract replay for each contract it produces.",
+      "status": "pass",
+      "note": "Producing phases replay both contracts (surface and reject in full, behavior restricted cumulatively); .14 unrestricted."
+    },
+    {
+      "gate": "In append mode: no existing id changed, no shipped phase edited, numbering continued from the highest existing id.",
+      "status": "n/a",
+      "note": "First plan for this node."
+    },
+    {
+      "gate": "Orchestrator gate: node docs/auto-run/tools/gate.mjs --skill hsdd-phase-plan --node nidana.runtime",
+      "status": "pass",
+      "note": "0 errors, 0 warnings before the report was written."
+    }
+  ],
+  "notes_for_orchestrator": [
+    "Phase count: 14. One line per phase:",
+    "nidana.runtime.1 Surface and package; gate-only; ~420 loc, <= 6 tasks; depends nidana.model.2, nidana.model.5; produces bus-api@v1, bus-testing@v1 (declarations); creates the workspace member.",
+    "nidana.runtime.2 Delivery core (pure); spot-check; ~380 loc; depends .1, nidana.model.8; produces none.",
+    "nidana.runtime.3 Scheduler agenda and recorder queries (pure); spot-check; ~380 loc; depends .1, nidana.model.8; produces none.",
+    "nidana.runtime.4 Module reference counts and telemetry mapping (pure); spot-check; ~320 loc; depends .1, nidana.model.8; produces none.",
+    "nidana.runtime.5 Virtual time and bus construction; full-review; ~400 loc; depends .1, .2, .3, nidana.model.6; replays bus-api G3, bus-testing G5 to G8, G10, G11.",
+    "nidana.runtime.6 Registry, cells and observed streams; full-review; ~420 loc; depends .2, .5; no new replay (its guarantees replay from .8).",
+    "nidana.runtime.7 Publish path, startup queue, observers and the recorder seam; full-review; ~420 loc; depends .2, .3, .6; + bus-api G4, G11.",
+    "nidana.runtime.8 Publishers, writers, claims and the live graph; full-review; ~330 loc; depends .7, nidana.model.11, nidana.model.12; + bus-api G7, G8, G12, G13, G15, G17 to G19, G29 to G31.",
+    "nidana.runtime.9 Pipeline interpreter and synchronous stages; full-review; ~420 loc; depends .2, nidana.model.9; produces none.",
+    "nidana.runtime.10 Pipeline switchMap, time stages and cancellation; full-review; ~380 loc; depends .5, .9; produces none.",
+    "nidana.runtime.11 Activation checks and handles; full-review; ~300 loc; depends .8, nidana.model.9, nidana.model.10; + bus-api G1, G10, G20, G21, G24, G32, G37.",
+    "nidana.runtime.12 Activation wiring; full-review; ~360 loc; depends .10, .11; + bus-api G6, G9, G14, G16, G22, G23, G25, G26, G34, G41 and topology-dsl@v1 G18 to G29 (live binding).",
+    "nidana.runtime.13 Test support and telemetry; spot-check; ~330 loc; depends .3, .4, .12; + bus-api G33, bus-testing G3, G12 to G19.",
+    "nidana.runtime.14 Module scopes and lifecycle; full-review; ~400 loc; depends .4, .13; both contracts replayed unrestricted (last producing phase of each).",
+    "Governance entries, confirm: bus-api@v1 produced_by [.1, .5, .6, .7, .8, .11, .12, .13, .14] with the Delivery schedule sub-bullets; bus-testing@v1 produced_by [.1, .5, .7, .13, .14] with its schedule; topic-model@v1 consumers [.1, .2, .3, .4, .6 to .14]; topology-dsl@v1 consumers [.1, .9, .10, .11, .12, .14]; topology-ir@v1 consumers [.1, .8, .11]. All use full ids nidana.runtime.N in the file.",
+    "Governance entries, note: (1) .1 is this node's only member-creating phase; root workspace list and lockfile shared with other nodes' member-creating phases; conventions' 'one phase each of nidana.runtime' is nidana.runtime.1. (2) Replay sets used: structure/surface/reject from .1 (nidana.model.1, .2), behavior from .5 (nidana.model.6); no package test imports fixture.dart. (3) Gates .5 to .11 rely on the replay tool passing a binding with an empty selection (bus_activation_test.dart selects no case until topology-dsl ids join at .12). (4) G38, G39 and bus-testing G20's 'checked by nidana.runtime's gates' is test/package_properties_test.dart (D9).",
+    "Governance entries, amend (all compatible, none can break a consumer): bus-testing@v1 G16 per D6; bus-testing@v1 G18 stub per D7 (one publisher per topic, same writer per type argument); bus-api@v1 G41's outside clause per D5 (off-type TypeError to the provider zone's handler, that subscription or read skips, others receive; call-site conversions throw to the caller; a throwing activate activates nothing); bus-api@v1 editorial: Interface 'the child of nidana.runtime that owns the main library' reads 'nidana.runtime lands every declaration below in its first phase, nidana.runtime.1'.",
+    "Governance entries, request: none. No consumed contract has a gap that changes the plan; every behavior this plan calls from nidana.model is scheduled in the consumed contracts' Delivery paragraphs.",
+    "Reconcile must check: the replay tool (nidana.model.2 and .6) treats a binding whose cases all fall outside --guarantee as a pass with nothing run (ADR-001 item 9 reading). If nidana.model's plan makes it a failure, gates .5 to .11 fail on bus_activation_test.dart, and either the tool changes or those gates need a set or binding filter the tool does not have; this is not a contract request because the tool is ADR-001's and nidana.model's.",
+    "Own-file edits besides the two appended sections: Contracts table bus-testing@v1 row gains 'nidana.tooling (contract)' (S26 finding); new node decisions D8 (start() with the publish path, incremental shutdown) and D9 (one provider library; package-properties test). No OQ row changed: OQ-R1 to OQ-R3 were already RESOLVED.",
+    "Experiment added: docs/auto-run/experiments/runtime-replay-schedule/ (schedule.dart, output.txt), the derivation of every --guarantee list in the plan.",
+    "For later plans: consumers' contract edges on bus-api@v1 and bus-testing@v1 (nidana.navigation on bus-api, nidana.tooling.lint on both) wait on nidana.runtime.1; hard edges (nidana.flutter, nidana.integration, nidana.navigation on bus-testing) wait on nidana.runtime.14. The S20 follow-up for flutter-binding@v1 G17's stub wording (same per-type-argument problem as bus-testing G18) is nidana.flutter's amend, not routed here. The first real replay at nidana.runtime.1 is the first verification of the bus-api and bus-testing reject codes; a failing code there is a fixture gap for hsdd-contract, not a code change (ADR-001 Consequences).",
+    "Development flow wording: the node's 'Virtual time comes next' now reads as 'the first effect phase' (phase 5, after the pure band); the plan's first line states why. Reconcile may want to sweep that sentence; it is not an error."
+  ]
+}
