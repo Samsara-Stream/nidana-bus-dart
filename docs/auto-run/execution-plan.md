@@ -178,8 +178,8 @@ tree. Done when `node docs/auto-run/tools/gate.mjs --final` passes.
 | S21 | 4 | hsdd-contract | topic-codegen@v1 touch: catalog's claim rule aligned with nidana-checks@v1's recognizer; recorded invocations for G2, G14, G19 under amended ADR-001 item 7 | done | ca0d8ff |
 | S22 | 5 | hsdd-spec | nidana.runtime (mid-level): became a leaf-parent; no children, ADRs or internal contracts | done | 5e6e053 |
 | S23 | 5 | hsdd-spec | nidana.tooling (mid-level): two leaf-parents, codegen and lint; no ADRs or internal contracts | done | 5b09188 |
-| S24 | 5 | hsdd-adr | ADR-001 update: item 10 for a contract two leaf-parents produce | running | |
-| S25 | 5 | hsdd-adr | ADR-002 update: stale plugin-severity consequence; tooling children as owners | planned | |
+| S24 | 5 | hsdd-adr | ADR-001 update: item 10 for a contract two leaf-parents produce | done | cd87e32 |
+| S25 | 5 | hsdd-adr | ADR-002 update: stale plugin-severity consequence; tooling children as owners and in affects | running | |
 | S26 | 5 | hsdd-spec (root refresh) | root D1 check table (explicit_topic_type_arguments), D4 (runtime leaf-parent, tooling children), OQ5, three new tooling edges (bus-testing, navigation-api, flutter-binding), embedded summaries and Sources, conventions' RA/RB example | planned | |
 
 ## Change log
