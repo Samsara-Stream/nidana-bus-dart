@@ -1,0 +1,362 @@
+{
+  "step_ref": "S39",
+  "skill": "hsdd-phase-plan",
+  "target": "nidana.tooling.codegen (hsdd/spec/nidana.tooling.codegen.md), leaf-parent",
+  "status": "completed",
+  "stop": null,
+  "artifacts": [
+    "hsdd/spec/nidana.tooling.codegen.md",
+    "docs/auto-run/experiments/codegen-plan-facts/",
+    "docs/auto-run/steps/S39.json"
+  ],
+  "decisions": [
+    {
+      "at": "2026-10-18T06:32:38Z",
+      "artifact": "hsdd/spec/nidana.tooling.codegen.md (D4)",
+      "question": "Where do catalog's runner tests get fixture packages that a real runner can load, given that seeded registrations (not compiling, throwing) cannot sit in analyzed code and the Flutter tester needs a resolved package?",
+      "options": [
+        { "label": "temporary packages resolved alone offline", "consequence": "each fixture written by the test into a temp dir and resolved with pub get --offline, nidana_dart_contracts overridden by path (ADR-002 Q18), flutter_test for a Flutter package; works for both runners (B12, B13); a few seconds per fixture" },
+        { "label": "in-tree fixture packages under test/", "consequence": "readable, but the root analyze reads them (B7), so no failing registration can live there, and the Flutter tester crashes from an unresolved nested package (B4)" },
+        { "label": "temporary packages with a synthesized package configuration", "consequence": "no pub get, but dart run first tries and fails a resolution (B8) and the Flutter tester still crashes (B9)" },
+        { "label": "leave the Flutter runner to nidana.integration", "consequence": "no gate of this node would start the tester, although the runner is this node's D1" }
+      ],
+      "chosen": "temporary packages resolved alone offline",
+      "why": "It is the only option under which both of D1's runners run in this node's tests, and the pub cache already holds every needed package after the workspace resolves, so tests stay offline. Evidence from the experiment, not assumption.",
+      "evidence": ["docs/auto-run/experiments/codegen-plan-facts/ (B1 to B13)", "ADR-002 Q18", "ADR-002 Consequences (no seeded violation in analyzed code)"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T06:32:38Z",
+      "artifact": "hsdd/spec/nidana.tooling.codegen.md (D4; amend topic-codegen@v1)",
+      "question": "D1 point 3 says the Flutter tester needs no flutter_test dependency (catalog-loading T5); B11 shows a package resolved alone without flutter_test or test is refused. How does the plan and the contract treat it?",
+      "options": [
+        { "label": "qualify in a new D4 and in the amend", "consequence": "D1 stays as written; D4 states the requirement (flutter_test or test in the package's resolution), catalog reports the refusal as exit 1, and the amended topic-codegen@v1 text states it" },
+        { "label": "edit D1 in place", "consequence": "one decision text, but the step may only add node-local decisions, and D1 was accepted before this plan" },
+        { "label": "make catalog add flutter_test itself", "consequence": "catalog would edit an app's resolution, an effect no contract allows" }
+      ],
+      "chosen": "qualify in a new D4 and in the amend",
+      "why": "T5 passed only because another workspace member put flutter_test in the resolution; the plan's own tests resolve packages alone, and adopters need the rule stated. Flutter apps almost always declare flutter_test, so the requirement costs little.",
+      "evidence": ["docs/auto-run/experiments/codegen-plan-facts/ (B11, B13)", "docs/auto-run/experiments/catalog-loading/ (T5)"],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T06:43:38Z",
+      "artifact": "hsdd/spec/nidana.tooling.codegen.md (D3)",
+      "question": "The registry renderer must call DartFormatter at language 3.13, whose languageVersion is a pub_semver Version; pub_semver is outside ADR-002 item 4's table. Which constraint, or avoid the package?",
+      "options": [
+        { "label": "pub_semver ^2.2.1 by probe", "consequence": "a node D{n} with ADR-002 item 4's probe: the full planned resolution holds 2.2.1, already transitive, 88 packages unchanged; later members copy it" },
+        { "label": "avoid pub_semver with DartFormatter.latestLanguageVersion", "consequence": "no new dependency, but the formatted language version would follow dart_style rather than the 3.13 topic-codegen@v1 fixes" }
+      ],
+      "chosen": "pub_semver ^2.2.1 by probe",
+      "why": "The contract fixes language 3.13 (ADR-002 item 5's SDK floor); the probe shows the package was already in the resolution, so the constraint changes nothing in the lockfile.",
+      "evidence": ["docs/auto-run/experiments/codegen-plan-facts/ (probe.mjs, probe-output.txt, A1 to A3)", "ADR-002 item 4", "~/.pub-cache dart_style-3.1.14 lib/src/dart_formatter.dart (required languageVersion)"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T06:43:38Z",
+      "artifact": "hsdd/spec/nidana.tooling.codegen.md (D3)",
+      "question": "How do this node's gates check topic-codegen@v1 G20's schema check of the catalog document?",
+      "options": [
+        { "label": "json_schema dev dependency", "consequence": "in ADR-002 item 4's table (^5.2.2), already in the resolution through nidana_contract_check; the test validates against topology-ir.schema.json" },
+        { "label": "decode only, relying on topology-ir@v1 G19", "consequence": "no dev dependency, but topic-codegen@v1's Validation says this node's gates schema-check the document" },
+        { "label": "import nidana_contract_check's fixture.dart", "consequence": "impossible: the replay tool is unpublished and has no version, so no hosted constraint can name it (ADR-002 items 4 and 9)" }
+      ],
+      "chosen": "json_schema dev dependency",
+      "why": "It does what the contract's Validation names at no resolution cost.",
+      "evidence": ["topic-codegen@v1 Validation (not executable: G20)", "ADR-002 items 3, 4, 9"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T06:43:38Z",
+      "artifact": "hsdd/spec/nidana.tooling.codegen.md (D3)",
+      "question": "Parse the three commands' arguments with package:args or by hand?",
+      "options": [
+        { "label": "hand-written pure parsers", "consequence": "a few dozen lines, no dependency, every usage error the contracts list stated directly" },
+        { "label": "package:args", "consequence": "in the table (^2.7.0), declarative, one more dependency for grammars of at most one option" }
+      ],
+      "chosen": "hand-written pure parsers",
+      "why": "Each grammar is one option plus positionals; the stand-ins in the fixture experiments did the same. Close call; a command gaining options beyond --graph would favor args.",
+      "evidence": ["docs/auto-run/experiments/topic-codegen-fixtures/packages/nidana_dart_codegen/bin/generate.dart", "docs/auto-run/experiments/nidana-checks-fixtures/packages/nidana_dart_codegen/lib/src/scan.dart"],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T06:43:38Z",
+      "artifact": "hsdd/spec/nidana.tooling.codegen.md (D3 point 4)",
+      "question": "Does each phase add the dependencies it first imports, or does the member-creating phase declare them all?",
+      "options": [
+        { "label": "declare every dependency in nidana.tooling.codegen.1", "consequence": "the pubspec and root lockfile change once; no later phase contends with other nodes' member-creating merges on the lockfile" },
+        { "label": "add per phase", "consequence": "each adding phase edits the pubspec and the lockfile, a textual collision inside the plan and across nodes" }
+      ],
+      "chosen": "declare every dependency in nidana.tooling.codegen.1",
+      "why": "ADR-002 Consequences say every member's constraints are known before it exists and the member-creating phase copies the table; the lockfile is a shared workspace file.",
+      "evidence": ["ADR-002 item 4 and Consequences", "conventions, Shared workspace files"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T06:43:38Z",
+      "artifact": "hsdd/spec/nidana.tooling.codegen.md (D5)",
+      "question": "Recognizer and scan tests need Dart sources with seeded claims and declarations: where do they live, and do they import the real nidana packages or stand-in libraries with the same package names?",
+      "options": [
+        { "label": "temp packages with a synthesized package config, real packages", "consequence": "nothing seeded in analyzed code; recognition is tested against the declarations the producers wrote; the claim-site phase waits on nidana.runtime.1, nidana.navigation.1 and nidana.flutter.1" },
+        { "label": "in-memory stand-in libraries carrying nidana's package names", "consequence": "as nidana.tooling.lint's rule tests do; the claim-site phase could start earlier, but tests would check recognition against declarations no producer wrote, which the run's rules call hand-rolled mocks" },
+        { "label": "fixture packages under the member's test/", "consequence": "the root analyze reads them (B7), so seeded violations would fail the default gate" }
+      ],
+      "chosen": "temp packages with a synthesized package config, real packages",
+      "why": "Root D10 and ADR-001 item 11 keep stand-ins for conformance bindings; the analyzer resolves synthesized-config packages with no diagnostic (B10); nidana.flutter.1 is a type-level first phase that lands well before nidana.model.11, which the claim-site phase needs anyway, so the wait costs little. The signal that would change it: nidana.flutter.1 landing late enough to hold the workspace lane.",
+      "evidence": ["docs/auto-run/experiments/codegen-plan-facts/ (B7, B10)", "root D10", "ADR-001 item 11", "flutter-binding@v1 Delivery", "topology-ir@v1 Delivery"],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T06:43:38Z",
+      "artifact": "hsdd/spec/nidana.tooling.codegen.md (D5 point 4; nidana.tooling.codegen.3)",
+      "question": "How do this node's gates check topic-codegen@v1 G10 (the registry compiles and analyzes clean under the root lint set, strict modes and --fatal-infos)?",
+      "options": [
+        { "label": "committed golden registry under test/golden", "consequence": "the default gate's root analyze and format check read it; a test keeps it equal to the renderer's output" },
+        { "label": "analyze a temp directory from a test", "consequence": "a temp directory sits outside the workspace's package configuration and the root analysis options, so the check would not be the root lint set" }
+      ],
+      "chosen": "committed golden registry under test/golden",
+      "why": "It checks G10 with exactly the analysis the contract names, and G9 with the gate's format check, at the cost of one committed generated file.",
+      "evidence": ["topic-codegen@v1 Validation (not executable: G9, G10)", "ADR-002 item 2"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T06:48:03Z",
+      "artifact": "hsdd/spec/nidana.tooling.codegen.md (## Phase Plan)",
+      "question": "How many phases, cut where? nidana.tooling D1 estimated about nine over eight slices.",
+      "options": [
+        { "label": "eleven phases in two lanes", "consequence": "registry lane .1 to .6, workspace lane .7 to .11; each phase within one PE; splits fall on model-phase boundaries (.13 and .14 for the graph forms, .11 for claims) and on tier boundaries" },
+        { "label": "about nine phases", "consequence": "the documents slice, the recognizer and the catalog would each be one phase of about 450 to 550 lines, past the PE" }
+      ],
+      "chosen": "eleven phases in two lanes",
+      "why": "Sized against the stand-ins: the topics document stand-in alone is about 413 lines before tests, the scan stand-in's recognizer about 300, and catalog adds runner orchestration with fixture packages; the sizing rule splits, and no adjacent pair passes the floor's merge conditions.",
+      "evidence": ["docs/auto-run/experiments/topic-codegen-fixtures/packages/nidana_dart_codegen/", "docs/auto-run/experiments/nidana-checks-fixtures/packages/nidana_dart_codegen/", "nidana.tooling D1 point 4", "conventions, Phase design (PE)"],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T06:48:03Z",
+      "artifact": "hsdd/spec/nidana.tooling.codegen.md (nidana.tooling.codegen.4, .5)",
+      "question": "One documents phase waiting on nidana.model.14, or a no-graph phase now and a graph phase after nidana.model.13 and .14?",
+      "options": [
+        { "label": "split at the model boundary", "consequence": ".4 (no-graph catalog) needs nothing beyond nidana.model.5; .5 (graph sections, page, the pure generate core) waits on nidana.model.13 and .14" },
+        { "label": "one documents phase", "consequence": "about 430 lines, past the PE, and all of it waits on nidana.model.14" }
+      ],
+      "chosen": "split at the model boundary",
+      "why": "The registry lane can progress while nidana.model's behavior phases run; the two halves consume different contracts, so they are not merge candidates.",
+      "evidence": ["topology-ir@v1 Delivery", "topic-codegen@v1 Validation (generate-no-graph expected/)"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T06:48:03Z",
+      "artifact": "hsdd/spec/nidana.tooling.codegen.md (nidana.tooling.codegen.9)",
+      "question": "The scan as one phase (pure report plus a thin shell) or two (report, then command)?",
+      "options": [
+        { "label": "one scan phase", "consequence": "about 420 lines, full-review, the report and its shell reviewed together; the effect band mixes into one phase" },
+        { "label": "report phase then command phase", "consequence": "stricter fp-progression bands, but a command phase of about 150 lines that costs a full cycle" }
+      ],
+      "chosen": "one scan phase",
+      "why": "The shell is about fifty lines and the two fit one review sitting; the report has no other consumer. Close call; the signal that would split it: the report alone exceeding about 300 lines in the plan task estimate.",
+      "evidence": ["docs/auto-run/experiments/nidana-checks-fixtures/packages/nidana_dart_codegen/lib/src/scan.dart", "conventions, Phase design (PE, floor)"],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T06:48:03Z",
+      "artifact": "hsdd/spec/nidana.tooling.codegen.md (nidana.tooling.codegen.10, .11)",
+      "question": "catalog in one phase or two, and on what does its loading depend?",
+      "options": [
+        { "label": "loading phase beside the claim sites, then the command", "consequence": ".10 (runners, entry point, dart:ui closure through .7's analysis context) runs beside .8 and .9; .11 composes and checks G18 against the scan" },
+        { "label": "one catalog phase after the scan", "consequence": "about 500 lines past the PE, and serial after .9" }
+      ],
+      "chosen": "loading phase beside the claim sites, then the command",
+      "why": "Size, and parallelism: loading needs only the analysis context and nidana.model.11 and .13. D1 decides runners by the registration's transitive imports, which the analyzer already in the package reads.",
+      "evidence": ["nidana.tooling.codegen D1 point 3", "topology-dsl@v1 Delivery", "topology-ir@v1 Delivery"],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T06:48:03Z",
+      "artifact": "hsdd/spec/nidana.tooling.codegen.md (gates; confirm entries)",
+      "question": "Which phases count as producers and what do their gates restrict to, when most guarantees are implemented before the command that makes their cases replayable exists?",
+      "options": [
+        { "label": "implementing phases produce; delivered by the first replaying gate", "consequence": "produced_by lists .1 to .6, .10, .11 (topic-codegen@v1) and .7 to .9, .11 (nidana-checks@v1); gates restrict to the closure's replayable ids: --guarantee G1 for topic-codegen@v1 until .6, --set structure for nidana-checks@v1 at .7 and .8" },
+        { "label": "restrict to implementation-level ids", "consequence": "lists like G3,G10,...,G15 at a pre-command phase would admit cases such as scan-cycles (G14, G15) before the scan exists, so gates would fail" },
+        { "label": "only command phases produce", "consequence": "shorter produced_by, but phases that implement contract semantics would replay nothing of their contract" }
+      ],
+      "chosen": "implementing phases produce; delivered by the first replaying gate",
+      "why": "It is the reading the producers' Delivery paragraphs already use (bus-api@v1: a guarantee is delivered by the phase whose gate first replays it; nidana.runtime.6 is a producer whose cases replay later), and it never admits a case before its command exists.",
+      "evidence": ["bus-api@v1 Delivery", "ADR-001 items 9 and 10", "nidana.model D2 item 4", "nidana.model D5"],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T06:48:03Z",
+      "artifact": "hsdd/spec/nidana.tooling.codegen.md (review tiers)",
+      "question": "Review tiers per phase.",
+      "options": [
+        { "label": ".1 gate-only, .2 to .5 spot-check, .6 to .11 full-review", "consequence": "full review for the builder and commands, the first analyzer integration, the claim rules, process orchestration and composition" },
+        { "label": ".7 and .9 spot-check", "consequence": "less review on the recognizer core and the scan, where an error silently misses claims" }
+      ],
+      "chosen": ".1 gate-only, .2 to .5 spot-check, .6 to .11 full-review",
+      "why": "The skill's tier table: scaffolding gate-only, pure constrained phases spot-check, integrations and orchestration full-review; the recognizer is an analyzer integration whose failure mode is silent.",
+      "evidence": [".agents/skills/hsdd-phase-plan/SKILL.md (Review Tiers)"],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T06:48:03Z",
+      "artifact": "hsdd/spec/nidana.tooling.codegen.md (Default gate)",
+      "question": "Does the node's default gate include a format check?",
+      "options": [
+        { "label": "include dart format --set-exit-if-changed on the member", "consequence": "the committed golden and all code stay formatted; checks G9 on the golden" },
+        { "label": "leave formatting to tests", "consequence": "the golden could drift from dart format without the gate noticing" }
+      ],
+      "chosen": "include dart format --set-exit-if-changed on the member",
+      "why": "G9 is this node's gate check, and the golden registry is committed code.",
+      "evidence": ["topic-codegen@v1 G9 and Validation"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T06:48:03Z",
+      "artifact": "hsdd/spec/nidana.tooling.codegen.md (amend topic-codegen@v1, usage errors)",
+      "question": "topic-codegen@v1 says catalog's usage exit is 'as for generate' and leaves cases unstated: a package without pubspec.yaml, --graph given twice to generate, a graph file that is not JSON. Which codes?",
+      "options": [
+        { "label": "spell them out by amend", "consequence": "catalog exits 2 for a missing package or one without pubspec.yaml (as the scan does), generate's repeated or valueless --graph is 2, a non-JSON graph for generate is 1 like an undecodable one; compatible, no fixture records these" },
+        { "label": "leave unstated", "consequence": "implementations and adopters guess; the scan and catalog could disagree on the same package argument" }
+      ],
+      "chosen": "spell them out by amend",
+      "why": "Consumers can rely on exit codes; each code follows from the stated cases and from nidana-checks@v1's treatment of the same argument.",
+      "evidence": ["topic-codegen@v1 The generate command, The topology graph document", "nidana-checks@v1 Exit codes"],
+      "blast_radius": "contract",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T06:48:03Z",
+      "artifact": "hsdd/spec/nidana.tooling.codegen.md (amend topic-codegen@v1, JIT and private transformers)",
+      "question": "S33 found that a private transformer renders _name@{key} with a key that differs between JIT and AOT. topic-codegen@v1 says the static graph is the one activation checks (structurally identical). Amend topic-codegen@v1, or leave it to a later topology-ir@v1 touch?",
+      "options": [
+        { "label": "amend topic-codegen@v1 with the caveat", "consequence": "the contract that claims structural identity states its limit where a consumer comparing the catalog's graph with bus.toGraph() reads it; compatible" },
+        { "label": "leave to topology-ir@v1", "consequence": "topic-codegen@v1 keeps an unqualified claim until another contract's touch" }
+      ],
+      "chosen": "amend topic-codegen@v1 with the caveat",
+      "why": "This node owns the sentence that overclaims; no phase here compares graphs across JIT and AOT, and catalog's tests use public transformers.",
+      "evidence": ["topology-ir@v1 G9", "docs/auto-run/experiments/navigation-g13-coverage/ (T7)"],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T06:48:03Z",
+      "artifact": "hsdd/spec/nidana.tooling.codegen.md (amend nidana-checks@v1, code that does not resolve)",
+      "question": "What does the scan do with a library whose imports or names do not resolve?",
+      "options": [
+        { "label": "not nidana's, not reported", "consequence": "an unresolved element is declared in no library, so it is neither a topic creation nor a claim site; dart analyze reports the error, and In CI runs it first; compatible, follows from Recognition" },
+        { "label": "report an unresolved-library warning", "consequence": "a new report line, a breaking change to nidana-checks@v1's output" }
+      ],
+      "chosen": "not nidana's, not reported",
+      "why": "It is what Recognition already implies, and it keeps the report unchanged for code that compiles; stating it tells app CI why analyze precedes the scan.",
+      "evidence": ["nidana-checks@v1 Terms both hosts use (Recognition), In CI, Versioning"],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    }
+  ],
+  "experiments": [
+    {
+      "path": "docs/auto-run/experiments/codegen-plan-facts/",
+      "question": "Part A: what constraint does pub_semver take under ADR-002 item 4's probe, and does DartFormatter at Version(3, 13, 0) work? Part B: how do catalog's runners and the analyzer treat fixture packages nested under a member's test/, temp packages with a synthesized package config, and temp packages resolved alone?",
+      "finding": "A: pub_semver resolves to 2.2.1 in the full planned resolution (already transitive, 88 packages, every direct package at the table); ^2.2.1 resolves from no lockfile with the codegen first, beside the plugin and in the full set; the formatter call compiles and analyzes clean. B: dart run works from an unresolved nested package through the workspace config (B1 to B3); the Flutter tester crashes from an unresolved nested package and from a synthesized config (B4, B9); a package resolved alone without flutter_test or test is refused by the tester (B11) and runs with flutter_test (B13, exit 79); a pure package resolved alone runs under dart run (B12); a self package: import fails in an unresolved package (B6); the root analyze reads nested fixture packages and reports lints there (B7); the analyzer resolves synthesized-config temp packages with no diagnostic (B10)."
+    }
+  ],
+  "self_check": [
+    { "gate": "Phase 1 defines all shared types and contract-bounded interfaces.", "status": "pass", "note": "Neither produced contract declares a Dart library; nidana.tooling.codegen.1 lands the package, build.yaml, the three executables with their usage errors, the value types the slices pass and each slice's entry signature (bodies throw)." },
+    { "gate": "Phases 2..N-1 are maximally independent (parallelizable where possible).", "status": "pass", "note": "Two lanes from .1 (registry .2 to .6, workspace .7 to .9), with .10 beside .8 and .9; lanes edit disjoint files (D5)." },
+    { "gate": "Each phase has <= 8 OpenSpec tasks (split if more).", "status": "pass", "note": "Between 5 and 7 plan tasks each." },
+    { "gate": "Adjacent same-tier phases were checked against the sizing floor; every merge candidate kept separate names its reason (tier boundary, parallel lane, isolated risk).", "status": "pass", "note": "No pair is a candidate: each merged pair would exceed one PE, and most also differ in consumed contracts; recorded under the summary table." },
+    { "gate": "Contract ids are defined before the phase that implements them.", "status": "pass", "note": "All eight consumed and produced contracts exist under hsdd/contract/." },
+    { "gate": "Phase N is testable against contract fixtures even if Phase N-1 is not implemented.", "status": "pass", "note": "Every phase tests against the contracts' fixture trees (valid/, invalid/, rejected/, input/, expected/, invocation/), and cross-node needs are the producers' real packages at their Delivery phases; within the node a phase builds on the signatures .1 fixes." },
+    { "gate": "No phase couples to another phase's internals.", "status": "pass", "note": "Slices meet through the entry functions and value types .1 declares (D5 point 1)." },
+    { "gate": "Each phase has a concrete gate, a verification description, and a review tier.", "status": "pass", "note": "Every gate is node default plus an explicit nidana_contract_check command." },
+    { "gate": "The phase dependency graph is included as a Mermaid flowchart and matches the Dependencies fields.", "status": "pass", "note": "Dashed edges for nidana.model.5, .7, .11, .12, .13, .14, nidana.runtime.1, nidana.navigation.1, nidana.flutter.1; pastel style." },
+    { "gate": "Summary table opens the section and matches the phase sections.", "status": "pass", "note": "Default gate line, then the table; no Collides with column because no phase collides." },
+    { "gate": "Field blocks are bullet lists; empty lists say \"none\".", "status": "pass", "note": ".2 and .4 consume none." },
+    { "gate": "Every contingent phase names the OQ id it waits on; no contingency without a minted OQ.", "status": "n/a", "note": "No phase is contingent; the node has no open question." },
+    { "gate": "The plan names the ordering policy it followed, matching the conventions line (or interfaces-first when absent, fp-progression when only the pre-v0.10 FP ordering: bullet is present).", "status": "pass", "note": "First line after the table: fp-progression, with the band of each phase." },
+    { "gate": "Every producing phase's Gate includes the contract replay for each contract it produces.", "status": "pass", "note": "topic-codegen@v1: --guarantee G1 at .1 to .5 and .10, G1 to G19 at .6, unrestricted at .11; nidana-checks@v1: --set structure at .7 and .8, G3 and G9 to G17 at .9, the whole share G3 and G9 to G18 at .11." },
+    { "gate": "In append mode: no existing id changed, no shipped phase edited, numbering continued from the highest existing id.", "status": "n/a", "note": "First plan for the node." },
+    { "gate": "Run rule: only hsdd/spec/nidana.tooling.codegen.md changed besides the report and experiments; gate.mjs passes.", "status": "pass", "note": "node docs/auto-run/tools/gate.mjs --skill hsdd-phase-plan --node nidana.tooling.codegen: 0 errors, 0 warnings." }
+  ],
+  "notes_for_orchestrator": [
+    "Eleven phases. .1 Package skeleton and value types: gate-only, ~380, deps nidana.model.5, nidana.model.7, replay topic-codegen --guarantee G1. .2 Topics document: spot-check, ~420, deps .1, G1. .3 Registry library: spot-check, ~300, deps .2, G1. .4 Topic catalog without a graph: spot-check, ~300, deps .3, G1. .5 Graph sections, graph page and generate core: spot-check, ~300, deps .4, nidana.model.13, .14, G1. .6 generate and the builder: full-review, ~380, deps .5, replay topic-codegen G1 to G19 (file replay plus 17 invocations). .7 Recognizer: application code and topic declarations: full-review, ~380, deps .1, nidana-checks --set structure. .8 Recognizer: claim sites: full-review, ~400, deps .7, nidana.model.11, nidana.runtime.1, nidana.navigation.1, nidana.flutter.1, --set structure. .9 Workspace scan: full-review, ~420, deps .8, nidana.model.12, .13, replay nidana-checks G3,G9 to G17 (every scan-* case). .10 Catalog loading and runners: full-review, ~400, deps .7, nidana.model.11, .13, topic-codegen G1. .11 The catalog command: full-review, ~300, deps .6, .9, .10, topic-codegen unrestricted plus nidana-checks G3,G9 to G18.",
+    "Governance, confirm: topic-codegen@v1 produced_by [.1, .2, .3, .4, .5, .6, .10, .11] (replaces nidana.tooling); nidana-checks@v1 produced_by [.7, .8, .9, .11] (this node's share; union with lint's; flip phase_ids only when nidana.integration's consumer entry is in); topic-model@v1 consumers [.3, .5, .6, .7, .8, .9, .10, .11] (replaces the nidana.tooling.codegen placeholder); topology-dsl@v1 consumers [.10, .11]; topology-ir@v1 consumers [.1, .5, .6, .7, .8, .9, .10, .11] (replaces the nidana.tooling node id); bus-api@v1 consumers [.8, .9, .11] (wait nidana.runtime.1); navigation-api@v1 consumers [.8, .9, .11] (adds nidana.tooling; wait nidana.navigation.1); flutter-binding@v1 consumers [.8, .9, .11] (adds nidana.tooling; wait nidana.flutter.1; the Delivery parenthetical should drop nidana.tooling.lint's recorded invocations, per nidana.tooling.lint D5 and S37's note).",
+    "Governance, note: (1) .1 creates packages/nidana_dart_codegen, edits the root workspace list and lockfile, shared with other nodes' member-creating phases; .1 declares every dependency so no later codegen phase edits them. (2) pub_semver ^2.2.1 is outside ADR-002 item 4's table (D3, probe); a later member copies it; the table can list it at ADR-002's next touch (an hsdd-adr matter, not blocking).",
+    "Governance, amend (all compatible, none breaks a consumer): topic-codegen@v1 (a) registration mechanism, D1 points 1 to 4 refined by D4 (flutter_test or test needed in the package's resolution for the Flutter tester), G20 and the Boundary row point at it; (b) usage errors spelled out (catalog: missing package or no pubspec.yaml exits 2; generate: --graph valueless or twice exits 2; non-JSON graph exits 1); (c) JIT recording versus AOT private transformer keys caveat on the 'structurally identical' sentence. nidana-checks@v1 (d) editorial Boundary row split (catalog's topologies to topic-codegen@v1 and codegen D1; the hosts' division to nidana.tooling D1 and D2) and Refinement 2's OQ-T1 citation; (e) code that does not resolve is not nidana's and is not reported; analyze precedes the scan.",
+    "Governance, request: none. No question for reconcile to answer.",
+    "Decisions added to the node spec: D3 (dependencies, pub_semver probe, json_schema dev, no args, no source_gen, all declared by .1), D4 (catalog runners in practice; qualifies D1 point 3's flutter_test sentence), D5 (source layout, seeded sources in temp packages, no stand-in declarations, the committed golden for G10). The node has no OQ section, so no row to mark.",
+    "Experiment: docs/auto-run/experiments/codegen-plan-facts/ (probe.mjs and probe-output.txt for part A; run.sh, src/, tool/, output.txt for part B; README.txt). work/ is removed by run.sh; nothing joins any workspace.",
+    "For later plans and the milestone: nidana.integration's hard edges on topic-codegen@v1 and on the scan wait on nidana.tooling.codegen.11; its example app registers topologies in tool/nidana_catalog.dart and, being a Flutter member with flutter_test, satisfies D4; it should compare a catalog graph with bus.toGraph() only for public transformers. Timing: .11 needs .6, which needs .5 after nidana.model.14, so the codegen tail after nidana.model.14 is .5, .6, .11 (three phases); the workspace lane after nidana.flutter.1 is .8, .9, .11 and needs nidana.model.12 and .13. The root Development flow's 'codegen's workspace lane may join the critical path' now reads: the registry lane's tail after nidana.model.14 is the likelier codegen tail.",
+    "Stale text for a later sweep (not this step's to edit): nidana.tooling.md 'Carried into the children's phase plans' lists the codegen entries now emitted; topic-codegen@v1 and nidana-checks@v1 'checked by nidana.tooling's gates' lines mean nidana.tooling.codegen's gates (nidana.tooling D2), which an editorial touch could name."
+  ]
+}

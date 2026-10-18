@@ -193,8 +193,9 @@ tree. Done when `node docs/auto-run/tools/gate.mjs --final` passes.
 | S36 | 6 | hsdd-phase-plan | nidana.tooling.lint (4 phases) | done | ae2277a |
 | S37 | 6 | hsdd-reconcile | nidana.tooling.lint's pending section | done | 745673a |
 | S38 | 6 | hsdd-adr | ADR-002 update: third-party lower bounds from the full planned resolution; Context Q11c | done | 257b22d |
-| S39 | 6 | hsdd-phase-plan | nidana.tooling.codegen | running | |
-| S40.. | 6 | hsdd-reconcile, hsdd-phase-plan, hsdd-reconcile | codegen's reconcile, then nidana.integration's plan and reconcile | nidana.flutter, nidana.tooling.lint, nidana.tooling.codegen, nidana.integration, in that order | planned | |
+| S39 | 6 | hsdd-phase-plan | nidana.tooling.codegen (11 phases) | done | ad8093c |
+| S40 | 6 | hsdd-reconcile | nidana.tooling.codegen's pending section | running | |
+| S41.. | 6 | hsdd-phase-plan, hsdd-reconcile | nidana.integration's plan and reconcile | nidana.flutter, nidana.tooling.lint, nidana.tooling.codegen, nidana.integration, in that order | planned | |
 
 ## Change log
 
@@ -349,3 +350,6 @@ tree. Done when `node docs/auto-run/tools/gate.mjs --final` passes.
   could cite the table); nidana.tooling.lint D3 item 4 and lint.1 Verification say "exit 4" where the root
   analyze gives 3; nidana-checks@v1's plugin-failure exit codes (2 and 0 cases); nidana.flutter.1's gate
   should run the pure members' tests, since that phase moves `test` for them.
+- 2026-10-18 (UTC), after S39: stage-7 pass also takes `pub_semver ^2.2.1` into ADR-002 item 4's table
+  (codegen D3 declares it; outside the table), nidana.tooling.md's "Carried into the children's phase
+  plans" bullet, and the contracts' "checked by nidana.tooling's gates" lines (now the children's).
