@@ -185,8 +185,9 @@ tree. Done when `node docs/auto-run/tools/gate.mjs --final` passes.
 | S28 | 6 | hsdd-phase-plan | nidana.model (14 phases) | done | 2fdd513 |
 | S29 | 6 | hsdd-reconcile | nidana.model's pending section | done | add3540 |
 | S30 | 6 | hsdd-phase-plan | nidana.runtime (14 phases) | done | a8f81c8 |
-| S31 | 6 | hsdd-reconcile | nidana.runtime's pending section | running | |
-| S32.. | 6 | hsdd-phase-plan then hsdd-reconcile | nidana.navigation, nidana.flutter, nidana.tooling.lint, nidana.tooling.codegen, nidana.integration, in that order | planned | |
+| S31 | 6 | hsdd-reconcile | nidana.runtime's pending section | done | 59e7c4c |
+| S32 | 6 | hsdd-phase-plan | nidana.navigation | running | |
+| S33.. | 6 | hsdd-phase-plan then hsdd-reconcile | (nidana.navigation's reconcile), nidana.flutter, nidana.tooling.lint, nidana.tooling.codegen, nidana.integration, in that order | planned | |
 
 ## Change log
 
@@ -317,3 +318,8 @@ tree. Done when `node docs/auto-run/tools/gate.mjs --final` passes.
   now collects the wording follow-ups: ADR-001 item 9 and "first producing phase"; the root's dev flow
   and D10; nidana.model's Owns, Inherited and Isolation lines; the provenance bullet of all nine contracts;
   nidana.model's gates whose --guarantee lists omit topology-dsl@v1 G30 and topology-ir@v1 G23.
+- 2026-10-18 (UTC), after S31: the stage-7 consistency pass also takes ADR-001 item 9's two replay-tool
+  traps (`dart test` exits 79 when a filter selects nothing; bare ids must not become a raw name filter
+  across a binding's imported suite) and nidana.runtime's stale D1 Consequences and dev-flow lines.
+  nidana.flutter's plan must handle flutter-binding@v1 G17's stub wording and getCurrentValue's off-type
+  TypeError (bus-api@v1 G41).

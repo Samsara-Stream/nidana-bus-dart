@@ -1,0 +1,24 @@
+{
+  "step_ref": "S31",
+  "skill": "none",
+  "target": "run-stop judgement on bus-api@v1 G8",
+  "status": "completed",
+  "decisions": [
+    {
+      "at": "2026-10-18T03:39:32Z",
+      "artifact": "hsdd/contract/bus-api.md",
+      "question": "While applying the G41 amend, S31 edited bus-api@v1 G8 ('neither throws except TopicCollision') so it also names G41's TypeError for an off-type value, and flagged it as a possible breaking amend. Is it the breaking-amend run-stop?",
+      "options": [
+        { "label": "Not a stop; keep the edit", "consequence": "G8 and G41 agree; the stand-in experiment shows every suite that imports nidana_dart_runtime still passes." },
+        { "label": "Stop the run", "consequence": "The owner decides a wording change to a guarantee that no implementation could meet as written." }
+      ],
+      "chosen": "Not a stop; keep the edit",
+      "why": "The breaking-amend stop guards an existing consumer. No consumer code exists, and before the edit G8 could not be satisfied for an off-type value at all, because G41 already required the TypeError; the edit removes a contradiction rather than taking a promise away. Every consuming contract's fixtures pass against the amended stand-in (docs/auto-run/experiments/runtime-reconcile-amends/).",
+      "evidence": ["docs/auto-run/steps/S31.json", "docs/auto-run/experiments/runtime-reconcile-amends/", "hsdd/contract/bus-api.md (G8, G41)"],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "would_upstream": false
+    }
+  ]
+}

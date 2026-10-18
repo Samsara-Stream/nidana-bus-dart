@@ -1,0 +1,365 @@
+{
+  "step_ref": "S31",
+  "skill": "hsdd-reconcile",
+  "target": "nidana.runtime (hsdd/spec/nidana.runtime.md, pending governance section)",
+  "status": "completed",
+  "stop": null,
+  "artifacts": [
+    "hsdd/contract/bus-api.md",
+    "hsdd/contract/bus-testing.md",
+    "hsdd/contract/topic-model.md",
+    "hsdd/contract/topology-dsl.md",
+    "hsdd/contract/topology-ir.md",
+    "hsdd/contract/fixture/bus-api/behavior/bus_api_conformance.dart",
+    "hsdd/contract/fixture/bus-testing/behavior/bus_testing_conformance.dart",
+    "hsdd/contract/INDEX.md (regenerated)",
+    "hsdd/adr/INDEX.md (regenerated, unchanged)",
+    "hsdd/spec/nidana.runtime.md (pending section stamped)",
+    "hsdd/spec/nidana.flutter.md (OQ-R1 citation sweep)",
+    "hsdd/adr/003-time-source-virtual-scheduler.md (OQ-R1 citation sweep)",
+    "docs/auto-run/experiments/empty-guarantee-selection/",
+    "docs/auto-run/experiments/runtime-reconcile-amends/"
+  ],
+  "decisions": [
+    {
+      "at": "2026-10-18T03:24:38Z",
+      "artifact": "hsdd/spec/nidana.runtime.md, hsdd/spec/nidana.model.md",
+      "question": "S30's gates nidana.runtime.5 to .11 assume the replay tool passes bus_activation_test.dart (bus-api@v1's binding of topology-dsl@v1's live suite) when no case of it falls within --guarantee. Does that agree with nidana.model D2, or is it a request-style assumption conflicting with another node's entry (a collision)?",
+      "options": [
+        {
+          "label": "agree",
+          "consequence": "No collision. D2 item 4 (a slug's behavior cases run only as the restriction admits them; a slug with no id in the restriction runs none of them) and ADR-001 item 9 (a bare G{n} is the replayed slug's; the tool learns a binding's suite from the conformance library it imports; a case runs only when every id it covers is in the restriction) leave the live binding with no admitted case at .5 to .11, and D2 item 1 fails a run only on a failing or PENDING fixture. The two implementation hazards the experiment shows go to the hsdd-adr clarification of ADR-001 item 9 already recommended at S29."
+        },
+        {
+          "label": "disagree",
+          "consequence": "A collision: stop before applying anything; the orchestrator would arbitrate between changing nidana.runtime's gates and changing nidana.model's tool semantics."
+        }
+      ],
+      "chosen": "agree",
+      "why": "Both texts make an excluded case not run and neither makes an empty selection a failure or a usage error; nidana.model.6's scope adds 'a slug with no id in the restriction runs no binding'. Read with ADR-001 item 9, the slug that matters for a binding is the slug of the suite it imports (topology-dsl), which has no id at .5 to .11. The experiment found two ways a tool could still fail the gates, neither of which D2 permits: dart test exits 79 ('No tests ran') when the name filter admits nothing (E2), and nidana.runtime.11's bare bus-api ids used as a raw name filter would run topology-dsl's same-numbered live cases G18 to G21, G24 and G29 before the pipeline is wired (E3). The per-binding empty case is implied rather than stated, hence medium confidence. The signal that would have changed my mind: D2 or nidana.model.6 stating that a binding whose filter admits no case is run anyway, or is an error.",
+      "evidence": [
+        "hsdd/spec/nidana.model.md D2 items 1 and 4, nidana.model.6 Scope",
+        "hsdd/adr/001-executable-contract-validation.md item 9",
+        "docs/auto-run/experiments/empty-guarantee-selection/ (output.txt E1 to E3)"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T03:24:38Z",
+      "artifact": "hsdd/contract/bus-testing.md",
+      "question": "bus-testing@v1's consumers frontmatter is [nidana.navigation, nidana.flutter, nidana.integration], while nidana.runtime's Contracts table (S26 finding) and S30's confirm sub-bullet name nidana.tooling as a contract-edge consumer. Add nidana.tooling now, or wait for its plan's confirm?",
+      "options": [
+        {
+          "label": "wait for its confirm entry",
+          "consequence": "The frontmatter stays one consumer short until nidana.tooling.lint's plan is reconciled; the Delivery paragraph already names nidana.tooling's edge; no reconcile writes a consumer no plan emitted (S29's precedent for topology-ir@v1)."
+        },
+        {
+          "label": "add nidana.tooling now",
+          "consequence": "Matches the spec tables at once, but writes a consumers entry no pending section carries, outside step 4's rule."
+        }
+      ],
+      "chosen": "wait for its confirm entry",
+      "why": "hsdd-reconcile step 4 applies confirm entries only, and the consumer is nidana.tooling.lint, whose plan will confirm phase ids. phase_ids stays provisional either way.",
+      "evidence": [
+        ".agents/skills/hsdd-reconcile/SKILL.md step 4",
+        "docs/auto-run/steps/S29.json (topology-ir@v1 consumers decision)",
+        "hsdd/spec/nidana.tooling.md (bus-testing@v1, nidana.tooling.lint)"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T03:24:38Z",
+      "artifact": "hsdd/contract/topic-model.md, hsdd/contract/topology-dsl.md, hsdd/contract/topology-ir.md",
+      "question": "How do nidana.runtime's consumer confirms land in the three model contracts' consumers lists: replace the node id with the confirmed phase ids, or keep the node id?",
+      "options": [
+        {
+          "label": "replace the node id with its phase ids",
+          "consequence": "consumers lists nidana.runtime.1 to .14 as confirmed (13, 6 and 3 ids) beside the unplanned node ids; the registry's consumer count becomes 17, 10 and 5 entries, not nodes."
+        },
+        {
+          "label": "keep the node id",
+          "consequence": "The registry count stays a node count, but the confirm is not applied and hsdd-contract's gate 'consumers lists phase ids that actually consume this contract' fails for a planned consumer."
+        }
+      ],
+      "chosen": "replace the node id with its phase ids",
+      "why": "hsdd-contract's quality gate asks for phase ids, the step prompt says the contracts gain nidana.runtime's consumer phase ids, and produced_by already carries phase ids since S29. The count change in INDEX.md is derived data.",
+      "evidence": [
+        ".agents/skills/hsdd-contract/SKILL.md (Quality Gates)",
+        "hsdd/spec/nidana.runtime.md (phase Consumes fields)"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T03:28:08Z",
+      "artifact": "hsdd/contract/fixture/bus-api/behavior/bus_api_conformance.dart, hsdd/contract/fixture/bus-testing/behavior/bus_testing_conformance.dart",
+      "question": "The three behavioral amends (bus-api@v1 G41 off-type clause, bus-testing@v1 G16, bus-testing@v1 G18) add behavior their existing cases do not reach. Cover them with new cases in this edit, or apply the body changes with not-executable lines and schedule an hsdd-contract step?",
+      "options": [
+        {
+          "label": "five new cases now",
+          "consequence": "Three G41 cases (observed subscriptions, conversions at a call with the reduceInto seed and activate's rollback, topology reads at connection and later delivery), one G16 case, one G18 case; checked against a stand-in patched for D5 to D7, against the unpatched stand-in and against seeded defects; no follow-up step."
+        },
+        {
+          "label": "not-executable lines and an hsdd-contract step",
+          "consequence": "Faster here, but a behavior that can be executed is recorded as not executable until a later step adds the cases."
+        }
+      ],
+      "chosen": "five new cases now",
+      "why": "The step prompt prefers fixtures when the work is a few cases, and the stand-in of docs/auto-run/experiments/bus-api-widened/ needed a patch of four small hunks. Results: every suite that imports nidana_dart_runtime passes on the patched stand-in (bus-api 98/98, live 43/43, bus-testing 47/47, navigation 40/40 and 52/52, flutter-binding 52/52 and 26/26); on the unpatched stand-in exactly four of the five new cases fail (the observed-subscription case passes there, since that stand-in already converted in the subscriber's callback); five seeded defects each fail the case of what they break; both structure prototypes pass. No reject fixture changed, so no reject code needed confirming. The new cases join the --guarantee lists S30 already scheduled (G41 at nidana.runtime.12, G16 and G18 at nidana.runtime.13).",
+      "evidence": [
+        "docs/auto-run/experiments/runtime-reconcile-amends/ (run.sh, output.txt T1 to T6)",
+        "hsdd/adr/001-executable-contract-validation.md item 3",
+        "docs/auto-run/experiments/runtime-replay-schedule/"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T03:28:08Z",
+      "artifact": "hsdd/contract/bus-api.md",
+      "question": "The G41 amend makes getCurrentValue and getBufferedValues throw TypeError at the call for an off-type value, while G8 says 'neither throws except TopicCollision'. Is the amend still compatible, and what happens to G8?",
+      "options": [
+        {
+          "label": "compatible; G8 names the TypeError",
+          "consequence": "G41 gains the off-type clause and G8 reads 'neither throws except TopicCollision, or the TypeError G41 states for a value that is not of the topic's value type'; v1 kept with a Versioning line."
+        },
+        {
+          "label": "breaking; stop for the owner",
+          "consequence": "The run stops until the orchestrator decides whether to bump bus-api to v2 or drop the amend."
+        },
+        {
+          "label": "apply G41 only",
+          "consequence": "The contract reads as self-contradictory between G8 and G41."
+        }
+      ],
+      "chosen": "compatible; G8 names the TypeError",
+      "why": "Before the amend no behavior conformed to G8 for an off-type current value: G8 also says getCurrentValue is the last value delivered, which is not of the type the call returns, and topic-model@v1 offers generic code no way to check a value against a topic's type at publish (nidana.runtime D4, D5), so an implementation could only throw or return a value G8 does not allow. No consumer can have relied on a no-throw result. flutter-binding@v1 G5 builds from getCurrentValue but states nothing for an off-type value, and no fixture of any contract publishes one. A careful engineer might still have shown the owner the G8 edit, since it touches a throw statement the Breaking list names. The signal that would have changed my mind: a consumer contract or fixture expecting a fallback value for an off-type current value.",
+      "evidence": [
+        "hsdd/contract/bus-api.md G8, G41, Versioning (Breaking list)",
+        "hsdd/contract/flutter-binding.md G5",
+        "hsdd/spec/nidana.runtime.md D4, D5",
+        "docs/auto-run/experiments/off-type-delivery/",
+        "docs/auto-run/experiments/runtime-reconcile-amends/"
+      ],
+      "blast_radius": "contract",
+      "confidence": "medium",
+      "would_have_asked": true,
+      "stop_class": "breaking-amend",
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T03:28:08Z",
+      "artifact": "hsdd/contract/bus-api.md",
+      "question": "The amend entry says each conversion runs 'in the delivery callback of the one subscription or topology read it serves' and lists the conversions made at a call. A read's connection is converted during activate. Does the G41 text say which rule covers it?",
+      "options": [
+        {
+          "label": "state the connection explicitly",
+          "consequence": "G41 says 'its first values and a read's connection included'; an off-type connection value goes to the provider zone's handler and activate returns normally; case three pins it."
+        },
+        {
+          "label": "keep the entry's wording",
+          "consequence": "A reader could take the connection for a conversion made during activate and expect activate to throw, which nidana.runtime.12's scope does not do."
+        }
+      ],
+      "chosen": "state the connection explicitly",
+      "why": "D4 has every topology read convert each payload and nidana.runtime.12's scope converts 'each value' in the read's own callback, connection values included; only the reduceInto seed throws to the caller. Saying so removes the one ambiguity a consumer could build on. The signal that would have changed my mind: a plan text that throws from activate for an off-type connection value.",
+      "evidence": [
+        "hsdd/spec/nidana.runtime.md D3, D4, D5, nidana.runtime.12 Scope",
+        "docs/auto-run/experiments/runtime-reconcile-amends/ (T6, the unguarded-read defect)"
+      ],
+      "blast_radius": "contract",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T03:29:55Z",
+      "artifact": "hsdd/contract/bus-api.md, hsdd/contract/bus-testing.md",
+      "question": "In the Delivery paragraphs, does 'phase X delivers G{n}' name the phase whose gate first replays the guarantee or the phase that implements its slice?",
+      "options": [
+        {
+          "label": "the phase that first replays it",
+          "consequence": "Consumers wait for a guarantee whose cases pass at a producing gate; nidana.runtime.6 (registry, cells, observed streams) and nidana.runtime.7 (bus-testing@v1's recorder seam) are named as implementing phases whose guarantees replay later."
+        },
+        {
+          "label": "the phase that implements its slice",
+          "consequence": "Earlier dates, but a consumer could build on a guarantee no gate has checked yet."
+        }
+      ],
+      "chosen": "the phase that first replays it",
+      "why": "The conventions' Contracts paragraph reads delivery from the plan's entries and its gates' --guarantee lists, and S30's confirm sub-bullets list the replay phases, naming .6 and .7 separately. The paragraphs also carry note 4: G38, G39 and bus-testing@v1 G20 are checked by packages/nidana_dart_runtime/test/package_properties_test.dart, because the not-executable line format ('checked by {node}'s gates') is ADR-001's and parsed by the structure set.",
+      "evidence": [
+        "hsdd/conventions.md (Contracts)",
+        "hsdd/spec/nidana.runtime.md (gates of nidana.runtime.5 to .14, D9)",
+        "hsdd/adr/001-executable-contract-validation.md item 3"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T03:29:55Z",
+      "artifact": "hsdd/contract/topology-dsl.md",
+      "question": "topology-dsl@v1's Delivery paragraph says G18 to G29 'are the live implementation's'. Does it gain the phase that delivers them, which S30's topology-dsl confirm sub-bullet states (replayed from nidana.runtime.12 on)?",
+      "options": [
+        {
+          "label": "add the phase",
+          "consequence": "Consumers of topology-dsl@v1's live semantics (navigation, flutter, integration) read that nidana.runtime implements them and that they replay from nidana.runtime.12, pointing at bus-api@v1's Delivery."
+        },
+        {
+          "label": "leave the paragraph",
+          "consequence": "Those consumers would have to find the date in bus-api@v1, a contract some of them do not consume through a contract edge."
+        }
+      ],
+      "chosen": "add the phase",
+      "why": "The convention puts which producing phase delivers which guarantees in the contract a consumer reads; for G18 to G29 the producing node is nidana.runtime, not the produced_by nidana.model phases. One clause, no guarantee changes.",
+      "evidence": [
+        "hsdd/conventions.md (Contracts)",
+        "hsdd/spec/nidana.runtime.md (nidana.runtime.12 Gate)"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T03:33:23Z",
+      "artifact": "hsdd/adr/003-time-source-virtual-scheduler.md, hsdd/spec/nidana.flutter.md",
+      "question": "The drained entries resolve no OQ, but two citations of OQ-R1 (RESOLVED 2026-10-17 by bus-api@v1 G17) still read as open: ADR-003 item 6 'whichever first-delivery timing OQ-R1 gives', and nidana.flutter's 'a new observe subscription may receive its first value one microtask later'. Sweep them now?",
+      "options": [
+        {
+          "label": "sweep both",
+          "consequence": "Both cite bus-api@v1 G17 as the resolution and state the timing; no decision, item or link changes; the quality gate 'no artifact still cites a resolved OQ as open' holds."
+        },
+        {
+          "label": "leave them",
+          "consequence": "The sweep stays limited to OQs this drain resolves, and the two stale citations survive until another reconcile or the owners' next touch."
+        }
+      ],
+      "chosen": "sweep both",
+      "why": "OQ-R1 belongs to the node being drained, the skill's quality gate is tree-wide, and the step allows an ADR edit for step 13's citation sweep. S29 swept ADR-003's OQ-M3 line the same way, without an Amendments entry.",
+      "evidence": [
+        "hsdd/spec/nidana.runtime.md OQ-R1 (RESOLVED 2026-10-17)",
+        "hsdd/contract/bus-api.md G17",
+        "docs/auto-run/steps/S29.json (ADR-003 sweep)"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T03:36:53Z",
+      "artifact": "hsdd/conventions.md",
+      "question": "note 1 (nidana.runtime.1 is the node's only member-creating phase; the conventions' 'one phase each of nidana.runtime' is nidana.runtime.1): does it change a convention?",
+      "options": [
+        {
+          "label": "no change",
+          "consequence": "The Shared workspace files bullet stays as written; the rule already covers nidana.runtime.1, and the plan's scope carries the phase id."
+        },
+        {
+          "label": "name nidana.runtime.1 in the bullet",
+          "consequence": "The bullet names a planned phase for the runtime as it does for nidana.model, but reconcile writes a plan fact into the conventions without a rule change."
+        }
+      ],
+      "chosen": "no change",
+      "why": "hsdd-reconcile step 10 applies a note only when it changes a convention and drops derived facts; the note confirms the plan follows the rule. Notes 2 (replay sets used) and 3 (empty selection) change no convention either: note 2 restates the Phase design bullet, and note 3 is tool behavior that ADR-001 item 9 and nidana.model D2 own. The signal that would have changed my mind: an executor of another node needing the runtime's member-creating phase id and having no other place to read it.",
+      "evidence": [
+        ".agents/skills/hsdd-reconcile/SKILL.md step 10",
+        "hsdd/conventions.md (Shared workspace files, Phase design)"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    }
+  ],
+  "experiments": [
+    {
+      "path": "docs/auto-run/experiments/empty-guarantee-selection/",
+      "question": "What does dart test do when the name filter the replay tool derives from --guarantee admits no case of a binding, and what would nidana.runtime.11's bare bus-api ids select from a binding of topology-dsl@v1's live suite if applied as a raw name filter?",
+      "finding": "E1: a filter that admits a case runs it, exit 0. E2: a filter that admits no case prints 'No tests ran.' and exits 79, a failure to any tool that passes exit codes through. E3: the bare ids G1, G3 ... G37 used as '^(G1|...|G37) ' run the live suite's cases named G18 and G19, so a tool that ignores which suite a binding runs would run topology-dsl@v1 cases before nidana.runtime.12 wires the pipeline. A tool that follows ADR-001 item 9 and D2 (bare ids belong to the replayed slug; a binding's suite slug comes from its import; a binding with no admitted case is not run) passes nidana.runtime.5 to .11."
+    },
+    {
+      "path": "docs/auto-run/experiments/runtime-reconcile-amends/",
+      "question": "Do five new cases for bus-api@v1 G41 (off-type values, nidana.runtime D5), bus-testing@v1 G16 (D6) and G18 (D7) pass against a stand-in that implements the amendments, fail against the stand-in before them and against seeded defects, and leave every other case of every suite that imports nidana_dart_runtime passing?",
+      "finding": "Patched stand-in (../bus-api-widened/ with four hunks: guarded topology-read conversion, activate rollback, envelopesOf conversion at T, one stub publisher per topic): structure 41 guarantees and 98 cases for bus-api, 20 and 47 for bus-testing; S17's prototype 9 contracts, 0 problems; analyze clean; bus-api 98/98, live 43/43, bus-testing 47/47, navigation 40/40 and 52/52, flutter-binding 52/52 and 26/26 under fvm flutter test. Unpatched stand-in: the two G41 cases for calls and topology reads, the G16 case and the G18 case fail; every other case passes, the new observed-subscription G41 case included. Seeded defects (unguarded read conversion, no activate rollback, envelopesOf skipping other type arguments, envelopesOf skipping off-type payloads, a stub publisher per type argument) each fail the case of what they break."
+    }
+  ],
+  "self_check": [
+    {
+      "gate": "Every pending section drained, or explicitly deferred with a reason.",
+      "status": "pass",
+      "note": "One pending section (hsdd/spec/nidana.runtime.md), drained and stamped '> Reconciled 2026-10-18 by hsdd-reconcile. Drained entries are in git history.' nidana.model.md's section was already stamped at S29; no other spec has one."
+    },
+    {
+      "gate": "No contract with both sides fully planned remains `phase_ids: provisional`; none with `phase_ids: final`, no open request and an existing validation artifact remains `status: draft`; none was flipped without its artifact.",
+      "status": "pass",
+      "note": "No contract has both sides planned: bus-api@v1 and bus-testing@v1 have unplanned consumers (nidana.navigation, nidana.flutter, nidana.tooling, nidana.integration); topic-model@v1, topology-dsl@v1 and topology-ir@v1 still name unplanned consumer nodes beside nidana.runtime's phase ids. All five keep phase_ids: provisional and status: draft. No contract has phase_ids: final; nothing flipped."
+    },
+    {
+      "gate": "Grandfather marks were added only to pre-existing fixtureless `stable` contracts named by the plan step (the upgrade step or one carrying it forward), none re-marked after a discharge, and removed wherever the artifact now exists.",
+      "status": "n/a",
+      "note": "No grandfather step named; no contract carries or gained validation: grandfathered."
+    },
+    {
+      "gate": "No contract was retired while a consumer or external consumer still names it.",
+      "status": "n/a",
+      "note": "No node retired; no status changed."
+    },
+    {
+      "gate": "Every collision was decided by the human, and the losing plan was updated to match.",
+      "status": "n/a",
+      "note": "Step 3 found no collision. Grouped by contract: bus-api@v1 and bus-testing@v1 have one producer and no other node claims nidana_dart_runtime (ADR-002 item 3, root spec); the consumer confirms on topic-model@v1, topology-dsl@v1 and topology-ir@v1 agree with those contracts' Delivery paragraphs (nidana.model.5, .8, .9, .10, .11, .12); no fixture of any contract stubs one topic at two type arguments, compares a recorder envelope by identity across type arguments, or publishes an off-type value; flutter-binding@v1 G17's stub is WidgetTestBus's own and does not rely on bus-testing@v1 G18; navigation-api@v1 Refinement 9 leaves explicit widening outside, as G40 does. S30's empty-selection assumption agrees with nidana.model D2 (decision 1)."
+    },
+    {
+      "gate": "Contract edits follow hsdd-contract versioning (breaking change = new version + migration note).",
+      "status": "pass",
+      "note": "All four amends compatible, v1 kept, each recorded as an 'Amended within v1' Versioning line (bus-api@v1 (g) and (h); bus-testing@v1 (a) and (b)); G8's throw statement names G41's TypeError (decision 5); new behavior covered by five new cases in the same edit (ADR-001 item 3)."
+    },
+    {
+      "gate": "`node hsdd/scripts/gen-registry.mjs` ran after the last contract edit.",
+      "status": "pass",
+      "note": "Ran after the last contract edit; contract/INDEX.md consumer counts for topic-model, topology-dsl and topology-ir changed to 17, 10 and 5 (phase-id entries); adr/INDEX.md unchanged."
+    },
+    {
+      "gate": "No artifact still cites a resolved OQ as open; sweep locations reported.",
+      "status": "pass",
+      "note": "The drained entries resolve no OQ. OQ-R1 to OQ-R3 grepped across hsdd/ (specs, contracts, fixtures, ADRs). Swept: hsdd/adr/003-time-source-virtual-scheduler.md item 6 ('whichever first-delivery timing OQ-R1 gives' now states the microtask first delivery, bus-api@v1 G17); hsdd/spec/nidana.flutter.md Overview ('may receive its first value one microtask later' now 'receives ... in the first provider-zone microtask after listen', citing G17). Already correct: bus-api.md Boundary row (OQ-R2), G16 (decides OQ-R3), G17 (decides OQ-R1); bus-testing.md Boundary row, How a test uses it, G18 (OQ-R2); fixture case names citing 'decides OQ-R1/R2/R3'; nidana.md D9 and the Guide §10.1 paragraph; nidana.runtime.md rows, details and Inherited bullet."
+    },
+    {
+      "gate": "Orchestrator gate: node docs/auto-run/tools/gate.mjs --skill hsdd-reconcile",
+      "status": "pass",
+      "note": "0 errors, 0 warnings, 55 changed files (11 under hsdd/, the two experiment directories)."
+    }
+  ],
+  "notes_for_orchestrator": [
+    "Entries and what was done: (1) confirm bus-api@v1 produced_by [nidana.runtime.1, .5, .6, .7, .8, .11, .12, .13, .14]: applied; its sub-bullets became bus-api@v1's Delivery paragraph. (2) confirm bus-testing@v1 produced_by [.1, .5, .7, .13, .14]: applied; Delivery paragraph written. (3) confirm topic-model@v1 consumers [.1 to .4, .6 to .14]: applied, replacing the node id. (4) confirm topology-dsl@v1 consumers [.1, .9, .10, .11, .12, .14]: applied; its Delivery paragraph now says G18 to G29 replay from nidana.runtime.12. (5) confirm topology-ir@v1 consumers [.1, .8, .11]: applied. (6) note workspace member: no conventions change. (7) note replay sets: no change, derived. (8) note empty selection: checked against nidana.model D2, they agree; no conventions change. (9) note package_properties_test.dart: carried in both Delivery paragraphs. (10) amend bus-testing@v1 G16 (D6): applied, one new case. (11) amend bus-testing@v1 G18 and the TestBus.stub comment (D7): applied, one new case. (12) amend bus-api@v1 G41 outside clause (D5): applied with three new cases, plus G8 naming G41's TypeError and 'a read's connection included' stated. (13) amend bus-api@v1 editorial code-owner sentence: applied as 'nidana.runtime, which lands every declaration below in its first phase, nidana.runtime.1 (...; Delivery, below)'; bus-testing@v1's matching sentence names nidana.runtime.1 too. No request entries; no collision.",
+    "Resulting contract state: bus-api@v1 draft, provisional, consumers [nidana.navigation, nidana.flutter, nidana.tooling, nidana.integration]; bus-testing@v1 draft, provisional, consumers [nidana.navigation, nidana.flutter, nidana.integration] (nidana.tooling.lint's edge arrives through its plan's confirm); topic-model@v1, topology-dsl@v1, topology-ir@v1 draft, provisional, nidana.runtime's phase ids plus the unplanned consumer nodes. topology-ir@v1 still lacks nidana.navigation and nidana.flutter (S27/S29, through their plans).",
+    "Empty-selection check: S30's gates .5 to .11 and nidana.model D2 agree. Add to the hsdd-adr step already recommended at S29 for ADR-001 item 9: a binding's restriction is the ids of the slug whose suite it imports (a bare id is the replayed slug's, so bus_activation_test.dart under a bus-api replay is restricted by topology-dsl/G{n} ids only); a binding with no admitted case is not run and counts as passing, never handed to dart test with an empty filter, which exits 79 (docs/auto-run/experiments/empty-guarantee-selection/ E2, E3). Without the suite keying, nidana.runtime.8 to .11 would run live cases G18 to G21, G24 and G29 before the pipeline is wired. nidana.model.6's tests ('Tests bind synthetic suites in a temporary workspace') should include a cross-slug binding; that is nidana.model's plan, not edited here.",
+    "No hsdd-contract step needed for the amends: fixtures landed in this step. The new cases join the --guarantee lists S30 already scheduled (G41 at nidana.runtime.12, G16 and G18 at nidana.runtime.13); the plan's gates need no change.",
+    "For hsdd-spec's next touch of nidana.runtime (not reconcile's to write): D1's Consequences sentence calling the old bus-api@v1 Interface wording 'a wording for hsdd-reconcile's sweep' is now done; the Development flow's 'Virtual time comes next' reads as 'the first effect phase' after the pure band (S30's note).",
+    "For nidana.flutter's plan: flutter-binding@v1 G17 still says WidgetTestBus.stub returns 'the same writer on every call for topic', the per-type-argument problem bus-testing@v1 G18 just fixed (S20 follow-up); bus-testing@v1's amended G18 and its new case are the precedent for an amend there. Its widget builders read getCurrentValue (flutter-binding@v1 G5), which now throws TypeError for an off-type current value (bus-api@v1 G41, G8).",
+    "For the next plans: read bus-api@v1's and bus-testing@v1's Delivery paragraphs. contract edges wait on nidana.runtime.1 (nidana.navigation on bus-api@v1, nidana.tooling.lint on both); hard edges wait on nidana.runtime.14 (nidana.flutter and nidana.integration on both, nidana.navigation on bus-testing@v1). A consumer that calls a bus behavior before .14 must wait on the phase that delivers it."
+  ]
+}
