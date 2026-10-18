@@ -1,0 +1,133 @@
+
+### setup
+Dart SDK version: 3.13.5 (stable) (Tue Sep 29 01:00:52 2026 -0700) on "macos_arm64"
+resolved analysis_server_plugin: "0.3.18"
+resolved analyzer: "13.3.0"
+
+### T0 the fixture change against HEAD
+ .../analyze-raw-string-topic/files/lib/topics.dart | 25 ++++++++++++++++++++
+ .../files/lib/topics.dart                          | 27 ++++++++++++++++++++++
+ .../analyze-sensitive-fatal-infos/stdout           |  4 ++++
+ 3 files changed, 56 insertions(+)
++INFO|STATIC_WARNING|UNFLAGGED_SENSITIVE_TOPIC|{files}/lib/topics.dart|27|7|44|The topic type 'Map<RefreshToken, ApiCredential>' contains the known-sensitive type 'RefreshToken', but the topic is not flagged sensitive.
++INFO|STATIC_WARNING|UNFLAGGED_SENSITIVE_TOPIC|{files}/lib/topics.dart|30|7|51|The topic type '(ApiCredential, {RefreshToken refresh})' contains the known-sensitive type 'ApiCredential', but the topic is not flagged sensitive.
++INFO|STATIC_WARNING|UNFLAGGED_SENSITIVE_TOPIC|{files}/lib/topics.dart|33|7|55|The topic type '({ApiCredential api, RefreshToken refresh})' contains the known-sensitive type 'ApiCredential', but the topic is not flagged sensitive.
++INFO|STATIC_WARNING|UNFLAGGED_SENSITIVE_TOPIC|{files}/lib/topics.dart|35|51|24|The topic type 'Map<String, ApiCredential>' contains the known-sensitive type 'SessionToken', but the topic is not flagged sensitive.
+
+### T1 the amended fixtures, every recorded invocation, on the stand-in
+PASS analyze-clean
+PASS analyze-configuration
+PASS analyze-explicit-topic-type-arguments
+PASS analyze-global-bus-accessor
+PASS analyze-human
+PASS analyze-raw-string-topic
+PASS analyze-sensitive-fatal-infos
+PASS analyze-unflagged-sensitive-topic
+PASS scan-clean
+PASS scan-cycles
+PASS scan-graph-undecodable
+PASS scan-not-a-package
+PASS scan-scope-violation
+PASS scan-topic-name-collision
+PASS scan-unresolved-claim
+PASS scan-usage-no-package
+PASS scan-writer-conflict
+17 of 17 invocations pass
+exit: 0
+
+### T2 the committed fixtures, every recorded invocation, on the same stand-in
+PASS analyze-clean
+PASS analyze-configuration
+PASS analyze-explicit-topic-type-arguments
+PASS analyze-global-bus-accessor
+PASS analyze-human
+PASS analyze-raw-string-topic
+PASS analyze-sensitive-fatal-infos
+PASS analyze-unflagged-sensitive-topic
+PASS scan-clean
+PASS scan-cycles
+PASS scan-graph-undecodable
+PASS scan-not-a-package
+PASS scan-scope-violation
+PASS scan-topic-name-collision
+PASS scan-unresolved-claim
+PASS scan-usage-no-package
+PASS scan-writer-conflict
+17 of 17 invocations pass
+exit: 0
+
+### T3 seeded stand-ins
+-- C1 (c) read as 'of any class': a static field of a mixin, enum, extension or extension type is reported
+amended:
+PASS analyze-clean
+PASS analyze-human
+FAIL analyze-raw-string-topic
+2 of 3 invocations pass
+committed:
+PASS analyze-clean
+PASS analyze-human
+PASS analyze-raw-string-topic
+3 of 3 invocations pass
+-- C2 (c) read as 'static const or static final': a late or mutable static field is reported
+amended:
+PASS analyze-clean
+PASS analyze-human
+FAIL analyze-raw-string-topic
+2 of 3 invocations pass
+committed:
+PASS analyze-clean
+PASS analyze-human
+PASS analyze-raw-string-topic
+3 of 3 invocations pass
+-- D1 (d) type arguments searched last to first
+amended:
+PASS analyze-clean
+PASS analyze-human
+FAIL analyze-sensitive-fatal-infos
+PASS analyze-unflagged-sensitive-topic
+3 of 4 invocations pass
+committed:
+PASS analyze-clean
+PASS analyze-human
+PASS analyze-sensitive-fatal-infos
+PASS analyze-unflagged-sensitive-topic
+4 of 4 invocations pass
+-- D2 (d) a record's named fields searched before its positional fields
+amended:
+PASS analyze-clean
+PASS analyze-human
+FAIL analyze-sensitive-fatal-infos
+PASS analyze-unflagged-sensitive-topic
+3 of 4 invocations pass
+committed:
+PASS analyze-clean
+PASS analyze-human
+PASS analyze-sensitive-fatal-infos
+PASS analyze-unflagged-sensitive-topic
+4 of 4 invocations pass
+-- D3 (d) a record's named fields searched against their name order
+amended:
+PASS analyze-clean
+PASS analyze-human
+FAIL analyze-sensitive-fatal-infos
+PASS analyze-unflagged-sensitive-topic
+3 of 4 invocations pass
+committed:
+PASS analyze-clean
+PASS analyze-human
+PASS analyze-sensitive-fatal-infos
+PASS analyze-unflagged-sensitive-topic
+4 of 4 invocations pass
+-- D4 (d) the alias searched after the type it names
+amended:
+PASS analyze-clean
+PASS analyze-human
+FAIL analyze-sensitive-fatal-infos
+PASS analyze-unflagged-sensitive-topic
+3 of 4 invocations pass
+committed:
+PASS analyze-clean
+PASS analyze-human
+PASS analyze-sensitive-fatal-infos
+PASS analyze-unflagged-sensitive-topic
+4 of 4 invocations pass

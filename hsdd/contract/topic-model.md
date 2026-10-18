@@ -6,7 +6,7 @@ kind: shared-model
 owner: nidana.model
 compatibility: versioned
 produced_by: [nidana.model.3, nidana.model.8]
-consumers: [nidana.runtime.1, nidana.runtime.2, nidana.runtime.3, nidana.runtime.4, nidana.runtime.6, nidana.runtime.7, nidana.runtime.8, nidana.runtime.9, nidana.runtime.10, nidana.runtime.11, nidana.runtime.12, nidana.runtime.13, nidana.runtime.14, nidana.navigation.1, nidana.navigation.3, nidana.navigation.6, nidana.flutter.1, nidana.flutter.4, nidana.flutter.5, nidana.flutter.6, nidana.flutter.7, nidana.tooling, nidana.integration]
+consumers: [nidana.runtime.1, nidana.runtime.2, nidana.runtime.3, nidana.runtime.4, nidana.runtime.6, nidana.runtime.7, nidana.runtime.8, nidana.runtime.9, nidana.runtime.10, nidana.runtime.11, nidana.runtime.12, nidana.runtime.13, nidana.runtime.14, nidana.navigation.1, nidana.navigation.3, nidana.navigation.6, nidana.flutter.1, nidana.flutter.4, nidana.flutter.5, nidana.flutter.6, nidana.flutter.7, nidana.tooling.lint.1, nidana.tooling.lint.2, nidana.tooling.lint.3, nidana.tooling.lint.4, nidana.tooling.codegen, nidana.integration]
 external_consumers: [app topic registries, app observers and sinks, app tests asserting on envelopes]
 phase_ids: provisional
 ---

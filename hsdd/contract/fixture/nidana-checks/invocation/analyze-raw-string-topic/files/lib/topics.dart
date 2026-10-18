@@ -29,3 +29,28 @@ void watch(Bus bus, String user) {
 }
 
 int zero() => 0;
+
+/// Accepted: the whole initializer of a static field of any declaration kind,
+/// whether const, final, late or none of these (G4).
+mixin CartMixinTopics {
+  static final EventTopic<String> cleared = EventTopic<String>(name: 'cart.cleared');
+}
+
+enum CartMode {
+  quick;
+
+  static const EventTopic<String> changed = EventTopic<String>(name: 'cart.mode');
+}
+
+extension CartTopicNames on String {
+  static final EventTopic<String> typed = EventTopic<String>(name: 'cart.typed');
+}
+
+extension type CartKey(String value) {
+  static final EventTopic<String> picked = EventTopic<String>(name: 'cart.picked');
+}
+
+abstract final class CartLateTopics {
+  static late final EventTopic<String> opened = EventTopic<String>(name: 'cart.opened');
+  static EventTopic<String> closed = EventTopic<String>(name: 'cart.closed');
+}

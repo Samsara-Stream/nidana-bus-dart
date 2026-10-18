@@ -4,12 +4,12 @@
 
 | id | version | kind | status | owner | consumers |
 |----|---------|------|--------|-------|-----------|
-| `bus-api` | v1 | api | draft | `nidana.runtime` | 9 |
-| `bus-testing` | v1 | api | draft | `nidana.runtime` | 5 |
+| `bus-api` | v1 | api | draft | `nidana.runtime` | 13 |
+| `bus-testing` | v1 | api | draft | `nidana.runtime` | 8 |
 | `flutter-binding` | v1 | api | draft | `nidana.flutter` | 1 |
 | `navigation-api` | v1 | api | draft | `nidana.navigation` | 7 |
 | `nidana-checks` | v1 | cli | draft | `nidana.tooling` | 1 |
 | `topic-codegen` | v1 | file | draft | `nidana.tooling` | 1 |
-| `topic-model` | v1 | shared-model | draft | `nidana.model` | 23 |
-| `topology-dsl` | v1 | api | draft | `nidana.model` | 16 |
+| `topic-model` | v1 | shared-model | draft | `nidana.model` | 27 |
+| `topology-dsl` | v1 | api | draft | `nidana.model` | 18 |
 | `topology-ir` | v1 | api | draft | `nidana.model` | 10 |

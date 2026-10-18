@@ -1,1 +1,5 @@
 INFO|STATIC_WARNING|UNFLAGGED_SENSITIVE_TOPIC|{files}/lib/topics.dart|8|49|23|The topic type 'AccessToken' contains the known-sensitive type 'AccessToken', but the topic is not flagged sensitive.
+INFO|STATIC_WARNING|UNFLAGGED_SENSITIVE_TOPIC|{files}/lib/topics.dart|27|7|44|The topic type 'Map<RefreshToken, ApiCredential>' contains the known-sensitive type 'RefreshToken', but the topic is not flagged sensitive.
+INFO|STATIC_WARNING|UNFLAGGED_SENSITIVE_TOPIC|{files}/lib/topics.dart|30|7|51|The topic type '(ApiCredential, {RefreshToken refresh})' contains the known-sensitive type 'ApiCredential', but the topic is not flagged sensitive.
+INFO|STATIC_WARNING|UNFLAGGED_SENSITIVE_TOPIC|{files}/lib/topics.dart|33|7|55|The topic type '({ApiCredential api, RefreshToken refresh})' contains the known-sensitive type 'ApiCredential', but the topic is not flagged sensitive.
+INFO|STATIC_WARNING|UNFLAGGED_SENSITIVE_TOPIC|{files}/lib/topics.dart|35|51|24|The topic type 'Map<String, ApiCredential>' contains the known-sensitive type 'SessionToken', but the topic is not flagged sensitive.
