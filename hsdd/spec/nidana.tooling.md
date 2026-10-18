@@ -182,7 +182,7 @@ Alternative considered: treating recognition by name as no consumption, so the e
 
 | ID | Question | Status | Waits on | Affects |
 |----|----------|--------|----------|---------|
-| OQ-T1 | How does `Catalog.scanTopologies` obtain every `TopologyDefinition` in Dart, where Flutter builds have no reflection? | RESOLVED (2026-10-18): topic-codegen@v1 G20 (content), nidana.tooling.codegen D1 (registration, configuration, loading) | none | nidana-checks@v1, topic-codegen@v1 |
+| OQ-T1 | How does `Catalog.scanTopologies` obtain every `TopologyDefinition` in Dart, where Flutter builds have no reflection? | RESOLVED (2026-10-18): topic-codegen@v1 G20 (content) and Registration (the form, amended within v1), nidana.tooling.codegen D1 (registration, configuration, loading) | none | nidana-checks@v1, topic-codegen@v1 |
 | OQ-T2 | Where does the single-writer workspace scan run, given that analysis server plugin rules see one library at a time while Spec §3.11 aggregates claims across the workspace? | RESOLVED (2026-10-18): ADR-002 item 8 (host), nidana-checks@v1 Refinement 2 (what it reads), D1 and nidana.tooling.codegen D2 (owning child, recognizer library) | none | nidana-checks@v1 |
 
 ### OQ-T1: Catalog scan without reflection
@@ -191,7 +191,7 @@ Spec §6.5 has the catalog instantiate every topology class and call `buildDefin
 
 Partially resolved (2026-10-17) by topic-codegen@v1: `topology-graph.json` holds `buildDefinition()` of every topology the packages register, recorded on the Dart VM in JIT mode without obfuscation, with the claims the scan's recognizer resolves (G20); the static AST option is out. Left open: how a package registers its topologies, how their constructor arguments are configured (Spec §6.5's build-time DI), and how `catalog` loads topology libraries that import Flutter, which `dart run` cannot load.
 
-Resolved (2026-10-18) by nidana.tooling.codegen D1: a package registers its topologies in a library it writes at `tool/nidana_catalog.dart`, whose top-level `catalogTopologies()` returns them constructed with the arguments the app's bootstrap passes, in plain Dart; `catalog` generates an entry point per package that records them and runs it with `dart run`, or with `flutter test` when the registration library reaches `dart:ui`, both on the VM in JIT mode (`docs/auto-run/experiments/catalog-loading/`). No builder writes the entry point and no topology-dsl@v1 change is needed; topic-codegen@v1 takes the registration form by a compatible amendment from nidana.tooling.codegen's plan.
+Resolved (2026-10-18) by nidana.tooling.codegen D1: a package registers its topologies in a library it writes at `tool/nidana_catalog.dart`, whose top-level `catalogTopologies()` returns them constructed with the arguments the app's bootstrap passes, in plain Dart; `catalog` generates an entry point per package that records them and runs it with `dart run`, or with `flutter test` when the registration library reaches `dart:ui`, both on the VM in JIT mode (`docs/auto-run/experiments/catalog-loading/`). No builder writes the entry point and no topology-dsl@v1 change is needed; topic-codegen@v1 took the registration form by a compatible amendment from nidana.tooling.codegen's plan, drained by hsdd-reconcile on 2026-10-18 (its Registration, points 1 to 4).
 
 ### OQ-T2: Placement of the single-writer scan
 

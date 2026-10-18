@@ -6,7 +6,7 @@ kind: api
 owner: nidana.navigation
 compatibility: versioned
 produced_by: [nidana.navigation.1, nidana.navigation.2, nidana.navigation.3, nidana.navigation.4, nidana.navigation.5, nidana.navigation.6]
-consumers: [nidana.flutter.1, nidana.flutter.2, nidana.flutter.3, nidana.flutter.5, nidana.flutter.6, nidana.flutter.7, nidana.integration]
+consumers: [nidana.flutter.1, nidana.flutter.2, nidana.flutter.3, nidana.flutter.5, nidana.flutter.6, nidana.flutter.7, nidana.tooling.codegen.8, nidana.tooling.codegen.9, nidana.tooling.codegen.11, nidana.integration]
 external_consumers: [app pages publishing intents, app route registries and access policies, app bootstrap code, app navigation tests]
 phase_ids: provisional
 ---

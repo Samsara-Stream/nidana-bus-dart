@@ -1,0 +1,119 @@
+# The topics document of the topic-codegen@v1 file replay
+# (hsdd/contract/topic-codegen.md). Its topics match the graph in
+# topology-graph.json beside it, a copy of topology-ir@v1's valid/checkout.json,
+# plus topics no topology touches; nav.current-route and order.request are in
+# the graph only.
+domains:
+  auth:
+    owner: platform-team
+    dart:
+      imports:
+        - package:example_app/auth/auth.dart
+        - package:nidana_dart_contracts/nidana_dart_contracts.dart
+    topics:
+      state:
+        type: AuthState
+        variant: state
+        initial: const AuthState.initializing()
+        sensitive: true
+        description: Current authentication state.
+      login-event:
+        type: LoginCredentials
+        variant: event
+        sensitive: true
+        description: |
+          Credentials a login form submits, as a `LoginCredentials` value.
+
+          Never logged: the topic is `sensitive`, so an observer needs `observeSensitive`.
+      token.refresh:
+        type: TokenRefresh
+        variant: event
+        tracing: disabled
+  checkout:
+    owner: payments-team
+    dart:
+      imports:
+        - package:example_app/checkout/checkout.dart
+    topics:
+      cart-events:
+        type: CartEvent
+        variant: event
+      cart-items:
+        type: CartItems
+        variant: state
+        initial: CartItems.empty
+      submit-order:
+        type: SubmitOrder
+        variant: event
+      ui-state:
+        type: CheckoutUi
+        variant: state
+        initial: const CheckoutUi.idle()
+        dedup: none
+        description: What the checkout page renders, rebuilt on every cart or auth change.
+      recent-orders:
+        type: List<OrderSummary>
+        variant: replay
+        buffer-size: 8
+        description: The 8 most recent orders, each a `List<OrderSummary>` page; replays to late subscribers (buffer > 1).
+  payment:
+    owner: payments-team
+    dart:
+      imports:
+        - payment/payment.dart
+    topics:
+      result:
+        type: PaymentResult
+        variant: state
+        initial: const PaymentResult.none()
+      sdk-state:
+        type: PaymentSdkState
+        variant: state
+        initial: PaymentSdkState.disconnected
+      ui-state:
+        type: PaymentUi
+        variant: state
+        initial: const PaymentUi()
+  settings:
+    owner: mobile-platform (Jakarta)
+    dart:
+      imports:
+        - package:example_app/settings/settings.dart
+    topics:
+      theme:
+        type: Theme
+        variant: state
+        initial: Theme.system
+      theme-requested:
+        type: Theme
+        variant: event
+      launch-count:
+        type: int
+        variant: state
+        initial: 0
+      font-scale:
+        type: double
+        variant: state
+        initial: 1.0
+      onboarded:
+        type: bool
+        variant: state
+        initial: false
+      banner:
+        type: String
+        variant: state
+        initial: "'Try `nidana` | beta'"
+      flags:
+        type: "({bool beta, int level})"
+        variant: state
+        initial: "(beta: false, level: 0)"
+  profile:
+    owner: platform-team
+    dart:
+      imports:
+        - dart:typed_data
+    topics:
+      avatar:
+        type: Uint8List?
+        variant: state
+        initial: null

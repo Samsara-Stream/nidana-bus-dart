@@ -1,0 +1,12 @@
+{
+  "format": "topology-ir@v1",
+  "topologies": [
+    {
+      "topologyId": "checkout-cart-reducer",
+      "scope": "module",
+      "reads": [
+        {
+          "name": "checkout.cart-events",
+          "variant": "event",
+          "typeName": "CartEvent"
+        }

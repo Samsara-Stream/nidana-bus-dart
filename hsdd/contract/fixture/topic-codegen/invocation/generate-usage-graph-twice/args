@@ -1,0 +1,7 @@
+nidana_dart_codegen:generate
+--graph
+hsdd/contract/fixture/topic-codegen/input/topology-graph.json
+--graph
+hsdd/contract/fixture/topic-codegen/input/topology-graph.json
+hsdd/contract/fixture/topic-codegen/input/topics.yaml
+{output}

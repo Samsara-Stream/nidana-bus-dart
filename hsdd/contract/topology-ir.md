@@ -6,7 +6,7 @@ kind: api
 owner: nidana.model
 compatibility: versioned
 produced_by: [nidana.model.5, nidana.model.10, nidana.model.11, nidana.model.12, nidana.model.13, nidana.model.14]
-consumers: [nidana.runtime.1, nidana.runtime.8, nidana.runtime.11, nidana.navigation.3, nidana.navigation.6, nidana.flutter.5, nidana.flutter.6, nidana.flutter.7, nidana.tooling, nidana.integration]
+consumers: [nidana.runtime.1, nidana.runtime.8, nidana.runtime.11, nidana.navigation.3, nidana.navigation.6, nidana.flutter.5, nidana.flutter.6, nidana.flutter.7, nidana.tooling.codegen.1, nidana.tooling.codegen.5, nidana.tooling.codegen.6, nidana.tooling.codegen.7, nidana.tooling.codegen.8, nidana.tooling.codegen.9, nidana.tooling.codegen.10, nidana.tooling.codegen.11, nidana.integration]
 external_consumers: [CI tools reading topology-graph.json, app topology tests asserting on definitions and graphs]
 phase_ids: provisional
 ---

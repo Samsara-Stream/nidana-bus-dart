@@ -1,0 +1,5 @@
+nidana_dart_codegen:generate
+--graph
+topology-graph.json
+topics.yaml
+{output}

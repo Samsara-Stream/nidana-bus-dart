@@ -6,7 +6,7 @@ kind: api
 owner: nidana.model
 compatibility: versioned
 produced_by: [nidana.model.4, nidana.model.9, nidana.model.11]
-consumers: [nidana.runtime.1, nidana.runtime.9, nidana.runtime.10, nidana.runtime.11, nidana.runtime.12, nidana.runtime.14, nidana.navigation.1, nidana.navigation.3, nidana.navigation.6, nidana.flutter.1, nidana.flutter.2, nidana.flutter.5, nidana.flutter.6, nidana.flutter.7, nidana.tooling.lint.3, nidana.tooling.lint.4, nidana.tooling.codegen, nidana.integration]
+consumers: [nidana.runtime.1, nidana.runtime.9, nidana.runtime.10, nidana.runtime.11, nidana.runtime.12, nidana.runtime.14, nidana.navigation.1, nidana.navigation.3, nidana.navigation.6, nidana.flutter.1, nidana.flutter.2, nidana.flutter.5, nidana.flutter.6, nidana.flutter.7, nidana.tooling.lint.3, nidana.tooling.lint.4, nidana.tooling.codegen.10, nidana.tooling.codegen.11, nidana.integration]
 external_consumers: [app topology modules, app topology tests]
 phase_ids: provisional
 ---
@@ -35,7 +35,7 @@ topic-model@v1's Boundary assigned this contract the topology API. This contract
 - **Refinement 3.** The plan is the answer to OQ-M2: live activation obtains its transformers from the plan of a single `planOf` call, whose definition it checks, so `declare()` runs once per activation and the IR stays pure data (G18).
 - **Refinement 4.** There is no combinator that selects among pipelines. A selection between topic pipelines is a `combine` over a configuration topic (for state-like pipelines) or a `withLatestFrom` gate per pipeline joined by `merge` (for event pipelines). `switchMap` selects among shell-provided streams.
 
-Not here: the navigation resolver template (navigation-api@v1), the topology catalog scan (nidana.tooling, OQ-T1), dev-mode diagnostics for a terminated pipeline (bus-api@v1, root D8).
+Not here: the navigation resolver template (navigation-api@v1), the topology catalog and its registration (topic-codegen@v1, nidana.tooling.codegen D1), dev-mode diagnostics for a terminated pipeline (bus-api@v1, root D8).
 
 ## Interface
 

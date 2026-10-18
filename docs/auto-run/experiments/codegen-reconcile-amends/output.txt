@@ -1,0 +1,174 @@
+
+### setup
+Dart SDK version: 3.13.5 (stable) (Tue Sep 29 01:00:52 2026 -0700) on "macos_arm64"
+?? hsdd/contract/fixture/nidana-checks/invocation/scan-unresolved-claim/files/app/lib/unresolved.dart
+?? hsdd/contract/fixture/topic-codegen/invocation/catalog-not-a-package/
+?? hsdd/contract/fixture/topic-codegen/invocation/catalog-usage-no-package/
+?? hsdd/contract/fixture/topic-codegen/invocation/generate-graph-not-json/
+?? hsdd/contract/fixture/topic-codegen/invocation/generate-usage-graph-twice/
+?? hsdd/contract/fixture/topic-codegen/invocation/generate-usage-graph-without-value/
+pub get exit: 0
+
+### A1 the amended topic-codegen invocations, every case, on the stand-in
+catalog-not-a-package catalog-usage-no-package generate-graph-not-json generate-graph-undecodable generate-no-graph generate-rejected-class-collision generate-rejected-duplicate-domain-key generate-rejected-duplicate-field-key generate-rejected-duplicate-topic-key generate-rejected-initial-not-finite generate-rejected-member-collision generate-rejected-member-object-name generate-rejected-member-reserved-word generate-rejected-syntax-error generate-rejected-two-documents generate-usage-graph-twice generate-usage-graph-without-value generate-usage-missing-graph generate-usage-missing-topics generate-usage-no-arguments generate-usage-output-is-a-file generate-usage-unknown-option 
+PASS catalog-not-a-package
+PASS catalog-usage-no-package
+PASS generate-graph-not-json
+PASS generate-graph-undecodable
+PASS generate-no-graph
+PASS generate-rejected-class-collision
+PASS generate-rejected-duplicate-domain-key
+PASS generate-rejected-duplicate-field-key
+PASS generate-rejected-duplicate-topic-key
+PASS generate-rejected-initial-not-finite
+PASS generate-rejected-member-collision
+PASS generate-rejected-member-object-name
+PASS generate-rejected-member-reserved-word
+PASS generate-rejected-syntax-error
+PASS generate-rejected-two-documents
+PASS generate-usage-graph-twice
+PASS generate-usage-graph-without-value
+PASS generate-usage-missing-graph
+PASS generate-usage-missing-topics
+PASS generate-usage-no-arguments
+PASS generate-usage-output-is-a-file
+PASS generate-usage-unknown-option
+22 of 22 invocations pass
+exit: 0
+
+### A2 the committed topic-codegen invocations on the same stand-in
+PASS generate-graph-undecodable
+PASS generate-no-graph
+PASS generate-rejected-class-collision
+PASS generate-rejected-duplicate-domain-key
+PASS generate-rejected-duplicate-field-key
+PASS generate-rejected-duplicate-topic-key
+PASS generate-rejected-initial-not-finite
+PASS generate-rejected-member-collision
+PASS generate-rejected-member-object-name
+PASS generate-rejected-member-reserved-word
+PASS generate-rejected-syntax-error
+PASS generate-rejected-two-documents
+PASS generate-usage-missing-graph
+PASS generate-usage-missing-topics
+PASS generate-usage-no-arguments
+PASS generate-usage-output-is-a-file
+PASS generate-usage-unknown-option
+17 of 17 invocations pass
+exit: 0
+
+### A3 seeded stand-ins: each fails the amended case of the rule it breaks, and passes every committed case
+-- AD1 generate: a second --graph replaces the first
+amended:
+FAIL generate-usage-graph-twice: exit 0, expected 2; {output} exists after the run, expected nothing: topics.g.dart topics.md topology-graph.html
+21 of 22 invocations pass
+committed:
+17 of 17 invocations pass
+-- AD2 generate: a trailing --graph without a value is ignored
+amended:
+FAIL generate-usage-graph-without-value: exit 0, expected 2; {output} exists after the run, expected nothing: topics.g.dart topics.md
+21 of 22 invocations pass
+committed:
+17 of 17 invocations pass
+-- AD3 generate: a graph that is not JSON is a usage error, as the scan treats one
+amended:
+FAIL generate-graph-not-json: exit 2, expected 1
+21 of 22 invocations pass
+committed:
+17 of 17 invocations pass
+-- AD4 catalog: one argument is the output of an empty package list
+amended:
+FAIL catalog-usage-no-package: exit 0, expected 2; {output} exists after the run, expected nothing: topology-graph.json
+21 of 22 invocations pass
+committed:
+17 of 17 invocations pass
+-- AD5 catalog: a directory without pubspec.yaml is a package that registers nothing
+amended:
+FAIL catalog-not-a-package: exit 0, expected 2; {output} exists after the run, expected nothing: topology-graph.json
+21 of 22 invocations pass
+committed:
+17 of 17 invocations pass
+
+### B1 the amended nidana-checks invocations, every case, on the stand-in
+PASS analyze-clean
+PASS analyze-configuration
+PASS analyze-explicit-topic-type-arguments
+PASS analyze-global-bus-accessor
+PASS analyze-human
+PASS analyze-raw-string-topic
+PASS analyze-sensitive-fatal-infos
+PASS analyze-unflagged-sensitive-topic
+PASS scan-clean
+PASS scan-cycles
+PASS scan-graph-undecodable
+PASS scan-not-a-package
+PASS scan-scope-violation
+PASS scan-topic-name-collision
+PASS scan-unresolved-claim
+PASS scan-usage-no-package
+PASS scan-writer-conflict
+17 of 17 invocations pass
+exit: 0
+-- what the analyzer reports in the added library (the scan reports none of it)
+ERROR|URI_DOES_NOT_EXIST|9|8
+ERROR|UNDEFINED_CLASS|19|15
+
+### B2 the committed nidana-checks invocations on the same stand-in
+PASS analyze-clean
+PASS analyze-configuration
+PASS analyze-explicit-topic-type-arguments
+PASS analyze-global-bus-accessor
+PASS analyze-human
+PASS analyze-raw-string-topic
+PASS analyze-sensitive-fatal-infos
+PASS analyze-unflagged-sensitive-topic
+PASS scan-clean
+PASS scan-cycles
+PASS scan-graph-undecodable
+PASS scan-not-a-package
+PASS scan-scope-violation
+PASS scan-topic-name-collision
+PASS scan-unresolved-claim
+PASS scan-usage-no-package
+PASS scan-writer-conflict
+17 of 17 invocations pass
+exit: 0
+
+### B3 a seeded stand-in: a publisher invocation whose element does not resolve is taken for Bus.publisher
+amended:
+PASS scan-clean
+PASS scan-topic-name-collision
+FAIL scan-unresolved-claim: stdout differs:
+warning|unresolved_claim|app/lib/claims.dart:13:7|This claim's write set is not statically resolvable; the runtime check covers it.
+warning|unresolved_claim|app/lib/claims.dart:14:7|This claim's write set is not statically resolvable; the runtime check covers it.
+warning|unresolved_claim|app/lib/claims.dart:15:7|This claim's write set is not statically resolvable; the runtime check covers it.
+warning|unresolved_claim|app/lib/claims.dart:16:7|This claim's write set is not statically resolvable; the runtime check covers it.
+warning|unresolved_claim|app/lib/claims.dart:18:7|This claim's write set is not statically resolvable; the runtime check covers it.
+warning|unresolved_claim|app/lib/claims.dart:20:7|This claim's scope is not statically resolvable; the runtime check covers it.
+warning|unresolved_claim|app/lib/claims.dart:26:18|This claim's write set is not statically resolvable; the runtime check covers it.
+warning|unresolved_claim|app/lib/claims.dart:13:7|This claim's write set is not statically resolvable; the runtime check covers it.
+warning|unresolved_claim|app/lib/claims.dart:14:7|This claim's write set is not statically resolvable; the runtime check covers it.
+warning|unresolved_claim|app/lib/claims.dart:15:7|This claim's write set is not statically resolvable; the runtime check covers it.
+warning|unresolved_claim|app/lib/claims.dart:16:7|This claim's write set is not statically resolvable; the runtime check covers it.
+warning|unresolved_claim|app/lib/claims.dart:18:7|This claim's write set is not statically resolvable; the runtime check covers it.
+warning|unresolved_claim|app/lib/claims.dart:20:7|This claim's scope is not statically resolvable; the runtime check covers it.
+warning|unresolved_claim|app/lib/claims.dart:26:18|This claim's write set is not statically resolvable; the runtime check covers it.
+warning|unresolved_claim|app/lib/unresolved.dart:16:7|This claim's write set is not statically resolvable; the runtime check covers it.
+warning|unresolved_claim|app/lib/unresolved.dart:20:7|This claim's write set is not statically resolvable; the runtime check covers it.
+PASS scan-writer-conflict
+3 of 4 invocations pass
+committed:
+17 of 17 invocations pass
+
+### C the structure prototype over the repository's contracts as amended
+bus-api (api): 41 guarantees; covered by reject 10, behavior 37; not executable 2; in part 0; data directories none
+bus-testing (api): 20 guarantees; covered by reject 2, behavior 17; not executable 1; in part 0; data directories none
+flutter-binding (api): 19 guarantees; covered by reject 7, behavior 15; not executable 2; in part 0; data directories none
+navigation-api (api): 27 guarantees; covered by reject 5, behavior 23; not executable 2; in part 0; data directories none
+nidana-checks (cli): 18 guarantees; covered by cli 17; not executable 1; in part 2; data directories none
+topic-codegen (file): 21 guarantees; covered by schema 1, file 12, cli 5; not executable 4; in part 3; data directories rejected
+topic-model (shared-model): 27 guarantees; covered by reject 10, behavior 18; not executable 2; in part 0; data directories none
+topology-dsl (api): 30 guarantees; covered by reject 8, behavior 22; not executable 0; in part 0; data directories none
+topology-ir (api): 23 guarantees; covered by reject 3, behavior 22; not executable 0; in part 0; data directories render
+9 contracts, 0 problem(s)
+exit: 0
