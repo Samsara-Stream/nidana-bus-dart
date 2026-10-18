@@ -1,0 +1,17 @@
+# flutter-phase-facts: settles the runtime facts nidana.flutter's phase plan
+# (S34) rests on, on the stand-in packages of ../runtime-reconcile-amends/
+# (a runtime that meets bus-api@v1 G41 and bus-testing@v1 G18 as amended in
+# S31, and the flutter-binding@v1 stand-in of ../flutter-binding-fixtures/).
+# Its own pub workspace, never a member of the repository's workspace.
+name: fpf_root
+publish_to: none
+environment:
+  sdk: ^3.13.0
+workspace:
+  - packages/nidana_dart_contracts
+  - packages/nidana_contract_check
+  - packages/nidana_dart_runtime
+  - packages/nidana_dart_navigation
+  - packages/nidana_dart_runtime_flutter
+dev_dependencies:
+  lints: ^6.1.0

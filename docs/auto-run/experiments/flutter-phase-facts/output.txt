@@ -1,0 +1,45 @@
+Flutter 3.47.7 • channel stable • https://github.com/flutter/flutter.git
+Dart SDK version: 3.13.5 (stable) (Tue Sep 29 01:00:52 2026 -0700) on "macos_arm64"
+
+### F1 resolve once with flutter pub get, then the gate's dart pub get --enforce-lockfile at the root
+flutter pub get exit: 0
+Try `dart pub outdated` for more information.
+dart pub get --enforce-lockfile exit: 0
+
+### F2/F3 from the root, the member directory: fvm flutter test --no-pub packages/nidana_dart_runtime_flutter
+F3 cwd ends with: auto-run/experiments/flutter-phase-facts
+F3 Isolate.resolvePackageUri: null, threw UnsupportedError
+F3 workspace root found by ancestor search: true
+F3 member pubspec readable: true; lib files: 8
+00:00 +1: All tests passed!
+exit: 0
+
+### F2/F3 from the root, the member's test directory: fvm flutter test --no-pub packages/nidana_dart_runtime_flutter/test
+F3 cwd ends with: auto-run/experiments/flutter-phase-facts
+F3 Isolate.resolvePackageUri: null, threw UnsupportedError
+F3 workspace root found by ancestor search: true
+F3 member pubspec readable: true; lib files: 8
+00:00 +1: All tests passed!
+exit: 0
+
+### F2/F3 inside the member: fvm flutter test --no-pub
+F3 cwd ends with: flutter-phase-facts/packages/nidana_dart_runtime_flutter
+F3 Isolate.resolvePackageUri: null, threw UnsupportedError
+F3 workspace root found by ancestor search: true
+F3 member pubspec readable: true; lib files: 8
+00:00 +1: All tests passed!
+exit: 0
+
+### F4/F5 topic widgets and stub with off-type values (probe/off_type_test.dart, from the root)
+F4a typed: build at mount threw TypeError; provider-zone errors after the first value: 1; after an on-type 5: shows "(no Text: ErrorWidget)", build exception none
+F4b typed: before "v=0"; after off-type "x": shows "v=0", build exception none, provider-zone errors 1; after an on-type 5: shows "v=5", build exception none
+F4c typed: mount threw TypeError; provider-zone errors after the first values: 0; after 2, 3, 4 push "x" out: shows "(no Text: ErrorWidget)", build exception none
+F4a widened: build at mount threw TypeError; provider-zone errors after the first value: 0; after an on-type 5: shows "v=5", build exception none
+F4b widened: before "v=0"; after off-type "x": shows "(no Text: ErrorWidget)", build exception TypeError, provider-zone errors 0; after an on-type 5: shows "v=5", build exception none
+F4c widened: mount threw TypeError; provider-zone errors after the first values: 0; after 2, 3, 4 push "x" out: shows "v=[2, 3, 4]", build exception none
+F5 stand-in stub<int> after stub<Object?>: threw TypeError; per-type-argument form: claims 1, the same writer per type argument: true, current value after the int writer published 7: 7
+00:00 +7: All tests passed!
+exit: 0
+
+### cleanup: remove build output and the resolution
+removed
