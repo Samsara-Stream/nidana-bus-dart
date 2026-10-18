@@ -1,0 +1,187 @@
+{
+  "step_ref": "S35",
+  "skill": "hsdd-reconcile",
+  "target": "nidana.flutter (hsdd/spec/nidana.flutter.md, pending governance section)",
+  "status": "completed",
+  "stop": null,
+  "artifacts": [
+    "hsdd/contract/flutter-binding.md",
+    "hsdd/contract/fixture/flutter-binding/behavior/flutter_binding_conformance.dart",
+    "hsdd/contract/topic-model.md",
+    "hsdd/contract/topology-dsl.md",
+    "hsdd/contract/topology-ir.md",
+    "hsdd/contract/bus-api.md",
+    "hsdd/contract/bus-testing.md",
+    "hsdd/contract/navigation-api.md",
+    "hsdd/contract/INDEX.md",
+    "hsdd/conventions.md",
+    "hsdd/adr/002-package-workspace-layout.md",
+    "hsdd/spec/nidana.flutter.md",
+    "docs/auto-run/experiments/flutter-reconcile-amends/"
+  ],
+  "decisions": [
+    {
+      "at": "2026-10-18T04:48:18Z",
+      "artifact": "hsdd/contract/flutter-binding.md",
+      "question": "Step 3 (collision detection): does any entry of nidana.flutter's section conflict with another node's entry or assumption, in particular the G7 amend (a route named / gives the page source page:/) and the G8 amend (a PageScope does not follow a bus change), so that it must go to the owner as a collision?",
+      "options": [
+        { "label": "no collision, apply the entries", "consequence": "steps 4 to 13 proceed; the amends go through step 6's compatibility test" },
+        { "label": "treat an amend as a collision and stop", "consequence": "the run waits on the owner for a question no other node's entry or spec text raises" }
+      ],
+      "chosen": "no collision, apply the entries",
+      "why": "No other pending section exists (nidana.model's, nidana.runtime's and nidana.navigation's are stamped). The other readers of page sources do not assume a form G7 changes: nidana-checks@v1's claim-site table resolves a PageScope's source only from a literal route argument and otherwise stands the site in, so a derived route never reaches the scan; topic-model@v1 G17 renders page:{route} and splits at the first colon, so page:/ round-trips; Spec §2.4 says page:<routeOrName> with no form. No spec text assumes a page follows a replaced bus (grep of nidana.integration and nidana.tooling specs). The stub amend matches bus-testing@v1 G18 as amended in S31. No other node claims packages/nidana_dart_runtime_flutter (ADR-002 item 3).",
+      "evidence": ["hsdd/contract/nidana-checks.md (Claim sites table, The source resolves)", "hsdd/contract/topic-model.md G17", "Spec §2.4", "hsdd/contract/bus-testing.md G18", "ADR-002 item 3"],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T04:48:54Z",
+      "artifact": "hsdd/contract/flutter-binding.md",
+      "question": "How to write flutter-binding@v1's Delivery paragraph from the produced_by sub-bullet (conventions, Contracts), and whether to change the Interface's code-owner sentence, which the plan says already names nidana.flutter.1 ('whose first phase lands every declaration below')",
+      "options": [
+        { "label": "transcribe the sub-bullet only, leave the code-owner sentence", "consequence": "shorter; the code-owner sentence differs in form from bus-api@v1's and navigation-api@v1's after S31 and S33, and a consumer reading 'cumulatively' could assume nidana.flutter.5 carries G10 and G17" },
+        { "label": "transcribe plus the side-by-side sentence, and name nidana.flutter.1 in the code-owner sentence", "consequence": "a consumer that needs both PageScope and ModuleScopeObserver knows to wait on both nidana.flutter.5 and .6, or on .7; the three produced-by-phase contracts read alike" }
+      ],
+      "chosen": "transcribe plus the side-by-side sentence, and name nidana.flutter.1 in the code-owner sentence",
+      "why": "The plan's gates restrict by dependency closure (D4): nidana.flutter.5's list lacks G10 and G17 and nidana.flutter.6's lacks G7 and G8. Consumers never read the producer's plan, so the Delivery paragraph is the only place they learn this. S33 made the same choice for navigation-api@v1 (its decision 3), and S31 for bus-api@v1. The paragraph names nidana.tooling among the contract-edge consumers although its id is not yet in the frontmatter, as bus-testing@v1's and navigation-api@v1's Delivery paragraphs do.",
+      "evidence": ["hsdd/conventions.md (Contracts)", "hsdd/spec/nidana.flutter.md (D4, phase gates)", "hsdd/contract/navigation-api.md (Delivery)", "docs/auto-run/steps/S33.json"],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T04:48:54Z",
+      "artifact": "hsdd/contract/bus-api.md",
+      "question": "bus-api@v1's and bus-testing@v1's Delivery paragraphs say a hard edge waits on nidana.runtime.14 for nidana.flutter, while the plan's D6 has nidana.flutter.1 wait on nidana.runtime.1 (declarations only). Record nidana.flutter.1's wait beside the existing sentence, as the plan permits, or leave the paragraphs as they are?",
+      "options": [
+        { "label": "record nidana.flutter.1's wait on nidana.runtime.1", "consequence": "the producer's Delivery paragraph agrees with the consumer's dependency table; hsdd-checkpoint and hsdd-milestone read the edge per phase; no edge type changes" },
+        { "label": "leave the paragraphs", "consequence": "a reader of bus-api@v1 alone would put nidana.flutter.1 and the tooling workspace lane behind nidana.runtime.14, which the plan's critical path does not do" }
+      ],
+      "chosen": "record nidana.flutter.1's wait on nidana.runtime.1",
+      "why": "Root D10 defines a hard edge by the consumer's tests needing producer behavior; nidana.flutter.1 runs only the surface and reject sets and constructs no bus (plan D6). The Delivery paragraph is where consumers and the management layer read which producer phase an edge waits on (conventions, Contracts), and navigation-api@v1's already names a consumer phase that waits longer than the contract edge. The same edit names nidana.flutter.7 as the phase that binds navigation-api@v1's executor suite. Close call only in that the plan offered it as optional; the signal against would have been a root rule that Delivery paragraphs name consumers by node only, which none states.",
+      "evidence": ["hsdd/spec/nidana.flutter.md (D6)", "hsdd/spec/nidana.md (D10)", "hsdd/contract/navigation-api.md (Delivery)", "hsdd/conventions.md (Contracts)"],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T04:50:53Z",
+      "artifact": "hsdd/contract/flutter-binding.md",
+      "question": "Step 6: are the four amends (G5 and G6 off-type values through a widened subscription; G7 a route named / gives /; G8 binding kept across a bus change; G17 one publisher per topic with a writer per type argument and ClaimRejected) backward-compatible, so they apply within v1, or could any break a consumer and go to the owner with a version bump?",
+      "options": [
+        { "label": "all four compatible, apply within v1", "consequence": "G5, G6, G7, G8, G17 and the PageScope and stub comments gain the clauses, a Versioning line records the amendment; no version bump" },
+        { "label": "one or more breaking, stop for the owner and bump to v2", "consequence": "a v2 for a contract with no implementation, whose only consumer (nidana.integration) is unplanned and whose fixtures never exercised the changed cases" }
+      ],
+      "chosen": "all four compatible, apply within v1",
+      "why": "No declaration changes and no stated behavior is weakened. G5 and G6 stated nothing for an off-type value, which bus-api@v1 G41 as amended now makes possible. G7 as written gave a route named / the empty route, which PageSource's non-empty assertion rejects, so no conforming outcome existed. G8's 'binds once' already reads as the amend. G17's 'same writer on every call' cannot hold across two type arguments (F5: the cached writer fails the cast), and one publisher per topic keeps bus-api@v1 G20's one claim, as bus-testing@v1 G18 does. No fixture of any contract exercised any changed case, and the 52 pre-amendment cases and the 26 executor-suite cases pass against a stand-in that meets all four (T7). Each falls under the Versioning list's 'a new guarantee that existing fixtures still pass'. G7 is the closest: if an adopter had already keyed sources on a route named / failing to mount, it would change; none can exist before the package does.",
+      "evidence": ["hsdd/contract/flutter-binding.md (Versioning)", "hsdd/contract/bus-api.md G20, G41", "hsdd/contract/bus-testing.md G18", "hsdd/contract/topic-model.md (PageSource non-empty)", "docs/auto-run/experiments/flutter-phase-facts/ (F4, F5)", "docs/auto-run/experiments/flutter-reconcile-amends/ (T7)"],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T04:51:16Z",
+      "artifact": "hsdd/contract/fixture/flutter-binding/behavior/flutter_binding_conformance.dart",
+      "question": "ADR-001 item 3 coverage of the amended clauses: add behavior cases now (S34 recommended G5/G6 and G17, G7 and G8 optional), add only the recommended ones, or record not-executable lines naming nidana.flutter's gates and schedule an hsdd-contract step?",
+      "options": [
+        { "label": "five cases: G5, G6, G7, G8, G17", "consequence": "about 150 lines of fixture; the suite goes from 52 to 57 cases; every amended clause has a case that fails when the clause is broken; no follow-up hsdd-contract step" },
+        { "label": "three cases: G5, G6, G17", "consequence": "the recommended set; the G7 root-route rule and the G8 bus-change rule stay covered only by the guarantee's older cases, which do not exercise them" },
+        { "label": "not-executable lines and a later hsdd-contract step", "consequence": "no fixture work now, but clauses that are cheap to execute stay unchecked and the orchestrator must schedule another step" }
+      ],
+      "chosen": "five cases: G5, G6, G7, G8, G17",
+      "why": "Each case is small (15 to 35 lines) and settled by S34's stand-in, so the step's 'same edit if small' instruction applies. Confirmed in the experiment: on the stand-in as copied, the new G5, G6, G7 and G17 cases fail and every other case passes (T4); on the stand-in patched to meet the amendments every case of both bindings passes, 57 and 26 (T5); a seeded PageScope that rebinds on a bus change fails the new G8 case and no other (T6); each consuming gate's --guarantee prefix selects the new cases with no plan change (T8). The G5 and G6 cases build their bus in an error zone of their own, so 'reaches no zone handler' is an assertion rather than a reliance on testWidgets failing on uncaught errors.",
+      "evidence": ["ADR-001 item 3", "ADR-001 item 4", "docs/auto-run/experiments/flutter-reconcile-amends/ (T2 to T8)"],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T04:55:37Z",
+      "artifact": "hsdd/conventions.md",
+      "question": "Note 1 (nidana.flutter.1 creates the workspace member and edits the shared pubspec.yaml and pubspec.lock, bringing the Flutter SDK packages into the resolution): does it change a convention?",
+      "options": [
+        { "label": "no conventions change", "consequence": "the Shared workspace files bullet already names 'one phase each of ... nidana.flutter' and the path-order and re-resolve rule; the member and its phase are in the Delivery paragraph and the plan" },
+        { "label": "name nidana.flutter.1 and the Flutter SDK resolution in the conventions", "consequence": "duplicates the plan's own fact in a cross-node file" }
+      ],
+      "chosen": "no conventions change",
+      "why": "Step 10 applies a note only when it changes a convention. The bullet's rule (keep both list lines in path order, resolve again with fvm dart pub get, never merge a lockfile by hand) already covers it, and T9 shows fvm dart pub get resolving a workspace with a Flutter member from no lockfile, so the rule's command still holds once Flutter is in the resolution. S33 decided the same for nidana.navigation's member note.",
+      "evidence": ["hsdd/conventions.md (Execution protocol, Shared workspace files)", "docs/auto-run/experiments/flutter-reconcile-amends/ (T9)", "docs/auto-run/steps/S33.json"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T04:55:37Z",
+      "artifact": "hsdd/conventions.md",
+      "question": "Note 2 (a Flutter member's tests run from the root as fvm flutter test --no-pub packages/{member}; under flutter test Isolate.resolvePackageUri throws, so a test that reads its own sources finds the root by ancestor search), offered as a conventions line: does it change a convention?",
+      "options": [
+        { "label": "add a Phase design bullet", "consequence": "nidana.integration's planner, the other Flutter member's, reads it in the conventions, since planners never read another node's plan; the pure-Dart form already used by nidana.runtime and nidana.navigation is stated beside it" },
+        { "label": "drop it as a node-local fact", "consequence": "nidana.integration's planner rediscovers F3 or writes a package test on Isolate.resolvePackageUri that fails under fvm flutter test" }
+      ],
+      "chosen": "add a Phase design bullet",
+      "why": "It sets how gate commands and package tests are written for a class of members, which is what the Phase design section governs, and it crosses nodes: nidana.integration's member is a Flutter member (its Owns list), and the planning protocol gives it no other channel. Neither ADR-002 nor the conventions said how a package test finds the workspace root; nidana.model D6's ancestor rule existed only in one node. Evidence: flutter-phase-facts F1 to F3 and this step's T9.",
+      "evidence": ["hsdd/conventions.md (Parallel development protocol: planners never read other nodes' plans)", "hsdd/spec/nidana.integration.md (Owns)", "hsdd/spec/nidana.model.md (D6)", "docs/auto-run/experiments/flutter-phase-facts/ (F1 to F3)", "docs/auto-run/experiments/flutter-reconcile-amends/ (T9)"],
+      "blast_radius": "tree",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-18T04:56:35Z",
+      "artifact": "hsdd/adr/002-package-workspace-layout.md",
+      "question": "Step 13 sweep: ADR-002 item 3's row for nidana_dart_runtime_flutter still reads 'a router package only if OQ-F1 selects one', treating OQ-F1 as open, although S34 marked OQ-F1 RESOLVED with no router package. Sweep it in this reconcile, or leave it for a later hsdd-adr step?",
+      "options": [
+        { "label": "sweep the citation in place and record it under Amendments", "consequence": "no artifact cites OQ-F1 as open; the row's dependency list is unchanged; the reconcile gate holds" },
+        { "label": "leave it and list an hsdd-adr step", "consequence": "the gate 'no artifact still cites a resolved OQ as open' fails for this drain, for a one-cell citation change" }
+      ],
+      "chosen": "sweep the citation in place and record it under Amendments",
+      "why": "The conventions name hsdd-reconcile's sweep as the place a resolved node OQ's citations are updated, and this is the first reconcile after OQ-F1's row was marked in the owning spec (phase planning cannot edit an ADR). The step permits an ADR edit for exactly this sweep. The change is a citation: OQ-F1 selected no router package, so the five dependencies the row lists are the whole set, as flutter-binding@v1 G18 states. ADR-002 already records in-place amendments in its Amendments section, so the sweep is recorded there.",
+      "evidence": ["hsdd/conventions.md (Open questions: resolving)", "hsdd/spec/nidana.flutter.md (OQ-F1 row and detail)", "hsdd/contract/flutter-binding.md (Refinement 1, G18)", "hsdd/adr/002-package-workspace-layout.md (Amendments)"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    }
+  ],
+  "experiments": [
+    {
+      "path": "docs/auto-run/experiments/flutter-reconcile-amends/",
+      "question": "Do the five new flutter-binding@v1 cases cover the amended clauses (fail on the stand-in as copied or on a seeded defect, pass on a stand-in that meets the amendments), does structure still hold, do the pre-amendment fixtures still pass, do the consuming gates' --guarantee prefixes select the new cases, and does fvm dart pub get resolve a workspace with a Flutter member?",
+      "finding": "T0: stand-in packages identical to flutter-phase-facts'. T1: the fixture diff is the five cases and the _guardedBus helper. T2: structure passes, 19 guarantees, 57 cases, 2 bindings (G5 8, G6 4, G7 6, G8 6, G17 7 fixtures). T3: behavior libraries analyze clean. T4: on the stand-in as copied, the new G5, G6, G7 and G17 cases fail (53 pass, 4 fail) and the executor suite passes 26 of 26. T5: on the patched stand-in (topic widgets observe at Object?, route / gives /, stub keeps one publisher per topic), which analyzes clean, 57 of 57 and 26 of 26. T6: a seeded PageScope that rebinds on a bus change fails the new G8 case only (56 pass, 1 fails). T7: pre-amendment fixtures pass 52 of 52 and 26 of 26 on the patched stand-in. T8: '^(G3|G4|G5|G6) ' selects the new G5 and G6 cases (15 cases), '^(G7|G8) ' the new G7 and G8 cases (11), '^G17 ' the new G17 case (6). T9: fvm dart pub get exits 0 from no lockfile with a Flutter member, the lockfile carries flutter from source sdk, and fvm dart pub get --enforce-lockfile then exits 0."
+    }
+  ],
+  "self_check": [
+    { "gate": "Every pending section drained, or explicitly deferred with a reason.", "status": "pass", "note": "nidana.flutter's section drained and stamped with the one-line stamp; nidana.model's, nidana.runtime's and nidana.navigation's were already stamped (S29, S31, S33); no other pending section exists." },
+    { "gate": "No contract with both sides fully planned remains `phase_ids: provisional`; none with `phase_ids: final`, no open request and an existing validation artifact remains `status: draft`; none was flipped without its artifact.", "status": "pass", "note": "Every touched contract still has an unplanned side: flutter-binding@v1 (nidana.integration), topic-model@v1, topology-dsl@v1, topology-ir@v1 and bus-api@v1 (nidana.tooling, nidana.integration), bus-testing@v1 and navigation-api@v1 (nidana.integration, and nidana.tooling still to arrive through nidana.tooling.codegen's confirm). All stay provisional and draft; nothing flipped." },
+    { "gate": "Grandfather marks were added only to pre-existing fixtureless `stable` contracts named by the plan step (the upgrade step or one carrying it forward), none re-marked after a discharge, and removed wherever the artifact now exists.", "status": "n/a", "note": "No grandfather step named; no mark added or removed." },
+    { "gate": "No contract was retired while a consumer or external consumer still names it.", "status": "n/a", "note": "No retired node." },
+    { "gate": "Every collision was decided by the human, and the losing plan was updated to match.", "status": "n/a", "note": "Step 3 found no collision." },
+    { "gate": "Contract edits follow hsdd-contract versioning (breaking change = new version + migration note).", "status": "pass", "note": "The four amends are compatible and stay in v1 with one Versioning line; the Breaking list already covers every rule they state (what a widget renders, the page source derivation, when a binding acquires or releases, what WidgetTestBus constructs, which operation throws what). Coverage per ADR-001 item 3: five new behavior cases, no not-executable line needed." },
+    { "gate": "`node hsdd/scripts/gen-registry.mjs` ran after the last contract edit.", "status": "pass", "note": "Ran at 2026-10-18T04:59:34Z after the last edit of a contract or ADR; INDEX.md consumer counts now bus-api 9, bus-testing 5, navigation-api 7, topic-model 23, topology-dsl 16, topology-ir 10, flutter-binding 1. node docs/auto-run/tools/gate.mjs --skill hsdd-reconcile: 0 errors, 0 warnings." },
+    { "gate": "No artifact still cites a resolved OQ as open; sweep locations reported.", "status": "pass", "note": "The drained entries resolve no new OQ; OQ-F1 was marked RESOLVED by S34. Swept: hsdd/adr/002-package-workspace-layout.md item 3 row for nidana_dart_runtime_flutter ('a router package only if OQ-F1 selects one' now 'no router package (OQ-F1, resolved by flutter-binding@v1 Refinement 1 and G18)', recorded under Amendments). Checked, not stale: hsdd/spec/nidana.flutter.md row 36 and detail 38 (RESOLVED); hsdd/contract/flutter-binding.md Refinement 1, the FlutterNavigationRouter comment and G18 ('decides OQ-F1', landing citations); hsdd/spec/nidana.navigation.md line 48 (OQ-N1's resolved detail naming OQ-F1 as a related question). hsdd/judgement/ entries are the ledger, not governance." }
+  ],
+  "notes_for_orchestrator": [
+    "Entries and what was done: (1) confirm flutter-binding@v1 produced_by [nidana.flutter.1 to .7]: applied; its Delivery sub-bullet became flutter-binding@v1's Delivery paragraph under the Interface's opening paragraph, and the code-owner sentence now names nidana.flutter.1 and points at Delivery. (2) confirm topic-model@v1 consumers [.1, .4, .5, .6, .7]: applied, replacing the node id. (3) confirm topology-dsl@v1 consumers [.1, .2, .5, .6, .7]: applied. (4) confirm topology-ir@v1 consumers [.5, .6, .7]: applied, adding nidana.flutter, which the frontmatter lacked (root contract matrix intro, S27). (5) confirm bus-api@v1 consumers [.1, .4, .5, .6, .7]: applied; its Delivery paragraph now names nidana.flutter.4 to .7 on the hard edge and nidana.flutter.1's wait on nidana.runtime.1. (6) confirm bus-testing@v1 consumers [.1, .6, .7]: applied; its Delivery paragraph likewise (nidana.flutter.6 and .7 on runtime.14, nidana.flutter.1 on runtime.1). (7) confirm navigation-api@v1 consumers [.1, .2, .3, .5, .6, .7]: applied; its Delivery paragraph now names nidana.flutter.7 as the phase that binds the executor suite. (8) note workspace member and lockfile: no conventions change. (9) note Flutter member tests: applied as a new Phase design bullet in hsdd/conventions.md. (10 to 13) amends G5/G6 (D7), G7 (D11), G8 (D10), G17 (D8): applied as compatible within v1, with the PageScope and stub Interface comments, one Versioning line, one Validation line, and five new behavior cases. No request entries; no collision; no edge type changed.",
+    "Resulting contract state: flutter-binding@v1 draft, provisional, produced_by [nidana.flutter.1 to .7], consumers [nidana.integration]. topic-model@v1 draft, provisional, consumers nidana.runtime's ids, nidana.navigation.1, .3, .6, nidana.flutter.1, .4, .5, .6, .7, nidana.tooling, nidana.integration. topology-dsl@v1 draft, provisional, consumers nidana.runtime's ids, nidana.navigation.1, .3, .6, nidana.flutter.1, .2, .5, .6, .7, nidana.tooling, nidana.integration. topology-ir@v1 draft, provisional, consumers [nidana.runtime.1, .8, .11, nidana.navigation.3, .6, nidana.flutter.5, .6, .7, nidana.tooling, nidana.integration]. bus-api@v1 draft, provisional, consumers [nidana.navigation.1, .6, nidana.flutter.1, .4, .5, .6, .7, nidana.tooling, nidana.integration]. bus-testing@v1 draft, provisional, consumers [nidana.navigation.6, nidana.flutter.1, .6, .7, nidana.integration]. navigation-api@v1 draft, provisional, consumers [nidana.flutter.1, .2, .3, .5, .6, .7, nidana.integration]. Nothing flipped: every contract still has an unplanned consumer.",
+    "No hsdd-contract or hsdd-adr step is needed for this drain: the amended clauses' fixtures landed here. bus-testing@v1's and navigation-api@v1's frontmatter still lack nidana.tooling as a consumer although nidana.tooling.md consumes both; it arrives through nidana.tooling.codegen's (or .lint's) plan confirm, per the root contract matrix intro.",
+    "flutter-binding@v1 now has 57 behavior cases (was 52). The new cases are named 'G5 a value of another type...', 'G6 while the buffer holds...', 'G7 a route named / alone...', 'G8 a PageScope stays bound...', 'G17 stub keeps one publisher...'; nidana.flutter.4's, .5's and .6's gates select them through their existing --guarantee lists (T8), so the plan needs no change. The G5 and G6 cases build their own bus inside runZonedGuarded and shut it down themselves, so the binding's bus list does not hold them.",
+    "For the next plans: nidana.tooling.codegen's workspace scan cases and nidana.tooling.lint's recorded invocations that resolve nidana_dart_runtime_flutter wait on nidana.flutter.1 (flutter-binding@v1 Delivery), which can merge once nidana.model.5, nidana.runtime.1 and nidana.navigation.1 have. nidana.integration's hard edge on flutter-binding@v1 waits on nidana.flutter.7. nidana.integration's planner should read the new conventions bullet: its Flutter member tests from the root with fvm flutter test --no-pub packages/nidana_integration, and a test that reads sources finds the root by ancestor search, never Isolate.resolvePackageUri.",
+    "Edge not stated by the amend and left as is: a PageScope bound to a bus that an owning BusProvider shut down on a bus change (G4) unmounts cleanly, because bus-api@v1 G36 makes dispose, deactivate and release do nothing after shutdown; no text change was needed.",
+    "Experiment: docs/auto-run/experiments/flutter-reconcile-amends/ (run.sh, output.txt, patch/ with the three amended adapter files and the seeded rebinding defect). Its stand-in packages are copied from flutter-phase-facts; .dart_tool and pubspec.lock are git-ignored. T9's label 'lockfile entries named flutter: 2' counts the package entry and the sdks constraint line. node docs/auto-run/tools/gate.mjs --skill hsdd-reconcile: 0 errors, 0 warnings."
+  ]
+}
