@@ -265,6 +265,7 @@ orchestrator and recorded with `would_have_asked: true`.
 | S69 | 9 | hsdd-contract | H7e: bus-testing@v2 citation touch (1 moved, 10 historical kept) | done | 48e292b |
 | S70 | 9 | hsdd-contract | H7f: navigation-api@v1 citation touch (8 moved, 29 historical kept) | done | b31627b |
 | S71 | 9 | hsdd-contract | H7g: flutter-binding@v2 citation touch (nothing live to move; empty artifact commit) | done | 5fcb772 |
+| S72 | 9 | hsdd-contract | H7h: topic-codegen@v1 citation touch (1 moved) | done | 2b86f5d |
 
 ## Change log
 

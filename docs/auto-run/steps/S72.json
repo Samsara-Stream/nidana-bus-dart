@@ -1,0 +1,169 @@
+{
+  "step_ref": "S72",
+  "skill": "hsdd-contract",
+  "target": "topic-codegen@v1 (hsdd/contract/topic-codegen.md, hsdd/contract/schema/topic-codegen.schema.json, hsdd/contract/fixture/topic-codegen/)",
+  "status": "completed",
+  "stop": null,
+  "artifacts": [
+    "hsdd/contract/topic-codegen.md",
+    "hsdd/contract/INDEX.md (regenerated, no byte changed)",
+    "docs/auto-run/steps/S72.json"
+  ],
+  "decisions": [
+    {
+      "at": "2026-10-20T20:18:25Z",
+      "artifact": "hsdd/contract/topic-codegen.md",
+      "question": "The Boundary row for `Topology.buildDefinition()` cites topology-dsl@v1, which H2 (S59) superseded with v2. Move it, and does its meaning change?",
+      "options": [
+        { "label": "move to topology-dsl@v2", "consequence": "the Boundary names the current owner version of `buildDefinition()`; meaning unchanged because v2 changed no declaration and left recording as v1 had it (topology-dsl Versioning, 'Migration from v1 to v2': 'No declaration changed'), and topology-dsl@v2's own Boundary row still owns `Topology.buildDefinition()`" },
+        { "label": "keep topology-dsl@v1", "consequence": "a live Boundary line would name a version that keeps no file of its own (DEC-688), contrary to the intake's 'Citations of a superseded version' rule" }
+      ],
+      "chosen": "move to topology-dsl@v2",
+      "why": "The row is a Boundary line, which the intake record lists as live. topology-dsl@v2 keeps `buildDefinition()` with the same signature and the same recording guarantees (G8 to G10), so the citation's meaning carries over unchanged; nothing to report as changed meaning.",
+      "evidence": [
+        "hsdd/management/2026-10-20-intake-ref-arch-v0-15-1.md, section 'Citations of a superseded version'",
+        "hsdd/contract/topology-dsl.md Boundary row 'Topology.buildDefinition() and TopologyPlan.definition' and Versioning 'Migration from v1 to v2'",
+        "docs/auto-run/steps/S59.json notes_for_orchestrator (topic-codegen.md 1 live citation)"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T20:18:25Z",
+      "artifact": "hsdd/contract/fixture/topic-codegen/invocation/generate-graph-undecodable/files/topology-graph.json",
+      "question": "The fixture `generate-graph-undecodable/files/topology-graph.json` holds `\"format\": \"topology-ir@v2\"` and Validation describes it as such. Is that a citation to touch?",
+      "options": [
+        { "label": "leave as fixture data", "consequence": "the case keeps its input: a graph whose format names a version topology-ir does not have, which is why `decodeTopologyGraph` throws and `generate` exits 1 (G19); the Validation sentence keeps describing that input" },
+        { "label": "edit it", "consequence": "changes a fixture's behavior, which a citation touch must never do; topology-ir has no v2 to move to anyway" }
+      ],
+      "chosen": "leave as fixture data",
+      "why": "It is a JSON value the case feeds to `generate`, not a comment or a sentence citing a contract version; topology-ir is still at v1, so it is not a superseded citation either. The other `topology-ir@v1` format values and the `topic-codegen@v1` and `topology-ir@v1` comment lines in the fixtures name current versions.",
+      "evidence": [
+        "hsdd/contract/topic-codegen.md Validation, invocations bullet ('a copy of topology-ir@v1's invalid/format_v2.json, whose format is topology-ir@v2')",
+        "hsdd/contract/topology-ir.md frontmatter (version: v1)"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T20:18:29Z",
+      "artifact": "hsdd/contract/topic-codegen.md",
+      "question": "Does anything this contract says about the catalog (the duplicate-id rule, 'the static graph is the one activation checks') restate a bus-api guarantee that v2 changed, now that bus-api@v2 G23 also compares a re-activated topology's plan functions with `==`?",
+      "options": [
+        { "label": "no restatement, leave the text", "consequence": "the catalog keeps exit 1 for two unequal definitions sharing a `topologyId` on topology-ir@v1 G11 (unchanged) and keeps one graph entry for IR-equal ones; a re-activation that G23 rejects for `==`-unequal functions is caught at run time only" },
+        { "label": "report a finding for a contract step", "consequence": "a later hsdd-contract step would add a plan `==` comparison to `catalog`, which changes the exit codes' meaning and the content rule, both on this contract's Breaking list, so v2 of topic-codegen; and it cannot work across packages, because Registration point 3 runs each package's entry point in its own process, so no two packages' functions are ever in one isolate to compare" }
+      ],
+      "chosen": "no restatement, leave the text",
+      "why": "No sentence here cites bus-api, and none restates G23: the duplicate-id rule cites topology-ir@v1 G11, and 'the static graph is the one activation checks' is about the graph that G24 analyzes over G37, which bus-api@v2 states as v1 did (definitions plus claims). Spec §6.5 asks for structural identity, and function identity is not structure. S66 raised the same gap as an observation and placed it with topic-codegen or nidana-checks; this check answers it for topic-codegen: no step. Signal that would have changed my mind: a v0.15.1 passage asking the catalog to report re-activation conflicts, which Guide Appendix C.1's list of IR-level checks does not include.",
+      "evidence": [
+        "hsdd/contract/bus-api.md G23, G24, G37",
+        "hsdd/contract/topic-codegen.md Interface, 'definitions' bullet, Exit codes bullet, Registration point 3",
+        "Guide Appendix C.1 'Platforms without runtime reflection'",
+        "Spec §6.5",
+        "docs/auto-run/steps/S66.json notes_for_orchestrator (OBSERVATION)"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T20:18:29Z",
+      "artifact": "hsdd/contract/topic-codegen.md",
+      "question": "Does `catalog`'s registration need to know flutter-binding@v2's `NidanaModule`, an activation site at mount?",
+      "options": [
+        { "label": "no, the registration is an explicit list", "consequence": "a `NidanaModule`'s topologies enter the graph by being returned from `catalogTopologies()`, exactly as a `ModuleRoutes` or `PageScope` topology does; one left off the list is checked at run time only (Guide Appendix C.1)" },
+        { "label": "yes, recognize NidanaModule sites", "consequence": "the catalog would scan sources for activation sites, a new content rule (breaking here) and the reflection-free walk Guide Appendix C.1 says a list replaces" }
+      ],
+      "chosen": "no, the registration is an explicit list",
+      "why": "Registration point 1 records `buildDefinition()` of every value `catalogTopologies()` returns and scans no activation site; claims come from nidana-checks@v1's claim recognizer, and S63 found `NidanaModule` claims nothing. Guide Appendix C.1 (landing L9) now describes this explicit list as the method for platforms without runtime reflection.",
+      "evidence": [
+        "hsdd/contract/topic-codegen.md Registration points 1 and 2",
+        "Guide Appendix C.1",
+        "hsdd/management/2026-10-20-intake-ref-arch-v0-15-1.md landing L9",
+        "docs/auto-run/steps/S63.json notes_for_orchestrator (NidanaModule claims nothing)"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T20:18:29Z",
+      "artifact": "hsdd/contract/topic-codegen.md",
+      "question": "Registration point 2 and the 'definitions' bullet say the static graph is the one activation checks 'only when the registration passes what the app's bootstrap passes'. Under bus-api@v2 G42 (Spec §7.2 'Scope timing') no MODULE or PAGE topology is activated during bootstrap, so read in bus-api@v2's sense of 'bootstrap' (until `start()`, G34) the condition names only APPLICATION topologies. Reword it in this touch?",
+      "options": [
+        { "label": "leave it, report an observation", "consequence": "the sentence stays as nidana.tooling.codegen D1 and D4 gave it; its intended reading (the arguments the app passes where it constructs the topologies it activates, kept by one factory called from both) still holds, and the next compatible hsdd-contract pass on this file can sharpen the word" },
+        { "label": "reword it now", "consequence": "a compatible wording change to this contract's own Registration rule, outside a citation touch: no moved citation sits in the sentence and it restates no other contract's guarantee" }
+      ],
+      "chosen": "leave it, report an observation",
+      "why": "The orchestrator's touch rule restates a sentence only where a moved citation sits in it. This sentence cites no contract, and it is not false: 'app bootstrap code' is also bus-api's own name for the app's startup code (its external_consumers), and the remedy it gives (one factory called from both) covers a topology passed to `NidanaModule` or `PageScope`. The ambiguity was there under v1 too, where bus-api@v1 G34 also called the time before `start()` bootstrapping. Signal that would have changed my mind: a consumer phase planning against the narrow reading.",
+      "evidence": [
+        "hsdd/contract/topic-codegen.md Registration point 2, 'definitions' bullet",
+        "hsdd/contract/bus-api.md G34, G42, frontmatter external_consumers",
+        "hsdd/spec/nidana.tooling.codegen.md D1 item 2"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T20:18:49Z",
+      "artifact": "hsdd/contract/topic-codegen.md",
+      "question": "Classify the touch against this contract's Versioning.",
+      "options": [
+        { "label": "compatible, stays v1", "consequence": "one Boundary citation moves and a dated 'Touched within v1' entry records it; no path, executable, argument, exit code, output byte, content rule, guarantee, case or fixture changes; INDEX.md projects the same row" },
+        { "label": "breaking, v2", "consequence": "not supported: nothing on the Breaking list changed" }
+      ],
+      "chosen": "compatible, stays v1",
+      "why": "The only edit to the contract's terms is the version named in a Boundary row whose cited declaration did not change. The Versioning entry follows the form S64, S66 and S70 used for the same handoff family.",
+      "evidence": [
+        "hsdd/contract/topic-codegen.md Versioning (Breaking and Compatible lists)",
+        "node docs/auto-run/tools/gate.mjs --skill hsdd-contract: 0 error(s), 0 warning(s)"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    }
+  ],
+  "experiments": [],
+  "self_check": [
+    { "gate": "Frontmatter has id, version, status, kind, owner, compatibility, produced_by, consumers; external_consumers when any exist.", "status": "pass", "note": "frontmatter untouched" },
+    { "gate": "`consumers` lists phase ids that actually consume this contract.", "status": "pass", "note": "untouched; phase_ids final from the 2026-10-18 reconcile" },
+    { "gate": "The Interface section is concrete enough to mock against.", "status": "pass", "note": "unchanged" },
+    { "gate": "At least one guarantee/invariant is stated.", "status": "pass", "note": "G1 to G21 unchanged" },
+    { "gate": "A breaking change bumped the version and added a migration note.", "status": "n/a", "note": "compatible touch, no breaking change" },
+    { "gate": "The registry was regenerated.", "status": "pass", "note": "node hsdd/scripts/gen-registry.mjs ran: contract 9, adr 3; INDEX.md byte-identical because no frontmatter changed" },
+    { "gate": "`phase_ids` is present (`provisional` until `hsdd-reconcile` finalizes it).", "status": "pass", "note": "phase_ids: final, unchanged" },
+    { "gate": "Every code-level artifact both sides consume (types file, fixtures, shared package) names its canonical path and its owner in the Interface or Validation section: the owning phase for code, `hsdd-contract` for validation artifacts.", "status": "pass", "note": "unchanged" },
+    { "gate": "A contract or version created by this run has its schema and its kind's fixtures written at the canonical paths.", "status": "n/a", "note": "no contract or version created" },
+    { "gate": "Open questions are cited by ID only, never defined here (the skill joins these with a dash, rewritten under the run's prose rule); prose justifying behavior as \"pending OQ-x\" is swept when the OQ resolves (hsdd-reconcile).", "status": "pass", "note": "no OQ text added" },
+    { "gate": "A `stable` contract names a schema or a fixtures directory at the canonical paths and the artifact exists, or it carries `validation: grandfathered` (never on a contract authored after the upgrade).", "status": "pass", "note": "schema and fixture directory exist" },
+    { "gate": "No version is `retired` while a consumer or an external consumer still names it.", "status": "n/a", "note": "no retirement" },
+    { "gate": "A `v0` contract carries `## Observed completeness`, and the block changed in any commit that added fixtures to it.", "status": "n/a", "note": "v1 contract" },
+    { "gate": "Done when: no live citation in this file or its fixture comments names a superseded version; every live sentence that restates another contract's guarantee is true under that contract's current text.", "status": "pass", "note": "grep for (topology-dsl|bus-api|bus-testing|flutter-binding)@v1 over the contract, its schema and its fixture tree returns nothing" },
+    { "gate": "Done when: node hsdd/scripts/gen-registry.mjs ran; node docs/auto-run/tools/gate.mjs --skill hsdd-contract passes.", "status": "pass", "note": "gate: 0 error(s), 0 warning(s)" },
+    { "gate": "Prose rules of the run: no em-dash character, no banned phrase.", "status": "pass", "note": "0 occurrences of either in topic-codegen.md and in this report" }
+  ],
+  "notes_for_orchestrator": [
+    "COUNTS: moved 1 live citation in hsdd/contract/topic-codegen.md (Boundary row `Topology.buildDefinition()`: topology-dsl@v1 -> @v2), matching S59's prediction (topic-codegen.md 1) and the step prompt. Kept 0 historical citations of a superseded version: the file named no bus-api, bus-testing, navigation-api or flutter-binding version, and no topology-dsl version outside that row. Fixture comments: 0 moved; the fixture tree and the schema cite only topic-codegen@v1 and topology-ir@v1, both current. One `topology-ir@v2` string in invocation/generate-graph-undecodable/files/topology-graph.json is the case's input (a format topology-ir does not have) and was left as fixture data.",
+    "Added one dated Versioning entry ('Touched within v1, 2026-10-21 ... handoff H7h') in the form S64, S66 and S70 used. Version stays v1, status stable, phase_ids final; INDEX.md regenerated with no byte change.",
+    "No citation changed meaning: topology-dsl@v2 changed no declaration and left recording as it was, so `buildDefinition()` means what it meant.",
+    "CHECKS ANSWERED, no step needed: (1) S66's observation on IR-equal but `==`-unequal plans: no topic-codegen sentence restates bus-api G23; the catalog's duplicate-id rule rests on topology-ir@v1 G11, and a cross-package `==` comparison is impossible because Registration point 3 runs each package's entry point in its own process; a G23 re-activation conflict is a run-time-only check, consistent with Guide Appendix C.1's list of IR-level checks. (2) NidanaModule: the catalog takes the explicit `catalogTopologies()` list and scans no activation site, so it needs nothing; landing L9 confirmed.",
+    "OBSERVATION, optional, no step required in this intake: Registration point 2 and the 'definitions' bullet say 'what the app's bootstrap passes'. Under bus-api@v2 G42 MODULE and PAGE topologies are never activated during bootstrap (G34's sense, until `start()`), so a strict reader could take the condition to cover APPLICATION topologies only. The intended reading (the arguments the app passes wherever it constructs the topologies it activates, one factory called from both) still holds. If the owner wants it sharpened, it is a compatible wording change for a later hsdd-contract pass on topic-codegen@v1; nidana.tooling.codegen D1 item 2 (H17's file) carries the same phrase and could take the same clarification there.",
+    "INSERT RULE: not triggered. No guarantee that a nidana.tooling.codegen phase implements or replays changed behavior; only a Boundary citation moved.",
+    "No skill stop, no run-stop candidate, no ADR proposed, no OQ minted, no experiment needed. Remaining H7 member: nidana-checks (H7i; S63 counted 4 live flutter-binding@v1 there: Boundary row, G7, G14, G17; S59 counted 2 topology-dsl@v1 and S60 8 bus-api@v1)."
+  ]
+}
