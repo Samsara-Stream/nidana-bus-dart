@@ -256,7 +256,7 @@ orchestrator and recorded with `would_have_asked: true`.
 | S60 | 9 | hsdd-contract | H3: bus-api@v2 (barrier, scope timing, subscriber errors, re-activation breaking; draft) | done | 77b7eb6 |
 | S61 | 9 | hsdd-contract | H4: bus-testing@v2 (bootstrap recorder and probe, subscriber errors, scope timing; draft) | done | c0dae3a |
 | S62 | 9 | hsdd-contract | H5: navigation-api@v1 (compatible; stays stable) | done | 4a34cf7 |
-| S63 | 9 | hsdd-contract | H6: flutter-binding (NidanaModule, scope timing) | running | |
+| S63 | 9 | hsdd-contract | H6: flutter-binding@v2 (NidanaModule added; scope timing, bootstrap first values, re-activation breaking; draft) | done | 311d3e3 |
 
 ## Change log
 
