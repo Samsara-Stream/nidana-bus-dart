@@ -1,0 +1,385 @@
+{
+  "step_ref": "S62",
+  "skill": "hsdd-contract",
+  "target": "navigation-api@v1 (hsdd/contract/navigation-api.md, hsdd/contract/fixture/navigation-api/)",
+  "status": "completed",
+  "stop": null,
+  "artifacts": [
+    "hsdd/contract/navigation-api.md",
+    "hsdd/contract/fixture/navigation-api/behavior/navigation_conformance.dart",
+    "hsdd/contract/fixture/navigation-api/behavior/navigation_executor_conformance.dart",
+    "hsdd/contract/fixture/navigation-api/behavior/nidana_dart_navigation_test.dart",
+    "hsdd/contract/fixture/navigation-api/behavior/in_memory_router_test.dart",
+    "hsdd/contract/fixture/navigation-api/reject/resolved_intent_is_never_a_deep_link.dart",
+    "hsdd/contract/INDEX.md (regenerated, unchanged)",
+    "docs/auto-run/experiments/navigation-api-v0151/",
+    "docs/auto-run/steps/S62.json"
+  ],
+  "decisions": [
+    {
+      "at": "2026-10-20T18:42:03Z",
+      "artifact": "hsdd/contract/navigation-api.md",
+      "question": "(a) navResolver under bus-api@v2 G23, which compares the plan's functions with == besides the definitions: does navigation-api state that the resolver is activated once, or make its stage functions equal across evaluations (receivers built once per navResolver call, const, or top-level), and does a fixture pin it?",
+      "options": [
+        {
+          "label": "Stage functions built once per call, stated in G13 and pinned",
+          "consequence": "The topology one navResolver call returns re-activates to its active handle, as Spec §3.9 asks of one declaration; a topology from another call, even of one configuration, holds its own resolution and guard functions and its activation while one is active throws TopologyConflict. No hidden state. nidana.navigation D5 and phase .3 must build the stage objects outside the declaration body; one new G13 case."
+        },
+        {
+          "label": "Stage objects canonicalized per configuration",
+          "consequence": "Two navResolver calls of one configuration compare equal and re-activate idempotently, as under bus-api@v1; needs a process-global cache keyed by the resolver function, the redirects and the static policy, held for the life of the process: hidden mutable state in library code, against the owner's functional-first preference."
+        },
+        {
+          "label": "State only that an app activates the resolver once",
+          "consequence": "No fixture change; but re-activating the same value is left to the implementation, and the stand-in of nidana.navigation D5, which builds its stage objects inside the declaration, throws TopologyConflict on its own second activation (probe P5), contradicting Spec §3.9's first sentence for one declaration."
+        }
+      ],
+      "chosen": "Stage functions built once per call, stated in G13 and pinned",
+      "why": "Spec §3.9 makes activating the same declaration twice return the same handle; under bus-api@v2 G23 that holds for the resolver only if every plan of one returned topology holds the same functions, which D5's stand-in does not (P5: TopologyConflict on the same value). Building the stage objects once per call is the smallest change that restores it and keeps the library free of hidden state. Across calls, equality needs canonicalization (P5 cached variant), which Guide §6.3 does not ask for a template whose configuration must be bound, and bus-api@v2 G23 already defines two calls as two declarations. No consumer activates two resolvers (flutter-binding fixtures and nidana.integration activate one). Signal that would have changed my mind: a consumer that must activate the resolver from two call sites, such as a DI container that rebuilds topologies, or a Specification statement that template-built topologies of one configuration compare equal.",
+      "evidence": [
+        "Spec §3.9",
+        "Guide §6.3",
+        "hsdd/contract/bus-api.md (G23)",
+        "docs/auto-run/experiments/bus-api-v2/ (probe P1)",
+        "docs/auto-run/experiments/navigation-api-v0151/ (T4, T8 probe P5)",
+        "hsdd/spec/nidana.navigation.md (D5)"
+      ],
+      "blast_radius": "contract",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T18:43:51Z",
+      "artifact": "hsdd/contract/fixture/navigation-api/behavior/navigation_conformance.dart",
+      "question": "Where does the re-activation clause live and how is it pinned: on the recorded resolver (G13) by comparing the functions two planOf calls hold, or on the live resolver (G14) by activating it twice on a TestBus?",
+      "options": [
+        {
+          "label": "G13, a recording-level case over planOf",
+          "consequence": "Replayed at nidana.navigation.3, the phase that implements navResolver, without a bus; checks exactly what bus-api@v2 G23 compares; the activation outcome itself rests on bus-api@v2 G23's own cases and probe P5."
+        },
+        {
+          "label": "G14, a live case activating twice",
+          "consequence": "Checks the observable outcome directly, but replays only at nidana.navigation.6, two phases after the code it constrains, and duplicates bus-api@v2 G23's cases."
+        }
+      ],
+      "chosen": "G13, a recording-level case over planOf",
+      "why": "The property is of navResolver's plan, which nidana.navigation.3 implements and its gate replays with --guarantee ...G13; a live case could not run there (runtime bodies are unimplemented until nidana.runtime's phases). The case compares the intent map's transformer, the auth map's and the withLatestFrom combiner across two plans of one value (equal) and across two calls (resolution and guard unequal, the app's projection equal). It fails against stage objects built inside the declaration and against canonicalized ones, and passes against once-per-call objects (T4).",
+      "evidence": [
+        "hsdd/contract/topology-dsl.md (planOf, MapStage, WithLatestFromStage, G11)",
+        "hsdd/spec/nidana.navigation.md (nidana.navigation.3 gate)",
+        "docs/auto-run/experiments/navigation-api-v0151/ (T4)"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T18:43:51Z",
+      "artifact": "hsdd/contract/navigation-api.md",
+      "question": "Refinement 8 states the nav-resolver's reliance on bus-api@v1 G22 (connection before activate returns) and G34. How is it restated for Spec §3.13 and bus-api@v2?",
+      "options": [
+        {
+          "label": "Restate the reliance and name the two consequences",
+          "consequence": "States that a bootstrap resolver connects at start() after its inputs' writers, the executor's subscription after every topology, then the queue; and that an intent a topology publishes to nav.intent, or a resolved intent an app's own resolver publishes, while start() connects it reaches neither the resolver nor an executor constructed before start(). App authors learn to navigate at startup from the bootstrap, as a deep link is published."
+        },
+        {
+          "label": "Restate the reliance only",
+          "consequence": "Shorter; leaves unstated a behavior difference that a bus-api@v1 runtime did not have (probe P4: both were performed there) and that Refinement 2's own-resolver path can meet."
+        }
+      ],
+      "chosen": "Restate the reliance and name the two consequences",
+      "why": "Probe P4 shows both consequences on the bus-api@v2 stand-in and their absence on the bus-api@v1 one; they follow from bus-api@v2 G34 (S60's reading, DEC-751) and touch exactly the paths this contract describes (the resolver's intent read, the executor's subscription). Stating them costs no guarantee: G14 covers intents delivered once the resolver has connected and G24 a deep link the shell queues.",
+      "evidence": [
+        "Spec §3.13",
+        "hsdd/contract/bus-api.md (G34, G22, G14)",
+        "docs/auto-run/experiments/navigation-api-v0151/ (T7 probe P4)",
+        "docs/auto-run/experiments/bus-api-amendment/ (T9)"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T18:43:51Z",
+      "artifact": "hsdd/contract/navigation-api.md",
+      "question": "The nav.access-policy paragraph has the app publish its first policy before start(). Writers-before-readers now settles a topology-owned policy before the resolver connects. Restate the paragraph only, or also pin the topology-owned case with a new G24 case?",
+      "options": [
+        {
+          "label": "Restate the paragraph, no new case",
+          "consequence": "Interface prose covers the three owners: a topology computing at its connection (settled before the resolver whatever the activation order), a topology computing from a queued event (arrives after the whole queue), a claimed publisher (queued, publication order). bus-api@v2 G34's settled-writer case already pins the order; no phase replay changes for it."
+        },
+        {
+          "label": "Restate and add a reactive-form G24 case",
+          "consequence": "Pins the topology-owned policy at bootstrap from navigation's side; duplicates bus-api@v2 G34's case, changes G24 beyond a citation and adds a case to nidana.navigation.6's replay."
+        }
+      ],
+      "chosen": "Restate the paragraph, no new case",
+      "why": "The behavior is bus-api@v2 G34's, pinned there; G14's rule (the latest policy when an intent is delivered) is unchanged. Probes P1 to P3 confirm the three statements on the bus-api@v2 stand-in, and show that on the bus-api@v1 stand-in a topology-owned policy computed at its connection did not guard the bootstrap deep link at all (P1), which is why the old paragraph could only advise a claimed publisher. Signal that would have changed my mind: a consumer phase that relies on the reactive form at bootstrap (nidana.integration uses a static policy).",
+      "evidence": [
+        "Spec §3.13",
+        "hsdd/contract/bus-api.md (G34, G14)",
+        "docs/auto-run/experiments/navigation-api-v0151/ (T7 probes P1 to P3)",
+        "hsdd/spec/nidana.integration.md (nav-resolver with a static policy)"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T18:43:51Z",
+      "artifact": "hsdd/contract/navigation-api.md",
+      "question": "G14 and G24 cite bus-api@v1 G22 and G34, whose meaning changed. Which bus-api@v2 guarantees does each cite?",
+      "options": [
+        {
+          "label": "G14 cites G22 and G34; G24 cites G34 alone",
+          "consequence": "G14's 'once its activation has connected' covers both an activation after start() (G22) and one during bootstrap (G34); G24 is the bootstrap case only, which v2 G34 governs; G22 under v2 speaks only of activations after start()."
+        },
+        {
+          "label": "Keep both citations on both",
+          "consequence": "Mechanical move; G24 would cite a guarantee (v2 G22) that no longer governs anything it states."
+        }
+      ],
+      "chosen": "G14 cites G22 and G34; G24 cites G34 alone",
+      "why": "bus-api@v2 G22 states the connection for an activation after start() and defers bootstrap to G34; G24 concerns only an activation and a deep link before start(). The replay shows both guarantees hold unchanged (T5: 41 of 41 and 52 of 52 on both runtimes).",
+      "evidence": [
+        "hsdd/contract/bus-api.md (G22, G34)",
+        "docs/auto-run/experiments/navigation-api-v0151/ (T5)"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T18:47:51Z",
+      "artifact": "hsdd/contract/navigation-api.md",
+      "question": "L4: does any guarantee of this contract say where an error goes, so that Spec §10.2 principle 5 and bus-api@v2 G18 change it?",
+      "options": [
+        {
+          "label": "No guarantee changes; report nidana.navigation D6",
+          "consequence": "The contract states no error destination; the changed meaning lands in nidana.navigation D6, which the H23 sweep restates: a perform that throws now reaches the handler of the zone the executor was constructed in."
+        },
+        {
+          "label": "State the executor's error zone in G20",
+          "consequence": "Pins behavior on a path no conforming router reaches (G18 rules out a throwing perform for an admitted plan), adding a guarantee and a case for a defect path, which D6 deliberately kept node-local."
+        }
+      ],
+      "chosen": "No guarantee changes; report nidana.navigation D6",
+      "why": "Probe P6: on the bus-api@v1 stand-in a throwing perform reached the bus's zone and a confirmation error the executor's; on the bus-api@v2 stand-in both reach the zone the executor was constructed in, and the executor goes on with later intents on both. D6's reasoning (no conforming router produces either event) still holds, so the contract stays silent; the Versioning entry records the fact.",
+      "evidence": [
+        "Spec §10.2",
+        "hsdd/contract/bus-api.md (G18)",
+        "hsdd/spec/nidana.navigation.md (D6)",
+        "docs/auto-run/experiments/navigation-api-v0151/ (T9 probe P6)"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T18:47:51Z",
+      "artifact": "hsdd/contract/navigation-api.md",
+      "question": "Check the executor suites' bootstrap order against Spec §7.2's scope timing. The executor suite calls start() after the harness's executor returns, and flutter-binding's binding pumps its WidgetsApp inside executor, so its tree mounts before start(), where Spec §7.2 has an app call start() before its UI mounts. Change the harness, or record it?",
+      "options": [
+        {
+          "label": "Record it; the mount order is flutter-binding's",
+          "consequence": "No fixture change; the Validation bullet on flutter-binding's binding states that the tree mounts before start(), holds no page or module scope so scope timing rejects nothing, and the mount order is that contract's (H6)."
+        },
+        {
+          "label": "Add a start hook to the harness",
+          "consequence": "Lets a binding mount after start(), but adds a member to NavigationExecutorHarness, which breaks flutter-binding's binding (a file this step may not edit) until H6 rewrites it."
+        }
+      ],
+      "chosen": "Record it; the mount order is flutter-binding's",
+      "why": "Both suites activate APPLICATION topologies only, before or after start(), except G16's PAGE picker, activated after start(); an executor claims through a publisher, which bus-api@v2 G42 admits at any time (T1). The executor suite itself conforms; flutter-binding's binding passes 26 of 26 on the bus-api@v2 stand-in (T6). The mount-before-start order is guidance in Spec §7.2, not a rejected operation, and H6 is routed to check exactly that binding.",
+      "evidence": [
+        "Spec §7.2",
+        "hsdd/contract/bus-api.md (G42)",
+        "hsdd/contract/fixture/flutter-binding/behavior/flutter_navigation_executor_test.dart",
+        "docs/auto-run/experiments/navigation-api-v0151/ (T1, T6)"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T18:47:51Z",
+      "artifact": "hsdd/contract/navigation-api.md",
+      "question": "Classify against this contract's Breaking list: the startup barrier (Refinement 8, G14, G24 and the paragraph after navResolver restated for bus-api@v2).",
+      "options": [
+        {
+          "label": "Compatible",
+          "consequence": "Wording and citations; G14 and G24 hold unchanged by replay; the two consequences Refinement 8 names are bus-api@v2's change, versioned there."
+        },
+        {
+          "label": "Breaking",
+          "consequence": "Would version navigation-api to v2 although no navigation guarantee changes and both suites pass unchanged."
+        }
+      ],
+      "chosen": "Compatible",
+      "why": "The fixtures from before the step pass 41 of 41 and 52 of 52 on the bus-api@v1 and bus-api@v2 stand-in runtimes, with the old and the new navigation stand-in (T5); after, 42 of 42 and 52 of 52 on both, and flutter-binding's executor binding 26 of 26 on v2 (T4, T6). No Breaking-list item (intent semantics, guard table, resolution order, resolver id, scope, reads, writes, stages, names, topics, write order, timestamp source, equality, throws) changes.",
+      "evidence": [
+        "docs/auto-run/experiments/navigation-api-v0151/ (T4, T5, T6)",
+        "docs/auto-run/experiments/bus-api-v2/output.txt (T9)"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T18:47:51Z",
+      "artifact": "hsdd/contract/navigation-api.md",
+      "question": "Classify against this contract's Breaking list: the nav.access-policy paragraph restated for writers before readers.",
+      "options": [
+        {
+          "label": "Compatible",
+          "consequence": "Interface prose; G14's rule unchanged."
+        },
+        {
+          "label": "Breaking",
+          "consequence": "Would treat a bus-api@v2 behavior (a topology-owned policy now guards a bootstrap deep link, P1) as a navigation change."
+        }
+      ],
+      "chosen": "Compatible",
+      "why": "No declaration or guarantee changes; the outcome change at bootstrap for a topology-owned policy comes from bus-api@v2 G34 (P1), and it makes the guard stricter where the old runtime let a deep link pass under RouteAccessPolicy.empty.",
+      "evidence": [
+        "docs/auto-run/experiments/navigation-api-v0151/ (T7 probes P1 to P3)"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T18:47:51Z",
+      "artifact": "hsdd/contract/navigation-api.md",
+      "question": "Classify against this contract's Breaking list: G13's new clause on re-activation (stage functions built once per call; another call's resolver conflicts).",
+      "options": [
+        {
+          "label": "Compatible",
+          "consequence": "A new guarantee clause that every existing fixture still passes; the resolver's id, scope, reads, writes, stages and recorded names are unchanged; the cross-call TopologyConflict is bus-api@v2 G23's breaking change, stated here for the resolver."
+        },
+        {
+          "label": "Breaking",
+          "consequence": "Would read the earlier Versioning line 'bus-api@v1 G23's idempotency is unchanged' as a guarantee of cross-call idempotency, and version navigation-api to v2 with every consumer reference moving."
+        }
+      ],
+      "chosen": "Compatible",
+      "why": "Every case as it stood passes against the in-declare, once and cached stand-ins on both runtimes (T5); the new case passes against once-per-call (T4). The cross-call idempotency was never a guarantee of this contract: it was a remark in a Versioning history entry about bus-api@v1 G23, which bus-api@v2 changed under its own Breaking list. No consumer activates two resolvers. Signal that would have changed my mind: a consumer fixture or plan that activates the resolver from two navResolver calls.",
+      "evidence": [
+        "docs/auto-run/experiments/navigation-api-v0151/ (T4, T5, T8 probe P5)",
+        "hsdd/contract/bus-api.md (G23, Versioning)",
+        "hsdd/contract/fixture/flutter-binding/behavior/flutter_binding_conformance.dart"
+      ],
+      "blast_radius": "contract",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T18:47:51Z",
+      "artifact": "hsdd/contract/navigation-api.md",
+      "question": "Classify against this contract's Breaking list: citations of bus-api, bus-testing and topology-dsl moved to v2 (Boundary, Refinements 8 and 9, InMemoryRouter's comment, G1, G13, G14, G15, G19, G21, G24, Validation, five fixture comment lines), historical entries kept.",
+      "options": [
+        {
+          "label": "Compatible",
+          "consequence": "Citations only; ids carried over (bus-api@v2 G13, G14, G20, G22, G23, G24, G34, G40, Refinement 3)."
+        },
+        {
+          "label": "Breaking",
+          "consequence": "Would apply only if a cited guarantee's meaning change altered a navigation guarantee, which the replays rule out."
+        }
+      ],
+      "chosen": "Compatible",
+      "why": "Each cited bus-api@v2 guarantee keeps the meaning this contract relies on, except G22 and G34, handled under the barrier entry; the Boundary row for topology-dsl@v2 adds planOf and the stage classes, which the new G13 case uses.",
+      "evidence": [
+        "hsdd/management/2026-10-20-intake-ref-arch-v0-15-1.md (Citations of a superseded version)",
+        "hsdd/contract/bus-api.md",
+        "hsdd/contract/bus-testing.md",
+        "hsdd/contract/topology-dsl.md"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T18:47:51Z",
+      "artifact": "hsdd/contract/navigation-api.md",
+      "question": "Version, status and phase_ids under DEC-688, from the union of the classifications.",
+      "options": [
+        {
+          "label": "Stay v1, stable, phase_ids final",
+          "consequence": "Every change compatible; no consumer reference moves; the registry is unchanged; a dated 'Touched within v1 for Specification v0.15.1' entry records each classification."
+        },
+        {
+          "label": "v2, draft, provisional",
+          "consequence": "Every consumer reference to navigation-api would move inside the intake, and reconcile would have to re-confirm phase ids, for no change a consumer can observe in this contract."
+        }
+      ],
+      "chosen": "Stay v1, stable, phase_ids final",
+      "why": "No change is breaking (decisions above); produced_by and consumers are unchanged, so no phase id needs re-confirming. The step notes allow v1 when only citations and wording change and both suites pass unchanged; the one new clause is compatible under the list's last item.",
+      "evidence": [
+        "DEC-688",
+        "docs/auto-run/experiments/navigation-api-v0151/output.txt"
+      ],
+      "blast_radius": "contract",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    }
+  ],
+  "experiments": [
+    {
+      "path": "docs/auto-run/experiments/navigation-api-v0151/",
+      "question": "Do navigation-api's two suites hold unchanged on a bus-api@v2 runtime; what do the resolver and the executor see at bootstrap under Spec §3.13 (topology-owned policy, event-derived policy, claimed publisher, connection-time intents); how does a nav-resolver re-activate under bus-api@v2 G23 for each place its stage objects can be built; where do the executor's unhandled errors go?",
+      "finding": "Before-fixtures pass 41/41 and 52/52 on the bus-api@v1 and v2 stand-ins with old and new navigation stand-ins; after-fixtures pass 42/42 and 52/52 with once-per-call stage objects on both runtimes, flutter-binding's executor binding 26/26 on v2. The new G13 case fails against in-declare and canonicalized stage objects. P1: a topology-owned policy computed at connection guards a bootstrap deep link on v2 whatever the activation order, not on v1. P2: a policy from an event queued before the deep link arrives after the whole queue on both. P3: a claimed publisher's policy guards the deep links published after it, on both. P4: an intent a topology publishes to nav.intent at its connection, and a resolved intent an own resolver publishes at its connection, are performed on v1 and reach neither the resolver nor the executor on v2. P5: in-declare conflicts with its own second activation on v2; once returns the handle for the same value and conflicts for another call; cached returns the handle for both. P6: a throwing perform reaches the bus's zone on v1 and the executor's construction zone on v2; confirmation errors reach the executor's zone on both; later intents are performed."
+    }
+  ],
+  "self_check": [
+    { "gate": "Frontmatter has id, version, status, kind, owner, compatibility, produced_by, consumers; external_consumers when any exist.", "status": "pass", "note": "Unchanged: v1, stable, api, versioned, phase_ids final." },
+    { "gate": "`consumers` lists phase ids that actually consume this contract.", "status": "pass", "note": "Unchanged; no consumer changed." },
+    { "gate": "The Interface section is concrete enough to mock against.", "status": "pass", "note": "No declaration changed; navResolver's comment states the per-call stage functions." },
+    { "gate": "At least one guarantee/invariant is stated.", "status": "pass", "note": "27 guarantees." },
+    { "gate": "A breaking change bumped the version and added a migration note.", "status": "n/a", "note": "No breaking change; each change is classified in the dated Versioning entry." },
+    { "gate": "The registry was regenerated.", "status": "pass", "note": "node hsdd/scripts/gen-registry.mjs; INDEX.md unchanged." },
+    { "gate": "`phase_ids` is present (`provisional` until `hsdd-reconcile` finalizes it).", "status": "pass", "note": "final, unchanged." },
+    { "gate": "Every code-level artifact both sides consume (types file, fixtures, shared package) names its canonical path and its owner in the Interface or Validation section: the owning phase for code, `hsdd-contract` for validation artifacts.", "status": "pass", "note": "Unchanged." },
+    { "gate": "A contract or version created by this run has its schema and its kind's fixtures written at the canonical paths.", "status": "n/a", "note": "No contract or version created; fixtures updated in place." },
+    { "gate": "Open questions are cited by ID only, never defined here; prose justifying behavior as \"pending OQ-x\" is swept when the OQ resolves (hsdd-reconcile).", "status": "pass", "note": "No OQ added or cited anew." },
+    { "gate": "A `stable` contract names a schema or a fixtures directory at the canonical paths and the artifact exists, or it carries `validation: grandfathered` (never on a contract authored after the upgrade).", "status": "pass", "note": "hsdd/contract/fixture/navigation-api/ exists." },
+    { "gate": "No version is `retired` while a consumer or an external consumer still names it.", "status": "pass", "note": "No retirement." },
+    { "gate": "A `v0` contract carries `## Observed completeness`, and the block changed in any commit that added fixtures to it.", "status": "n/a", "note": "v1 contract." },
+    { "gate": "node docs/auto-run/tools/gate.mjs --skill hsdd-contract", "status": "pass", "note": "0 errors, 0 warnings." }
+  ],
+  "notes_for_orchestrator": [
+    "navigation-api stays v1, stable, phase_ids final. No consumer reference to navigation-api moves; INDEX.md is unchanged. Every live citation in this file and its fixtures now names bus-api@v2, bus-testing@v2 and topology-dsl@v2; flutter-binding@v1, topic-model@v1 and topology-ir@v1 stay. The H7f citation touch of navigation-api has nothing left to move unless H6 versions flutter-binding.",
+    "Insert rule: a nidana.navigation phase's replay changes. G13 gains a clause and one case ('G13 one nav-resolver holds the same stage functions in every plan of it, and another navResolver call holds its own resolution and guard functions'), recording-level, replayed by nidana.navigation.3's gate (its --guarantee list already holds G13) and by nidana.navigation.6's unrestricted replay. nidana.navigation D5 and nidana.navigation.3's Scope must say that navResolver builds its stage objects once per call, outside the declaration body (the topology() form runs its body on each planOf call); D5's stand-in, which builds them inside, fails the case. So the insert rule adds an hsdd-phase-plan step on nidana.navigation (append mode, .3's Scope and D5) with its own reconcile, and the H23 sweep skips that node.",
+    "G14 and G24 do not change behavior: nidana.navigation.6's replay of them is unchanged and its bootstrap test (deep link published before the activation, then start()) still holds. Its Consumes line and any plan text citing bus-api@v1 G22 and G34 for the bootstrap should cite bus-api@v2 G34 alone (G22 under v2 covers activations after start()).",
+    "Citation elsewhere whose meaning changed: nidana.navigation D6 ('which bus-api@v1 G18 sends to the provider zone's uncaught-error handler'). Under bus-api@v2 G18 a perform that throws inside the executor's handler goes to the uncaught-error handler of the zone the executor was constructed in, the same zone an error event on the router's confirmations already reached; the executor still handles later intents (probe P6). No navigation-api guarantee states an error destination.",
+    "Behavior differences visible through navigation that come from bus-api@v2 G34 (DEC-751's reading), stated in Refinement 8: an intent a topology publishes to nav.intent while start() connects it reaches no resolver, and a resolved intent an app's own resolver publishes while start() connects it reaches no executor constructed before start() (P4; both were performed on the bus-api@v1 stand-in). No consumer in the tree does either (nidana.integration's resolver uses the template with a static policy); H20 and H21 may want to know for the bootstrap slice.",
+    "flutter-binding (H6): its binding of the executor suite pumps its WidgetsApp inside the harness's executor, which the suite calls before start(), so the tree mounts before start(), against Spec §7.2's 'calls start() ... before its UI mounts'. No page or module scope is mounted, so nothing is rejected, and it passes 26 of 26 on the bus-api@v2 stand-in (T6). navigation-api's Validation records this and leaves the mount order to flutter-binding. Adding a start hook to NavigationExecutorHarness would be a navigation-api fixture change that breaks that binding until H6 rewrites it; not done.",
+    "The replays use stand-ins descended from navigation-api-fixtures/ and bus-api-amendment/ through bus-api-v2/ (its runtime/v1 passes every v1 suite), copied from bus-testing-v0151/ unchanged but for the runtime and navigation sources swapped in (setup in output.txt).",
+    "The historical Versioning line 'two nav-resolvers of one configuration still record equal definitions, so bus-api@v1 G23's idempotency is unchanged' is kept as written; the new dated entry explains how it reads under bus-api@v2 G23.",
+    "Decision timestamps: several decisions share the stamp taken when they were fixed together, before the contract edits (18:43:51Z) and before the Versioning entry (18:47:51Z)."
+  ]
+}

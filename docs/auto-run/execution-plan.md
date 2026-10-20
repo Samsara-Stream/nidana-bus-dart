@@ -255,8 +255,8 @@ orchestrator and recorded with `would_have_asked: true`.
 | S59 | 9 | hsdd-contract | H2: topology-dsl@v2 (write chains; breaking, draft) | done | dc16733 |
 | S60 | 9 | hsdd-contract | H3: bus-api@v2 (barrier, scope timing, subscriber errors, re-activation breaking; draft) | done | 77b7eb6 |
 | S61 | 9 | hsdd-contract | H4: bus-testing@v2 (bootstrap recorder and probe, subscriber errors, scope timing; draft) | done | c0dae3a |
-| S62 | 9 | hsdd-contract | H5: navigation-api | running | |
-| S63 | 9 | hsdd-contract | H6: flutter-binding (NidanaModule, scope timing) | planned | |
+| S62 | 9 | hsdd-contract | H5: navigation-api@v1 (compatible; stays stable) | done | 4a34cf7 |
+| S63 | 9 | hsdd-contract | H6: flutter-binding (NidanaModule, scope timing) | running | |
 
 ## Change log
 
@@ -452,3 +452,7 @@ orchestrator and recorded with `would_have_asked: true`.
   (append mode, rewriting unshipped phases in place) and a reconcile for nidana.runtime, nidana.flutter
   and nidana.integration; H23 a final reconcile that sweeps the other four leaf-parents' plan text and
   runs `gate.mjs --final`. Handoffs take step ids in dispatch order from S58; skipped handoffs take no id.
+- 2026-10-20 (UTC), after S62: navigation-api stays v1 (compatible). Its new G13 clause (navResolver's
+  stage functions built once per call, for bus-api@v2 G23) changes what nidana.navigation.3 implements
+  and .3 and .6 replay, so the intake's insert rule applies: an hsdd-phase-plan step on nidana.navigation
+  and its reconcile follow H13, and H23 skips that node (DEC in S62.orchestrator.json).
