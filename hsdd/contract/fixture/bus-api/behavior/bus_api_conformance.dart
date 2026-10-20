@@ -1,11 +1,13 @@
-// Conformance library for bus-api@v1 (ADR-001 item 4): the Bus Runtime
+// Conformance library for bus-api@v2 (ADR-001 item 4): the Bus Runtime
 // Contract (Spec §3), lifecycle (Spec §7), observation (Spec §9), the error
 // model (Spec §10.2) and runtime operations (Spec §11) as a bus delivers
-// them. Its cases are values; a binding registers them with a test runner.
-// It imports neither package:test nor package:flutter_test, and names no
-// bus-testing@v1 type: a binding supplies buses on a virtual clock through
-// BusApiHarness. The live semantics of each combinator are topology-dsl@v1's
-// suite, bound in this directory by bus_activation_test.dart.
+// them, under Specification v0.15.1. Its cases are values; a binding
+// registers them with a test runner. It imports neither package:test nor
+// package:flutter_test, and names no bus-testing@v1 type: a binding supplies
+// buses on a virtual clock through BusApiHarness. The live semantics of each
+// combinator are topology-dsl@v2's suite, bound in this directory by
+// bus_activation_test.dart. A MODULE or PAGE topology activates only after
+// start() (G42), so a case activates one before start() only to pin that.
 import 'dart:async';
 
 import 'package:matcher/expect.dart';
@@ -45,11 +47,15 @@ const EventTopic<int> _e = EventTopic<int>(name: 'bus.e');
 const EventTopic<int> _e2 = EventTopic<int>(name: 'bus.e-two');
 const EventTopic<int> _out = EventTopic<int>(name: 'bus.out');
 const EventTopic<int> _outB = EventTopic<int>(name: 'bus.out-b');
+const EventTopic<int> _outC = EventTopic<int>(name: 'bus.out-c');
 const StateTopic<int> _s = StateTopic<int>(name: 'bus.s', initial: 1);
 const StateTopic<int> _s2 = StateTopic<int>(name: 'bus.s-two', initial: 0);
 const StateTopic<int> _noDedup =
     StateTopic<int>(name: 'bus.no-dedup', initial: 0, dedup: Dedup.none);
 const ReplayTopic<int> _r = ReplayTopic<int>(name: 'bus.r', bufferSize: 2);
+const StateTopic<int> _x = StateTopic<int>(name: 'bus.x', initial: 0);
+const StateTopic<int> _y = StateTopic<int>(name: 'bus.y', initial: 0);
+const StateTopic<int> _z = StateTopic<int>(name: 'bus.z', initial: 0);
 const EventTopic<String> _secret =
     EventTopic<String>(name: 'bus.secret', sensitive: true);
 const EventTopic<int> _untraced =
@@ -68,6 +74,8 @@ const Set<ObserverCapability> _all = <ObserverCapability>{
 
 int _double(int v) => v * 2;
 int _sum(int a, int b) => a + b;
+int _failOn2(int v) => v == 2 ? throw StateError('two') : v;
+int _minusOne(Object error, StackTrace stackTrace) => -1;
 
 Topology _t(String id, void Function(TopologyBuilder b) body,
         [Scope scope = Scope.module]) =>
@@ -424,8 +432,10 @@ final List<ConformanceCase<BusApiHarness>> busApiConformance =
       final StateTopic<int> output = StateTopic<int>.computed(
           name: 'bus.computed-out', initial: () => ++writes * 0);
       final Bus bus = h.bus();
-      bus.activate(_t('computed',
-          (TopologyBuilder b) => b.write(output, b.read(input).map((int v) => v + 1))));
+      bus.activate(_t(
+          'computed',
+          (TopologyBuilder b) => b.write(output, b.read(input).map((int v) => v + 1)),
+          Scope.application));
       expect(<int>[reads, writes], <int>[1, 1]);
       bus.start();
       h.flush(bus);
@@ -461,6 +471,26 @@ final List<ConformanceCase<BusApiHarness>> busApiConformance =
       expect(got, <int>[3]);
       expect(() => bus.observe(EventTopic<int>(name: 'bus.same', sensitive: true)),
           throwsA(isA<TopicCollision>()));
+    },
+  ),
+  (
+    name: 'G7 the registry compares tracing but not the initial value, which the first registration seeds, and removeTopic frees the name for another declaration',
+    body: (BusApiHarness h) async {
+      final Bus bus = h.bus();
+      bus.start();
+      const StateTopic<int> seven = StateTopic<int>(name: 'bus.seeded', initial: 7);
+      const StateTopic<int> nine = StateTopic<int>(name: 'bus.seeded', initial: 9);
+      expect(bus.getCurrentValue(seven), 7);
+      expect(bus.getCurrentValue(nine), 7);
+      expect(
+          () => bus.observe(const StateTopic<int>(
+              name: 'bus.seeded', initial: 7, tracing: Tracing.disabled)),
+          throwsA(isA<TopicCollision>()
+              .having((TopicCollision c) => c.registered, 'registered', seven)));
+      expect(bus.removeTopic(nine), isTrue);
+      expect(
+          bus.getCurrentValue(const StateTopic<String>(name: 'bus.seeded', initial: 'free')),
+          'free');
     },
   ),
   // ------------------------------------------------------------ G8
@@ -557,6 +587,30 @@ final List<ConformanceCase<BusApiHarness>> busApiConformance =
     },
   ),
   (
+    name: 'G9 before start removeTopic refuses a topic that an unconnected topology reads or an unconnected subscription observes; forced, the subscription ends at once and the read receives TopicRemoved when start connects it',
+    body: (BusApiHarness h) async {
+      final List<BusDiagnostic> d = <BusDiagnostic>[];
+      final Bus bus = h.bus(_dev(d));
+      bus.activate(_t('waits', (TopologyBuilder b) => b.write(_out, b.read(_e2)),
+          Scope.application));
+      expect(bus.removeTopic(_e2), isFalse);
+      final List<Object> errors = <Object>[];
+      var done = false;
+      bus.observe(_s2).listen((int _) {}, onError: errors.add, onDone: () => done = true);
+      expect(bus.removeTopic(_s2), isFalse);
+      expect(bus.removeTopic(_s2, force: true), isTrue);
+      expect(errors, <Object?>[isA<TopicRemoved>()]);
+      expect(done, isTrue);
+      expect(bus.removeTopic(_e2, force: true), isTrue);
+      expect(d.whereType<PipelineTerminated>(), isEmpty);
+      bus.start();
+      final PipelineTerminated t = d.whereType<PipelineTerminated>().single;
+      expect(t.topologyId, 'waits');
+      expect(t.sink, _out.ref);
+      expect(t.error, isA<TopicRemoved>());
+    },
+  ),
+  (
     name: 'G9 removeTopic called during a delivery throws StateError',
     body: (BusApiHarness h) async {
       final Bus bus = h.bus();
@@ -578,16 +632,20 @@ final List<ConformanceCase<BusApiHarness>> busApiConformance =
     name: 'G10 an activation beyond maxActiveTopologies or maxTopics throws BusLimitExceeded and activates nothing',
     body: (BusApiHarness h) async {
       final Bus a = h.bus(const BusConfig(maxActiveTopologies: 1));
-      a.activate(_t('limit-a', (TopologyBuilder b) => b.write(_out, b.read(_e))));
+      a.activate(_t('limit-a', (TopologyBuilder b) => b.write(_out, b.read(_e)),
+          Scope.application));
       expect(
-          () => a.activate(_t('limit-b', (TopologyBuilder b) => b.write(_outB, b.read(_e2)))),
+          () => a.activate(_t('limit-b', (TopologyBuilder b) => b.write(_outB, b.read(_e2)),
+              Scope.application)),
           throwsA(isA<BusLimitExceeded>()
               .having((BusLimitExceeded e) => e.limit, 'limit', BusLimit.activeTopologies)
               .having((BusLimitExceeded e) => e.max, 'max', 1)));
       final Bus b = h.bus(const BusConfig(maxTopics: 3));
-      b.activate(_t('limit-c', (TopologyBuilder t) => t.write(_out, t.read(_e))));
+      b.activate(_t('limit-c', (TopologyBuilder t) => t.write(_out, t.read(_e)),
+          Scope.application));
       expect(
-          () => b.activate(_t('limit-d', (TopologyBuilder t) => t.write(_outB, t.read(_e2)))),
+          () => b.activate(_t('limit-d', (TopologyBuilder t) => t.write(_outB, t.read(_e2)),
+              Scope.application)),
           throwsA(isA<BusLimitExceeded>()
               .having((BusLimitExceeded e) => e.limit, 'limit', BusLimit.topics)));
       expect(<String>[for (final d in b.toGraph().topologies) d.topologyId],
@@ -848,7 +906,7 @@ final List<ConformanceCase<BusApiHarness>> busApiConformance =
   ),
   // ------------------------------------------------------------ G17
   (
-    name: 'G17 a state topic subscription receives the value current when it listened in the first bus microtask, then the values delivered meanwhile, in order (decides OQ-R1)',
+    name: 'G17 a state topic subscription made after start receives the value current when it listened in the first bus microtask, then the values delivered meanwhile, in order (decides OQ-R1)',
     body: (BusApiHarness h) async {
       final Bus bus = h.bus();
       bus.start();
@@ -865,7 +923,7 @@ final List<ConformanceCase<BusApiHarness>> busApiConformance =
     },
   ),
   (
-    name: 'G17 a replay topic subscription receives its buffer first, in the first bus microtask; an event topic subscription receives only what is published after it listened, at once',
+    name: 'G17 a replay topic subscription made after start receives its buffer first, in the first bus microtask; an event topic subscription receives only what is published after it listened, at once',
     body: (BusApiHarness h) async {
       final Bus bus = h.bus();
       bus.start();
@@ -907,20 +965,61 @@ final List<ConformanceCase<BusApiHarness>> busApiConformance =
     },
   ),
   (
-    name: 'G18 a subscriber that throws does not stop delivery to the others, and its error reaches the zone the bus was built in',
+    name: 'G18 a subscriber that throws stops neither the publish nor the delivery to the others, keeps receiving, and its error reaches the zone in which it listened, not the zone the bus was built in',
     body: (BusApiHarness h) async {
-      final List<Object> errors = <Object>[];
+      final List<Object> busZone = <Object>[];
+      final List<Object> listenZone = <Object>[];
       late final Bus bus;
-      runZonedGuarded(() => bus = h.bus(), (Object e, StackTrace s) => errors.add(e));
+      runZonedGuarded(() => bus = h.bus(), (Object e, StackTrace s) => busZone.add(e));
       bus.start();
       final Publisher p = bus.publisher(_svc);
-      bus.observe(_e).listen((int v) => throw StateError('subscriber $v'));
+      final List<int> thrower = <int>[];
+      runZonedGuarded(
+          () => bus.observe(_e).listen((int v) {
+                thrower.add(v);
+                throw StateError('subscriber $v');
+              }),
+          (Object e, StackTrace s) => listenZone.add(e));
       final List<int> got = _listen(bus, _e);
       p.publish(_e, 1);
+      expect(got, <int>[1]);
       p.publish(_e, 2);
       h.flush(bus);
       expect(got, <int>[1, 2]);
-      expect(errors, <Object?>[isA<StateError>(), isA<StateError>()]);
+      expect(thrower, <int>[1, 2]);
+      expect(listenZone, <Object?>[isA<StateError>(), isA<StateError>()]);
+      expect(busZone, isEmpty);
+    },
+  ),
+  (
+    name: 'G18 what onError, onDone or a handler set later through the subscription throws, and an error event left without onError, reach the zone in which it listened',
+    body: (BusApiHarness h) async {
+      final List<Object> busZone = <Object>[];
+      final List<Object> listenZone = <Object>[];
+      late final Bus bus;
+      runZonedGuarded(() => bus = h.bus(), (Object e, StackTrace s) => busZone.add(e));
+      bus.start();
+      runZonedGuarded(() {
+        final StreamSubscription<int> later = bus.observe(_e).listen(null);
+        later.onData((int v) => throw StateError('later $v'));
+        bus.observe(_s2).listen((int _) {},
+            onError: (Object e) => throw StateError('onError'),
+            onDone: () => throw StateError('onDone'));
+        bus.observe(_r).listen((int _) {});
+      }, (Object e, StackTrace s) => listenZone.add(e));
+      h.flush(bus);
+      bus.publisher(_svc).publish(_e, 1);
+      expect(bus.removeTopic(_s2, force: true), isTrue);
+      expect(bus.removeTopic(_r, force: true), isTrue);
+      Matcher thrown(String message) =>
+          isA<StateError>().having((StateError e) => e.message, 'message', message);
+      expect(listenZone, <Object?>[
+        thrown('later 1'),
+        thrown('onError'),
+        thrown('onDone'),
+        isA<TopicRemoved>().having((TopicRemoved e) => e.topic, 'topic', _r.ref),
+      ]);
+      expect(busZone, isEmpty);
     },
   ),
   (
@@ -998,7 +1097,8 @@ final List<ConformanceCase<BusApiHarness>> busApiConformance =
                   const ServiceSource('second'),
                 ])),
           ])));
-      bus.activate(_t('owner', (TopologyBuilder b) => b.write(_s2, b.read(_e))));
+      bus.activate(_t('owner', (TopologyBuilder b) => b.write(_s2, b.read(_e)),
+          Scope.application));
       expect(
           () => bus.publisher(const ServiceSource('third'),
               writes: <StateTopic<Object?>>{_s2}),
@@ -1088,8 +1188,8 @@ final List<ConformanceCase<BusApiHarness>> busApiConformance =
     name: 'G21 deactivating a topology releases its writes, so another claimant can take them',
     body: (BusApiHarness h) async {
       final Bus bus = h.bus();
-      final TopologyHandle handle =
-          bus.activate(_t('releases', (TopologyBuilder b) => b.write(_s2, b.read(_e))));
+      final TopologyHandle handle = bus.activate(_t(
+          'releases', (TopologyBuilder b) => b.write(_s2, b.read(_e)), Scope.application));
       expect(() => bus.publisher(_svc, writes: <StateTopic<Object?>>{_s2}),
           throwsA(isA<ClaimRejected>()));
       handle.deactivate();
@@ -1116,7 +1216,7 @@ final List<ConformanceCase<BusApiHarness>> busApiConformance =
     },
   ),
   (
-    name: 'G22 the outputs of an activation connection are delivered once the bus microtasks queued by activate have run',
+    name: 'G22 the outputs of an activation made after start are delivered once the bus microtasks queued by activate have run',
     body: (BusApiHarness h) async {
       final Bus bus = h.bus();
       bus.start();
@@ -1128,7 +1228,7 @@ final List<ConformanceCase<BusApiHarness>> busApiConformance =
     },
   ),
   (
-    name: 'G22 an activation is connected when activate returns, so a value published right after it meets the first value of every read',
+    name: 'G22 an activation made after start is connected when activate returns, so a value published right after it meets the first value of every read',
     body: (BusApiHarness h) async {
       final Bus bus = h.bus();
       bus.start();
@@ -1148,7 +1248,7 @@ final List<ConformanceCase<BusApiHarness>> busApiConformance =
     },
   ),
   (
-    name: 'G22 the publishes a connection causes wait for a bus microtask: none is delivered before activate returns, and a topology activated right after receives them',
+    name: 'G22 the publishes the connection of an activation made after start causes wait for a bus microtask: none is delivered before activate returns, and a topology activated right after receives them',
     body: (BusApiHarness h) async {
       final Bus bus = h.bus();
       bus.start();
@@ -1166,16 +1266,26 @@ final List<ConformanceCase<BusApiHarness>> busApiConformance =
     },
   ),
   (
-    name: 'G22 an APPLICATION topology activated after start is reported in dev mode; one activated before start is not',
+    name: 'G22 an APPLICATION topology activated after start is reported in dev mode and receives its state and replay reads as usual and no event published before it; one activated before start, or a MODULE one after it, is not reported',
     body: (BusApiHarness h) async {
       final List<BusDiagnostic> d = <BusDiagnostic>[];
       final Bus bus = h.bus(_dev(d));
       bus.activate(_t('early', (TopologyBuilder b) => b.write(_out, b.read(_e)),
           Scope.application));
       bus.start();
-      bus.activate(_t('late', (TopologyBuilder b) => b.write(_outB, b.read(_e2)),
+      final Publisher p = bus.publisher(_svc);
+      p.publish(_e2, 1);
+      p.publish(_r, 5);
+      final List<int> got = _listen(bus, _outB);
+      bus.activate(_t(
+          'late',
+          (TopologyBuilder b) => b.write(_outB, b.merge(<TopicStream<int>>[b.read(_e2), b.read(_r)])),
           Scope.application));
       bus.activate(_t('module-late', (TopologyBuilder b) => b.write(_s2, b.read(_e2))));
+      h.flush(bus);
+      p.publish(_e2, 2);
+      h.flush(bus);
+      expect(got, <int>[5, 2]);
       expect(d, <Object?>[
         isA<LateApplicationActivation>()
             .having((LateApplicationActivation x) => x.topologyId, 'topologyId', 'late'),
@@ -1184,9 +1294,10 @@ final List<ConformanceCase<BusApiHarness>> busApiConformance =
   ),
   // ------------------------------------------------------------ G23
   (
-    name: 'G23 activating an equal definition under an active id returns the same handle, running declare once more for the check',
+    name: 'G23 activating an equal declaration under an active id returns the same handle, running declare once more for the check: equal definitions whose functions are tear-offs of one top-level function',
     body: (BusApiHarness h) async {
       final Bus bus = h.bus();
+      bus.start();
       var runs = 0;
       Topology make() => _t('same', (TopologyBuilder b) {
             runs++;
@@ -1196,7 +1307,6 @@ final List<ConformanceCase<BusApiHarness>> busApiConformance =
       final TopologyHandle second = bus.activate(make());
       expect(identical(first, second), isTrue);
       expect(runs, 2);
-      bus.start();
       final List<int> got = _listen(bus, _out);
       bus.publisher(_svc).publish(_e, 1);
       h.flush(bus);
@@ -1207,6 +1317,7 @@ final List<ConformanceCase<BusApiHarness>> busApiConformance =
     name: 'G23 activating a different definition or scope under an active id throws TopologyConflict',
     body: (BusApiHarness h) async {
       final Bus bus = h.bus();
+      bus.start();
       bus.activate(_t('clash', (TopologyBuilder b) => b.write(_out, b.read(_e))));
       expect(() => bus.activate(_t('clash', (TopologyBuilder b) => b.write(_outB, b.read(_e)))),
           throwsA(isA<TopologyConflict>()
@@ -1221,6 +1332,7 @@ final List<ConformanceCase<BusApiHarness>> busApiConformance =
     name: 'G23 after deactivation the same topology activates again with a fresh handle',
     body: (BusApiHarness h) async {
       final Bus bus = h.bus();
+      bus.start();
       final Topology t = _t('again', (TopologyBuilder b) => b.write(_out, b.read(_e)));
       final TopologyHandle a = bus.activate(t);
       a.deactivate();
@@ -1233,23 +1345,34 @@ final List<ConformanceCase<BusApiHarness>> busApiConformance =
     },
   ),
   (
-    name: 'G23 two declarations with equal definitions count as one, even when they differ where a definition does not look',
+    name: 'G23 equal definitions whose plans differ in a seed or a function throw TopologyConflict: another scan seed, and an inline closure that declare evaluates again',
     body: (BusApiHarness h) async {
       final Bus bus = h.bus();
-      final TopologyHandle a = bus.activate(_t('seeded',
-          (TopologyBuilder b) => b.write(_out, b.read(_e).scan(0, _sum))));
-      final TopologyHandle b = bus.activate(_t('seeded',
-          (TopologyBuilder b) => b.write(_out, b.read(_e).scan(100, _sum))));
-      expect(identical(a, b), isTrue);
+      bus.start();
+      bus.activate(_t('seeded', (TopologyBuilder b) => b.write(_out, b.read(_e).scan(0, _sum))));
+      expect(
+          () => bus.activate(
+              _t('seeded', (TopologyBuilder b) => b.write(_out, b.read(_e).scan(100, _sum)))),
+          throwsA(isA<TopologyConflict>()
+              .having((TopologyConflict e) => e.topologyId, 'topologyId', 'seeded')));
+      final Topology inline = _t('inline',
+          (TopologyBuilder b) => b.write(_outB, b.read(_e2).map((int v) => v + 1)));
+      bus.activate(inline);
+      expect(() => bus.activate(inline), throwsA(isA<TopologyConflict>()));
+      expect(<String>[for (final d in bus.toGraph().topologies) d.topologyId],
+          unorderedEquals(<String>['seeded', 'inline']));
     },
   ),
   // ------------------------------------------------------------ G24
   (
-    name: 'G24 an activation that would close an inter-topology cycle is rejected with ActivationRejected, and nothing of it is activated',
+    name: 'G24 an activation that would close an inter-topology cycle is rejected with ActivationRejected, before start as after it, and nothing of it is activated',
     body: (BusApiHarness h) async {
       final Bus bus = h.bus();
-      bus.activate(_t('ping', (TopologyBuilder b) => b.write(_outB, b.read(_out))));
-      expect(() => bus.activate(_t('pong', (TopologyBuilder b) => b.write(_out, b.read(_outB)))),
+      bus.activate(_t('ping', (TopologyBuilder b) => b.write(_outB, b.read(_out)),
+          Scope.application));
+      expect(
+          () => bus.activate(_t('pong', (TopologyBuilder b) => b.write(_out, b.read(_outB)),
+              Scope.application)),
           throwsA(isA<ActivationRejected>()
               .having((ActivationRejected e) => e.topologyId, 'topologyId', 'pong')
               .having((ActivationRejected e) => e.findings, 'findings',
@@ -1262,6 +1385,7 @@ final List<ConformanceCase<BusApiHarness>> busApiConformance =
     name: 'G24 a second writer of a state topic is rejected at activation, whether the owner is a topology or a claim',
     body: (BusApiHarness h) async {
       final Bus bus = h.bus();
+      bus.start();
       bus.activate(_t('w1', (TopologyBuilder b) => b.write(_s2, b.read(_e))));
       expect(() => bus.activate(_t('w2', (TopologyBuilder b) => b.write(_s2, b.read(_e2)))),
           throwsA(isA<ActivationRejected>().having((ActivationRejected e) => e.findings,
@@ -1276,6 +1400,7 @@ final List<ConformanceCase<BusApiHarness>> busApiConformance =
     name: 'G24 a state topic owner with a shorter scope than a topology reading it is rejected at activation',
     body: (BusApiHarness h) async {
       final Bus bus = h.bus();
+      bus.start();
       bus.activate(_t('page-owner', (TopologyBuilder b) => b.write(_s2, b.read(_e)),
           Scope.page));
       expect(
@@ -1289,6 +1414,7 @@ final List<ConformanceCase<BusApiHarness>> busApiConformance =
     name: 'G24 a topology reading what it writes through no state-bearing stage is rejected at activation, and one mediated by scan is not',
     body: (BusApiHarness h) async {
       final Bus bus = h.bus();
+      bus.start();
       expect(
           () => bus.activate(_t('loop',
               (TopologyBuilder b) => b.write(_out, b.read(_out).map((int v) => v + 1)))),
@@ -1330,9 +1456,33 @@ final List<ConformanceCase<BusApiHarness>> busApiConformance =
       expect(o.trace, <String>['bus.e:1', 'bus.e-two:1', 'bus.e:2']);
     },
   ),
+  (
+    name: 'G25 an activation deactivated before start is never connected, and its claims are released at once',
+    body: (BusApiHarness h) async {
+      final Bus bus = h.bus();
+      final _Observer o = _Observer();
+      bus.addObserver(o);
+      var calls = 0;
+      int counted(int v) {
+        calls++;
+        return v;
+      }
+
+      bus
+          .activate(_t('gone-early', (TopologyBuilder b) => b.write(_s2, b.read(_s).map(counted)),
+              Scope.application))
+          .deactivate();
+      expect(bus.publisher(_svc, writes: <StateTopic<Object?>>{_s2}).writes,
+          <StateTopic<Object?>>{_s2});
+      bus.start();
+      h.flush(bus);
+      expect(calls, 0);
+      expect(o.seen, isEmpty);
+    },
+  ),
   // ------------------------------------------------------------ G26
   (
-    name: 'G26 a pipeline an error ends is reported in dev mode with its topology, sink and error, and is not restarted',
+    name: 'G26 a write chain an error ends is reported in dev mode with its topology, the topic of its sink and the error, and is not restarted',
     body: (BusApiHarness h) async {
       final List<BusDiagnostic> d = <BusDiagnostic>[];
       final Bus bus = h.bus(_dev(d));
@@ -1350,6 +1500,30 @@ final List<ConformanceCase<BusApiHarness>> busApiConformance =
       expect(t.topologyId, 'fragile');
       expect(t.sink, _out.ref);
       expect(t.error, isA<StateError>());
+    },
+  ),
+  (
+    name: 'G26 an error that ends two write chains is reported once for each, and the topology keeps its claims until it is deactivated',
+    body: (BusApiHarness h) async {
+      final List<BusDiagnostic> d = <BusDiagnostic>[];
+      final Bus bus = h.bus(_dev(d));
+      bus.start();
+      final TopologyHandle handle = bus.activate(_t('claims', (TopologyBuilder b) {
+        final TopicStream<int> shared = b.read(_e).map(_failOn2);
+        b.write(_s2, shared);
+        b.write(_out, shared);
+      }));
+      bus.publisher(_svc).publish(_e, 2);
+      h.flush(bus);
+      expect(<TopicRef>[for (final t in d.whereType<PipelineTerminated>()) t.sink],
+          unorderedEquals(<TopicRef>[_s2.ref, _out.ref]));
+      expect(handle.isActive, isTrue);
+      expect(() => bus.publisher(const ServiceSource('next'), writes: <StateTopic<Object?>>{_s2}),
+          throwsA(isA<ClaimRejected>()));
+      handle.deactivate();
+      expect(
+          bus.publisher(const ServiceSource('next'), writes: <StateTopic<Object?>>{_s2}).writes,
+          <StateTopic<Object?>>{_s2});
     },
   ),
   // ------------------------------------------------------------ G27
@@ -1436,6 +1610,7 @@ final List<ConformanceCase<BusApiHarness>> busApiConformance =
     name: 'G28 releasing one reference twice counts once',
     body: (BusApiHarness h) async {
       final Bus bus = h.bus();
+      bus.start();
       final ModuleScope m = bus.module('twice', <Topology>[
         _t('twice-a', (TopologyBuilder b) => b.write(_out, b.read(_e))),
       ]);
@@ -1471,6 +1646,7 @@ final List<ConformanceCase<BusApiHarness>> busApiConformance =
     name: 'G28 a reference fails as a whole when one of the module topologies cannot activate',
     body: (BusApiHarness h) async {
       final Bus bus = h.bus();
+      bus.start();
       bus.activate(_t('blocker', (TopologyBuilder b) => b.write(_s2, b.read(_e2))));
       final ModuleScope m = bus.module('blocked', <Topology>[
         _t('blocked-a', (TopologyBuilder b) => b.write(_out, b.read(_e))),
@@ -1576,6 +1752,7 @@ final List<ConformanceCase<BusApiHarness>> busApiConformance =
     name: 'G32 an ActivationObserver is told of each new activation with its id and scope, and not of a repeat that returns the same handle',
     body: (BusApiHarness h) async {
       final Bus bus = h.bus();
+      bus.start();
       final _ActivationLog a = _ActivationLog();
       bus.addObserver(a);
       final Topology t = _t('told', (TopologyBuilder b) => b.write(_out, b.read(_e)));
@@ -1649,6 +1826,7 @@ final List<ConformanceCase<BusApiHarness>> busApiConformance =
     body: (BusApiHarness h) async {
       final _Context context = _Context();
       final Bus bus = h.bus(BusConfig(observeContext: context));
+      bus.start();
       bus.addObserver(TelemetryObserver());
       bus.activate(_t('spanned', (TopologyBuilder b) => b.write(_out, b.read(_e)),
           Scope.page));
@@ -1662,18 +1840,20 @@ final List<ConformanceCase<BusApiHarness>> busApiConformance =
   ),
   // ------------------------------------------------------------ G34
   (
-    name: 'G34 before start every publish is queued, unseen by subscribers, observers and current values, and start delivers the queue in publication order',
+    name: 'G34 before start every publish is queued, unseen by subscribers, observers and current values, and start delivers the queue in publication order before it returns, each envelope keeping the timestamp of its publication',
     body: (BusApiHarness h) async {
       final Bus bus = h.bus();
       final _Observer o = _Observer();
       bus.addObserver(o);
       final List<int> got = _listen(bus, _e);
       final Publisher p = bus.publisher(_svc, writes: <StateTopic<Object?>>{_s});
+      final DateTime t0 = bus.clock.now();
       p.publish(_e, 1);
       p.writer(_s).publish(5);
+      h.advance(bus, _s1);
       p.publish(_e, 2);
       p.publish(_r, 3);
-      h.flush(bus);
+      h.advance(bus, _s1);
       expect(bus.lifecycle, BusLifecycle.bootstrapping);
       expect(<Object>[got, o.seen], <Object>[isEmpty, isEmpty]);
       expect(bus.getCurrentValue(_s), 1);
@@ -1681,39 +1861,109 @@ final List<ConformanceCase<BusApiHarness>> busApiConformance =
       bus.start();
       expect(bus.lifecycle, BusLifecycle.running);
       expect(o.payloads, <Object?>[1, 5, 2, 3]);
+      expect(<DateTime>[for (final s in o.seen) s.envelope.timestamp],
+          <DateTime>[t0, t0, t0.add(_s1), t0.add(_s1)]);
       expect(got, <int>[1, 2]);
       expect(bus.getCurrentValue(_s), 5);
     },
   ),
   (
-    name: 'G34 topology publishes before start are queued too, so the order of the activations before start does not change what is delivered',
+    name: 'G34 a topology activated before start computes nothing and its reads receive nothing until start, which connects it and delivers what the connection causes before the queue',
     body: (BusApiHarness h) async {
-      List<String> run(bool readerFirst) {
+      final Bus bus = h.bus();
+      final _Observer o = _Observer();
+      bus.addObserver(o);
+      var calls = 0;
+      int counted(int v) {
+        calls++;
+        return v + 1;
+      }
+
+      bus.activate(_t('waits', (TopologyBuilder b) => b.write(_s2, b.read(_s).map(counted)),
+          Scope.application));
+      bus.publisher(_svc, writes: <StateTopic<Object?>>{_s}).writer(_s).publish(5);
+      h.flush(bus);
+      h.advance(bus, _s1);
+      expect(<Object?>[calls, o.seen, bus.getCurrentValue(_s2)], <Object?>[0, isEmpty, 0]);
+      bus.start();
+      expect(<Object?>[calls, bus.getCurrentValue(_s2)], <Object?>[2, 2]);
+      expect(o.trace, <String>['bus.s-two:2', 'bus.s:5']);
+      h.flush(bus);
+      expect(<Object?>[calls, bus.getCurrentValue(_s2)], <Object?>[2, 6]);
+      expect(o.trace, <String>['bus.s-two:2', 'bus.s:5', 'bus.s-two:6']);
+    },
+  ),
+  (
+    name: 'G34 start connects a writer before every topology that reads what it writes, ties in activation order, so a reader activated before its input writer sees the settled value first',
+    body: (BusApiHarness h) async {
+      List<String> run(List<String> order) {
         final Bus bus = h.bus();
         final _Observer o = _Observer();
         bus.addObserver(o);
-        final Topology writer = _t('app-writer',
-            (TopologyBuilder b) => b.write(_s2, b.read(_e).map((int v) => v)),
-            Scope.application);
-        final Topology reader = _t('app-reader',
-            (TopologyBuilder b) => b.write(_out, b.read(_s2).map((int v) => v * 10)),
-            Scope.application);
-        final Publisher p = bus.publisher(_svc);
-        bus.activate(readerFirst ? reader : writer);
-        p.publish(_e, 7);
-        bus.activate(readerFirst ? writer : reader);
-        h.flush(bus);
+        final Map<String, Topology> topologies = <String, Topology>{
+          'w': _t('w', (TopologyBuilder b) => b.write(_x, b.read(_s).map(_double)),
+              Scope.application),
+          'r1': _t('r1', (TopologyBuilder b) => b.write(_y, b.read(_x).map(_double)),
+              Scope.application),
+          'r2': _t('r2', (TopologyBuilder b) => b.write(_z, b.read(_y).map(_double)),
+              Scope.application),
+          'd': _t('d', (TopologyBuilder b) => b.write(_outB, b.read(_s).map(_double)),
+              Scope.application),
+        };
+        for (final String id in order) {
+          bus.activate(topologies[id]!);
+        }
         bus.start();
         h.flush(bus);
         return o.trace;
       }
 
-      expect(run(true), run(false));
-      expect(run(true), contains('bus.out:70'));
+      expect(run(<String>['r2', 'd', 'r1', 'w']),
+          <String>['bus.out-b:2', 'bus.x:2', 'bus.y:4', 'bus.z:8']);
+      expect(run(<String>['w', 'r1', 'r2', 'd']),
+          <String>['bus.x:2', 'bus.y:4', 'bus.z:8', 'bus.out-b:2']);
     },
   ),
   (
-    name: 'G34 start delivers the queue to the topologies activated before it, already connected, so a publish queued before an activation, such as a deep link, meets its reads with nothing run between activate and start',
+    name: 'G34 a subscription made before start receives nothing until start, which connects it after the topologies, with the settled current value or the buffer as its first values, then the queue',
+    body: (BusApiHarness h) async {
+      final Bus bus = h.bus();
+      bus.activate(_t('w', (TopologyBuilder b) => b.write(_x, b.read(_s).map(_double)),
+          Scope.application));
+      final Publisher p = bus.publisher(_svc, writes: <StateTopic<Object?>>{_s});
+      final List<int> xs = _listen(bus, _x);
+      final List<int> rs = _listen(bus, _r);
+      final List<int> es = _listen(bus, _e);
+      p.writer(_s).publish(5);
+      p.publish(_r, 7);
+      p.publish(_e, 9);
+      h.flush(bus);
+      expect(<List<int>>[xs, rs, es], <Object?>[isEmpty, isEmpty, isEmpty]);
+      bus.start();
+      expect(<List<int>>[xs, rs, es], <List<int>>[<int>[2], <int>[7], <int>[9]]);
+      h.flush(bus);
+      expect(xs, <int>[2, 10]);
+    },
+  ),
+  (
+    name: 'G34 an event a topology publishes while start connects it reaches the observers, and no topology or subscription connected after it',
+    body: (BusApiHarness h) async {
+      final Bus bus = h.bus();
+      final _Observer o = _Observer();
+      bus.addObserver(o);
+      bus.activate(_t('announces', (TopologyBuilder b) => b.write(_out, b.read(_s).map(_double)),
+          Scope.application));
+      bus.activate(_t('hears', (TopologyBuilder b) => b.write(_outB, b.read(_out).map(_double)),
+          Scope.application));
+      final List<int> heard = _listen(bus, _out);
+      bus.start();
+      h.flush(bus);
+      expect(o.trace, <String>['bus.out:2']);
+      expect(heard, isEmpty);
+    },
+  ),
+  (
+    name: 'G34 start connects the topologies activated before it and then delivers the queue to them, so a publish queued before an activation, such as a deep link, meets its reads with nothing run between activate and start',
     body: (BusApiHarness h) async {
       final Bus bus = h.bus();
       final List<int> got = _listen(bus, _out);
@@ -1802,13 +2052,13 @@ final List<ConformanceCase<BusApiHarness>> busApiConformance =
     name: 'G36 after shutdown every new operation throws StateError, while deactivate, release, dispose and shutdown itself do nothing',
     body: (BusApiHarness h) async {
       final Bus bus = h.bus();
+      bus.start();
       final TopologyHandle handle =
           bus.activate(_t('after', (TopologyBuilder b) => b.write(_out, b.read(_e))));
       final ModuleReference r = bus.module('after-m', <Topology>[
         _t('after-m-a', (TopologyBuilder b) => b.write(_outB, b.read(_e2))),
       ]).acquire();
       final Publisher p = bus.publisher(_svc);
-      bus.start();
       bus.shutdown();
       for (final void Function() op in <void Function()>[
         () => bus.publish(_e, 1),
@@ -1852,7 +2102,8 @@ final List<ConformanceCase<BusApiHarness>> busApiConformance =
     name: 'G37 toGraph is the graph of the active definitions and the live claims',
     body: (BusApiHarness h) async {
       final Bus bus = h.bus();
-      final Topology t = _t('graphed', (TopologyBuilder b) => b.write(_out, b.read(_e)));
+      final Topology t = _t('graphed', (TopologyBuilder b) => b.write(_out, b.read(_e)),
+          Scope.application);
       final TopologyHandle handle = bus.activate(t);
       final Publisher p = bus.publisher(const ExecutorSource('nav'),
           writes: <StateTopic<Object?>>{_s});
@@ -2006,6 +2257,7 @@ final List<ConformanceCase<BusApiHarness>> busApiConformance =
     body: (BusApiHarness h) async {
       for (final bool widenedFirst in <bool>[true, false]) {
         final Bus bus = h.bus();
+        bus.start();
         final List<int> typed;
         if (widenedFirst) {
           bus.activate(_relayAny('relay-any', _s, _out));
@@ -2018,7 +2270,6 @@ final List<ConformanceCase<BusApiHarness>> busApiConformance =
         }
         final StateWriter<int> w =
             bus.publisher(_svc, writes: <StateTopic<Object?>>{_s}).writer(_s);
-        bus.start();
         h.flush(bus);
         w.publish(2);
         h.flush(bus);
@@ -2045,23 +2296,32 @@ final List<ConformanceCase<BusApiHarness>> busApiConformance =
   // A widened reference lets a call pass a value that is not of the topic's
   // value type. The three cases below are what G41 states for such a value.
   (
-    name: 'G41 an off-type value published through a widened reference reaches the observers and the widened subscriptions, while a typed subscription skips it, its TypeError reaching the zone the bus was built in, and receives later deliveries',
+    name: 'G41 an off-type value published through a widened reference reaches the observers and the widened subscriptions, while a typed subscription receives a TypeError error event in its place, at its onError or, without one, at the zone in which it listened, and receives later deliveries',
     body: (BusApiHarness h) async {
-      final List<Object> errors = <Object>[];
+      final List<Object> busZone = <Object>[];
+      final List<Object> listenZone = <Object>[];
       late final Bus bus;
-      runZonedGuarded(() => bus = h.bus(), (Object e, StackTrace s) => errors.add(e));
+      runZonedGuarded(() => bus = h.bus(), (Object e, StackTrace s) => busZone.add(e));
       bus.start();
       final _Observer o = _Observer();
       bus.addObserver(o);
       final List<Object?> any = _listenAny(bus, _e);
-      final List<int> typed = _listen(bus, _e);
+      final List<int> typed = <int>[];
+      final List<Object> typedErrors = <Object>[];
+      bus.observe(_e).listen(typed.add, onError: typedErrors.add);
+      final List<int> bare = <int>[];
+      runZonedGuarded(() => bus.observe(_e).listen(bare.add),
+          (Object e, StackTrace s) => listenZone.add(e));
       _publishAny(bus, _e, 'off-type');
       bus.publish(_e, 2);
       h.flush(bus);
       expect(o.payloads, <Object?>['off-type', 2]);
       expect(any, <Object?>['off-type', 2]);
       expect(typed, <int>[2]);
-      expect(errors, <Object?>[isA<TypeError>()]);
+      expect(typedErrors, <Object?>[isA<TypeError>()]);
+      expect(bare, <int>[2]);
+      expect(listenZone, <Object?>[isA<TypeError>()]);
+      expect(busZone, isEmpty);
     },
   ),
   (
@@ -2088,7 +2348,7 @@ final List<ConformanceCase<BusApiHarness>> busApiConformance =
     },
   ),
   (
-    name: 'G41 a topology read skips an off-type value reached through a widened reference, at its connection and at a later delivery, its TypeError reaching the zone the bus was built in, and the topology goes on',
+    name: 'G41 a topology read that cannot convert a value raises a TypeError at the read stage, at its connection and at a later delivery, which ends the write chains it reaches unless a catchError recovers it, and no zone handler receives it',
     body: (BusApiHarness h) async {
       final List<Object> errors = <Object>[];
       final List<BusDiagnostic> d = <BusDiagnostic>[];
@@ -2101,21 +2361,68 @@ final List<ConformanceCase<BusApiHarness>> busApiConformance =
       _writerAny(owner, _s2).publish('off-type');
       final List<int> fromState = _listen(bus, _out);
       final List<int> fromEvents = _listen(bus, _outB);
+      final List<int> recovered = _listen(bus, _outC);
       final TopologyHandle handle = bus.activate(_t('double', (TopologyBuilder b) {
         b.write(_out, b.read(_s2).map(_double));
         b.write(_outB, b.read(_e).map(_double));
+        b.write(_outC, b.read(_e).catchError(_minusOne));
       }));
       h.flush(bus);
-      expect(errors, <Object?>[isA<TypeError>()]);
+      List<PipelineTerminated> ended() => d.whereType<PipelineTerminated>().toList();
+      expect(<TopicRef>[for (final t in ended()) t.sink], <TopicRef>[_out.ref]);
+      expect(ended().single.error, isA<TypeError>());
       owner.writer(_s2).publish(3);
-      _publishAny(bus, _e, 'off-type');
       bus.publish(_e, 4);
+      _publishAny(bus, _e, 'off-type');
+      bus.publish(_e, 5);
       h.flush(bus);
-      expect(fromState, <int>[6]);
+      expect(fromState, isEmpty);
       expect(fromEvents, <int>[8]);
-      expect(errors, <Object?>[isA<TypeError>(), isA<TypeError>()]);
+      expect(recovered, <int>[4, -1, 5]);
+      expect(<TopicRef>[for (final t in ended()) t.sink], <TopicRef>[_out.ref, _outB.ref]);
       expect(handle.isActive, isTrue);
-      expect(d.whereType<PipelineTerminated>(), isEmpty);
+      expect(errors, isEmpty);
+    },
+  ),
+  // ------------------------------------------------------------ G42
+  (
+    name: 'G42 a MODULE or PAGE topology activated before start throws StateError naming it, runs no declare and activates and claims nothing; after start it activates',
+    body: (BusApiHarness h) async {
+      final Bus bus = h.bus();
+      var runs = 0;
+      Topology early(Scope scope) => topology('early-${scope.name}', scope, (TopologyBuilder b) {
+            runs++;
+            b.write(_s2, b.read(_e));
+          });
+      for (final Scope scope in <Scope>[Scope.module, Scope.page]) {
+        expect(
+            () => bus.activate(early(scope)),
+            throwsA(isA<StateError>().having(
+                (StateError e) => e.message, 'message', contains('early-${scope.name}'))));
+      }
+      expect(runs, 0);
+      expect(bus.toGraph(), TopologyGraph());
+      bus.start();
+      expect(bus.activate(early(Scope.page)).isActive, isTrue);
+      expect(runs, 1);
+    },
+  ),
+  (
+    name: 'G42 acquiring a module before start throws StateError naming it and adds no reference, while declaring it works; after start the acquire activates its topologies',
+    body: (BusApiHarness h) async {
+      final Bus bus = h.bus();
+      final ModuleScope m = bus.module('checkout', <Topology>[
+        _t('checkout-flow', (TopologyBuilder b) => b.write(_out, b.read(_e))),
+      ]);
+      expect(
+          m.acquire,
+          throwsA(isA<StateError>().having((StateError e) => e.message, 'message',
+              allOf(contains("'checkout'"), contains('checkout-flow')))));
+      expect(<Object>[m.references, m.isActive], <Object>[0, false]);
+      expect(bus.toGraph().topologies, isEmpty);
+      bus.start();
+      m.acquire();
+      expect(<Object>[m.references, m.isActive], <Object>[1, true]);
     },
   ),
 ];

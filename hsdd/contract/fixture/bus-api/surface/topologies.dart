@@ -1,4 +1,4 @@
-// Surface of bus-api@v1, activation, module scopes and the live graph.
+// Surface of bus-api@v2, activation, module scopes and the live graph.
 import 'package:nidana_dart_contracts/nidana_dart_contracts.dart';
 import 'package:nidana_dart_contracts/topology_ir.dart';
 import 'package:nidana_dart_runtime/nidana_dart_runtime.dart';

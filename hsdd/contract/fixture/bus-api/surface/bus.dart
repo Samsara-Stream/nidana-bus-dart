@@ -1,4 +1,4 @@
-// Surface of bus-api@v1, configuration, lifecycle, topics and publishers:
+// Surface of bus-api@v2, configuration, lifecycle, topics and publishers:
 // every declaration used with the types the Interface states. Passes when
 // `fvm dart analyze --fatal-infos` reports nothing (ADR-001 item 4).
 import 'dart:async';

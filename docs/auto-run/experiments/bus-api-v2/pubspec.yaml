@@ -1,0 +1,19 @@
+# topology-dsl-write-chain: replays topology-dsl's fixtures for v2 (the write
+# chain of Spec v0.15.1 §10.2 and Appendix A.4, connection at start() and
+# scope timing in the live suite) and every suite that imports
+# nidana_dart_runtime, against the stand-in runtime of
+# ../runtime-reconcile-amends/ as it was, with the write-chain rule, and with
+# a minimal startup barrier (see run.sh). Its own pub workspace, never a
+# member of the repository's workspace.
+name: tdwc_root
+publish_to: none
+environment:
+  sdk: ^3.13.0
+workspace:
+  - packages/nidana_dart_contracts
+  - packages/nidana_contract_check
+  - packages/nidana_dart_runtime
+  - packages/nidana_dart_navigation
+  - packages/nidana_dart_runtime_flutter
+dev_dependencies:
+  lints: ^6.1.0

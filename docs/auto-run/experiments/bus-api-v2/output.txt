@@ -1,0 +1,349 @@
+
+### setup: the before tree from git HEAD, resolve, versions, the runtimes' provenance
+b5dad99
+pub get exit: 0
+Flutter 3.47.7 • channel stable • https://github.com/flutter/flutter.git
+Dart SDK version: 3.13.5 (stable) (Tue Sep 29 01:00:52 2026 -0700) on "macos_arm64"
+runtime/v1/bus.dart: same as ../topology-dsl-write-chain/patch/bus.write_chain.dart
+runtime/barrier-min/bus.dart: same as ../topology-dsl-write-chain/patch/bus.barrier.dart
+runtime/v1/interpreter.dart: same as ../topology-dsl-write-chain/patch/interpreter.write_chain.dart
+runtime/barrier-min/interpreter.dart: same as ../topology-dsl-write-chain/patch/interpreter.barrier.dart
+other stand-in files: same as ../topology-dsl-write-chain/packages
+patch/navigation.named.dart: same
+patch/page_scope.amended.dart: same
+patch/topic_builders.amended.dart: same
+patch/widget_test_bus.amended.dart: same
+-- lines the v2 runtime changes against barrier-min
+bus.dart: 293
+interpreter.dart: 146
+
+### T1 the fixture change: case names before and after
+cases before: 98
+cases after: 108
+>     name: 'G7 the registry compares tracing but not the initial value, which the first registration seeds, and removeTopic frees the name for another declaration'
+>     name: 'G9 before start removeTopic refuses a topic that an unconnected topology reads or an unconnected subscription observes; forced, the subscription ends at once and the read receives TopicRemoved when start connects it'
+<     name: 'G17 a state topic subscription receives the value current when it listened in the first bus microtask, then the values delivered meanwhile, in order (decides OQ-R1)'
+<     name: 'G17 a replay topic subscription receives its buffer first, in the first bus microtask; an event topic subscription receives only what is published after it listened, at once'
+>     name: 'G17 a state topic subscription made after start receives the value current when it listened in the first bus microtask, then the values delivered meanwhile, in order (decides OQ-R1)'
+>     name: 'G17 a replay topic subscription made after start receives its buffer first, in the first bus microtask; an event topic subscription receives only what is published after it listened, at once'
+<     name: 'G18 a subscriber that throws does not stop delivery to the others, and its error reaches the zone the bus was built in'
+>     name: 'G18 a subscriber that throws stops neither the publish nor the delivery to the others, keeps receiving, and its error reaches the zone in which it listened, not the zone the bus was built in'
+>     name: 'G18 what onError, onDone or a handler set later through the subscription throws, and an error event left without onError, reach the zone in which it listened'
+<     name: 'G22 the outputs of an activation connection are delivered once the bus microtasks queued by activate have run'
+<     name: 'G22 an activation is connected when activate returns, so a value published right after it meets the first value of every read'
+<     name: 'G22 the publishes a connection causes wait for a bus microtask: none is delivered before activate returns, and a topology activated right after receives them'
+<     name: 'G22 an APPLICATION topology activated after start is reported in dev mode; one activated before start is not'
+<     name: 'G23 activating an equal definition under an active id returns the same handle, running declare once more for the check'
+>     name: 'G22 the outputs of an activation made after start are delivered once the bus microtasks queued by activate have run'
+>     name: 'G22 an activation made after start is connected when activate returns, so a value published right after it meets the first value of every read'
+>     name: 'G22 the publishes the connection of an activation made after start causes wait for a bus microtask: none is delivered before activate returns, and a topology activated right after receives them'
+>     name: 'G22 an APPLICATION topology activated after start is reported in dev mode and receives its state and replay reads as usual and no event published before it; one activated before start, or a MODULE one after it, is not reported'
+>     name: 'G23 activating an equal declaration under an active id returns the same handle, running declare once more for the check: equal definitions whose functions are tear-offs of one top-level function'
+<     name: 'G23 two declarations with equal definitions count as one, even when they differ where a definition does not look'
+<     name: 'G24 an activation that would close an inter-topology cycle is rejected with ActivationRejected, and nothing of it is activated'
+>     name: 'G23 equal definitions whose plans differ in a seed or a function throw TopologyConflict: another scan seed, and an inline closure that declare evaluates again'
+>     name: 'G24 an activation that would close an inter-topology cycle is rejected with ActivationRejected, before start as after it, and nothing of it is activated'
+<     name: 'G26 a pipeline an error ends is reported in dev mode with its topology, sink and error, and is not restarted'
+>     name: 'G25 an activation deactivated before start is never connected, and its claims are released at once'
+>     name: 'G26 a write chain an error ends is reported in dev mode with its topology, the topic of its sink and the error, and is not restarted'
+>     name: 'G26 an error that ends two write chains is reported once for each, and the topology keeps its claims until it is deactivated'
+<     name: 'G34 before start every publish is queued, unseen by subscribers, observers and current values, and start delivers the queue in publication order'
+<     name: 'G34 topology publishes before start are queued too, so the order of the activations before start does not change what is delivered'
+<     name: 'G34 start delivers the queue to the topologies activated before it, already connected, so a publish queued before an activation, such as a deep link, meets its reads with nothing run between activate and start'
+>     name: 'G34 before start every publish is queued, unseen by subscribers, observers and current values, and start delivers the queue in publication order before it returns, each envelope keeping the timestamp of its publication'
+>     name: 'G34 a topology activated before start computes nothing and its reads receive nothing until start, which connects it and delivers what the connection causes before the queue'
+>     name: 'G34 start connects a writer before every topology that reads what it writes, ties in activation order, so a reader activated before its input writer sees the settled value first'
+>     name: 'G34 a subscription made before start receives nothing until start, which connects it after the topologies, with the settled current value or the buffer as its first values, then the queue'
+>     name: 'G34 an event a topology publishes while start connects it reaches the observers, and no topology or subscription connected after it'
+>     name: 'G34 start connects the topologies activated before it and then delivers the queue to them, so a publish queued before an activation, such as a deep link, meets its reads with nothing run between activate and start'
+<     name: 'G41 an off-type value published through a widened reference reaches the observers and the widened subscriptions, while a typed subscription skips it, its TypeError reaching the zone the bus was built in, and receives later deliveries'
+>     name: 'G41 an off-type value published through a widened reference reaches the observers and the widened subscriptions, while a typed subscription receives a TypeError error event in its place, at its onError or, without one, at the zone in which it listened, and receives later deliveries'
+<     name: 'G41 a topology read skips an off-type value reached through a widened reference, at its connection and at a later delivery, its TypeError reaching the zone the bus was built in, and the topology goes on'
+>     name: 'G41 a topology read that cannot convert a value raises a TypeError at the read stage, at its connection and at a later delivery, which ends the write chains it reaches unless a catchError recovers it, and no zone handler receives it'
+>     name: 'G42 a MODULE or PAGE topology activated before start throws StateError naming it, runs no declare and activates and claims nothing; after start it activates'
+>     name: 'G42 acquiring a module before start throws StateError naming it and adds no reference, while declaring it works; after start the acquire activates its topologies'
+-- other files of the fixture tree that differ
+Files hsdd-before/hsdd/contract/fixture/bus-api/behavior/bus_activation_test.dart and hsdd/contract/fixture/bus-api/behavior/bus_activation_test.dart differ
+Files hsdd-before/hsdd/contract/fixture/bus-api/behavior/nidana_dart_runtime_test.dart and hsdd/contract/fixture/bus-api/behavior/nidana_dart_runtime_test.dart differ
+Files hsdd-before/hsdd/contract/fixture/bus-api/surface/bus.dart and hsdd/contract/fixture/bus-api/surface/bus.dart differ
+Files hsdd-before/hsdd/contract/fixture/bus-api/surface/observation.dart and hsdd/contract/fixture/bus-api/surface/observation.dart differ
+Files hsdd-before/hsdd/contract/fixture/bus-api/surface/topologies.dart and hsdd/contract/fixture/bus-api/surface/topologies.dart differ
+
+### T2 structure (prototype) for bus-api, and S17's prototype over the repository's contracts
+guarantees: 42; cases: 108; bindings: 2; fixture files: 15
+exit: 0
+guarantees covered: 42
+bus-api (api): 42 guarantees; covered by reject 10, behavior 38; not executable 2; in part 0; data directories none
+bus-testing (api): 20 guarantees; covered by reject 2, behavior 17; not executable 1; in part 0; data directories none
+flutter-binding (api): 19 guarantees; covered by reject 7, behavior 15; not executable 2; in part 0; data directories none
+navigation-api (api): 27 guarantees; covered by reject 5, behavior 23; not executable 2; in part 0; data directories none
+nidana-checks (cli): 18 guarantees; covered by cli 17; not executable 1; in part 2; data directories none
+topic-codegen (file): 21 guarantees; covered by schema 1, file 12, cli 5; not executable 4; in part 3; data directories rejected
+topic-model (shared-model): 27 guarantees; covered by reject 10, behavior 18; not executable 2; in part 0; data directories none
+topology-dsl (api): 30 guarantees; covered by reject 8, behavior 22; not executable 0; in part 0; data directories none
+topology-ir (api): 23 guarantees; covered by reject 3, behavior 22; not executable 0; in part 0; data directories render
+9 contracts, 0 problem(s)
+
+### T3 surface, reject and behavior libraries analyzed; the stand-in and the probes
+Analyzing surface...
+No issues found!
+surface exit: 0
+PASS config_is_immutable.dart [7:assignment_to_final 9:assignment_to_final 11:assignment_to_final 13:assignment_to_final]
+PASS current_value_is_state_only.dart [14:argument_type_not_assignable 16:argument_type_not_assignable 18:argument_type_not_assignable 20:argument_type_not_assignable]
+PASS diagnostics_are_closed.dart [7:invalid_use_of_type_outside_library 10:invalid_use_of_type_outside_library]
+PASS no_global_accessor.dart [8:undefined_getter 10:undefined_getter 12:undefined_method]
+PASS no_publisherless_state_publish.dart [11:argument_type_not_assignable 13:argument_type_not_assignable]
+PASS publish_value_matches_topic.dart [16:could_not_infer 18:could_not_infer 21:could_not_infer 23:could_not_infer 26:could_not_infer 29:could_not_infer 32:type_argument_not_matching_bounds]
+PASS publisher_reaches_state_through_writer.dart [15:argument_type_not_assignable 17:set_element_type_not_assignable 19:set_element_type_not_assignable 21:argument_type_not_assignable 24:argument_type_not_assignable]
+PASS runtime_types_are_closed.dart [8:invalid_use_of_type_outside_library 11:invalid_use_of_type_outside_library 14:invalid_use_of_type_outside_library 17:invalid_use_of_type_outside_library 20:invalid_use_of_type_outside_library 23:invalid_use_of_type_outside_library 26:invalid_use_of_type_outside_library 29:invalid_use_of_type_outside_library 32:invalid_use_of_type_outside_library 35:invalid_use_of_type_outside_library 39:new_with_undefined_constructor_default 41:new_with_undefined_constructor_default 43:new_with_undefined_constructor_default 45:new_with_undefined_constructor_default 47:new_with_undefined_constructor_default]
+PASS scheduler_providers_are_closed.dart [7:invalid_use_of_type_outside_library 10:invalid_use_of_type_outside_library 13:invalid_use_of_type_outside_library]
+reject exit: 0
+Analyzing behavior...
+No issues found!
+behavior exit: 0
+Analyzing packages, probe...
+No issues found!
+stand-in and probes exit: 0
+
+### T4 probe P1: which functions compare == across two evaluations of declare (G23)
+top-level tear-off                       two evaluations ==: true
+static tear-off                          two evaluations ==: true
+inline closure                           two evaluations ==: false
+closure, no capture                      two evaluations ==: false
+tear-off on a new receiver               two evaluations ==: false
+tear-off on a new receiver with ==       two evaluations ==: false
+tear-off on a const receiver             two evaluations ==: true
+tear-off on an equal non-const receiver  two evaluations ==: false
+callable object tear-off (.call)         two evaluations ==: true
+
+### T5 probe P2: a reader activated before its input's writer, on each runtime (G34)
+-- runtime v1
+reader saw x=0
+writer saw s=1
+-- before start (after triggerActions)
+-- start()
+reader saw x=2
+-- start() returned: x=2 y=0 subscriber of y got [0]
+-- after triggerActions: x=2 y=20 subscriber of y got [0, 20]
+-- recorder: [p.y=0, p.x=2, p.y=20]
+-- runtime barrier-min
+-- before start (after triggerActions)
+-- start()
+writer saw s=1
+reader saw x=0
+-- start() returned: x=0 y=0 subscriber of y got [0]
+reader saw x=2
+-- after triggerActions: x=2 y=20 subscriber of y got [0, 20]
+-- recorder: [p.x=2, p.y=0, p.y=20]
+-- runtime v2
+-- before start (after triggerActions)
+-- start()
+writer saw s=1
+reader saw x=2
+-- start() returned: x=2 y=20 subscriber of y got [20]
+-- after triggerActions: x=2 y=20 subscriber of y got [20]
+-- recorder: [p.x=2, p.y=20]
+
+### T6 the bus-api suite after, on each runtime
+== runtime v2
+-- hsdd/contract/fixture/bus-api/behavior/nidana_dart_runtime_test.dart
+00:00 +108: All tests passed!
+exit: 0
+== runtime v1
+-- hsdd/contract/fixture/bus-api/behavior/nidana_dart_runtime_test.dart
+FAILED: G18 a subscriber that throws stops neither the publish nor the delivery to the others, keeps receiving, and its error reaches the zone in which it listened, not the zone the bus was built in
+FAILED: G18 what onError, onDone or a handler set later through the subscription throws, and an error event left without onError, reach the zone in which it listened
+FAILED: G23 equal definitions whose plans differ in a seed or a function throw TopologyConflict: another scan seed, and an inline closure that declare evaluates again
+FAILED: G25 an activation deactivated before start is never connected, and its claims are released at once
+FAILED: G34 a subscription made before start receives nothing until start, which connects it after the topologies, with the settled current value or the buffer as its first values, then the queue
+FAILED: G34 a topology activated before start computes nothing and its reads receive nothing until start, which connects it and delivers what the connection causes before the queue
+FAILED: G34 an event a topology publishes while start connects it reaches the observers, and no topology or subscription connected after it
+FAILED: G34 start connects a writer before every topology that reads what it writes, ties in activation order, so a reader activated before its input writer sees the settled value first
+FAILED: G41 a topology read that cannot convert a value raises a TypeError at the read stage, at its connection and at a later delivery, which ends the write chains it reaches unless a catchError recovers it, and no zone handler receives it
+FAILED: G41 an off-type value published through a widened reference reaches the observers and the widened subscriptions, while a typed subscription receives a TypeError error event in its place, at its onError or, without one, at the zone in which it listened, and receives later deliveries
+FAILED: G42 a MODULE or PAGE topology activated before start throws StateError naming it, runs no declare and activates and claims nothing; after start it activates
+FAILED: G42 acquiring a module before start throws StateError naming it and adds no reference, while declaring it works; after start the acquire activates its topologies
+FAILED: G9 before start removeTopic refuses a topic that an unconnected topology reads or an unconnected subscription observes; forced, the subscription ends at once and the read receives TopicRemoved when start connects it
+00:00 +95 -13: Some tests failed.
+exit: 1
+== runtime barrier-min
+-- hsdd/contract/fixture/bus-api/behavior/nidana_dart_runtime_test.dart
+FAILED: G18 a subscriber that throws stops neither the publish nor the delivery to the others, keeps receiving, and its error reaches the zone in which it listened, not the zone the bus was built in
+FAILED: G18 what onError, onDone or a handler set later through the subscription throws, and an error event left without onError, reach the zone in which it listened
+FAILED: G23 equal definitions whose plans differ in a seed or a function throw TopologyConflict: another scan seed, and an inline closure that declare evaluates again
+FAILED: G34 a subscription made before start receives nothing until start, which connects it after the topologies, with the settled current value or the buffer as its first values, then the queue
+FAILED: G34 a topology activated before start computes nothing and its reads receive nothing until start, which connects it and delivers what the connection causes before the queue
+FAILED: G34 an event a topology publishes while start connects it reaches the observers, and no topology or subscription connected after it
+FAILED: G34 start connects a writer before every topology that reads what it writes, ties in activation order, so a reader activated before its input writer sees the settled value first
+FAILED: G41 a topology read that cannot convert a value raises a TypeError at the read stage, at its connection and at a later delivery, which ends the write chains it reaches unless a catchError recovers it, and no zone handler receives it
+FAILED: G41 an off-type value published through a widened reference reaches the observers and the widened subscriptions, while a typed subscription receives a TypeError error event in its place, at its onError or, without one, at the zone in which it listened, and receives later deliveries
+FAILED: G42 a MODULE or PAGE topology activated before start throws StateError naming it, runs no declare and activates and claims nothing; after start it activates
+FAILED: G42 acquiring a module before start throws StateError naming it and adds no reference, while declaring it works; after start the acquire activates its topologies
+FAILED: G9 before start removeTopic refuses a topic that an unconnected topology reads or an unconnected subscription observes; forced, the subscription ends at once and the read receives TopicRemoved when start connects it
+00:00 +96 -12: Some tests failed.
+exit: 1
+-- why: G34 start connects a writer before every topology
+  Expected: ['bus.out-b:2', 'bus.x:2', 'bus.y:4', 'bus.z:8']
+    Actual: ['bus.z:0', 'bus.out-b:2', 'bus.y:0', 'bus.x:2', 'bus.y:4', 'bus.z:8']
+     Which: at location [0] is 'bus.z:0' instead of 'bus.out-b:2'
+-- why: G34 start connects a writer before every topology
+  Expected: ['bus.out-b:2', 'bus.x:2', 'bus.y:4', 'bus.z:8']
+    Actual: ['bus.out-b:2', 'bus.x:2', 'bus.y:0', 'bus.z:0', 'bus.y:4', 'bus.z:8']
+     Which: at location [2] is 'bus.y:0' instead of 'bus.y:4'
+
+### T7 the bus-api suite before, on runtime v2: the cases v2 reverses
+-- hsdd/contract/fixture/bus-api/behavior/nidana_dart_runtime_test.dart
+FAILED: G10 an activation beyond maxActiveTopologies or maxTopics throws BusLimitExceeded and activates nothing
+FAILED: G18 a subscriber that throws does not stop delivery to the others, and its error reaches the zone the bus was built in
+FAILED: G20 a claim on a state topic that a live publisher or an active topology owns is rejected with ClaimRejected naming the owner
+FAILED: G21 deactivating a topology releases its writes, so another claimant can take them
+FAILED: G23 activating a different definition or scope under an active id throws TopologyConflict
+FAILED: G23 activating an equal definition under an active id returns the same handle, running declare once more for the check
+FAILED: G23 after deactivation the same topology activates again with a fresh handle
+FAILED: G23 two declarations with equal definitions count as one, even when they differ where a definition does not look
+FAILED: G24 a second writer of a state topic is rejected at activation, whether the owner is a topology or a claim
+FAILED: G24 a state topic owner with a shorter scope than a topology reading it is rejected at activation
+FAILED: G24 a topology reading what it writes through no state-bearing stage is rejected at activation, and one mediated by scan is not
+FAILED: G24 an activation that would close an inter-topology cycle is rejected with ActivationRejected, and nothing of it is activated
+FAILED: G28 a reference fails as a whole when one of the module topologies cannot activate
+FAILED: G28 releasing one reference twice counts once
+FAILED: G32 an ActivationObserver is told of each new activation with its id and scope, and not of a repeat that returns the same handle
+FAILED: G33 the telemetry observer opens and ends a span for each new activation, with its topology id and scope
+FAILED: G36 after shutdown every new operation throws StateError, while deactivate, release, dispose and shutdown itself do nothing
+FAILED: G37 toGraph is the graph of the active definitions and the live claims
+FAILED: G41 a topology read skips an off-type value reached through a widened reference, at its connection and at a later delivery, its TypeError reaching the zone the bus was built in, and the topology goes on
+FAILED: G41 a topology that reads and writes through widened references connects to and delivers what typed access reads, whichever is reached first
+FAILED: G41 an off-type value published through a widened reference reaches the observers and the widened subscriptions, while a typed subscription skips it, its TypeError reaching the zone the bus was built in, and receives later deliveries
+FAILED: G6 activation creates the subjects of the topics a topology reads and writes
+00:00 +76 -22: Some tests failed.
+exit: 1
+
+### T8 topology-dsl@v2's live suite through bus_activation_test.dart, on v2 and v1
+== runtime v2
+-- hsdd/contract/fixture/bus-api/behavior/bus_activation_test.dart
+00:00 +49: All tests passed!
+exit: 0
+== runtime v1
+-- hsdd/contract/fixture/bus-api/behavior/bus_activation_test.dart
+00:00 +49: All tests passed!
+exit: 0
+
+### T9 every other suite that imports nidana_dart_runtime, with the adapter patches, on v1 (baseline) and v2
+== runtime v1
+-- hsdd/contract/fixture/bus-testing/behavior/nidana_dart_runtime_test.dart
+00:00 +47: All tests passed!
+exit: 0
+-- hsdd/contract/fixture/navigation-api/behavior/nidana_dart_navigation_test.dart
+00:00 +41: All tests passed!
+exit: 0
+-- hsdd/contract/fixture/navigation-api/behavior/in_memory_router_test.dart
+00:00 +52: All tests passed!
+exit: 0
+-- hsdd/contract/fixture/flutter-binding/behavior/nidana_dart_runtime_flutter_test.dart (fvm flutter test)
+00:00 +57: All tests passed!
+exit: 0
+-- hsdd/contract/fixture/flutter-binding/behavior/flutter_navigation_executor_test.dart (fvm flutter test)
+00:00 +26: All tests passed!
+exit: 0
+== runtime v2
+-- hsdd/contract/fixture/bus-testing/behavior/nidana_dart_runtime_test.dart
+FAILED: G12 settle delivers work a test completes outside the bus zone, alternating triggerActions with real event-loop turns
+FAILED: G13 a TestBus numbers its envelope ids e1, e2 and on, and its fresh correlation ids c1, c2 and on, in the order it generates them
+FAILED: G13 two TestBuses driven by the same operations record equal envelopes, timestamps included
+FAILED: G18 a test activates only the topologies under test and stands in for an absent owner through stub (decides OQ-R2)
+FAILED: G18 stub rejects a topic another owner holds with ClaimRejected, and after shutdown the helpers throw StateError
+FAILED: G19 an ordering probe reports one sequence for every subscription under reentrant publishes, the per-topic ordering regression test of Guide §6.5
+FAILED: G3 a TestBus left without a provider runs on a fresh virtual scheduler built in the zone current at its construction, and keeps the config it was given
+FAILED: G4 a bus on a virtual provider, TestBus or not, reads the scheduler clock and runs what it schedules only inside scheduler operations
+00:00 +39 -8: Some tests failed.
+exit: 1
+-- hsdd/contract/fixture/navigation-api/behavior/nidana_dart_navigation_test.dart
+00:00 +41: All tests passed!
+exit: 0
+-- hsdd/contract/fixture/navigation-api/behavior/in_memory_router_test.dart
+00:00 +52: All tests passed!
+exit: 0
+-- hsdd/contract/fixture/flutter-binding/behavior/nidana_dart_runtime_flutter_test.dart (fvm flutter test)
+FAILED: G8 a PageScope binds once, at mount: a rebuild with other arguments keeps that binding
+FAILED: G8 a PageScope stays bound to the bus it mounted under when its provider provides another bus, until it unmounts
+00:00 +55 -2: Some tests failed.
+exit: 1
+-- hsdd/contract/fixture/flutter-binding/behavior/flutter_navigation_executor_test.dart (fvm flutter test)
+00:00 +26: All tests passed!
+exit: 0
+-- why: G3 a TestBus left without a provider
+  Bad state: subscriber 1
+  Expected: [<<Instance of 'StateError'>>]
+    Actual: []
+     Which: at location [0] is [] which shorter than expected
+-- why: G4 a bus on a virtual provider
+  Bad state: topology 'debounced' has scope module, which activates only after start() (Spec §7.2)
+-- why: flutter-binding G8 (fvm flutter test)
+Bad state: topology 'fb-page' has scope page, which activates only after start() (Spec §7.2)
+
+### T10 seeded defects in the v2 runtime fail the cases of what they break
+== seeded defect: a bootstrap connection's publishes wait for a microtask, as in barrier-min
+-- hsdd/contract/fixture/bus-api/behavior/nidana_dart_runtime_test.dart
+FAILED: G34 a subscription made before start receives nothing until start, which connects it after the topologies, with the settled current value or the buffer as its first values, then the queue
+FAILED: G34 a topology activated before start computes nothing and its reads receive nothing until start, which connects it and delivers what the connection causes before the queue
+FAILED: G34 an event a topology publishes while start connects it reaches the observers, and no topology or subscription connected after it
+FAILED: G34 start connects a writer before every topology that reads what it writes, ties in activation order, so a reader activated before its input writer sees the settled value first
+00:00 +104 -4: Some tests failed.
+exit: 1
+== seeded defect: ties in reverse activation order
+-- hsdd/contract/fixture/bus-api/behavior/nidana_dart_runtime_test.dart
+FAILED: G34 start connects a writer before every topology that reads what it writes, ties in activation order, so a reader activated before its input writer sees the settled value first
+00:00 +107 -1: Some tests failed.
+exit: 1
+== seeded defect: bootstrap subscriptions connected before the topologies
+-- hsdd/contract/fixture/bus-api/behavior/nidana_dart_runtime_test.dart
+FAILED: G34 a subscription made before start receives nothing until start, which connects it after the topologies, with the settled current value or the buffer as its first values, then the queue
+FAILED: G34 an event a topology publishes while start connects it reaches the observers, and no topology or subscription connected after it
+00:00 +106 -2: Some tests failed.
+exit: 1
+== seeded defect: a subscriber's error goes to the provider zone, as in v1
+-- hsdd/contract/fixture/bus-api/behavior/nidana_dart_runtime_test.dart
+FAILED: G18 a subscriber that throws stops neither the publish nor the delivery to the others, keeps receiving, and its error reaches the zone in which it listened, not the zone the bus was built in
+FAILED: G18 what onError, onDone or a handler set later through the subscription throws, and an error event left without onError, reach the zone in which it listened
+FAILED: G41 an off-type value published through a widened reference reaches the observers and the widened subscriptions, while a typed subscription receives a TypeError error event in its place, at its onError or, without one, at the zone in which it listened, and receives later deliveries
+00:00 +105 -3: Some tests failed.
+exit: 1
+== seeded defect: a subscription's failed conversion thrown in the provider zone rather than delivered as an error event
+-- hsdd/contract/fixture/bus-api/behavior/nidana_dart_runtime_test.dart
+FAILED: G41 an off-type value published through a widened reference reaches the observers and the widened subscriptions, while a typed subscription receives a TypeError error event in its place, at its onError or, without one, at the zone in which it listened, and receives later deliveries
+00:00 +107 -1: Some tests failed.
+exit: 1
+== seeded defect: a read skips a value it cannot convert, as in v1
+-- hsdd/contract/fixture/bus-api/behavior/nidana_dart_runtime_test.dart
+FAILED: G41 a topology read that cannot convert a value raises a TypeError at the read stage, at its connection and at a later delivery, which ends the write chains it reaches unless a catchError recovers it, and no zone handler receives it
+00:00 +107 -1: Some tests failed.
+exit: 1
+== seeded defect: re-activation compares definitions only, as in v1
+-- hsdd/contract/fixture/bus-api/behavior/nidana_dart_runtime_test.dart
+FAILED: G23 equal definitions whose plans differ in a seed or a function throw TopologyConflict: another scan seed, and an inline closure that declare evaluates again
+00:00 +107 -1: Some tests failed.
+exit: 1
+== seeded defect: the scope check runs after declare
+-- hsdd/contract/fixture/bus-api/behavior/nidana_dart_runtime_test.dart
+FAILED: G23 activating an equal declaration under an active id returns the same handle, running declare once more for the check: equal definitions whose functions are tear-offs of one top-level function
+FAILED: G42 a MODULE or PAGE topology activated before start throws StateError naming it, runs no declare and activates and claims nothing; after start it activates
+00:00 +106 -2: Some tests failed.
+exit: 1
+== seeded defect: a module acquired before start
+-- hsdd/contract/fixture/bus-api/behavior/nidana_dart_runtime_test.dart
+FAILED: G42 acquiring a module before start throws StateError naming it and adds no reference, while declaring it works; after start the acquire activates its topologies
+00:00 +107 -1: Some tests failed.
+exit: 1
+== seeded defect: a forced removal during bootstrap leaves an unconnected read to reconnect
+-- hsdd/contract/fixture/bus-api/behavior/nidana_dart_runtime_test.dart
+FAILED: G9 before start removeTopic refuses a topic that an unconnected topology reads or an unconnected subscription observes; forced, the subscription ends at once and the read receives TopicRemoved when start connects it
+00:00 +107 -1: Some tests failed.
+exit: 1
+== seeded defect: an activation deactivated before start is still connected
+-- hsdd/contract/fixture/bus-api/behavior/nidana_dart_runtime_test.dart
+FAILED: G25 an activation deactivated before start is never connected, and its claims are released at once
+00:00 +107 -1: Some tests failed.
+exit: 1
+
+### cleanup: restore the v2 runtime, remove the copied trees and the Flutter build output
+removed

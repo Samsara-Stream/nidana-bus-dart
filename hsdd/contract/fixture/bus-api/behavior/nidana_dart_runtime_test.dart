@@ -1,4 +1,4 @@
-// Binding: runs the bus-api@v1 conformance suite against the producer's
+// Binding: runs the bus-api@v2 conformance suite against the producer's
 // bus in package:nidana_dart_runtime, each case on fresh TestBus instances,
 // under `dart test`.
 //

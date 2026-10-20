@@ -1,4 +1,4 @@
-// Surface of bus-api@v1, observers, the telemetry observer, diagnostics and
+// Surface of bus-api@v2, observers, the telemetry observer, diagnostics and
 // errors. The switches are exhaustive, so a variant added to a sealed
 // family fails this set.
 import 'package:nidana_dart_contracts/nidana_dart_contracts.dart';
