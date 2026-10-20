@@ -1,4 +1,4 @@
-// Surface of bus-testing@v1, the TestBus and the provider family: every
+// Surface of bus-testing@v2, the TestBus and the provider family: every
 // declaration used with the types the Interface states. Passes when
 // `fvm dart analyze --fatal-infos` reports nothing (ADR-001 item 4). The
 // switch over SchedulerProvider names both providers and no catch-all, so a

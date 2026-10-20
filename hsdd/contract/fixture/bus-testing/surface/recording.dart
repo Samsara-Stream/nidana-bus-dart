@@ -1,4 +1,4 @@
-// Surface of bus-testing@v1, the envelope recorder and the ordering probe:
+// Surface of bus-testing@v2, the envelope recorder and the ordering probe:
 // every declaration used with the types the Interface states. Passes when
 // `fvm dart analyze --fatal-infos` reports nothing (ADR-001 item 4).
 import 'package:nidana_dart_contracts/nidana_dart_contracts.dart';

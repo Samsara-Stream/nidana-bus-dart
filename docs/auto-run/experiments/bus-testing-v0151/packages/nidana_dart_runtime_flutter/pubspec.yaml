@@ -1,0 +1,17 @@
+name: nidana_dart_runtime_flutter
+description: Stand-in for nidana_dart_runtime_flutter implementing flutter-binding@v1 (experiment only).
+version: 0.1.0
+publish_to: none
+environment:
+  sdk: ^3.13.0
+resolution: workspace
+dependencies:
+  flutter:
+    sdk: flutter
+  meta: ^1.16.0
+  nidana_dart_contracts: ^0.1.0
+  nidana_dart_navigation: ^0.1.0
+  nidana_dart_runtime: ^0.1.0
+dev_dependencies:
+  flutter_test:
+    sdk: flutter

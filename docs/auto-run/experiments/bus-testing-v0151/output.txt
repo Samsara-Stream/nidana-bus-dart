@@ -1,0 +1,161 @@
+
+### setup: the before tree from git HEAD, resolve, versions, the stand-ins' provenance
+5425df7
+pub get exit: 0
+Dart SDK version: 3.13.5 (stable) (Tue Sep 29 01:00:52 2026 -0700) on "macos_arm64"
+stand-in packages: same as ../bus-api-v2/packages
+runtime/v1/bus.dart: same as ../bus-api-v2/runtime/v1/bus.dart
+runtime/v1/interpreter.dart: same as ../bus-api-v2/runtime/v1/interpreter.dart
+runtime/v2/bus.dart: same as ../bus-api-v2/runtime/v2/bus.dart
+runtime/v2/interpreter.dart: same as ../bus-api-v2/runtime/v2/interpreter.dart
+
+### T1 the fixture change: case names before and after
+cases before: 47
+cases after: 50
+<     name: 'G3 a TestBus left without a provider runs on a fresh virtual scheduler built in the zone current at its construction, and keeps the config it was given'
+>     name: 'G3 a TestBus left without a provider runs on a fresh virtual scheduler built in the zone current at its construction, whose handler receives the errors of scheduled work and never those of a subscriber, and keeps the config it was given'
+>     name: 'G4 a timer or microtask that a subscriber callback creates waits for a scheduler operation, whatever zone the subscriber listened from'
+>     name: 'G14 a recorder attached during bootstrap records what start delivers while it connects the topologies activated before it, in the connection order, before the queue'
+>     name: 'G19 a probe attached during bootstrap receives nothing before start, and every sequence starts within start with the value start settled'
+-- activations before and after: the scope of each topology a case activates
+1,4c1,6
+< activate(_t('debounced'
+< activate(_t('doubler'
+< activate(_t('doubler'
+< activate(_t('debounced'
+---
+> activate(_app('debounced'
+> activate(_app('doubler'
+> activate(_app('doubler'
+> activate(_app('debounced'
+> activate(_app('announce'
+> activate(_app('derive'
+6,7c8,10
+< activate(_t('owner'
+< activate(_t('echo'
+---
+> activate(_app('owner'
+> activate(_app('echo'
+> activate(_app('derive'
+-- other files of the fixture tree that differ
+Files hsdd-before/hsdd/contract/fixture/bus-testing/behavior/nidana_dart_runtime_test.dart and hsdd/contract/fixture/bus-testing/behavior/nidana_dart_runtime_test.dart differ
+Files hsdd-before/hsdd/contract/fixture/bus-testing/surface/recording.dart and hsdd/contract/fixture/bus-testing/surface/recording.dart differ
+Files hsdd-before/hsdd/contract/fixture/bus-testing/surface/scheduler.dart and hsdd/contract/fixture/bus-testing/surface/scheduler.dart differ
+Files hsdd-before/hsdd/contract/fixture/bus-testing/surface/test_bus.dart and hsdd/contract/fixture/bus-testing/surface/test_bus.dart differ
+
+### T2 structure (prototype) for bus-testing, and S17's prototype over the repository's contracts
+guarantees: 20; cases: 50; bindings: 1; fixture files: 7
+exit: 0
+guarantees covered: 20
+bus-api (api): 42 guarantees; covered by reject 10, behavior 38; not executable 2; in part 0; data directories none
+bus-testing (api): 20 guarantees; covered by reject 2, behavior 17; not executable 1; in part 0; data directories none
+flutter-binding (api): 19 guarantees; covered by reject 7, behavior 15; not executable 2; in part 0; data directories none
+navigation-api (api): 27 guarantees; covered by reject 5, behavior 23; not executable 2; in part 0; data directories none
+nidana-checks (cli): 18 guarantees; covered by cli 17; not executable 1; in part 2; data directories none
+topic-codegen (file): 21 guarantees; covered by schema 1, file 12, cli 5; not executable 4; in part 3; data directories rejected
+topic-model (shared-model): 27 guarantees; covered by reject 10, behavior 18; not executable 2; in part 0; data directories none
+topology-dsl (api): 30 guarantees; covered by reject 8, behavior 22; not executable 0; in part 0; data directories none
+topology-ir (api): 23 guarantees; covered by reject 3, behavior 22; not executable 0; in part 0; data directories render
+9 contracts, 0 problem(s)
+
+### T3 surface, reject and behavior libraries analyzed
+Analyzing surface...
+No issues found!
+surface exit: 0
+PASS testing_exports_only_its_own.dart [10:undefined_class 13:undefined_class 16:undefined_class]
+PASS testing_types_are_closed.dart [8:invalid_use_of_type_outside_library 11:invalid_use_of_type_outside_library 14:invalid_use_of_type_outside_library 17:invalid_use_of_type_outside_library 20:invalid_use_of_type_outside_library 23:invalid_use_of_type_outside_library 26:invalid_use_of_type_outside_library 30:new_with_undefined_constructor_default 32:new_with_undefined_constructor_default 34:new_with_undefined_constructor_default]
+reject exit: 0
+Analyzing behavior...
+No issues found!
+behavior exit: 0
+
+### T4 this suite after, on each runtime
+== runtime v2
+-- hsdd/contract/fixture/bus-testing/behavior/nidana_dart_runtime_test.dart
+00:00 +50: All tests passed!
+exit: 0
+== runtime v1
+-- hsdd/contract/fixture/bus-testing/behavior/nidana_dart_runtime_test.dart
+FAILED: G14 a recorder attached during bootstrap records what start delivers while it connects the topologies activated before it, in the connection order, before the queue
+FAILED: G19 a probe attached during bootstrap receives nothing before start, and every sequence starts within start with the value start settled
+FAILED: G3 a TestBus left without a provider runs on a fresh virtual scheduler built in the zone current at its construction, whose handler receives the errors of scheduled work and never those of a subscriber, and keeps the config it was given
+00:00 +47 -3: Some tests failed.
+exit: 1
+-- why: G3 a TestBus left without a provider
+  Expected: [
+    Actual: []
+     Which: at location [0] is [] which shorter than expected
+-- why: G14 a recorder attached during bootstrap
+  Expected: ['testing.derived:2', 'testing.out:4', 'testing.e:7']
+    Actual: ['testing.e:7', 'testing.out:0', 'testing.derived:2']
+     Which: at location [0] is 'testing.e:7' instead of 'testing.derived:2'
+-- why: G19 a probe attached during bootstrap
+  Expected: [[], [], []]
+    Actual: [[0], [0], [0]]
+     Which: at location [0][0] is [0] which longer than expected
+
+### T5 this suite before, on each runtime: the cases v2 rewrote
+== runtime v1
+-- hsdd/contract/fixture/bus-testing/behavior/nidana_dart_runtime_test.dart
+00:00 +47: All tests passed!
+exit: 0
+== runtime v2
+-- hsdd/contract/fixture/bus-testing/behavior/nidana_dart_runtime_test.dart
+FAILED: G12 settle delivers work a test completes outside the bus zone, alternating triggerActions with real event-loop turns
+FAILED: G13 a TestBus numbers its envelope ids e1, e2 and on, and its fresh correlation ids c1, c2 and on, in the order it generates them
+FAILED: G13 two TestBuses driven by the same operations record equal envelopes, timestamps included
+FAILED: G18 a test activates only the topologies under test and stands in for an absent owner through stub (decides OQ-R2)
+FAILED: G18 stub rejects a topic another owner holds with ClaimRejected, and after shutdown the helpers throw StateError
+FAILED: G19 an ordering probe reports one sequence for every subscription under reentrant publishes, the per-topic ordering regression test of Guide §6.5
+FAILED: G3 a TestBus left without a provider runs on a fresh virtual scheduler built in the zone current at its construction, and keeps the config it was given
+FAILED: G4 a bus on a virtual provider, TestBus or not, reads the scheduler clock and runs what it schedules only inside scheduler operations
+00:00 +39 -8: Some tests failed.
+exit: 1
+-- why: G3 a TestBus left without a provider
+  Bad state: subscriber 1
+  Expected: [<<Instance of 'StateError'>>]
+    Actual: []
+     Which: at location [0] is [] which shorter than expected
+-- why: G4 a bus on a virtual provider
+  Bad state: topology 'debounced' has scope module, which activates only after start() (Spec §7.2)
+
+### T6 bus-api@v2's two bindings, which use this contract's declarations, on the v2 runtime
+-- hsdd/contract/fixture/bus-api/behavior/nidana_dart_runtime_test.dart
+00:00 +108: All tests passed!
+exit: 0
+-- hsdd/contract/fixture/bus-api/behavior/bus_activation_test.dart
+00:00 +49: All tests passed!
+exit: 0
+
+### T7 seeded defects in the v2 runtime fail the cases of what they break
+== seeded defect: a subscriber's error goes to the provider zone, as in v1
+-- hsdd/contract/fixture/bus-testing/behavior/nidana_dart_runtime_test.dart
+FAILED: G3 a TestBus left without a provider runs on a fresh virtual scheduler built in the zone current at its construction, whose handler receives the errors of scheduled work and never those of a subscriber, and keeps the config it was given
+00:00 +49 -1: Some tests failed.
+exit: 1
+== seeded defect: a subscriber's callbacks bound to the zone that listened
+-- hsdd/contract/fixture/bus-testing/behavior/nidana_dart_runtime_test.dart
+FAILED: G3 a TestBus left without a provider runs on a fresh virtual scheduler built in the zone current at its construction, whose handler receives the errors of scheduled work and never those of a subscriber, and keeps the config it was given
+FAILED: G4 a timer or microtask that a subscriber callback creates waits for a scheduler operation, whatever zone the subscriber listened from
+00:00 +48 -2: Some tests failed.
+exit: 1
+== seeded defect: a bootstrap connection's publishes wait for a microtask, as in ../bus-api-v2/runtime/barrier-min
+-- hsdd/contract/fixture/bus-testing/behavior/nidana_dart_runtime_test.dart
+FAILED: G14 a recorder attached during bootstrap records what start delivers while it connects the topologies activated before it, in the connection order, before the queue
+FAILED: G19 a probe attached during bootstrap receives nothing before start, and every sequence starts within start with the value start settled
+00:00 +48 -2: Some tests failed.
+exit: 1
+== seeded defect: bootstrap subscriptions connected before the topologies
+-- hsdd/contract/fixture/bus-testing/behavior/nidana_dart_runtime_test.dart
+FAILED: G14 a recorder attached during bootstrap records what start delivers while it connects the topologies activated before it, in the connection order, before the queue
+FAILED: G19 a probe attached during bootstrap receives nothing before start, and every sequence starts within start with the value start settled
+00:00 +48 -2: Some tests failed.
+exit: 1
+== seeded defect: a recorder skips what start delivers while it connects the bootstrap activations
+-- hsdd/contract/fixture/bus-testing/behavior/nidana_dart_runtime_test.dart
+FAILED: G14 a recorder attached during bootstrap records what start delivers while it connects the topologies activated before it, in the connection order, before the queue
+00:00 +49 -1: Some tests failed.
+exit: 1
+
+### cleanup: restore the v2 runtime, remove the copied trees
+removed

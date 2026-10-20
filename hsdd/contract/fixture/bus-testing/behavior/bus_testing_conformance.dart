@@ -1,4 +1,4 @@
-// Conformance library for bus-testing@v1 (ADR-001 item 4): the virtual
+// Conformance library for bus-testing@v2 (ADR-001 item 4): the virtual
 // scheduler, the TestBus, the envelope recorder and the ordering probe of
 // package:nidana_dart_runtime/testing.dart. Its cases are values; a binding
 // registers them with a test runner. It imports neither package:test nor
@@ -10,8 +10,12 @@
 // only the settle step ADR-001 requires. The cases that settle, or that let
 // real time pass, need a real event loop (ADR-003 item 6), so this suite is
 // bound under `dart test`, never under `testWidgets`. Whether a TestBus is a
-// conforming bus is bus-api@v1's suite, bound to a TestBus in
+// conforming bus is bus-api@v2's suite, bound to a TestBus in
 // hsdd/contract/fixture/bus-api/behavior/.
+//
+// The bus these cases drive is a bus-api@v2 bus: a topology activated before
+// start() is APPLICATION-scoped, because a MODULE or PAGE activation before
+// start() throws (bus-api@v2 G42), and start() connects it (G34).
 import 'dart:async';
 
 import 'package:matcher/expect.dart';
@@ -58,8 +62,13 @@ const Set<ObserverCapability> _all = <ObserverCapability>{
 
 int _double(int v) => v * 2;
 
+/// A MODULE topology: activated after start() only (bus-api@v2 G42).
 Topology _t(String id, void Function(TopologyBuilder b) body) =>
     topology(id, Scope.module, body);
+
+/// An APPLICATION topology: activated before start(), which connects it.
+Topology _app(String id, void Function(TopologyBuilder b) body) =>
+    topology(id, Scope.application, body);
 
 /// Subscribes to [topic] and returns the list each delivered payload is
 /// appended to.
@@ -92,7 +101,7 @@ final class _Observer implements BusObserver {
   }
 }
 
-// Generic shell code holds a topic through a widened reference (bus-api@v1
+// Generic shell code holds a topic through a widened reference (bus-api@v2
 // G41). Each helper takes one, so inference gives its call the reference's
 // type argument, Object?.
 
@@ -114,13 +123,14 @@ final List<ConformanceCase<BusTestingHarness>> busTestingConformance =
     <ConformanceCase<BusTestingHarness>>[
   // ------------------------------------------------------------ G3
   (
-    name: 'G3 a TestBus left without a provider runs on a fresh virtual scheduler built in the zone current at its construction, and keeps the config it was given',
+    name: 'G3 a TestBus left without a provider runs on a fresh virtual scheduler built in the zone current at its construction, whose handler receives the errors of scheduled work and never those of a subscriber, and keeps the config it was given',
     body: (BusTestingHarness h) async {
-      final List<Object> errors = <Object>[];
+      final List<Object> built = <Object>[];
+      final List<Object> listened = <Object>[];
       late final TestBus bus;
       runZonedGuarded(
         () => bus = TestBus(const BusConfig(devMode: false)),
-        (Object e, StackTrace s) => errors.add(e),
+        (Object e, StackTrace s) => built.add(e),
         zoneValues: <Object?, Object?>{#testing: 'construction'},
       );
       expect(bus.config.scheduler, isNull);
@@ -129,10 +139,27 @@ final List<ConformanceCase<BusTestingHarness>> busTestingConformance =
       expect(bus.scheduler.clock.now(), VirtualScheduler.defaultInitialTime);
       expect(bus.clock.now(), bus.scheduler.clock.now());
       bus.start();
-      bus.observe(_e).listen((int v) => throw StateError('subscriber $v'));
+      final List<int> others = _listen(bus, _e);
+      // The second value reaches the subscriber from the reentrant drain,
+      // which triggerActions runs, and its error still goes to the zone that
+      // listened (G11, bus-api@v2 G18). The timer the callback creates is
+      // scheduled work in the provider zone (G4), so its error goes to the
+      // zone the scheduler was built in.
+      runZonedGuarded(
+        () => bus.observe(_e).listen((int v) {
+          if (v == 1) bus.input.publish(_e, 2);
+          if (v == 2) Timer(Duration.zero, () => throw StateError('scheduled'));
+          throw StateError('subscriber $v');
+        }),
+        (Object e, StackTrace s) => listened.add(e),
+      );
       bus.input.publish(_e, 1);
       bus.scheduler.triggerActions();
-      expect(errors, <Object?>[isA<StateError>()]);
+      Matcher thrown(String message) =>
+          isA<StateError>().having((StateError e) => e.message, 'message', message);
+      expect(others, <int>[1, 2]);
+      expect(listened, <Object?>[thrown('subscriber 1'), thrown('subscriber 2')]);
+      expect(built, <Object?>[thrown('scheduled')]);
       expect(TestBus().scheduler, isNot(same(bus.scheduler)));
     },
   ),
@@ -172,7 +199,7 @@ final List<ConformanceCase<BusTestingHarness>> busTestingConformance =
       final VirtualScheduler scheduler = VirtualScheduler();
       final Bus bus =
           Bus(BusConfig(scheduler: VirtualSchedulerProvider(scheduler)));
-      bus.activate(_t('debounced',
+      bus.activate(_app('debounced',
           (TopologyBuilder t) => t.write(_out, t.read(_e).debounce(_ms100))));
       bus.start();
       final List<int> out = _listen(bus, _out);
@@ -207,6 +234,32 @@ final List<ConformanceCase<BusTestingHarness>> busTestingConformance =
       bus.scheduler.triggerActions();
       expect(events, <int>[1, 2]);
       expect(states, <int>[1]);
+    },
+  ),
+  (
+    name: 'G4 a timer or microtask that a subscriber callback creates waits for a scheduler operation, whatever zone the subscriber listened from',
+    body: (BusTestingHarness h) async {
+      final TestBus bus = TestBus();
+      bus.start();
+      final DateTime t0 = bus.clock.now();
+      final List<String> trace = <String>[];
+      runZoned(
+        () => bus.observe(_e).listen((int v) {
+          scheduleMicrotask(() => trace.add('microtask $v'));
+          Timer(_ms100, () =>
+              trace.add('timer $v@${bus.clock.now().difference(t0).inMilliseconds}'));
+        }),
+        zoneValues: <Object?, Object?>{#testing: 'listener'},
+      );
+      bus.input.publish(_e, 1);
+      await Future<void>.delayed(const Duration(milliseconds: 150));
+      expect(trace, isEmpty);
+      expect(bus.scheduler.pendingMicrotaskCount, 1);
+      expect(bus.scheduler.pendingTimerCount, 1);
+      bus.scheduler.triggerActions();
+      expect(trace, <String>['microtask 1']);
+      bus.scheduler.advanceTimeBy(_ms100);
+      expect(trace, <String>['microtask 1', 'timer 1@100']);
     },
   ),
   (
@@ -561,7 +614,7 @@ final List<ConformanceCase<BusTestingHarness>> busTestingConformance =
     name: 'G12 settle delivers work a test completes outside the bus zone, alternating triggerActions with real event-loop turns',
     body: (BusTestingHarness h) async {
       final TestBus bus = TestBus();
-      bus.activate(_t('doubler',
+      bus.activate(_app('doubler',
           (TopologyBuilder t) => t.write(_out, t.read(_e).map(_double))));
       bus.start();
       final Completer<int> reply = Completer<int>();
@@ -609,7 +662,7 @@ final List<ConformanceCase<BusTestingHarness>> busTestingConformance =
     name: 'G13 a TestBus numbers its envelope ids e1, e2 and on, and its fresh correlation ids c1, c2 and on, in the order it generates them',
     body: (BusTestingHarness h) async {
       final TestBus bus = TestBus();
-      bus.activate(_t('doubler',
+      bus.activate(_app('doubler',
           (TopologyBuilder t) => t.write(_out, t.read(_e).map(_double))));
       bus.start();
       bus.input.publish(_e, 1);
@@ -631,7 +684,7 @@ final List<ConformanceCase<BusTestingHarness>> busTestingConformance =
     body: (BusTestingHarness h) async {
       List<RecordedEnvelope> drive() {
         final TestBus bus = TestBus();
-        bus.activate(_t('debounced',
+        bus.activate(_app('debounced',
             (TopologyBuilder t) => t.write(_out, t.read(_e).debounce(_ms100))));
         bus.start();
         bus.input.publish(_e, 1);
@@ -690,6 +743,30 @@ final List<ConformanceCase<BusTestingHarness>> busTestingConformance =
       never.input.publish(_e, 1);
       never.shutdown();
       expect(never.recorder.envelopes, isEmpty);
+    },
+  ),
+  (
+    name: 'G14 a recorder attached during bootstrap records what start delivers while it connects the topologies activated before it, in the connection order, before the queue',
+    body: (BusTestingHarness h) async {
+      final TestBus bus = TestBus();
+      // Activated before the topology that writes its input, which start()
+      // connects first (bus-api@v2 G34).
+      bus.activate(_app('announce',
+          (TopologyBuilder t) => t.write(_out, t.read(_derived).map(_double))));
+      bus.activate(_app('derive',
+          (TopologyBuilder t) => t.write(_derived, t.read(_s).map(_double))));
+      final List<int> heard = _listen(bus, _out);
+      bus.input.publish(_e, 7);
+      bus.scheduler.triggerActions();
+      expect(bus.recorder.envelopes, isEmpty);
+      bus.start();
+      expect(<String>[
+        for (final RecordedEnvelope r in bus.recorder.envelopes)
+          '${r.topic.name}:${r.envelope.payload}',
+      ], <String>['testing.derived:2', 'testing.out:4', 'testing.e:7']);
+      // The event announce published while start() connected it reached the
+      // recorder and no subscription made during bootstrap.
+      expect(heard, isEmpty);
     },
   ),
   (
@@ -890,11 +967,12 @@ final List<ConformanceCase<BusTestingHarness>> busTestingConformance =
     name: 'G18 a test activates only the topologies under test and stands in for an absent owner through stub (decides OQ-R2)',
     body: (BusTestingHarness h) async {
       final TestBus bus = TestBus();
-      bus.activate(_t('derive',
-          (TopologyBuilder t) => t.write(_derived, t.read(_auth).map(_double))));
       final StateWriter<int> auth = bus.stub(_auth);
       expect(bus.stub(_auth), same(auth));
       bus.start();
+      // A MODULE topology under test activates after start() (bus-api@v2 G42).
+      bus.activate(_t('derive',
+          (TopologyBuilder t) => t.write(_derived, t.read(_auth).map(_double))));
       auth.publish(21);
       bus.scheduler.triggerActions();
       expect(bus.getCurrentValue(_derived), 42);
@@ -929,7 +1007,7 @@ final List<ConformanceCase<BusTestingHarness>> busTestingConformance =
     name: 'G18 stub rejects a topic another owner holds with ClaimRejected, and after shutdown the helpers throw StateError',
     body: (BusTestingHarness h) async {
       final TestBus bus = TestBus();
-      bus.activate(_t('owner', (TopologyBuilder t) => t.write(_s, t.read(_e))));
+      bus.activate(_app('owner', (TopologyBuilder t) => t.write(_s, t.read(_e))));
       expect(() => bus.stub(_s), throwsA(isA<ClaimRejected>()));
       final Publisher input = bus.input;
       bus.shutdown();
@@ -975,7 +1053,7 @@ final List<ConformanceCase<BusTestingHarness>> busTestingConformance =
     name: 'G19 an ordering probe reports one sequence for every subscription under reentrant publishes, the per-topic ordering regression test of Guide §6.5',
     body: (BusTestingHarness h) async {
       final TestBus bus = TestBus();
-      bus.activate(_t('echo',
+      bus.activate(_app('echo',
           (TopologyBuilder t) => t.write(_e, t.read(_out).map(_double))));
       bus.start();
       final OrderingProbe<int> probe =
@@ -1009,6 +1087,27 @@ final List<ConformanceCase<BusTestingHarness>> busTestingConformance =
         <int>[5, 6],
         <int>[5, 6],
         <int>[5, 6],
+      ]);
+      expect(probe.isConsistent, isTrue);
+    },
+  ),
+  (
+    name: 'G19 a probe attached during bootstrap receives nothing before start, and every sequence starts within start with the value start settled',
+    body: (BusTestingHarness h) async {
+      final TestBus bus = TestBus();
+      bus.activate(_app('derive',
+          (TopologyBuilder t) => t.write(_derived, t.read(_s).map(_double))));
+      final OrderingProbe<int> probe = OrderingProbe.attach(bus, _derived);
+      bus.stub(_s).publish(5);
+      bus.scheduler.triggerActions();
+      expect(probe.received, <List<int>>[<int>[], <int>[], <int>[]]);
+      bus.start();
+      expect(probe.received, <List<int>>[<int>[2], <int>[2], <int>[2]]);
+      bus.scheduler.triggerActions();
+      expect(probe.received, <List<int>>[
+        <int>[2, 10],
+        <int>[2, 10],
+        <int>[2, 10],
       ]);
       expect(probe.isConsistent, isTrue);
     },

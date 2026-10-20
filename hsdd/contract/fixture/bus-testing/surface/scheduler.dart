@@ -1,4 +1,4 @@
-// Surface of bus-testing@v1, the virtual scheduler: every declaration used
+// Surface of bus-testing@v2, the virtual scheduler: every declaration used
 // with the types the Interface states. Passes when
 // `fvm dart analyze --fatal-infos` reports nothing (ADR-001 item 4).
 import 'dart:async';

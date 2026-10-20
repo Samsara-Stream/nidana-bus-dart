@@ -5,7 +5,7 @@
 | id | version | kind | status | owner | consumers |
 |----|---------|------|--------|-------|-----------|
 | `bus-api` | v2 | api | draft | `nidana.runtime` | 20 |
-| `bus-testing` | v1 | api | stable | `nidana.runtime` | 13 |
+| `bus-testing` | v2 | api | draft | `nidana.runtime` | 13 |
 | `flutter-binding` | v1 | api | stable | `nidana.flutter` | 7 |
 | `navigation-api` | v1 | api | stable | `nidana.navigation` | 16 |
 | `nidana-checks` | v1 | cli | stable | `nidana.tooling` | 4 |

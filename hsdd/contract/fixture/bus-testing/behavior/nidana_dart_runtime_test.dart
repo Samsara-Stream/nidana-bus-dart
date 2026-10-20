@@ -1,4 +1,4 @@
-// Binding: runs the bus-testing@v1 conformance suite against the producer's
+// Binding: runs the bus-testing@v2 conformance suite against the producer's
 // testing library, package:nidana_dart_runtime/testing.dart, under
 // `dart test`. The suite constructs the library's own declarations, so the
 // harness only settles, which has nothing left to run.
