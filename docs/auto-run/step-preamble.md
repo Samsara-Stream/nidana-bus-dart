@@ -7,12 +7,17 @@ orchestrator sequences the steps, takes the owner's decisions when a skill
 stops, commits, and keeps the decision ledger. You run exactly one HSDD skill
 invocation, on the one target named in the step section below, then report.
 
+Steps S00 to S54 planned the tree against Specification v0.15.0. From S55 on,
+the run brings the planned tree in line with Specification v0.15.1 through
+hsdd-intake and the skills it hands off to. No phase has been implemented: there
+is no `hsdd/verify/` and no package code.
+
 ## Blindness
 
 A manual run of the same planning exists elsewhere. Do not read `~/git/nidana-bus-dart`, anything under `~/tmp`, or any document that describes how the manual run was done, and do not search for one. Your inputs are:
 
 - this repository;
-- the reference architecture: the three `*-v0_15_0.md` files under `ref/nidana-docs/arch/`. Everything else in that submodule, older `arch/` versions and anything under `loop/`, is superseded history and is never fed to a skill;
+- the reference architecture: the three `*-v0_15_1.md` files under `ref/nidana-docs/arch/`, and the three `*-v0_15_0.md` files only as the baseline the tree was planned against, to see what changed. Everything else in that submodule, older `arch/` versions and anything under `loop/`, is superseded history and is never fed to a skill;
 - the HSDD skills vendored under `.agents/skills/` (linked from `.claude/skills/`), and HSDD's own documentation and methodology spec under `~/git/hsdd/docs/` and `~/git/hsdd/spec/`;
 - the Dart and Flutter SDKs through fvm, and public package documentation.
 
@@ -26,7 +31,7 @@ The HSDD methodology spec to consult, when you need more than the skill, is
 These are facts, not decisions. Use them as given.
 
 - Who builds what: Purbo alone, with coding agents. One team, one repository.
-- The v0.15.0 Specification is accepted and frozen for v1, although its header says Draft. The Guide and the Rationale are informative.
+- The v0.15.1 Specification is accepted for v1 and replaces v0.15.0, although its header says Draft (the owner, 2026-10-20: "make sure everything is aligned, all decisions, all artifacts"). The Guide and the Rationale are informative.
 - Toolchain: always `fvm dart` and `fvm flutter`, never a bare `dart`. The SDK is pinned in `.fvmrc`.
 - Coding method for phase execution: superpowers, not OpenSpec. It lands in `hsdd/conventions.md` as `**Coding method:** superpowers` through the root hsdd-spec run. OpenSpec is not installed and is not to be installed. You may not install global tooling; project-local dev dependencies are fine.
 - `ref/` is read-only. A change the reference architecture would need is recorded, never made.
@@ -51,6 +56,8 @@ A decision is recorded when it was taken, not reconstructed later. A decision wi
 - A step that fails its own gates twice (protocol step 7).
 
 A stop is the protocol working, not the run failing. Do not reword a stop condition into a decision to keep going.
+
+**From S55 on, the orchestrator decides these too.** For the v0.15.1 intake the owner said: "do not ask me anything, but record the decisions". The orchestrator therefore decides each condition above as the owner's stand-in and records it with `would_have_asked: true` and its `stop_class`, and nothing writes `hsdd/judgement/STOP.md`. A change to `ref/` still cannot be made: it is recorded with `would_upstream: true`. The intake's report lists every such decision first. For you, a step subagent, nothing below changes: you report skill stops and run-stop candidates, you never answer them.
 
 ## How the decision policy applies to you, a step subagent
 
@@ -113,7 +120,12 @@ every stop, the ledger and every commit:
   `### {ID}: {title}`; a `Collides with` reason is its own sentence after the
   list.
 - Cite Specification sections by number (`Spec §3.4`), Guide sections as
-  `Guide §6.5`, Rationale sections as `Rationale §2.1`.
+  `Guide §6.5`, Rationale sections as `Rationale §2.1`. From S55 on these
+  mean v0.15.1; cite the baseline explicitly when you need it
+  (`Spec v0.15.0 §3.13`).
+- Leave alone the owner's files that no step writes: `docs/auto-run/REPORT.md`,
+  `docs/auto-run/HARNESS.md`, `docs/auto-run/JUDGEMENT-LAYER.md` and
+  `docs/auto-run/explorer/`.
 - `ref/` is read-only. A change the Specification would need is recorded as a
   decision with `would_upstream: true` and resolved locally.
 
