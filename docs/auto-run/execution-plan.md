@@ -261,6 +261,7 @@ orchestrator and recorded with `would_have_asked: true`.
 | S65 | 9 | hsdd-contract | H7b: topology-dsl@v2 citation touch (16 moved; read-stage errors and the activation-connect pointer restated) | done | a3b0f44 |
 | S66 | 9 | hsdd-contract | H7c: topology-ir@v1 citation touch (16 moved; Refinement 4 restated for scope timing) | done | c137d1a |
 | S67 | 9 | hsdd-contract | H7d: bus-api@v2 citation touch (19 moved) and G9: catchError recovers TopicRemoved, which carries no lineage | done | 56980bc |
+| S68 | 9 | hsdd-contract | inserted: topology-dsl@v2 TopicRemoved carries no lineage, matching bus-api@v2 G9 | done | 5126926 |
 
 ## Change log
 

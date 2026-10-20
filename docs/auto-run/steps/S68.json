@@ -1,0 +1,85 @@
+{
+  "step_ref": "S68",
+  "skill": "hsdd-contract",
+  "target": "topology-dsl@v2 (hsdd/contract/topology-dsl.md)",
+  "status": "completed",
+  "stop": null,
+  "artifacts": [
+    "hsdd/contract/topology-dsl.md",
+    "hsdd/contract/INDEX.md (regenerated, unchanged)",
+    "docs/auto-run/steps/S68.json"
+  ],
+  "decisions": [
+    {
+      "at": "2026-10-20T20:00:22Z",
+      "artifact": "hsdd/contract/topology-dsl.md",
+      "question": "Where does topology-dsl@v2's Errors and lineage state that the TopicRemoved a forced removal raises at a read stage carries no lineage (bus-api@v2 G9 as S67 clarified it): in the list of errors that carry none, where TopicRemoved is named among the read-stage errors, or both; and does the first sentence ('An error inside a live pipeline carries the lineage the stage that raised it would have given its output') change too?",
+      "options": [
+        { "label": "carry-none list only", "consequence": "One insertion; the catchError-recovers-with-Lineage.root() rule then covers TopicRemoved by name, but the read-stage sentence still states the TypeError's lineage and not TopicRemoved's, so the two read-stage errors read asymmetrically." },
+        { "label": "read-stage sentence only", "consequence": "Parallel with the TypeError clause, but the Lineage.root() recovery is stated for 'them', the listed errors, so TopicRemoved's recovery lineage would be implied rather than stated." },
+        { "label": "list and read-stage sentence, first sentence kept", "consequence": "TopicRemoved is in the list the Lineage.root() rule governs, and its naming states 'carrying none' with the reason beside G41's TypeError; one short redundancy inside the paragraph. The first sentence stays a general rule whose explicit exceptions follow it." },
+        { "label": "both, and scope the first sentence", "consequence": "Removes the misreading at its source, but rewords the rule every function-thrown and switchMap error rests on, which the invocation says not to change." }
+      ],
+      "chosen": "list and read-stage sentence, first sentence kept",
+      "why": "The carry-none list is where the rule that a catchError recovers with Lineage.root() is stated, so TopicRemoved must be in it for that rule to cover it by name; the read-stage sentence already states the TypeError's lineage (G41), and stating TopicRemoved's there, with bus-api@v2 G9's reason (no publish caused the removal), lets a reader of that sentence see both lineages without returning to the list. Once TopicRemoved is an explicit exception to the first sentence, that sentence can no longer be read to give it the read's last lineage, so it stays as written and no other rule moves. The invocation offered either form; a reviewer preferring a paragraph with no repeated fact would have tipped it to the list alone.",
+      "evidence": [
+        "hsdd/contract/bus-api.md G9 and its 'Touched within v2, 2026-10-21' Versioning entry (S67, commit 56980bc)",
+        "docs/auto-run/experiments/bus-api-v2/output-g9.txt (T6: the seeded defect giving TopicRemoved the read's last lineage fails the G9 case, Expected ['e1', null, 'e5'], Actual ['e1', 'e1', 'e5'])",
+        "Spec §2.4",
+        "Spec §10.2"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T20:00:30Z",
+      "artifact": "hsdd/contract/topology-dsl.md",
+      "question": "Classify the change against topology-dsl@v2's Breaking list, which names 'the Errors and lineage rules': a breaking change requiring v3 and a migration note, or a clarification of an unreleased version kept within v2?",
+      "options": [
+        { "label": "clarification within draft v2", "consequence": "Stays v2 with a line in the dated 'Touched within v2, 2026-10-21' entry; every consumer reference to topology-dsl@v2 stays valid; the entry states why a Breaking-list item does not bump here." },
+        { "label": "breaking, v3", "consequence": "A v3 file and migration note for a v2 that is draft, authored in this intake and implemented by no phase; every consumer reference moves again inside the same intake, with no consumer that could break." }
+      ],
+      "chosen": "clarification within draft v2",
+      "why": "The case was open, not stated otherwise: the first sentence gives an error the lineage its stage would have given its output, and a removal is not a value, so the text admitted two readings and this picks the one bus-api@v2 G9 pins. v2 is draft and was authored in this intake (S59); no phase implements it and no hsdd/verify/ exists, so no consumer's code can break. No declaration, guarantee, case or fixture changed; this contract's live suite has no TopicRemoved, removeTopic or TypeError case (grep of hsdd/contract/fixture/topology-dsl/behavior/), and the v2 stand-in runtime already recovers TopicRemoved with Lineage.root() and passes topology-dsl@v2's live suite 49 of 49 (output-g9.txt T5). DEC-822 named it a clarification of an unreleased version; DEC-688's reason for bumping applied to stable contracts. A v2 already stable with phase_ids final, or an implementation that gave the error the read's last lineage, would have made v3 the right call.",
+      "evidence": [
+        "DEC-822",
+        "DEC-688",
+        "docs/auto-run/experiments/bus-api-v2/output-g9.txt",
+        "hsdd/contract/fixture/topology-dsl/behavior/live_conformance.dart"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    }
+  ],
+  "experiments": [],
+  "self_check": [
+    { "gate": "Frontmatter has id, version, status, kind, owner, compatibility, produced_by, consumers; external_consumers when any exist.", "status": "pass", "note": "Frontmatter untouched." },
+    { "gate": "`consumers` lists phase ids that actually consume this contract.", "status": "n/a", "note": "Not touched by this wording step." },
+    { "gate": "The Interface section is concrete enough to mock against.", "status": "pass", "note": "No declaration changed." },
+    { "gate": "At least one guarantee/invariant is stated.", "status": "pass", "note": "G1 to G30 unchanged." },
+    { "gate": "A breaking change bumped the version and added a migration note.", "status": "n/a", "note": "Classified a clarification of a draft, unreleased v2; recorded in the dated 'Touched within v2, 2026-10-21' entry with the reason it does not bump." },
+    { "gate": "The registry was regenerated.", "status": "pass", "note": "node hsdd/scripts/gen-registry.mjs ran; hsdd/contract/INDEX.md unchanged because no frontmatter changed." },
+    { "gate": "`phase_ids` is present (`provisional` until `hsdd-reconcile` finalizes it).", "status": "pass", "note": "provisional, unchanged." },
+    { "gate": "Every code-level artifact both sides consume (types file, fixtures, shared package) names its canonical path and its owner in the Interface or Validation section: the owning phase for code, `hsdd-contract` for validation artifacts.", "status": "pass", "note": "Unchanged." },
+    { "gate": "A contract or version created by this run has its schema and its kind's fixtures written at the canonical paths.", "status": "n/a", "note": "No contract or version created." },
+    { "gate": "Open questions are cited by ID only, never defined here; prose justifying behavior as \"pending OQ-x\" is swept when the OQ resolves (hsdd-reconcile).", "status": "pass", "note": "No OQ added or cited by the change." },
+    { "gate": "A `stable` contract names a schema or a fixtures directory at the canonical paths and the artifact exists, or it carries `validation: grandfathered` (never on a contract authored after the upgrade).", "status": "n/a", "note": "draft." },
+    { "gate": "No version is `retired` while a consumer or an external consumer still names it.", "status": "pass", "note": "No status change." },
+    { "gate": "A `v0` contract carries `## Observed completeness`, and the block changed in any commit that added fixtures to it.", "status": "n/a", "note": "v2." },
+    { "gate": "Step done-when: topology-dsl@v2 and bus-api@v2 G9 state the same lineage for TopicRemoved; nothing else in the contract changed except the Versioning entry.", "status": "pass", "note": "git diff: two insertions in the Errors and lineage paragraph and one appended passage in the 'Touched within v2, 2026-10-21' entry; G41's TypeError clause, the catchError row and every guarantee are unchanged." },
+    { "gate": "node docs/auto-run/tools/gate.mjs --skill hsdd-contract", "status": "pass", "note": "0 error(s), 0 warning(s)." },
+    { "gate": "Prose rules of the run: no em-dash and no banned phrase.", "status": "pass", "note": "grep counts 0 for both in hsdd/contract/topology-dsl.md." }
+  ],
+  "notes_for_orchestrator": [
+    "CHANGED in hsdd/contract/topology-dsl.md, Errors and lineage: the carry-none sentence now reads 'A `timeout` error, a `TopicRemoved` that a forced removal raises at a read stage, an error a raw operator emits, and an error that passed through a raw operator carry none, and a `catchError` recovers them with `Lineage.root()`.' The read-stage sentence now reads '`TopicRemoved`, when the read's topic is removed with `force`, carrying none because no publish caused the removal (its G9), and a `TypeError` ... carrying the lineage that value would have had (its G41).' The first sentence, the catchError combinator row ('a recovered value carries the error's lineage'), G25 and G26 are unchanged; with TopicRemoved carrying none, the row and G25 already resolve to Lineage.root() through the paragraph.",
+    "VERSIONING: appended to the existing 'Touched within v2, 2026-10-21' entry, located as 'After handoff H7d', classified a clarification of a draft v2 authored in this intake, kept within v2, citing docs/auto-run/experiments/bus-api-v2/output-g9.txt. Version, status, phase_ids, frontmatter and INDEX.md unchanged; no fixture touched; no experiment run (the wording change has no case to replay, and S67's replay already covers the rule on the same runtimes).",
+    "For H11: nidana.runtime phases that implement catchError and read stages now read one rule in both contracts (bus-api@v2 G9, topology-dsl@v2 Errors and lineage). Nothing else in topology-dsl@v2 cites G9.",
+    "docs/auto-run/REPORT.md shows as modified in the working tree; that change was present before this step and is the owner's."
+  ]
+}
