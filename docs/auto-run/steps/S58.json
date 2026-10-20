@@ -1,0 +1,180 @@
+{
+  "step_ref": "S58",
+  "skill": "hsdd-adr",
+  "target": "ADR-003 (hsdd/adr/003-time-source-virtual-scheduler.md), amended in place (intake handoff H1)",
+  "status": "completed",
+  "stop": null,
+  "artifacts": [
+    "hsdd/adr/003-time-source-virtual-scheduler.md",
+    "hsdd/adr/INDEX.md (regenerated, no change: frontmatter untouched)",
+    "docs/auto-run/experiments/subscriber-error-zone/",
+    "docs/auto-run/steps/S58.json"
+  ],
+  "decisions": [
+    {
+      "at": "2026-10-20T16:51:18Z",
+      "artifact": "hsdd/adr/003-time-source-virtual-scheduler.md",
+      "question": "Decide how a subscriber's error reaches the listen zone while item 6 still holds (everything a `bus.observe` subscription schedules is delivered by the scheduler operations), for example by keeping the callbacks in the provider zone and forwarding each error to the listen zone's handler, or by binding the callbacks to the listen zone.",
+      "options": [
+        { "label": "Callbacks in the provider zone, errors forwarded to the listen zone", "consequence": "Item 2 keeps where callbacks run and where the bus subscribes. A Timer a callback creates and the timer of a debounceTime chained onto the observed stream stay virtual on a TestBus listened from a test body (C7, C8, T3, T4 pass). Callbacks still do not see the listener's zone values and read the provider clock. The bus wraps every handler, including ones set later through StreamSubscription, in a guard: about 8 ns per delivery per subscriber (C14)." },
+        { "label": "Callbacks bound to the listen zone", "consequence": "Errors and zone values follow the subscriber, as on any Dart stream. But a Timer a callback creates and the timers RxDart operators chained onto the observed stream create during delivery run on the listen zone's timers: on a TestBus listened from a test body advanceTimeBy fires none of them (C7, C8; T3 and T4 fail), the loss ADR-003 already rejected 'bus.observe returning the subject's stream unchanged' for. Same cost as forwarding." },
+        { "label": "Errors stay in the provider zone, as first accepted", "consequence": "Contradicts Spec §10.2 principle 5. Under package:test with a TestBus built in setUpAll, the test whose subscriber threw passes and the runner reports the error against setUpAll, after it completed (T2)." }
+      ],
+      "chosen": "Callbacks in the provider zone, errors forwarded to the listen zone",
+      "why": "Spec §10.2 principle 5 fixes where a subscriber's exception goes (the zone in which listen was called), not where its callbacks run; both forwarding and binding satisfy it, measured (C3 to C6, C10, T2). Only forwarding keeps the virtual-time property item 2 was chosen for: under binding, timers a callback or a chained operator creates during delivery leave the scheduler (T3, T4 fail), the same loss for which ADR-003 already rejected returning the subject's stream unchanged. The two cost the same (C14). The signal that would have changed my mind: a consumer that needs its own zone values inside its callbacks, such as package:test's addTearDown or expectAsync called from a callback, or a zone-scoped logging context, which binding gives and forwarding does not.",
+      "evidence": [
+        "Spec §10.2",
+        "Spec §3.10",
+        "Spec §3.3",
+        "docs/auto-run/experiments/subscriber-error-zone/",
+        "docs/auto-run/experiments/virtual-scheduler/ (Q2, Q4)",
+        "docs/auto-run/experiments/time-source/",
+        "docs/auto-run/experiments/off-type-delivery/"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T16:51:44Z",
+      "artifact": "hsdd/adr/003-time-source-virtual-scheduler.md",
+      "question": "Spec §10.2 principle 5 names an exception thrown by a callback. Do an error event the subscriber leaves without an onError handler (such as TopicRemoved, bus-api@v1 G9), and an exception thrown by a handler set after listen through StreamSubscription.onData/onError/onDone, follow the same rule?",
+      "options": [
+        { "label": "All of them go to the listen zone", "consequence": "One rule for everything a subscriber leaves unhandled, matching Dart's convention that an unhandled error event goes to the subscription's zone, which for an ordinary stream is the listen zone, and Stream.cast's handling of a failed cast (C12). The runtime's subscription wrapper must wrap handlers set later too (C6)." },
+        { "label": "Callback exceptions only; unhandled error events to the provider zone", "consequence": "A subscriber that listens without onError, in a test body, would not fail its test on TopicRemoved; two destinations for one subscriber's unhandled errors." }
+      ],
+      "chosen": "All of them go to the listen zone",
+      "why": "A subscriber's unhandled error is the subscriber's, whether it is thrown by its callback or is an error event it chose not to handle; Dart sends both to the subscription's zone, and the experiment shows the wrapper reaches all four paths (C3 to C6). No evidence suggests a consumer wants the provider zone for error events.",
+      "evidence": [
+        "Spec §10.2",
+        "docs/auto-run/experiments/subscriber-error-zone/ (C4, C5, C6, C12)"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T16:51:44Z",
+      "artifact": "hsdd/adr/003-time-source-virtual-scheduler.md",
+      "question": "Does ADR-003 decide whether a conversion at a subscription's own type argument (bus-api@v1 G41, widened references) counts as the subscriber's callback, whose error goes to the listen zone, or as the bus's own delivery code, which Spec §10.2 says is a defect and is not swallowed?",
+      "options": [
+        { "label": "Leave it to bus-api@v1 (handoff H3)", "consequence": "ADR-003 states only that the bus catches what a subscriber's callbacks throw and that its own delivery code is not caught by that rule; bus-api@v1 states the conversion. The Consequences say bus-api@v1 states it." },
+        { "label": "Decide it in ADR-003", "consequence": "ADR-003 would rule on widened references, which are bus-api@v1's subject and not the time source's; the intake record (L4, 'Left to decide') and H3's prompt item (4) give this to H3." }
+      ],
+      "chosen": "Leave it to bus-api@v1 (handoff H3)",
+      "why": "The intake record routes the question to H3, and it concerns G41's widened references rather than zones or time. ADR-003 supplies the rule H3 builds on and the measured precedent (C12: Dart's Stream.cast sends a failed cast to the listen zone's handler, or to onError when one is given).",
+      "evidence": [
+        "hsdd/management/2026-10-20-intake-ref-arch-v0-15-1.md (L4, H3)",
+        "docs/auto-run/experiments/subscriber-error-zone/ (C12)",
+        "docs/auto-run/experiments/off-type-delivery/"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T16:51:44Z",
+      "artifact": "hsdd/adr/003-time-source-virtual-scheduler.md",
+      "question": "Restate item 6's first-delivery sentence for Spec §2.1 'Replay timing' and §3.13: does ADR-003 fix when a subscription connected at start() receives its first values?",
+      "options": [
+        { "label": "State the invariant, leave the start() timing to bus-api@v1", "consequence": "Item 6 says a bootstrap topology or subscription is connected at start() and receives its first values within start() or in provider-zone work start() schedules; a subscription after start() gets its replay in the first provider-zone microtask after listen. Either timing H3 picks keeps item 6." },
+        { "label": "Fix the first values synchronously inside start()", "consequence": "Pre-empts H3's design of the barrier machinery (Guide §6.1: bus-owned storage and fan-out or a wrapped subject)." },
+        { "label": "Fix the first values in a provider-zone microtask after start()", "consequence": "Same pre-emption, and a bootstrap subscription would see its replay after start() returns, which H3 may not want for Spec §3.13 step 2's ordering." }
+      ],
+      "chosen": "State the invariant, leave the start() timing to bus-api@v1",
+      "why": "Item 6 needs only that the first delivery is a bus operation or provider-zone work, so that scheduler operations deliver it; the barrier's connection order and timing are bus-api@v1's guarantee (H3). The handoff's sentence is stated as given.",
+      "evidence": [
+        "Spec §3.13",
+        "Spec §2.1",
+        "Guide §6.1",
+        "hsdd/management/2026-10-20-intake-ref-arch-v0-15-1.md (L1, H1, H3)"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T16:52:27Z",
+      "artifact": "hsdd/adr/003-time-source-virtual-scheduler.md",
+      "question": "Amend in place with a dated `## Amendments` entry, keeping the status, date and item numbers; supersede ADR-003 only if item 2 or item 6 is replaced as a whole, and record why.",
+      "options": [
+        { "label": "Amend in place", "consequence": "status accepted, date 2026-10-17 and items 1 to 9 kept; a 2026-10-20 Amendments entry records what changed; every Governed by link stays valid." },
+        { "label": "Supersede with ADR-004", "consequence": "A new file, ADR-003 set superseded, every Governed by link and affects list moved, for a change to one bullet of item 2 and one of item 6." }
+      ],
+      "chosen": "Amend in place",
+      "why": "Neither item is replaced as a whole: item 2 changes where a subscriber's error goes, not where callbacks run or where the bus subscribes, and item 6 keeps its rule that scheduler operations alone deliver everything a TestBus schedules (C1, C2, T1 measure it under the chosen rule). Item 5's guarded-run bullet gained one clause and keeps its meaning for work that reaches the scheduler.",
+      "evidence": [
+        "hsdd/management/2026-10-20-intake-ref-arch-v0-15-1.md (H1)",
+        "docs/auto-run/experiments/subscriber-error-zone/ (C1, C2, T1)"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T16:52:27Z",
+      "artifact": "hsdd/adr/003-time-source-virtual-scheduler.md",
+      "question": "Spec §10.2 principle 5 and Guide §6.1 say which zone a Dart subscriber's error goes to but not which zone its callbacks run in. Mark that for upstreaming?",
+      "options": [
+        { "label": "Mark it for upstreaming", "consequence": "ADR-003's upstream bullet gains it; the Specification's 'context where the subscriber subscribed' could otherwise be read as the zone callbacks run in (binding), which loses virtual time for another Dart implementation." },
+        { "label": "No mark", "consequence": "The Specification is satisfied as written; the reading stays an implementation detail of this tree." }
+      ],
+      "chosen": "Mark it for upstreaming",
+      "why": "The Specification is consistent with the decision, so nothing is resolved against it; but the gap admits a reading the experiment shows breaks Spec §3.6's determinism on a TestBus, and a Guide §6.1 sentence would close it. Weak signal: no other Dart implementation is known to read it otherwise.",
+      "evidence": [
+        "Spec §10.2",
+        "Guide §6.1",
+        "Spec §3.6",
+        "docs/auto-run/experiments/subscriber-error-zone/ (C7, C8, T3, T4)"
+      ],
+      "blast_radius": "upstream",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": true
+    }
+  ],
+  "experiments": [
+    {
+      "path": "docs/auto-run/experiments/subscriber-error-zone/",
+      "question": "Under Spec §10.2 principle 5, where does a bus.observe subscriber's error go, and what does each zone strategy (callbacks and errors in the provider zone as first accepted; callbacks in the provider zone with errors forwarded to the listen zone; callbacks bound to the listen zone) do to first delivery, live delivery and virtual time when the TestBus stand-in is built in one zone and the subscriber listens from another (VM and package:test, scheduler built in setUpAll)?",
+      "finding": "Under all three strategies, first and live values arrive through triggerActions and synchronous delivery without await (C1, C2, T1). Forwarding and binding both send every unhandled subscriber error (a throwing onData, onError or onDone, a handler set later, an unhandled error event) at once to the listen zone's handler, before the next subscriber receives; the publish and triggerActions return normally and the subscriber keeps receiving (C3 to C6, C10); in package:test the test that listened fails (T2). The rule first accepted reports to the scheduler's construction zone, misattributed to setUpAll in package:test (T2). Only forwarding keeps a Timer a callback creates and a chained debounceTime virtual; under binding both are real (C7, C8; T3 and T4 fail). Under all three, a chained operator's final callback runs in the zone the chain was listened from (C9), and Stream.cast sends a failed cast to the listen zone's handler or to onError (C12). When the listen zone is the provider zone all three agree (C11); a root-zone listener surfaces as the isolate's uncaught error after the publish returns (C13). Forwarding and binding cost about 1.2 times the first rule, about 8 ns more per delivery (C14)."
+    }
+  ],
+  "self_check": [
+    { "gate": "Frontmatter has `id`, `status`, `affects`, `date`.", "status": "pass", "note": "Unchanged: ADR-003, accepted, 10 ids, 2026-10-17." },
+    { "gate": "The decision is genuinely cross-cutting; a node-local one stayed a `D{n}`.", "status": "pass", "note": "The amendment changes guarantees of bus-api@v1, bus-testing@v1 and flutter-binding@v1 and a decision of nidana.navigation." },
+    { "gate": "`## Decision` and `## Consequences` are self-contained (no reliance on Context).", "status": "pass", "note": "The new text uses no term only the Context defines; the cost bullet was reworded to avoid the Context's 'forwarding'. Experiment cases are cited by path." },
+    { "gate": "Every id in `affects` carries a matching `Governed by: [ADR-NNN]`.", "status": "pass", "note": "Checked all ten; unchanged per the handoff (H8c moves versions)." },
+    { "gate": "A superseding ADR set both `supersedes` and the old ADR's `superseded_by`.", "status": "n/a", "note": "Amended in place, not superseded (decision 5)." },
+    { "gate": "No invented decision was written as `accepted`; an unknown decision is `proposed` with a TODO.", "status": "pass", "note": "The amendment is decided under the run's decision policy on measured evidence and recorded in this report." },
+    { "gate": "The registry was regenerated.", "status": "pass", "note": "node hsdd/scripts/gen-registry.mjs; hsdd/adr/INDEX.md unchanged because the frontmatter is unchanged." },
+    { "gate": "Open questions are cited by ID only; an ADR that resolves one names the ID in its Decision, and the owning spec's OQ row is updated to point at this ADR (RESOLVED (date)).", "status": "pass", "note": "The Decision still names OQ7 and OQ2; root rows OQ7 and OQ2 read RESOLVED (2026-10-17) with ADR-003. No OQ minted." },
+    { "gate": "node docs/auto-run/tools/gate.mjs --skill hsdd-adr", "status": "pass", "note": "0 error(s), 0 warning(s). No em-dash and no banned phrase in the ADR or the experiment." }
+  ],
+  "notes_for_orchestrator": [
+    "No ADR proposed, no contract id named, no OQ minted. ADR-003 frontmatter, status, date and item numbers unchanged; `affects` and Governed by untouched for H8c.",
+    "Decision text changed: item 2 second bullet (callbacks stay in the provider zone; every unhandled subscriber error, including a later-set handler's and an unhandled error event, goes at once to the uncaught-error handler of the zone in which `listen` was called; delivery goes on; the bus catches only the subscriber's callbacks), item 5 guarded-run bullet (a subscriber's error never reaches the scheduler), item 6 first bullet (bootstrap topology or subscription connected at start(), first values within start() or provider-zone work it schedules; after start(), replay in the first provider-zone microtask after listen; holds for a subscriber listening from its own zone).",
+    "bus-api@v1 G5 (H3): replace 'and listening to an observed stream subscribes inside it, so a subscriber's callbacks run there' with 'and listening to an observed stream subscribes inside it, so a subscriber's callbacks run there wherever it listens from, while what they throw goes to the uncaught-error handler of the zone in which `listen` was called (G18)'.",
+    "bus-api@v1 G18 (H3): replace 'its error going to the provider zone's uncaught-error handler' with 'its exception, like one thrown by its `onError` or `onDone` or by a handler set later through its `StreamSubscription`, going at once to the uncaught-error handler of the zone in which that subscription's `listen` was called, and an error event it leaves without an `onError` handler going to the same handler'. The destination changes from the provider zone's handler; the two coincide when the subscriber listens from the provider zone (C11), the usual production case, and differ for a TestBus listened from a test body. H3 classifies this against Versioning.",
+    "bus-api@v1 G41 (H3): ADR-003 leaves the conversion to H3. If H3 counts a subscription's conversion at its own type argument as part of the subscriber's callback, which Dart's Stream.cast does (subscriber-error-zone C12: a failed cast goes to the listen zone's handler, or to onError when given), the sentence becomes 'so its `TypeError` goes to the uncaught-error handler of the zone in which that subscription's `listen` was called, as a throwing subscriber's error does (G18)'. A topology read is not a subscriber, so ADR-003's rule does not cover a read's conversion: H3 decides between ending the write chain (Spec §10.2 principle 5, first bullet) and a reported skip, and ADR-003 says only that the bus's own delivery code is not caught by the subscriber rule.",
+    "bus-testing@v1 G4 (H4): meaning unchanged and measured (T1, C1, C2). Optional strengthening, measured by C7 and T4: 'every timer and microtask the bus, its pipelines, its observed subscriptions and their subscribers' callbacks create runs only inside a scheduler operation, never on a real event-loop turn, wherever the test listens from'.",
+    "bus-testing@v1 G11 (H4): append before 'the operation goes on': 'an exception a `bus.observe` subscriber's callback throws never reaches the scheduler, because the bus sends it to the uncaught-error handler of the zone in which that subscriber called `listen` (bus-api G18)'.",
+    "flutter-binding@v1 G5 (H6): replace 'and nothing reaches the provider zone's uncaught-error handler' with 'and nothing reaches an uncaught-error handler, neither that of the zone the widget subscribed from (bus-api G18) nor the provider zone's'.",
+    "nidana.navigation D6 (H23 sweep): replace 'which bus-api@v1 G18 sends to the provider zone's uncaught-error handler' with 'which bus-api G18 sends to the uncaught-error handler of the zone the executor's constructor ran in, where it listened,'. Both of D6's error paths (a throwing perform and an error event on router.confirmations) then reach the same zone. This changes where a phase-replayed error lands only if a navigation-api fixture asserts the zone; H5 should say.",
+    "nidana.runtime D5 and phase .6 (H10, H11): the observed-subscription half follows G41 as H3 restates it. The runtime implements item 2 as a subscription whose every handler, set at listen or later, runs in the provider zone inside a guard that forwards to the listen zone; `docs/auto-run/experiments/subscriber-error-zone/lib/observe.dart` `_ForwardingSubscription` is a reference shape, cost about 8 ns per delivery per subscriber.",
+    "Root spec (H22): its ADR-003 paragraph (nidana.md around line 352) can mention the 2026-10-20 amendment; nothing in it is contradicted.",
+    "New upstream mark (decision 6, would_upstream): Spec §10.2 principle 5 and Guide §6.1 do not say which zone a Dart subscriber's callbacks run in. Existing marks (Spec §3.6 and Guide §6.5, EventLoopScheduler, Guide §10.1, Spec §2.3, Spec §11.2 tearDown) were rechecked against v0.15.1 and still hold.",
+    "docs/auto-run/execution-plan.md shows as modified in the working tree; that change (S58 running, S59 to S63 planned) predates this step and is not mine."
+  ]
+}

@@ -250,7 +250,13 @@ orchestrator and recorded with `would_have_asked: true`.
 | S54 | 8 | none (orchestrator) | REPORT.md | done | this report's commit |
 | S55 | 9 | none (orchestrator) | inputs for the v0.15.1 intake | done | a9feca6 |
 | S56 | 9 | none (orchestrator) | stage 9 plan, gate and ledger changes | done | this entry's commit |
-| S57 | 9 | hsdd-intake | reference architecture v0.15.1 | planned | |
+| S57 | 9 | hsdd-intake | reference architecture v0.15.1 (cross-node, 23 handoffs) | done | 82417d8 |
+| S58 | 9 | hsdd-adr | H1: ADR-003 amendment (subscriber errors to the listen zone, first delivery under the barrier) | done | 4fd1e41 |
+| S59 | 9 | hsdd-contract | H2: topology-dsl (write chains) | running | |
+| S60 | 9 | hsdd-contract | H3: bus-api (barrier, scope timing, write chains, subscriber errors, name check, re-activation) | planned | |
+| S61 | 9 | hsdd-contract | H4: bus-testing | planned | |
+| S62 | 9 | hsdd-contract | H5: navigation-api | planned | |
+| S63 | 9 | hsdd-contract | H6: flutter-binding (NidanaModule, scope timing) | planned | |
 
 ## Change log
 
@@ -439,3 +445,10 @@ orchestrator and recorded with `would_have_asked: true`.
   the run. The gate gained hsdd-intake's write set, the intake slug rule, a hash guard over the owner's
   uncommitted files and, under `--final`, warnings for references to a contract version that is no
   longer current. The ledger gained the `intake` step type.
+- 2026-10-20 (UTC), after S57: the intake record routes v0.15.1 as cross-node over six nodes, five
+  contracts and ADR-003, in 23 handoffs: H1 ADR-003; H2 to H6 the five contracts producer-first; H7a to
+  H7i and H8a to H8c citation touches on contracts and ADRs, each dispatched only when its file still
+  cites a version H2 to H6 superseded; H9 to H22 node spec touches producer-first, with hsdd-phase-plan
+  (append mode, rewriting unshipped phases in place) and a reconcile for nidana.runtime, nidana.flutter
+  and nidana.integration; H23 a final reconcile that sweeps the other four leaf-parents' plan text and
+  runs `gate.mjs --final`. Handoffs take step ids in dispatch order from S58; skipped handoffs take no id.
