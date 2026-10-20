@@ -253,8 +253,8 @@ orchestrator and recorded with `would_have_asked: true`.
 | S57 | 9 | hsdd-intake | reference architecture v0.15.1 (cross-node, 23 handoffs) | done | 82417d8 |
 | S58 | 9 | hsdd-adr | H1: ADR-003 amendment (subscriber errors to the listen zone, first delivery under the barrier) | done | 4fd1e41 |
 | S59 | 9 | hsdd-contract | H2: topology-dsl@v2 (write chains; breaking, draft) | done | dc16733 |
-| S60 | 9 | hsdd-contract | H3: bus-api (barrier, scope timing, write chains, subscriber errors, name check, re-activation) | running | |
-| S61 | 9 | hsdd-contract | H4: bus-testing | planned | |
+| S60 | 9 | hsdd-contract | H3: bus-api@v2 (barrier, scope timing, subscriber errors, re-activation breaking; draft) | done | 77b7eb6 |
+| S61 | 9 | hsdd-contract | H4: bus-testing | running | |
 | S62 | 9 | hsdd-contract | H5: navigation-api | planned | |
 | S63 | 9 | hsdd-contract | H6: flutter-binding (NidanaModule, scope timing) | planned | |
 

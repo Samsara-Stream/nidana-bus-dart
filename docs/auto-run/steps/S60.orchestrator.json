@@ -1,0 +1,25 @@
+{
+  "step_ref": "S60",
+  "skill": "none",
+  "target": "review of S60 (bus-api@v2)",
+  "status": "completed",
+  "decisions": [
+    {
+      "at": "2026-10-20T18:05:40Z",
+      "artifact": "hsdd/contract/bus-api.md",
+      "question": "S60's G34 settles a writer's connection before its readers connect, so an EventTopic event a topology publishes while start() connects it reaches the recorders and observers but no topology or subscription connected after it. Spec §3.13 says what start() connects and in which order, but not what becomes of an event a connection causes; its purpose sentence says no APPLICATION topology can miss an event published before it subscribed. Is S60's reading accepted, or reworked?",
+      "options": [
+        { "label": "Accept S60's reading, mark it for upstreaming", "consequence": "The contract states the loss in G34 and its migration note; an app that derives an event from bootstrap state (an analytics event from the hydrated auth state) gets it only in observers. No rework; the gap goes to the owner's upstream list." },
+        { "label": "Rework: hold connection-caused event publishes until steps 1 and 2 end", "consequence": "Every reader and bootstrap subscription receives such an event after its first values, which matches the purpose sentence; state still settles at once. Costs a rework of S60 (about 35 minutes), a new case, and a split in G14's rule that one value written to several sinks is delivered consecutively, because a state sink would be delivered at once and an event sink later." }
+      ],
+      "chosen": "Accept S60's reading, mark it for upstreaming",
+      "why": "Spec §3.13 queues shell publishes only; a topology's emission during start() is a delivery, and an EventTopic has no current value for a later reader to read, which is ordinary EventTopic semantics (Spec §7.4). The purpose sentence is about the queue: it explains why queued shell events are not missed. Holding only the event sinks would break G14's consecutive-delivery rule for a topology that writes one value to a state sink and an event sink, a rule nothing in v0.15.1 relaxes. The contract states the consequence, so no consumer is surprised. The signal that would have changed my mind: the owner reading the purpose sentence as covering every event published before a reader connects, whatever published it.",
+      "evidence": ["Spec §3.13", "Spec §7.4", "hsdd/contract/bus-api.md G34, G14, Versioning migration note", "docs/auto-run/steps/S60.json decision 1"],
+      "blast_radius": "upstream",
+      "confidence": "medium",
+      "would_have_asked": true,
+      "stop_class": "upstream",
+      "would_upstream": true
+    }
+  ]
+}
