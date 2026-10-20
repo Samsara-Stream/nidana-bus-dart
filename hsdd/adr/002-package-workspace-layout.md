@@ -1,7 +1,7 @@
 ---
 id: ADR-002
 status: accepted
-affects: [nidana, nidana.model, nidana.runtime, nidana.navigation, nidana.flutter, nidana.tooling, nidana.tooling.codegen, nidana.tooling.lint, nidana.integration, topic-model@v1, topology-dsl@v1, topology-ir@v1, bus-api@v1, bus-testing@v1, navigation-api@v1, flutter-binding@v1, topic-codegen@v1, nidana-checks@v1]
+affects: [nidana, nidana.model, nidana.runtime, nidana.navigation, nidana.flutter, nidana.tooling, nidana.tooling.codegen, nidana.tooling.lint, nidana.integration, topic-model@v1, topology-dsl@v2, topology-ir@v1, bus-api@v2, bus-testing@v2, navigation-api@v1, flutter-binding@v2, topic-codegen@v1, nidana-checks@v1]
 date: 2026-10-17
 ---
 
@@ -64,7 +64,7 @@ Resolves OQ9 and, together with root D7, OQ12. Partially resolves OQ-T2: item 8 
    | `nidana_dart_contracts` | nidana.model | yes | `meta` | `test` |
    | `nidana_dart_runtime` | nidana.runtime | yes | `nidana_dart_contracts`, `rxdart`, `clock`, `meta` | `test` |
    | `nidana_dart_navigation` | nidana.navigation | yes | `nidana_dart_contracts`, `nidana_dart_runtime`, `meta` | `test` |
-   | `nidana_dart_runtime_flutter` | nidana.flutter | yes | `flutter` (SDK), `nidana_dart_contracts`, `nidana_dart_runtime`, `nidana_dart_navigation`, `meta`; no router package (OQ-F1, resolved by flutter-binding@v1 Refinement 1 and G18) | `flutter_test` (SDK) |
+   | `nidana_dart_runtime_flutter` | nidana.flutter | yes | `flutter` (SDK), `nidana_dart_contracts`, `nidana_dart_runtime`, `nidana_dart_navigation`, `meta`; no router package (OQ-F1, resolved by flutter-binding@v2 Refinement 1 and G18) | `flutter_test` (SDK) |
    | `nidana_dart_codegen` | nidana.tooling.codegen | yes | `nidana_dart_contracts`, `build`, and those of `source_gen`, `analyzer`, `dart_style`, `yaml` and `path` its code imports | `build_test`, `test` |
    | `nidana_dart_lint` | nidana.tooling.lint | yes | `analysis_server_plugin`, `analyzer`, pinned as item 7 states | `analyzer_testing`, `test` |
    | `nidana_contract_check` | nidana.model | no | `args`, `json_schema`, `matcher`, `package_config`, `path` | `test` |
@@ -176,3 +176,9 @@ Resolves OQ9 and, together with root D7, OQ12. Partially resolves OQ-T2: item 8 
   - Context Q11c: the accepted text gave exit 3 as the exit code of a plugin that does not compile, where `plugin-rebuild/` R6 saw 4. `docs/auto-run/experiments/plugin-compile-exit/` (`run.sh`, `output.txt`) shows both: 3 came from the root analyze's ERROR on the plugin's own broken source, which Q11c's output filtered, and 4 is the code only when nothing analyzed reports a diagnostic. Context states the rule in a new paragraph.
   - Unchanged, and shown to resolve as written in every reachable member set: item 1's root with `lints: ^6.1.0` as its only dependency, its lockfile rule (`fvm dart pub get` at the root with the committed lockfile, then `--enforce-lockfile`), item 7's pin values, and item 4's other bullets.
   - Not superseded: the decision did not change, and other artifacts cite its items by number.
+- 2026-10-21, touched in place for Specification v0.15.1 (`hsdd/management/2026-10-20-intake-ref-arch-v0-15-1.md`, section "Citations of a superseded version", handoff H8b). That intake gave topology-dsl, bus-api, bus-testing and flutter-binding a v2; topic-model, topology-ir, navigation-api, topic-codegen and nidana-checks stay at v1. Status, date, item numbers and every rule are unchanged.
+  - Frontmatter `affects`: topology-dsl@v2, bus-api@v2, bus-testing@v2 and flutter-binding@v2 in place of their v1. The nodes and the other five contracts are unchanged. Every node and contract it names carries `Governed by: [ADR-001, ADR-002, ...]` in its header, and no node or contract header carries ADR-002 without being named here.
+  - Live citation moved to v2: item 3's row for `nidana_dart_runtime_flutter`, where OQ-F1 is resolved by flutter-binding@v2 Refinement 1 and G18. Both keep their text on this point: the adapter targets Flutter's own `Navigator` and depends on no router package, and G18 lists the same five dependencies the row lists.
+  - Kept at v1, as historical: the citation inside the step-13 amendment entry above.
+  - Checked against v0.15.1 and unchanged. Item 3's runtime row and its seam: Spec §3.3 and §3.13 and Guide §6.1 ask a Dart bus for topic storage and fan-out of its own, or a wrapped subject, for the startup barrier, with RxDart kept for operators; bus-api@v2 G39 keeps the dependencies `nidana_dart_contracts`, `rxdart`, `clock` and `meta`, and the RxDart-specific code still sits behind the internal seam. That machinery is not a second engine, so the signal under Alternatives considered for splitting the runtime is not met. Item 3's Flutter row: `NidanaModule` (Spec §7.3, Appendix A.8; flutter-binding@v2 Refinement 8) is a widget of the main library and adds no dependency. Item 8: Guide Appendix C.1 "Platforms without runtime reflection" has the catalog take an explicit list of topologies, which is the registration library nidana.tooling.codegen D1 chose; the catalog step keeps Spec §6.5's name, the workspace scan still reads what it writes (nidana-checks@v1 Refinement 2), and so the two still share it. Context and Consequences: Spec §3.11 still names custom_lint and still has single-writer enforcement and graph generation share infrastructure, and Guide Appendix B.2's package list and Appendix C.2's and C.3's rows are unchanged.
+  - Not superseded, for the same reasons as the first amendment: no decision changed, and no `Governed by` link changes.
