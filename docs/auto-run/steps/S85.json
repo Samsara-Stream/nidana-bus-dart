@@ -1,0 +1,231 @@
+{
+  "step_ref": "S85",
+  "skill": "hsdd-spec",
+  "target": "nidana.flutter (touch of a leaf-parent's non-plan text; produces flutter-binding@v2)",
+  "status": "completed",
+  "stop": null,
+  "artifacts": ["hsdd/spec/nidana.flutter.md"],
+  "decisions": [
+    {
+      "at": "2026-10-20T22:39:31Z",
+      "artifact": "hsdd/spec/nidana.flutter.md",
+      "question": "Which contract versions do the header's Consumes and Produces lines name, now that the intake gave topology-dsl, bus-api, bus-testing and flutter-binding a v2 and kept topic-model, topology-ir and navigation-api at v1?",
+      "options": [
+        { "label": "current versions", "consequence": "Consumes reads [topic-model@v1, topology-dsl@v2, topology-ir@v1, bus-api@v2, bus-testing@v2, navigation-api@v1] and Produces [flutter-binding@v2]; the header agrees with the registry before H15 moves the plan text" },
+        { "label": "keep v1 until H15", "consequence": "the header cites four versions that keep no file (DEC-688) until the phase-plan step, against the record's rule that hsdd-spec touches move node headers" }
+      ],
+      "chosen": "current versions",
+      "why": "The record's section 'Citations of a superseded version' assigns node headers and non-plan text to the hsdd-spec touches, and hsdd/contract/INDEX.md lists topology-dsl, bus-api, bus-testing and flutter-binding at v2. The other live non-plan citations moved with it: the router Owns bullet (flutter-binding@v2 Refinements 1, 2 and 7), the Overview (bus-api@v2), OQ-F1's row, Affects cell and resolution (flutter-binding@v2). The one v1 mention left before '## Decisions' is historical, in OQ-F1's 'As first written' sentence.",
+      "evidence": ["hsdd/management/2026-10-20-intake-ref-arch-v0-15-1.md (Citations of a superseded version)", "hsdd/contract/INDEX.md", "docs/auto-run/steps/S63.json"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T22:39:37Z",
+      "artifact": "hsdd/spec/nidana.flutter.md",
+      "question": "Which sections does the node's v0.15.1 Sources entry name beyond the v0.15.0 sections: only those of the four landings H14 names (L7, L2, L1, L4), or also those of L6, which H15 must apply to this node's plan?",
+      "options": [
+        { "label": "L7, L2, L1 and L4 only", "consequence": "adds Spec §2.1 'Replay timing', §3.13, §7.2 'Scope timing', §7.3's Flutter row, §10.2's 'Shell subscriber' bullet and Guide Appendix B.3; Refinement 4's re-activation rule (Spec §3.9, Guide §6.3) stays unreachable from the node's closure while H15 rewrites nidana.flutter.5 for it" },
+        { "label": "add the L6 sections too", "consequence": "also adds Spec §3.9 and Guide §6.3 'Name every transformer', which the restated page-scope Owns bullet cites; H15 finds every source of the landings it applies (L7, L2, L1, L4, L6) already in Sources" }
+      ],
+      "chosen": "add the L6 sections too",
+      "why": "The record's Sources rule names the v0.15.0 sections plus those the record's landings add to the node, and the step's done-when adds 'whatever else a landing brings to this node'. L6 names flutter-binding Refinement 4 and G8, which S63 restated on Spec §3.9 and Guide §6.3, and the record routes L6 to H15 for this node. S82 added the same two sections to nidana.navigation for the same reason. Each added section is cited by a header item: §2.1 and §3.13 by the Overview, §3.9, §7.2 and Guide §6.3 by the page-scope bullet, §7.3's row, Appendix A.8 and Guide Appendix B.3 by the two module-scope bullets, §10.2 by the topic-widget bullet. The Rationale entry repeats §5.1 to §5.4: v0.15.1 changed only its companion links.",
+      "evidence": ["hsdd/management/2026-10-20-intake-ref-arch-v0-15-1.md (L1, L2, L4, L6, L7, Sources)", "Spec §3.9", "Guide §6.3", "Guide Appendix B.3", "hsdd/contract/flutter-binding.md (Refinement 4, G8)", "docs/auto-run/steps/S82.json"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T22:39:37Z",
+      "artifact": "hsdd/spec/nidana.flutter.md",
+      "question": "Does Guide §6.1's new Dart note ('Dart: replay is asynchronous') govern this node, given that the Overview's first runtime fact is the replay microtask it explains?",
+      "options": [
+        { "label": "leave it out", "consequence": "the Overview traces the replay microtask to Spec §2.1 'Replay timing', the normative statement, and to bus-api@v2 G17 and G34; the Guide note's subject (topic storage and fan-out owned by the bus, or a wrapped subject) stays with nidana.runtime, whose Sources list it" },
+        { "label": "add it", "consequence": "a reader of this node also finds the informative explanation of why a Dart stream delivers nothing during listen, at the cost of a section whose prescription is for the bus, not the adapter" }
+      ],
+      "chosen": "leave it out",
+      "why": "The widgets depend on when a subscription receives its first value, which Spec §2.1 and bus-api@v2 G17 and G34 state; Guide §6.1's note tells a bus implementer how to build the barrier. The hsdd-spec gate 'No node's Sources lists a document that does not govern it' argues for the narrower list. Close call. The signal that would have added it: a phase of this node building its own stream wrapper or subject over the bus, where the Guide's listen behavior would apply directly.",
+      "evidence": ["Spec §2.1", "Guide §6.1", "hsdd/contract/bus-api.md (G17, G34)", "hsdd/spec/nidana.runtime.md (Sources)"],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T22:39:48Z",
+      "artifact": "hsdd/spec/nidana.flutter.md",
+      "question": "H6 added NidanaModule (flutter-binding@v2 G20, Refinement 8). How do Purpose and Owns cover it: widen the existing module-scope bullet, or add a bullet for the wrapper beside a bullet that names the observer?",
+      "options": [
+        { "label": "one widened bullet", "consequence": "a single 'module-scope binding' bullet names both mechanisms; shorter, but it mixes two bindings with different preconditions (route names for the observer, none for the wrapper) and different release points (pop versus exit transition)" },
+        { "label": "two bullets, by route and by mount", "consequence": "the observer bullet names ModuleScopeObserver, adds removal to push, pop and replace (G10) and states its precondition, routes whose names a prefix matches (Refinement 1); a new bullet names NidanaModule, its mount and unmount, where it is placed, and that it works under any router (G20, Refinement 8); Purpose names both as Spec Appendix A.8 does" }
+      ],
+      "chosen": "two bullets, by route and by mount",
+      "why": "Spec §7.3's Flutter row and Appendix A.8 present the two as alternatives, and flutter-binding@v2 Refinement 1 now says when the observer fails (go_router's nested route names, docs/auto-run/experiments/flutter-binding-v0151/ R8) and points to the wrapper. Separate bullets let H15 and hsdd-config read which guarantee each binding carries. The old observer bullet was true but named neither the class nor removal. Purpose follows Appendix A.8's wording: 'a route observer with a route prefix match, or the NidanaModule wrapper widget'.",
+      "evidence": ["Spec §7.3", "Spec Appendix A.8", "Guide Appendix B.3", "hsdd/contract/flutter-binding.md (Refinement 1, Refinement 3, Refinement 8, G10, G20)", "docs/auto-run/experiments/flutter-binding-v0151/ (R8)"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T22:39:58Z",
+      "artifact": "hsdd/spec/nidana.flutter.md",
+      "question": "The topic-widget Owns bullet says the state-topic builder 'renders its first frame from getCurrentValue and later frames from observe'. flutter-binding@v2 G5 and Refinement 5 have every build read getCurrentValue and the subscription only mark the widget for rebuild, and G5 now sends nothing to any uncaught-error handler (L4). Is the bullet restated?",
+      "options": [
+        { "label": "keep the bullet", "consequence": "reads as if later frames render the subscription's values, the interposed copy Refinement 5 forbids, and names nothing of L4" },
+        { "label": "restate the bullet", "consequence": "every frame from getCurrentValue, the subscription only marking the widget for rebuild, its errors handled by the widget so none reaches an uncaught-error handler (Spec §10.2 principle 5); cites flutter-binding@v2 Refinement 5, G5, G6" }
+      ],
+      "chosen": "restate the bullet",
+      "why": "The S64 touch rule (DEC-804) restates a sentence that restates another artifact's guarantee falsely. The bullet predates the phase plan (git show 59e7c4c), so it is this touch's. The error clause is what L4 changed in G5 (S63), and the step's invocation adds Spec §10.2 to Sources.",
+      "evidence": ["hsdd/contract/flutter-binding.md (Refinement 5, G5, G6)", "Spec §10.2", "git show 59e7c4c:hsdd/spec/nidana.flutter.md"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T22:40:03Z",
+      "artifact": "hsdd/spec/nidana.flutter.md",
+      "question": "The page-scope Owns bullet says the widget 'activates its PAGE topologies on mount and deactivates them on unmount'. Under flutter-binding@v2 G8 and Refinement 4 a mount before start() is rejected (L2), a topology id held by several mounted scopes is deactivated only by the last, and a later mount re-activates only an equal declaration (L6). Is the bullet restated?",
+      "options": [
+        { "label": "keep the bullet", "consequence": "states a per-scope deactivation G8 does not make and says nothing of scope timing or re-activation" },
+        { "label": "restate the bullet", "consequence": "names PageScope, activation at mount after start() only, release at unmount, a shared id staying active until the last holder unmounts, each later mount re-activating an equal declaration; cites Spec §3.9, §7.1, §7.2 'Scope timing', Guide §6.3, flutter-binding@v2 Refinement 4, G8" }
+      ],
+      "chosen": "restate the bullet",
+      "why": "The bullet is decomposition-written (59e7c4c) and now contradicts G8's holder counts, and L2 and L6 reach G8 (S63). The restatement keeps the bullet at header level; the rejection's exact error and the TopologyConflict path stay in G8 and in nidana.flutter.5, which H15 rewrites.",
+      "evidence": ["Spec §3.9", "Spec §7.2", "Guide §6.3", "hsdd/contract/flutter-binding.md (Refinement 4, G8)", "hsdd/contract/bus-api.md (G23, G42)"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T22:40:10Z",
+      "artifact": "hsdd/spec/nidana.flutter.md",
+      "question": "Where does the node say that the startup barrier and scope timing are the runtime's, not the adapter's (flutter-binding@v2 Boundary: bus-api@v2 owns 'the startup barrier and scope timing')?",
+      "options": [
+        { "label": "say nothing", "consequence": "Does not own and the Overview's first paragraph name reference counting and grace only, so a reader of the header could place the before-start() rejection in the adapter" },
+        { "label": "Does not own and the Overview's first paragraph", "consequence": "Does not own adds 'the startup barrier and scope timing (nidana.runtime)'; the Overview's 'delivery, ownership, scope lifetime and grace' becomes 'scope lifetime and timing, and grace', matching the contract's preamble" }
+      ],
+      "chosen": "Does not own and the Overview's first paragraph",
+      "why": "flutter-binding@v2's preamble and Boundary table put scope timing with bus-api@v2, and its G8, G10 and G20 rethrow or report what bus-api@v2 G42 throws. The two sentences were not false, only incomplete for L1 and L2, so this is an addition, recorded as one choice.",
+      "evidence": ["hsdd/contract/flutter-binding.md (preamble, Boundary, G8, G10, G20)", "hsdd/contract/bus-api.md (G34, G42)"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T22:40:15Z",
+      "artifact": "hsdd/spec/nidana.flutter.md",
+      "question": "The Overview's two runtime facts ('getCurrentValue is synchronous, while a new observe subscription receives its first value in the first provider-zone microtask after listen', citing root D9 and bus-api@v1 G17) are false for a subscription made during bootstrap, which Spec §3.13 and bus-api@v2 G34 connect at start(). How are they restated?",
+      "options": [
+        { "label": "split by when the subscription is made", "consequence": "after start(): first value one provider-zone microtask after listen, already read by the first build, so it marks nothing; during bootstrap: not connected until start(), which gives it the value current once the topologies are connected, while getCurrentValue returned the declared initial value, so that first value marks a rebuild; cites Spec §2.1, §2.5, §3.13, bus-api@v2 G8, G17, G34, flutter-binding@v2 Refinement 5, G5, G6; drops root D9" },
+        { "label": "keep the facts and add a bootstrap caveat", "consequence": "shorter, but keeps 'a new observe subscription' unqualified, which reads as covering bootstrap subscriptions, and keeps citing root D9, whose text still says a connection reaches the reads before activate returns until H22 restates it" }
+      ],
+      "chosen": "split by when the subscription is made",
+      "why": "S60 and S63 report the Overview as contradicted by L1, and flutter-binding@v2 G5 and G6 now carry two first-value rules, one per case. The facts are bus-api@v2's guarantees and Spec §2.1's, so the paragraph cites those. Root D9 records the RxDart experiment, and nidana.runtime D3 replaced its subject-backed delivery with topic storage owned by the bus, so it is not the source of either fact.",
+      "evidence": ["Spec §2.1", "Spec §2.5", "Spec §3.13", "hsdd/contract/bus-api.md (G8, G17, G34)", "hsdd/contract/flutter-binding.md (Refinement 5, G5, G6)", "docs/auto-run/steps/S60.json", "docs/auto-run/steps/S63.json", "docs/auto-run/experiments/flutter-binding-v0151/"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T22:40:25Z",
+      "artifact": "hsdd/spec/nidana.flutter.md",
+      "question": "How does the Overview state Spec §7.2's scope timing, under which an app calls start() before its UI mounts?",
+      "options": [
+        { "label": "a paragraph of its own", "consequence": "names what each scope binding does before start() (PageScope with a topology and NidanaModule fail to mount, the observer reports and holds nothing), the app's order (start() once APPLICATION topologies are activated and services and the navigation executor constructed, before the UI mounts), that an app's bootstrap first-value case therefore arises only in a widget test, and what a widget test does (start() before pumping a scope, page inputs after mount)" },
+        { "label": "a clause in the runtime-facts paragraph", "consequence": "shorter, but mixes delivery timing with activation timing, two rules from two Specification sections and two bus-api guarantees" }
+      ],
+      "chosen": "a paragraph of its own",
+      "why": "H14 asks for the facts restated for both connection at start() and scope timing, and the two rest on different guarantees (bus-api@v2 G17 and G34 against G42). The paragraph does not name the module observer among what is constructed before start(), because no guarantee requires that order; the executor is named, because Refinement 7 and G15 need it before the WidgetsApp mounts.",
+      "evidence": ["Spec §7.2", "Guide §3.5", "hsdd/contract/bus-api.md (G42)", "hsdd/contract/flutter-binding.md (Refinement 5, Refinement 7, G8, G10, G16, G17, G20, 'How an app uses it')"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T22:40:37Z",
+      "artifact": "hsdd/spec/nidana.flutter.md",
+      "question": "OQ-F1's resolution says an app on go_router or any Router-based setup implements NavigationRouter itself and names no module binding for it, while Spec §7.3's Flutter row now offers a wrapper that 'needs no route names and works with any router'. Does OQ-F1 reopen, stay as written, or get restated?",
+      "options": [
+        { "label": "reopen OQ-F1", "consequence": "marks the router target open again although nothing in v0.15.1 argues for a router dependency; H15 would plan against an open question" },
+        { "label": "keep it as written", "consequence": "the resolution points at flutter-binding@v1, which keeps no file, and leaves a go_router app without a stated module binding" },
+        { "label": "restate in place with a dated note", "consequence": "status stays RESOLVED (2026-10-18), pointers move to flutter-binding@v2 and the row adds Refinement 8, G20; the resolution adds that such an app binds module scope with NidanaModule, why the prefix match misses go_router's nested names (R8), and that G18 stands; a 'Restated 2026-10-21' paragraph says what the first text said and that the question keeps its 2026-10-17 framing of Spec v0.15.0 §7.3" }
+      ],
+      "chosen": "restate in place with a dated note",
+      "why": "The wrapper confirms the first option rather than contradicting it: module scope under any router with no router dependency (flutter-binding@v2 G18, G20). nidana.runtime's OQ-R1 (S78) set the precedent of moving the pointer to v2 and adding a 'Restated' paragraph. The question paragraph is left as framed, since it is the audit trail and its §7.3 sentence still describes one of the two mechanisms. The resolution paragraph was written by the phase plan (S34), but it is open-question text, which H14 assigns to this touch. The dated note uses the local date (WIB), as S78 did.",
+      "evidence": ["Spec §7.3", "hsdd/contract/flutter-binding.md (Refinement 1, Refinement 8, G18, G20)", "docs/auto-run/experiments/flutter-binding-v0151/ (R6 to R8)", "hsdd/spec/nidana.runtime.md (OQ-R1)"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T22:42:13Z",
+      "artifact": "hsdd/spec/nidana.flutter.md",
+      "question": "Which of D1 to D11 did the decomposition write, so that this touch restates the ones a contract contradicts, and which did the phase plan write?",
+      "options": [
+        { "label": "all eleven plan-written", "consequence": "D1 to D11 stay byte-identical here and go to H15 with the Phase Plan" },
+        { "label": "some decomposition-written", "consequence": "this touch would restate those a contract contradicts (D7, D10 and D11 restate pre-amendment guarantees)" }
+      ],
+      "chosen": "all eleven plan-written",
+      "why": "Git settles it: at 59e7c4c (S31, the last commit before planning) the file had no Decisions section; 3dfed85 (S34, hsdd-phase-plan nidana.flutter) wrote D1 to D11, and S35 and S53 kept their headings. The check ran before the first edit; this stamp was taken late, when the decision was written down.",
+      "evidence": ["git log -- hsdd/spec/nidana.flutter.md", "git show 59e7c4c:hsdd/spec/nidana.flutter.md", "git show 3dfed85:hsdd/spec/nidana.flutter.md"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    }
+  ],
+  "experiments": [],
+  "self_check": [
+    { "gate": "The spec stays high-level; it is not an implementation plan.", "status": "pass", "note": "Only the header, Purpose, Owns, Does not own, Sources, the Overview and OQ-F1 changed." },
+    { "gate": "Every node has explicit consumed/produced contract ids.", "status": "pass", "note": "Consumes at current versions; Produces flutter-binding@v2." },
+    { "gate": "Every node is testable in isolation (fixtures, mocks, schemas).", "status": "pass", "note": "Isolation strategy unchanged and still true: widget tests on the real runtime, navigation-api@v1's executor suite under testWidgets." },
+    { "gate": "Every dependency edge is typed; parallel lanes are called out.", "status": "n/a", "note": "Leaf-parent; its edges live in the Phase Plan, left to H15." },
+    { "gate": "Each child is marked internal or leaf-parent.", "status": "n/a", "note": "Leaf-parent with phases, no child nodes." },
+    { "gate": "Mermaid DAG matches the dependency table.", "status": "n/a", "note": "The only DAG is the plan's phase graph, byte-identical to HEAD." },
+    { "gate": "`conventions.md` exists/updated at the root.", "status": "pass", "note": "Exists; no new convention." },
+    { "gate": "The decomposition axis at each level matches ownership stated by the human, not assumed, and no node is owned by two teams.", "status": "n/a", "note": "No decomposition in a touch; single-team." },
+    { "gate": "Every child node has its own `hsdd/spec/{child-id}.md` file.", "status": "n/a", "note": "No child nodes." },
+    { "gate": "Every input source appears in the Sources of at least one node, or is marked in the root `## Sources` as informative only and not decomposed, with a reason.", "status": "n/a", "note": "The root inventory is H22's; this node lists the v0.15.1 Specification, Guide and Rationale." },
+    { "gate": "No node's Sources lists a document that does not govern it.", "status": "pass", "note": "Every added section is cited by a header item: §2.1, §3.13 (Overview), §3.9, §7.2, Guide §6.3 (page-scope bullet), §7.3's row, A.8, Guide B.3 (module-scope bullets), §10.2 (topic-widget bullet). Guide §6.1 left out (decision)." },
+    { "gate": "Field blocks are bullet lists and empty lists say \"none\".", "status": "pass", "note": "Unchanged form." },
+    { "gate": "Every open question is defined once, in its owning spec, with a table row and a `### {ID}` detail subsection; child views carry `[inherits ...]`; no cited ID lacks a definition.", "status": "pass", "note": "OQ-F1 keeps its row and detail, RESOLVED (2026-10-18); OQ-R1, cited by the Overview, is defined in nidana.runtime." },
+    { "gate": "OQ prefixes used by node specs are declared in `conventions.md`.", "status": "pass", "note": "F is declared for nidana.flutter." },
+    { "gate": "Under `multi-team`, every node whose team differs from its parent's carries `- **Team:**`; no node is owned by two teams.", "status": "n/a", "note": "single-team." },
+    { "gate": "Where children exchange contracts, an integration node exists or the decision not to add one is stated in the parent (one line).", "status": "n/a", "note": "No children." },
+    { "gate": "A graft kept every existing child id and touched only the new child's file, the parent's summaries and the parent's DAG.", "status": "n/a", "note": "Not a graft." },
+    { "gate": "A retired node's file is kept; its contracts' retirement went through `hsdd-reconcile`.", "status": "n/a", "note": "Not a retirement." },
+    { "gate": "Promotion: the human confirmed before `- **Adopted:** promoted` was written; `## Observed surface` kept; `v0` contracts unchanged unless redesigned.", "status": "n/a", "note": "Not a promotion." },
+    { "gate": "node docs/auto-run/tools/gate.mjs --skill hsdd-spec passes; only hsdd/spec/nidana.flutter.md changed under hsdd/; the plan text (from ## Phase Plan on, plus plan-written decisions wherever they sit) is byte-identical to HEAD (step's done-when)", "status": "pass", "note": "gate: 0 errors, 0 warnings. git status shows only hsdd/spec/nidana.flutter.md under hsdd/. Everything from '## Decisions' on (D1 to D11 and the Phase Plan) diffs empty against HEAD. No em-dash and no banned phrase in the file." }
+  ],
+  "notes_for_orchestrator": [
+    "EDITS (non-plan only): Consumes moved to topology-dsl@v2, bus-api@v2, bus-testing@v2 and Produces to flutter-binding@v2. Sources follow the record's rule: the v0.15.0 entries are marked baseline, and the v0.15.1 entries add Spec §2.1 'Replay timing', §3.9, §3.13, §7.2 'Scope timing', §7.3's Flutter row (NidanaModule), the third bullet of §10.2 principle 5, plus Guide §6.3 'Name every transformer' and Appendix B.3. Purpose names both module bindings. Owns restates the topic-widget and page-scope bullets, splits module scope into ModuleScopeObserver by route and NidanaModule by mount, and moves the router bullet's citation to v2. Does not own adds the startup barrier and scope timing. The Overview restates the runtime facts per case (after start() and during bootstrap), adds a scope-timing paragraph and no longer cites root D9. OQ-F1 is restated in place with a dated note, its status and resolution date unchanged.",
+    "D1 TO D11 ARE ALL PLAN-WRITTEN (S34, commit 3dfed85; no Decisions section at 59e7c4c). This touch leaves them, and everything from '## Decisions' on, byte-identical. All of it goes to H15.",
+    "FOR H15, plan lines that cite a superseded version or that a landing contradicts (line numbers as the file now stands): (1) D1, lines 56 to 65: the cut places no NidanaModule (G20). flutter-binding@v2 Delivery assigns G20 to nidana.flutter.6 provisionally (S63). The Effects band (line 60), 'seven phases' and the stand-in size fact (line 62, the v1 stand-in's 741 lines) move with the placement; the v2 adapter stand-in is in docs/auto-run/experiments/flutter-binding-v0151/adapter. (2) D2: line 69 'flutter-binding@v1's Interface'; item 1, line 71: G1 now exports ten names; item 2, line 72: NidanaModule also copies its topologies into an unmodifiable list from nidana.flutter.1 (v2 Delivery); item 3, line 73: 'the four widgets' createState' is now five widgets (v2 G2), NidanaModule's argument checks (G20) landing with its delivering phase. (3) D3, lines 77 to 97: no file for NidanaModule. (4) D4, lines 102, 104, 106: flutter-binding@v1. (5) D5, line 114: flutter-binding@v1 (G18 and G19 unchanged). (6) D6: line 125 'bus-api@v1 and bus-testing@v1'; line 127 topology-dsl@v1, bus-api@v1, bus-testing@v1; line 133, the alternative's signal 'bus-api@v1's ... declarations'. The edges hold (S79: nidana.runtime.14 is still the last producer), but nidana.flutter.4 to .7 now also need the barrier (G34) and scope timing (G42) from it.",
+    "FOR H15, continued: (7) D7: line 139 'bus-api@v1 G41 ... a subscription's conversion of it fails into the provider zone's uncaught-error handler and that subscription skips the value' is contradicted by bus-api@v2 G41 and G18 (L4): an error event to that subscription, reaching the listen zone without onError. Line 142 'its first values counted as one for a state topic and as getBufferedValues<Object?>(topic).length for a replay topic' holds only for a subscription made after start(); v2 G5 and G6 have a bootstrap subscription's first values mark the widget (L1). Line 144 'amend flutter-binding@v1 on G5 and G6' is the drained v1 amendment (a): keep it as history or restate it. (8) D8, lines 150 and 152: flutter-binding@v1 G17, bus-api@v1 G20, bus-testing@v1 G18. The quote 'the same writer on every call for topic' is v1's pre-amendment wording (amendment (d)). (9) D10, line 162: 'G8 says ... and is silent on a BusProvider ... that starts providing another bus' is no longer true of v2 G8, which states it (amendment (c)); also 'amend flutter-binding@v1 on G8'. (10) D11, line 168: 'G7 derives ... that is the empty string' describes pre-amendment G7, and v2 G7 gives '/' for a route named '/' (amendment (b)); also 'amend flutter-binding@v1 on G7'.",
+    "FOR H15, continued: (11) line 186 'Every phase produces flutter-binding@v1'. (12) nidana.flutter.1: lines 193 and 194 (Consumes, Produces); line 196 (Scope: 'flutter-binding@v1 G18', 'flutter-binding@v1's two libraries'; add NidanaModule's declaration and its unmodifiable copy); line 199 (Verification: 'exactly the nine names of G1' is now ten); line 201 (Dependencies: v1 declarations). (13) nidana.flutter.2: lines 205 and 206. (14) nidana.flutter.3: lines 223 and 225 ('flutter-binding@v1 Refinements 1 and 2'; v2 Refinement 2 restates the bootstrap for G34 with no change to the router, S63). (15) nidana.flutter.4: lines 234 and 235. Line 237 (Scope) skips the first values in every case ('one for a state topic, ...'), which is contradicted for a bootstrap subscription (v2 G5, G6; L1). Line 240 (Verification) 'a page mounted before start() renders the initial value in its first frame and then what start() delivers, with no frame rendering the first value twice' is contradicted: a bootstrap subscription's first value now marks a rebuild, and a PageScope with a topology cannot mount before start() (L2; S63 added two G5 and G6 bootstrap cases). Line 242 (Dependencies) 'bus-api@v1 delivered whole: delivery and first delivery, G17' needs v2 and G34.",
+    "FOR H15, continued: (16) nidana.flutter.5: lines 246 and 247. Line 249 (Scope) has no rejection before start(): v2 G8 throws bus-api@v2 G42's StateError, activates and claims nothing, and still mounts a PageScope with no topologies. Its holder counts ('activated by the first scope that holds it') miss v2 Refinement 4: every mount activates, and a later mount with an unequal declaration throws TopologyConflict and leaves the earlier activation (L6). Line 252 (Verification) 'one route pushed twice keeps its page topology active' holds only for equal declarations (named transformers, Guide §6.3). Line 254 (Dependencies) 'bus-api@v1 G22 to G25' needs v2 plus G42. (17) nidana.flutter.6: lines 258 and 259. Line 261 (Scope): WidgetTestBus's recorder also records start()'s connections (bus-testing@v2 G14; S61); G10 reports an acquire made before start(); NidanaModule (G20) if it stays here. Line 263 (Gate): the --guarantee list lacks G20 (prefix 'G20 ' selects 7 cases). Line 266 (Dependencies): 'bus-api@v1 G27, G28' and 'bus-testing@v1' need v2 plus G42. (18) nidana.flutter.7: lines 270 and 271. Line 273 (Scope): 'G16's bootstrap needs nothing beyond nidana.flutter.3's hosting rule and bus-api@v1 G22 and G34' becomes bus-api@v2 G34, since G22 now connects only an activation made after start(); also 'flutter-binding@v1 unrestricted', now 69 cases plus the executor suite's 26 (S63). (19) Phase dependency graph labels, lines 313, 314, 317 and 320.",
+    "FOR H22 (root touch): the root's embedded nidana.flutter block (hsdd/spec/nidana.md line 101 on) should mirror this file's new Purpose (both module bindings), its Owns (NidanaModule; the topic widgets 'render the first frame from getCurrentValue'), Does not own (the startup barrier and scope timing), Sources and contract versions. Root D9, which the Overview no longer cites, still says a connection reaches the reads before activate returns (bus-api@v1 G22); it is already routed to H22.",
+    "No experiment was needed. Every runtime fact the restated text states comes from docs/auto-run/experiments/flutter-binding-v0151/ (S63: N1 to N6, R6 to R8, the G5 and G6 bootstrap cases) and from bus-api@v2."
+  ]
+}
