@@ -2,7 +2,7 @@
 // bus in package:nidana_dart_runtime, each case on fresh TestBus instances,
 // under `dart test`.
 //
-// TestBus and its scheduler are bus-testing@v1's (package:
+// TestBus and its scheduler are bus-testing@v2's (package:
 // nidana_dart_runtime/testing.dart). This binding forward-references the
 // names this contract's ## Validation section lists; the replay tool
 // reports it as PENDING until the package exists (ADR-001 item 9).

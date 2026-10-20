@@ -1,0 +1,130 @@
+
+### setup: the before tree from git HEAD, versions, the v2 runtime at rest
+6aaf858
+pub get exit: 0
+Dart SDK version: 3.13.5 (stable) (Tue Sep 29 01:00:52 2026 -0700) on "macos_arm64"
+packages/nidana_dart_runtime/lib/src/bus.dart: same as runtime/v2/bus.dart
+packages/nidana_dart_runtime/lib/src/interpreter.dart: same as runtime/v2/interpreter.dart
+
+### T1 the fixture change: case names before and after, and the other files
+cases before: 108
+cases after: 109
+>     name: 'G9 the TopicRemoved a forced removal raises at a topology read carries no lineage: a catchError on its path recovers it and that write chain goes on, its recovered value starting a new flow, while a write chain the read reaches without one ends and is reported as PipelineTerminated'
+-- lines changed per file of the fixture tree
+./behavior/bus_activation_test.dart: 4
+./behavior/bus_api_conformance.dart: 45
+./behavior/nidana_dart_runtime_test.dart: 2
+-- changed lines outside the conformance library
+< // Each run is a fresh TestBus (bus-testing@v1, package:nidana_dart_runtime/
+> // Each run is a fresh TestBus (bus-testing@v2, package:nidana_dart_runtime/
+< // (bus-api@v2 G30) and the suite watches one. The bus-testing@v1 names this
+> // (bus-api@v2 G30) and the suite watches one. The bus-testing@v2 names this
+< // TestBus and its scheduler are bus-testing@v1's (package:
+> // TestBus and its scheduler are bus-testing@v2's (package:
+
+### T2 structure (prototype) for bus-api, S17's prototype over the repository's contracts, analysis
+guarantees: 42; cases: 109; bindings: 2; fixture files: 15
+exit: 0
+guarantees covered: 42
+bus-api (api): 42 guarantees; covered by reject 10, behavior 38; not executable 2; in part 0; data directories none
+bus-testing (api): 20 guarantees; covered by reject 2, behavior 17; not executable 1; in part 0; data directories none
+flutter-binding (api): 20 guarantees; covered by reject 7, behavior 16; not executable 2; in part 0; data directories none
+navigation-api (api): 27 guarantees; covered by reject 5, behavior 23; not executable 2; in part 0; data directories none
+nidana-checks (cli): 18 guarantees; covered by cli 17; not executable 1; in part 2; data directories none
+topic-codegen (file): 21 guarantees; covered by schema 1, file 12, cli 5; not executable 4; in part 3; data directories rejected
+topic-model (shared-model): 27 guarantees; covered by reject 10, behavior 18; not executable 2; in part 0; data directories none
+topology-dsl (api): 30 guarantees; covered by reject 8, behavior 22; not executable 0; in part 0; data directories none
+topology-ir (api): 23 guarantees; covered by reject 3, behavior 22; not executable 0; in part 0; data directories render
+9 contracts, 0 problem(s)
+Analyzing surface...
+No issues found!
+surface exit: 0
+PASS config_is_immutable.dart [7:assignment_to_final 9:assignment_to_final 11:assignment_to_final 13:assignment_to_final]
+PASS current_value_is_state_only.dart [14:argument_type_not_assignable 16:argument_type_not_assignable 18:argument_type_not_assignable 20:argument_type_not_assignable]
+PASS diagnostics_are_closed.dart [7:invalid_use_of_type_outside_library 10:invalid_use_of_type_outside_library]
+PASS no_global_accessor.dart [8:undefined_getter 10:undefined_getter 12:undefined_method]
+PASS no_publisherless_state_publish.dart [11:argument_type_not_assignable 13:argument_type_not_assignable]
+PASS publish_value_matches_topic.dart [16:could_not_infer 18:could_not_infer 21:could_not_infer 23:could_not_infer 26:could_not_infer 29:could_not_infer 32:type_argument_not_matching_bounds]
+PASS publisher_reaches_state_through_writer.dart [15:argument_type_not_assignable 17:set_element_type_not_assignable 19:set_element_type_not_assignable 21:argument_type_not_assignable 24:argument_type_not_assignable]
+PASS runtime_types_are_closed.dart [8:invalid_use_of_type_outside_library 11:invalid_use_of_type_outside_library 14:invalid_use_of_type_outside_library 17:invalid_use_of_type_outside_library 20:invalid_use_of_type_outside_library 23:invalid_use_of_type_outside_library 26:invalid_use_of_type_outside_library 29:invalid_use_of_type_outside_library 32:invalid_use_of_type_outside_library 35:invalid_use_of_type_outside_library 39:new_with_undefined_constructor_default 41:new_with_undefined_constructor_default 43:new_with_undefined_constructor_default 45:new_with_undefined_constructor_default 47:new_with_undefined_constructor_default]
+PASS scheduler_providers_are_closed.dart [7:invalid_use_of_type_outside_library 10:invalid_use_of_type_outside_library 13:invalid_use_of_type_outside_library]
+reject exit: 0
+Analyzing behavior...
+No issues found!
+behavior exit: 0
+
+### T3 the bus-api suite after, on each runtime
+== runtime v2
+-- hsdd/contract/fixture/bus-api/behavior/nidana_dart_runtime_test.dart
+00:00 +109: All tests passed!
+exit: 0
+== runtime v1
+-- hsdd/contract/fixture/bus-api/behavior/nidana_dart_runtime_test.dart
+FAILED: G18 a subscriber that throws stops neither the publish nor the delivery to the others, keeps receiving, and its error reaches the zone in which it listened, not the zone the bus was built in
+FAILED: G18 what onError, onDone or a handler set later through the subscription throws, and an error event left without onError, reach the zone in which it listened
+FAILED: G23 equal definitions whose plans differ in a seed or a function throw TopologyConflict: another scan seed, and an inline closure that declare evaluates again
+FAILED: G25 an activation deactivated before start is never connected, and its claims are released at once
+FAILED: G34 a subscription made before start receives nothing until start, which connects it after the topologies, with the settled current value or the buffer as its first values, then the queue
+FAILED: G34 a topology activated before start computes nothing and its reads receive nothing until start, which connects it and delivers what the connection causes before the queue
+FAILED: G34 an event a topology publishes while start connects it reaches the observers, and no topology or subscription connected after it
+FAILED: G34 start connects a writer before every topology that reads what it writes, ties in activation order, so a reader activated before its input writer sees the settled value first
+FAILED: G41 a topology read that cannot convert a value raises a TypeError at the read stage, at its connection and at a later delivery, which ends the write chains it reaches unless a catchError recovers it, and no zone handler receives it
+FAILED: G41 an off-type value published through a widened reference reaches the observers and the widened subscriptions, while a typed subscription receives a TypeError error event in its place, at its onError or, without one, at the zone in which it listened, and receives later deliveries
+FAILED: G42 a MODULE or PAGE topology activated before start throws StateError naming it, runs no declare and activates and claims nothing; after start it activates
+FAILED: G42 acquiring a module before start throws StateError naming it and adds no reference, while declaring it works; after start the acquire activates its topologies
+FAILED: G9 before start removeTopic refuses a topic that an unconnected topology reads or an unconnected subscription observes; forced, the subscription ends at once and the read receives TopicRemoved when start connects it
+00:00 +96 -13: Some tests failed.
+exit: 1
+== runtime barrier-min
+-- hsdd/contract/fixture/bus-api/behavior/nidana_dart_runtime_test.dart
+FAILED: G18 a subscriber that throws stops neither the publish nor the delivery to the others, keeps receiving, and its error reaches the zone in which it listened, not the zone the bus was built in
+FAILED: G18 what onError, onDone or a handler set later through the subscription throws, and an error event left without onError, reach the zone in which it listened
+FAILED: G23 equal definitions whose plans differ in a seed or a function throw TopologyConflict: another scan seed, and an inline closure that declare evaluates again
+FAILED: G34 a subscription made before start receives nothing until start, which connects it after the topologies, with the settled current value or the buffer as its first values, then the queue
+FAILED: G34 a topology activated before start computes nothing and its reads receive nothing until start, which connects it and delivers what the connection causes before the queue
+FAILED: G34 an event a topology publishes while start connects it reaches the observers, and no topology or subscription connected after it
+FAILED: G34 start connects a writer before every topology that reads what it writes, ties in activation order, so a reader activated before its input writer sees the settled value first
+FAILED: G41 a topology read that cannot convert a value raises a TypeError at the read stage, at its connection and at a later delivery, which ends the write chains it reaches unless a catchError recovers it, and no zone handler receives it
+FAILED: G41 an off-type value published through a widened reference reaches the observers and the widened subscriptions, while a typed subscription receives a TypeError error event in its place, at its onError or, without one, at the zone in which it listened, and receives later deliveries
+FAILED: G42 a MODULE or PAGE topology activated before start throws StateError naming it, runs no declare and activates and claims nothing; after start it activates
+FAILED: G42 acquiring a module before start throws StateError naming it and adds no reference, while declaring it works; after start the acquire activates its topologies
+FAILED: G9 before start removeTopic refuses a topic that an unconnected topology reads or an unconnected subscription observes; forced, the subscription ends at once and the read receives TopicRemoved when start connects it
+00:00 +97 -12: Some tests failed.
+exit: 1
+
+### T4 the bus-api suite before, on runtime v2
+-- hsdd/contract/fixture/bus-api/behavior/nidana_dart_runtime_test.dart
+00:00 +108: All tests passed!
+exit: 0
+
+### T5 topology-dsl@v2's live suite through bus_activation_test.dart, on v2
+-- hsdd/contract/fixture/bus-api/behavior/bus_activation_test.dart
+00:00 +49: All tests passed!
+exit: 0
+
+### T6 seeded defects in the v2 runtime
+== seeded defect: regardless: catchError passes a TopicRemoved on
+lines changed: 5
+-- hsdd/contract/fixture/bus-api/behavior/nidana_dart_runtime_test.dart
+FAILED: G9 the TopicRemoved a forced removal raises at a topology read carries no lineage: a catchError on its path recovers it and that write chain goes on, its recovered value starting a new flow, while a write chain the read reaches without one ends and is reported as PipelineTerminated
+00:00 +108 -1: Some tests failed.
+exit: 1
+-- why: G9 the TopicRemoved a forced removal raises at a topology read
+  Expected: [1, -1, 2]
+    Actual: [1]
+     Which: at location [1] is [1] which shorter than expected
+== seeded defect: lineage: the TopicRemoved carries the lineage of the read's last value
+lines changed: 6
+-- hsdd/contract/fixture/bus-api/behavior/nidana_dart_runtime_test.dart
+FAILED: G9 the TopicRemoved a forced removal raises at a topology read carries no lineage: a catchError on its path recovers it and that write chain goes on, its recovered value starting a new flow, while a write chain the read reaches without one ends and is reported as PipelineTerminated
+00:00 +108 -1: Some tests failed.
+exit: 1
+-- why: G9 the TopicRemoved a forced removal raises at a topology read
+  Expected: ['e1', null, 'e5']
+    Actual: ['e1', 'e1', 'e5']
+     Which: at location [1] is 'e1' instead of <null>
+
+### cleanup: restore the v2 runtime, remove the copied trees
+packages/nidana_dart_runtime/lib/src/bus.dart: same as runtime/v2/bus.dart
+packages/nidana_dart_runtime/lib/src/interpreter.dart: same as runtime/v2/interpreter.dart
+removed

@@ -3,7 +3,7 @@
 // under `dart test` (ADR-001 item 4: the binding lives with the contract
 // whose Interface declares the implementation).
 //
-// Each run is a fresh TestBus (bus-testing@v1, package:nidana_dart_runtime/
+// Each run is a fresh TestBus (bus-testing@v2, package:nidana_dart_runtime/
 // testing.dart). `start` activates the topologies it is given, which the
 // suite declares APPLICATION-scoped, then calls start(), which connects them
 // (bus-api@v2 G34); a topology the suite activates only after the start is
@@ -12,7 +12,7 @@
 // A watched list is a view of the TestBus's envelope recorder from the
 // moment of the watch, filtered to the topic and read with the topic's own
 // dedup policy, because observers do not see a Tracing.disabled topic
-// (bus-api@v2 G30) and the suite watches one. The bus-testing@v1 names this
+// (bus-api@v2 G30) and the suite watches one. The bus-testing@v2 names this
 // binding uses are listed in bus-api@v2's ## Validation section; the replay
 // tool reports it as PENDING until the package exists (ADR-001 item 9).
 import 'dart:collection';

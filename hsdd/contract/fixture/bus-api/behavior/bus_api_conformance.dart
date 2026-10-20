@@ -3,7 +3,7 @@
 // model (Spec §10.2) and runtime operations (Spec §11) as a bus delivers
 // them, under Specification v0.15.1. Its cases are values; a binding
 // registers them with a test runner. It imports neither package:test nor
-// package:flutter_test, and names no bus-testing@v1 type: a binding supplies
+// package:flutter_test, and names no bus-testing@v2 type: a binding supplies
 // buses on a virtual clock through BusApiHarness. The live semantics of each
 // combinator are topology-dsl@v2's suite, bound in this directory by
 // bus_activation_test.dart. A MODULE or PAGE topology activates only after
@@ -575,6 +575,49 @@ final List<ConformanceCase<BusApiHarness>> busApiConformance =
       final PipelineTerminated t = d.whereType<PipelineTerminated>().single;
       expect(t.topologyId, 'reads-removed');
       expect(t.error, isA<TopicRemoved>());
+    },
+  ),
+  (
+    name: 'G9 the TopicRemoved a forced removal raises at a topology read carries no lineage: a catchError on its path recovers it and that write chain goes on, its recovered value starting a new flow, while a write chain the read reaches without one ends and is reported as PipelineTerminated',
+    body: (BusApiHarness h) async {
+      final List<BusDiagnostic> d = <BusDiagnostic>[];
+      final Bus bus = h.bus(_dev(d));
+      bus.start();
+      final _Observer o = _Observer();
+      bus.addObserver(o);
+      final List<int> recovered = _listen(bus, _out);
+      final List<int> unrecovered = _listen(bus, _outB);
+      final TopologyHandle handle = bus.activate(_t('removal', (TopologyBuilder b) {
+        final TopicStream<int> read = b.read(_e);
+        b.write(_out, b.merge(<TopicStream<int>>[read, b.read(_e2)]).catchError(_minusOne));
+        b.write(_outB, read);
+      }));
+      final Publisher p = bus.publisher(_svc);
+      p.publish(_e, 1);
+      h.flush(bus);
+      expect(bus.removeTopic(_e, force: true), isTrue);
+      h.flush(bus);
+      p.publish(_e2, 2);
+      h.flush(bus);
+      expect(recovered, <int>[1, -1, 2]);
+      expect(unrecovered, <int>[1]);
+      final PipelineTerminated t = d.whereType<PipelineTerminated>().single;
+      expect(t.topologyId, 'removal');
+      expect(t.sink, _outB.ref);
+      expect(t.error,
+          isA<TopicRemoved>().having((TopicRemoved e) => e.topic, 'topic', _e.ref));
+      expect(handle.isActive, isTrue);
+      final List<MessageEnvelope<Object?>> out = <MessageEnvelope<Object?>>[
+        for (final s in o.seen)
+          if (s.topic == _out.ref) s.envelope,
+      ];
+      final MessageEnvelope<Object?> one = o.on(_e);
+      final MessageEnvelope<Object?> two = o.on(_e2);
+      expect(<String?>[for (final x in out) x.causationId],
+          <String?>[one.id, null, two.id]);
+      expect(out[1].parentCorrelationIds, isEmpty);
+      expect(<String>{one.correlationId, two.correlationId, out[1].correlationId},
+          hasLength(3));
     },
   ),
   (
