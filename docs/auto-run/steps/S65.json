@@ -1,0 +1,316 @@
+{
+  "step_ref": "S65",
+  "skill": "hsdd-contract",
+  "target": "topology-dsl@v2 (hsdd/contract/topology-dsl.md, hsdd/contract/fixture/topology-dsl/)",
+  "status": "completed",
+  "stop": null,
+  "artifacts": [
+    "hsdd/contract/topology-dsl.md"
+  ],
+  "decisions": [
+    {
+      "at": "2026-10-20T19:37:28Z",
+      "artifact": "hsdd/contract/topology-dsl.md",
+      "question": "Which citations of a superseded version (bus-api@v1, bus-testing@v1, flutter-binding@v1, topology-dsl@v1) in topology-dsl.md and its fixture comments are live and move to v2, and which are historical and keep v1?",
+      "options": [
+        {
+          "label": "move live, keep the migration note",
+          "consequence": "Moves the 16 occurrences on 13 lines that state what holds now (summary, Boundary row, Not here, Delivery, the builder note on ownership, Errors and lineage, Write chains, Live interpretation intro and items 3 and 4, Not in v2, the two Validation bullets); keeps the 5 occurrences on the two lines of the v1-to-v2 migration note (Who acts: which suites passed in the write-chain experiment; Compatible changes made with it: what item 3 and Errors and lineage said when v2 was cut). Fixture comments: none names a superseded version, so none changes."
+        },
+        {
+          "label": "move every occurrence",
+          "consequence": "Rewrites the migration note so it names versions that did not exist when the experiment ran (the T5, T6 and T8 replays ran the v1 suites of bus-api, bus-testing and flutter-binding), which falsifies history; contradicts the record rule that a Versioning migration note keeps the version it describes."
+        }
+      ],
+      "chosen": "move live, keep the migration note",
+      "why": "The intake record's rule and the orchestrator's H7 instruction name a Versioning migration note and an experiment's description of what a version did as historical. Lines 470 and 472 are both: the first reports which v1 suites the write-chain experiment replayed, the second records the wording v2 was cut with. Every other occurrence states where a responsibility lies now. The counts match what S60 (14 lines of bus-api@v1, 12 live plus 2 historical), S61 (3 bus-testing@v1) and S63 (1 flutter-binding@v1, historical) predicted for this file.",
+      "evidence": [
+        "hsdd/management/2026-10-20-intake-ref-arch-v0-15-1.md#citations-of-a-superseded-version",
+        "docs/auto-run/steps/S60.json",
+        "docs/auto-run/steps/S61.json",
+        "docs/auto-run/steps/S63.json"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T19:37:43Z",
+      "artifact": "hsdd/contract/topology-dsl.md",
+      "question": "Validation's live-binding bullet says the binding is \"the behavior set of bus-api@v1's fixture directory, written by the bus-api@v1 step\". Is \"written by the bus-api@v1 step\" a live statement that moves or a historical one that stays?",
+      "options": [
+        {
+          "label": "move both to v2",
+          "consequence": "States where the binding lives and which contract step maintains it now. True: S60 (the bus-api@v2 step) rewrote hsdd/contract/fixture/bus-api/behavior/bus_activation_test.dart, which binds topology-dsl@v2's live suite."
+        },
+        {
+          "label": "move the directory, keep the step at v1",
+          "consequence": "Keeps an authorship fact (S09 first wrote the file) inside a live bullet whose job is to say where the binding lives and who owns it; a reader would look for a v1 step that no longer governs the file."
+        }
+      ],
+      "chosen": "move both to v2",
+      "why": "The bullet states ownership of a fixture that exists now, not a dated event. The file's current text is the v2 step's output (git log shows 77b7eb6, S60, as its last change) and its header names topology-dsl@v2 and bus-api@v2.",
+      "evidence": [
+        "hsdd/contract/fixture/bus-api/behavior/bus_activation_test.dart",
+        "hsdd/contract/bus-api.md (Validation, binding bullet)"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T19:37:46Z",
+      "artifact": "hsdd/contract/topology-dsl.md",
+      "question": "Not in v2 says Guide §6.3's advice to pass named functions \"concerns re-activation, which is bus-api@v1's (its G23)\". bus-api@v2 G23 now compares the plan's functions with ==, so the advice now decides its outcome. Move the citation only, or restate the sentence?",
+      "options": [
+        {
+          "label": "move only",
+          "consequence": "The sentence stays true: the advice concerns re-activation, which bus-api@v2 G23 governs. The reason v2 keeps explicit transformer names out (they concern IR label stability, which no consumer compares across compilation modes) is unaffected. The changed meaning is reported, not reworded."
+        },
+        {
+          "label": "restate to say G23 now compares functions",
+          "consequence": "Restates another contract's guarantee inside this contract's Not in v2 list, a second statement of G23 that can drift from bus-api's text."
+        }
+      ],
+      "chosen": "move only",
+      "why": "The orchestrator's rule restates a sentence only when the new version makes its words false. These words are not false under v2; only their consequence grew. Restating G23 here would duplicate bus-api's guarantee. A sentence that said the advice has no effect on activation would have changed my mind.",
+      "evidence": [
+        "hsdd/contract/bus-api.md G23",
+        "Guide §6.3"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T19:37:49Z",
+      "artifact": "hsdd/contract/topology-dsl.md",
+      "question": "Live interpretation item 3 said \"When an activation connects is bus-api@v1's to state: Spec §3.13 connects a topology activated during bootstrap only at `start()`, and replays nothing to it before then.\" bus-api@v2 G22 and G34 now state it. How does the sentence read at v2?",
+      "options": [
+        {
+          "label": "point at G22 and G34",
+          "consequence": "Now reads: \"When an activation connects is bus-api@v2's to state, in its G22 and G34: one made during bootstrap is connected by `start()`, which replays nothing to it before then (Spec §3.13), and one made after `start()` is connected before `activate` returns.\" Each clause follows bus-api@v2's text: G34 (an activation made during bootstrap is not connected, nothing replays to it, start() connects it in the connection order) and G22 (an activation made after start() is connected before activate returns). The sentence after it, that what this contract fixes holds whenever the connection happens, is unchanged."
+        },
+        {
+          "label": "move the version only",
+          "consequence": "Leaves the sentence citing Spec §3.13 for a rule bus-api@v2 now owns by guarantee id, so a reader of this contract cannot find the guarantee the live suite's start step relies on."
+        }
+      ],
+      "chosen": "point at G22 and G34",
+      "why": "The orchestrator named this sentence as one whose meaning changed and asked that it point at G22 and G34. The old wording was not false under v2, but it stated bus-api's rule through the Spec rather than through bus-api's guarantees; the new wording adds the after-start() case, which G22 states, so the sentence covers both cases it delegates. No declaration, guarantee or case of this contract changes: the live suite already activates bootstrap topologies APPLICATION-scoped and connects them through start().",
+      "evidence": [
+        "hsdd/contract/bus-api.md G22",
+        "hsdd/contract/bus-api.md G34",
+        "Spec §3.13",
+        "docs/auto-run/steps/S60.json (notes_for_orchestrator 3)"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T19:37:52Z",
+      "artifact": "hsdd/contract/topology-dsl.md",
+      "question": "Errors and lineage said \"whether a value a read cannot convert to its type argument raises one is bus-api@v1's (its G41)\". bus-api@v2 G41 makes such a value a read-stage TypeError. How does the pointer read at v2 without changing this contract's own rule?",
+      "options": [
+        {
+          "label": "state G41's read-stage error",
+          "consequence": "The pointer states G41's fact: a value a read cannot convert raises a `TypeError` at the read stage, carrying the lineage that value would have had, and this contract's Errors and lineage and Write chains rules govern it. Follows bus-api@v2 G41 (\"A topology read that cannot convert a value raises a TypeError at the read stage, a pipeline error carrying the lineage the value would have had: a catchError on its path recovers it, and otherwise it ends every write chain it reaches (G26)\"). This contract's rules are unchanged. The final wording of the sentence is the one the next decision records, which merges this clause with G9's TopicRemoved."
+        },
+        {
+          "label": "move the version only",
+          "consequence": "\"whether ... raises one is bus-api@v2's\" stays literally true but leaves open a question v2 answered, so a reader of this contract does not learn that an off-type value now ends write chains under this contract's own rule."
+        }
+      ],
+      "chosen": "state G41's read-stage error",
+      "why": "The orchestrator named this pointer and asked that it be restated so it is true without changing this contract's rule. Under v1 G41 the conversion error went to the provider zone's handler and the value was skipped, so it never entered the pipeline; under v2 it enters the pipeline at the read stage. The restated sentence states the bus-api@v2 fact and lets this contract's existing rules govern it. The live suite has no conversion case (no TypeError, TopicRemoved or removeTopic in live_conformance.dart), so no case or fixture changes; bus-api's own suite pins G41.",
+      "evidence": [
+        "hsdd/contract/bus-api.md G41",
+        "hsdd/contract/bus-api.md Versioning, \"Subscriber errors and conversions\"",
+        "hsdd/contract/fixture/topology-dsl/behavior/live_conformance.dart",
+        "docs/auto-run/steps/S60.json (notes_for_orchestrator 3)"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T19:40:31Z",
+      "artifact": "hsdd/contract/topology-dsl.md",
+      "question": "Errors and lineage began \"A read stage receives no error from its topic, because no error reaches a topic\", while bus-api@v2 G9 delivers `TopicRemoved` to every topology read of a topic removed with force, \"ending the write chains the read reaches (G26)\". Restate the clause in this touch, or leave it and report it?",
+      "options": [
+        {
+          "label": "restate to name both read-stage errors",
+          "consequence": "The sentence now reads: \"An error a pipeline raises never reaches a read stage, because no error reaches a topic (below). Two errors start at a read stage, both raised by the bus as bus-api@v2 states: `TopicRemoved`, when the read's topic is removed with `force` (its G9), and a `TypeError` for a value the read cannot convert to its type argument, carrying the lineage that value would have had (its G41). Each then follows the Errors and lineage and Write chains rules like any other error: a `catchError` on its path recovers it, and otherwise it ends every write chain it reaches.\" It states what bus-api@v2 delivers to a topology read (G9 and G41) and lets this contract's existing rules govern both errors. No declaration, guarantee, case or fixture changes; the live suite has no removal or conversion case. bus-api@v2 G9 names no catchError exception today, so until H7d adds \"unless a catchError on its path recovers it\" and a case, the two contracts differ on a recovered TopicRemoved; this contract's rule is the one H7d aligns to."
+        },
+        {
+          "label": "leave and report",
+          "consequence": "Keeps the touch to citations but leaves a live sentence that states what bus-api delivers to a read in words bus-api@v2 G9 makes false."
+        }
+      ],
+      "chosen": "restate to name both read-stage errors",
+      "why": "The orchestrator directed it under the S64 touch rule: the clause states what bus-api delivers to a topology read, so it restates another contract's guarantee, and bus-api@v2 G9 makes its words false; that it was already false under v1 does not exempt it. My first pass left it and reported it as a finding, because the clause carries no citation and the catchError question looked like one for a content step; the orchestrator settled that question by keeping this contract's rule (a catchError on the path recovers any error) and routing the matching G9 wording and case to H7d. The restatement names no lineage for TopicRemoved: neither bus-api@v2 G9 nor this contract states one, and adding it would be a new rule here.",
+      "evidence": [
+        "hsdd/contract/bus-api.md G9",
+        "hsdd/contract/bus-api.md G41",
+        "git show 77b7eb6^:hsdd/contract/bus-api.md (v1 G9)",
+        "hsdd/contract/fixture/topology-dsl/behavior/live_conformance.dart",
+        "orchestrator follow-up to S65 (S64 touch rule)"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T19:37:58Z",
+      "artifact": "hsdd/contract/topology-dsl.md",
+      "question": "Does the touch get a dated entry in ## Versioning?",
+      "options": [
+        {
+          "label": "add a dated within-v2 entry",
+          "consequence": "One line after the v1-to-v2 migration note says the live citations of bus-api and bus-testing moved to v2, names the restated sentences (Live interpretation item 3; Errors and lineage's read-stage errors, G9's TopicRemoved and G41's TypeError) and states that no declaration, guarantee, case or fixture changed. Explains why the migration note still says Errors and lineage \"adds that a read receives no error from its topic and leaves a read's conversion to bus-api@v1 (its G41)\" while the body now names both read-stage errors."
+        },
+        {
+          "label": "no entry",
+          "consequence": "Follows S64's touch of topic-model, which added none, but S64 restated no sentence; here the body and the migration note would disagree with nothing to reconcile them."
+        }
+      ],
+      "chosen": "add a dated within-v2 entry",
+      "why": "Sentences changed wording, and the migration note, which is historical and keeps its text, describes them as they read before. The file's Versioning already records within-version amendments (\"Amended within v1\"). No evidence beyond the file's own pattern; a project rule that citation touches leave Versioning alone would have changed my mind.",
+      "evidence": [
+        "hsdd/contract/topology-dsl.md ## Versioning",
+        "docs/auto-run/steps/S64.json"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T19:37:58Z",
+      "artifact": "hsdd/contract/topology-dsl.md",
+      "question": "How does this touch classify against topology-dsl@v2's Versioning?",
+      "options": [
+        {
+          "label": "compatible, stays v2",
+          "consequence": "version, status (draft), phase_ids (provisional), consumers and the registry row are unchanged; no consumer reference moves."
+        },
+        {
+          "label": "breaking, v3",
+          "consequence": "Would require a change the Breaking list names (a declaration, a stage's emissions or lineage, the Errors and lineage or Retry rules); none was made."
+        }
+      ],
+      "chosen": "compatible, stays v2",
+      "why": "No declaration, guarantee, combinator row, case or fixture changed. The restated sentences delegate to bus-api@v2 and state its guarantees (G22, G34, G9, G41); this contract's own error rule (an error a catchError does not recover ends every write chain it reaches) reads as before. The fixtures were not touched: their headers already name topology-dsl@v2 (S59) and no fixture comment names a superseded version. gen-registry left hsdd/contract/INDEX.md unchanged.",
+      "evidence": [
+        "hsdd/contract/topology-dsl.md ## Versioning (Breaking list)",
+        "node hsdd/scripts/gen-registry.mjs",
+        "node docs/auto-run/tools/gate.mjs --skill hsdd-contract"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    }
+  ],
+  "experiments": [],
+  "self_check": [
+    {
+      "gate": "Frontmatter has id, version, status, kind, owner, compatibility, produced_by, consumers; external_consumers when any exist.",
+      "status": "pass",
+      "note": "Frontmatter untouched."
+    },
+    {
+      "gate": "`consumers` lists phase ids that actually consume this contract.",
+      "status": "pass",
+      "note": "Unchanged by this touch; phase_ids provisional."
+    },
+    {
+      "gate": "The Interface section is concrete enough to mock against.",
+      "status": "pass",
+      "note": "No declaration changed."
+    },
+    {
+      "gate": "At least one guarantee/invariant is stated.",
+      "status": "pass",
+      "note": "G1 to G30 unchanged."
+    },
+    {
+      "gate": "A breaking change bumped the version and added a migration note.",
+      "status": "n/a",
+      "note": "Compatible touch; the dated \"Touched within v2\" entry in ## Versioning records the citation moves and the restatements."
+    },
+    {
+      "gate": "The registry was regenerated.",
+      "status": "pass",
+      "note": "node hsdd/scripts/gen-registry.mjs: contract 9, adr 3; INDEX.md files unchanged because no frontmatter changed."
+    },
+    {
+      "gate": "`phase_ids` is present (`provisional` until `hsdd-reconcile` finalizes it).",
+      "status": "pass",
+      "note": "provisional."
+    },
+    {
+      "gate": "Every code-level artifact both sides consume (types file, fixtures, shared package) names its canonical path and its owner in the Interface or Validation section: the owning phase for code, `hsdd-contract` for validation artifacts.",
+      "status": "pass",
+      "note": "Unchanged; the live-binding bullet now names bus-api@v2's fixture directory."
+    },
+    {
+      "gate": "A contract or version created by this run has its schema and its kind's fixtures written at the canonical paths.",
+      "status": "n/a",
+      "note": "No contract or version created."
+    },
+    {
+      "gate": "Open questions are cited by ID only and never defined here; prose justifying behavior as \"pending OQ-x\" is swept when the OQ resolves (hsdd-reconcile).",
+      "status": "pass",
+      "note": "No OQ text touched."
+    },
+    {
+      "gate": "A `stable` contract names a schema or a fixtures directory at the canonical paths and the artifact exists, or it carries `validation: grandfathered` (never on a contract authored after the upgrade).",
+      "status": "n/a",
+      "note": "draft."
+    },
+    {
+      "gate": "No version is `retired` while a consumer or an external consumer still names it.",
+      "status": "pass",
+      "note": "No version retired."
+    },
+    {
+      "gate": "A `v0` contract carries `## Observed completeness`, and the block changed in any commit that added fixtures to it.",
+      "status": "n/a",
+      "note": "v2."
+    },
+    {
+      "gate": "Prose rules of the run: no em-dash and no banned phrase.",
+      "status": "pass",
+      "note": "grep finds neither in topology-dsl.md or this report."
+    },
+    {
+      "gate": "node docs/auto-run/tools/gate.mjs --skill hsdd-contract",
+      "status": "pass",
+      "note": "0 error(s), 0 warning(s)."
+    }
+  ],
+  "notes_for_orchestrator": [
+    "COUNTS: moved 16 live occurrences on 13 lines of hsdd/contract/topology-dsl.md: bus-api@v1 -> @v2 (14 on 12 lines: summary, Boundary row, Not here, Delivery x2, the builder note on ownership checks, Errors and lineage, Write chains last bullet, Live interpretation intro, items 3 and 4, Not in v2, Validation live-binding bullet x2); bus-testing@v1 -> @v2 (2: Boundary row, Validation live bullet's settle operation). Kept 5 historical occurrences on 2 lines of the v1-to-v2 migration note: \"Who acts\" (bus-api@v1, bus-testing@v1, flutter-binding@v1, describing the T5, T6 and T8 replays) and \"Compatible changes made with it\" (bus-api@v1 twice). Fixture comments under hsdd/contract/fixture/topology-dsl/: 0 moved; every header already names topology-dsl@v2 (S59) and no comment names bus-api, bus-testing or flutter-binding at a version. Unchanged-version citations (topic-model@v1, topology-ir@v1, navigation-api@v1, topic-codegen@v1) stay. These counts match S60, S61 and S63's predictions for this file.",
+    "RESTATED (compatible wording, one decision each): Live interpretation item 3 now names bus-api@v2 G22 and G34 and covers both cases (bootstrap: connected by start(), nothing replayed before; after start(): connected before activate returns). Errors and lineage, at the orchestrator's follow-up, no longer says a read stage receives no error from its topic: it says no error a pipeline raises reaches a read stage and names the two errors that start there, both bus-api@v2's, TopicRemoved from a forced removal (G9) and a TypeError for an unconvertible value with that value's lineage (G41), each recovered by a catchError on its path and otherwise ending every write chain it reaches. The dated \"Touched within v2, 2026-10-21\" entry in ## Versioning records all of it. Version, status, phase_ids and INDEX.md unchanged.",
+    "MEANING CHANGED, NOT REWORDED: Not in v2's \"concerns re-activation, which is bus-api@v2's (its G23)\". Under v2, G23 compares the plan's functions with ==, so Guide §6.3's named-function advice now decides whether a second activation returns the active handle or throws TopologyConflict. The sentence stays true and the reason explicit transformer names stay out of v2 (IR label stability) is unaffected.",
+    "FOR H7d (replaces the earlier finding, now resolved here): topology-dsl@v2 now says a catchError on the path recovers a read stage's TopicRemoved; bus-api@v2 G9 still says a forced removal ends \"the write chains the read reaches (G26)\" with no catchError exception, so G9 needs \"unless a catchError on its path recovers it\" and a case in bus-api's suite, as the orchestrator routed. Open and not settled by either contract: the lineage a TopicRemoved error carries (topology-dsl's Errors and lineage lists what carries none, timeout and raw-operator errors, and TopicRemoved is not among them; a catchError that recovers it would give Lineage.root() only if it carries none). Stating it is a rule change for whichever contract takes it; H7d can name it in bus-api G9 or leave it for a content step.",
+    "SEEN IN OTHER FILES, for H7d (bus-api citation touch): hsdd/contract/bus-api.md Delivery (line 44) \"bus-testing@v1's with them\", and hsdd/contract/fixture/bus-api/behavior/bus_activation_test.dart header lines 6 and 15 (\"bus-testing@v1, package:nidana_dart_runtime/testing.dart\", \"The bus-testing@v1 names this binding uses\"). Not touched here.",
+    "docs/auto-run/REPORT.md shows as modified in the working tree; that change was present before this step (initial git status) and is the owner's."
+  ]
+}

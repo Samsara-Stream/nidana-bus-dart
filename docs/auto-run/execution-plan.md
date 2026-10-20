@@ -258,6 +258,7 @@ orchestrator and recorded with `would_have_asked: true`.
 | S62 | 9 | hsdd-contract | H5: navigation-api@v1 (compatible; stays stable) | done | 4a34cf7 |
 | S63 | 9 | hsdd-contract | H6: flutter-binding@v2 (NidanaModule added; scope timing, bootstrap first values, re-activation breaking; draft) | done | 311d3e3 |
 | S64 | 9 | hsdd-contract | H7a: topic-model@v1 citation touch (14 moved, 5 historical kept) | done | 7afa20c |
+| S65 | 9 | hsdd-contract | H7b: topology-dsl@v2 citation touch (16 moved; read-stage errors and the activation-connect pointer restated) | done | a3b0f44 |
 
 ## Change log
 
