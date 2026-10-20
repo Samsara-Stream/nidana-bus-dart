@@ -1,0 +1,108 @@
+{
+  "step_ref": "S64",
+  "skill": "hsdd-contract",
+  "target": "topic-model@v1 (hsdd/contract/topic-model.md, hsdd/contract/fixture/topic-model/)",
+  "status": "completed",
+  "stop": null,
+  "artifacts": [
+    "hsdd/contract/topic-model.md",
+    "hsdd/contract/fixture/topic-model/reject/state_topic_is_not_multi_writer.dart",
+    "hsdd/contract/fixture/topic-model/surface/topics.dart",
+    "hsdd/contract/INDEX.md (regenerated, no change)"
+  ],
+  "decisions": [
+    {
+      "at": "2026-10-20T19:31:11Z",
+      "artifact": "hsdd/contract/topic-model.md",
+      "question": "Are the Versioning entry 'Amended within v1, at bus-api@v1's request (its Refinement 3) ... as topology-dsl@v1's read row already applies it' (line 426) and the Validation paragraph describing docs/auto-run/experiments/topic-model-multi-writer/ ('replays the surface and reject sets of topology-dsl@v1, topology-ir@v1 and bus-api@v1 ... bus-api@v1's pass only with the amendment', line 439) live citations or historical text?",
+      "options": [
+        { "label": "Historical, keep v1", "consequence": "The amendment entry keeps naming the version that requested the amendment and the read row that already applied the rule at the time; the experiment description keeps naming the fixture sets it actually replayed. Five occurrences stay at v1 and the final gate's stale-version scan sees them." },
+        { "label": "Live, move to v2", "consequence": "The text would claim that bus-api@v2 requested an amendment made before v2 existed and that the multi-writer experiment replayed v2 fixture sets it never ran, which is false." }
+      ],
+      "chosen": "Historical, keep v1",
+      "why": "The orchestrator's H7/H8 rule names a dated amendment entry and an experiment's description of what a version did as historical. Line 426 is an amendment entry without a date, but it records a past event (bus-api@v1's Refinement 3 request) and the state of topology-dsl@v1 at that moment; line 439 describes what an experiment ran. Moving either would make it false. topology-dsl@v2's read row still applies Lineage.root() to a state topic's initial value (topology-dsl.md line 379), so nothing the entry implies became false under v2.",
+      "evidence": ["hsdd/management/2026-10-20-intake-ref-arch-v0-15-1.md (Citations of a superseded version)", "docs/auto-run/steps/S64.orchestrator.json", "hsdd/contract/topology-dsl.md (combinator table, b.read row)", "docs/auto-run/experiments/topic-model-multi-writer/"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T19:31:14Z",
+      "artifact": "hsdd/contract/topic-model.md",
+      "question": "Three live citations of bus-api@v1 sit inside this contract's own normative text: two doc comments in the Interface's Dart declarations (Tracing: 'What the bus and its observers do with an untraced topic is bus-api@v1's'; StateTopic.computed: 'When the bus calls createInitial() is bus-api@v1's') and guarantee G27 ('A publish path typed over MultiWriterTopic<T>, as bus-api@v1's Bus.publish and Publisher.publish are, therefore does not compile for a state topic'). The touch may change no declaration or guarantee. Do these citations move?",
+      "options": [
+        { "label": "Move the version only", "consequence": "The doc comments and G27 name bus-api@v2; no declaration, signature, default or promise changes, and G27's reject fixture and behavior case are untouched. Valid only if bus-api@v2 still states each cited fact." },
+        { "label": "Leave them at v1", "consequence": "The declarations and G27 stay byte-identical, but they keep citing a superseded version, which the intake's Done-when forbids and the final gate reports as stale." }
+      ],
+      "chosen": "Move the version only",
+      "why": "The intake record lists guarantee citations as live, and a doc comment that says which contract owns a behavior states what holds now. Each cited fact holds in bus-api@v2 unchanged: G30 still gates observers on Tracing.disabled and still delivers an untraced topic's values to subscribers; G6 still says when createInitial() is called (once, when the subject is created, which v2 places at activate whether or not the activation is connected); Refinement 3 and the Interface still type Bus.publish and Publisher.publish over MultiWriterTopic<T>. So the move changes the citation, not what G27 or the declarations promise.",
+      "evidence": ["hsdd/contract/bus-api.md (Refinement 3, Interface lines 126 and 170, G6, G30, G40)", "hsdd/management/2026-10-20-intake-ref-arch-v0-15-1.md (Citations of a superseded version)"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T19:31:32Z",
+      "artifact": "hsdd/contract/topic-model.md",
+      "question": "'How the lineage functions are applied' ends 'bus-api@v1 applies publishedTo at every publish and Lineage.root or Lineage.causedBy at shell publishes'. bus-api's G12, identical in v1 and v2, makes every shell publish a root message (fresh correlation id, no causation, no parents), and both versions list 'a shell publish linked to the delivery that prompted it (causation from shell code, Guide §10.2)' as not in the version. The 'or Lineage.causedBy' is wider than bus-api states, but v2 did not make it so. Does the touch restate the sentence?",
+      "options": [
+        { "label": "Move the citation, keep the wording, report it", "consequence": "The touch stays inside the orchestrator's rule (restate only a sentence the new version makes false). The disjunction remains true, since bus-api applies Lineage.root, but over-wide; a reader may infer bus-api sometimes applies causedBy at a shell publish. The finding goes to the orchestrator." },
+        { "label": "Restate as 'Lineage.root at shell publishes, which are root messages (its G12)'", "consequence": "The sentence becomes exact. It is a wording change this intake did not cause, made in a stable contract's own lineage paragraph under a touch whose remit is citations a new version changed." }
+      ],
+      "chosen": "Move the citation, keep the wording, report it",
+      "why": "The orchestrator's touch rule (S64.orchestrator.json) restates a sentence only when the new version makes it false, and the intake reports, never silently rewords, citations whose meaning changed. This one did not change meaning between v1 and v2 (G12 and the Not-in list are the same text), and the disjunction is not false. The over-width dates from topic-model's authoring at S06, before bus-api existed. Close call: a rule that the touch should also tighten pre-existing over-wide restatements would have made me restate it, at no risk to any fixture.",
+      "evidence": ["hsdd/contract/bus-api.md G12 and Versioning 'Not in v2'", "git show 77b7eb6~1:hsdd/contract/bus-api.md (v1 G12, 'Not in v1')", "docs/auto-run/steps/S64.orchestrator.json"],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T19:31:39Z",
+      "artifact": "hsdd/contract/topic-model.md",
+      "question": "How does this touch classify against topic-model's Versioning (Breaking list, Compatible list), and what happens to version, status and phase_ids?",
+      "options": [
+        { "label": "No interface change: stays v1, stable, phase_ids final, no Versioning entry", "consequence": "Only citation versions in prose, doc comments, one guarantee's illustrative clause and two fixture comment lines change. No declaration, default, rule, guarantee promise or fixture behavior changes, so neither list applies; consumers re-read nothing and replay the same fixtures. The registry projection is unchanged." },
+        { "label": "Compatible amendment within v1 with a Versioning entry", "consequence": "Records the touch in Versioning as an amendment, as the MultiWriterTopic change was. Adds a change-log line for something no consumer can observe, and the Versioning section would mix interface amendments with citation housekeeping." }
+      ],
+      "chosen": "No interface change: stays v1, stable, phase_ids final, no Versioning entry",
+      "why": "The Breaking and Compatible lists classify changes to the interface; a citation version is neither. The intake record classes topic-model as 'Unchanged except citations' (Landings), and the orchestrator's H7 rule calls a restatement of another contract's rule a compatible wording change, of which this touch made none. Git history carries the touch. The signal that would change my mind: a project convention that every edit of a stable contract leaves a Versioning line, which neither hsdd-contract nor this tree has.",
+      "evidence": ["hsdd/contract/topic-model.md ## Versioning", "hsdd/management/2026-10-20-intake-ref-arch-v0-15-1.md line 79 ('Unchanged except citations: topic-model@v1')", "node hsdd/scripts/gen-registry.mjs (INDEX.md unchanged)"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    }
+  ],
+  "experiments": [],
+  "self_check": [
+    { "gate": "Frontmatter has id, version, status, kind, owner, compatibility, produced_by, consumers; external_consumers when any exist.", "status": "pass", "note": "Frontmatter untouched." },
+    { "gate": "`consumers` lists phase ids that actually consume this contract.", "status": "n/a", "note": "Untouched; phase_ids final from an earlier reconcile; producer and consumer re-plans of this intake are H11 onward." },
+    { "gate": "The Interface section is concrete enough to mock against.", "status": "pass", "note": "Declarations unchanged." },
+    { "gate": "At least one guarantee/invariant is stated.", "status": "pass", "note": "G1 to G27 unchanged in substance." },
+    { "gate": "A breaking change bumped the version and added a migration note.", "status": "n/a", "note": "No change to the interface (decision at 19:31:39Z)." },
+    { "gate": "The registry was regenerated.", "status": "pass", "note": "node hsdd/scripts/gen-registry.mjs: contract 9, adr 3; hsdd/contract/INDEX.md unchanged because no frontmatter changed. The generator is byte-identical to the vendored skill copy (cmp)." },
+    { "gate": "`phase_ids` is present (`provisional` until `hsdd-reconcile` finalizes it).", "status": "pass", "note": "phase_ids: final, untouched." },
+    { "gate": "Every code-level artifact both sides consume (types file, fixtures, shared package) names its canonical path and its owner in the Interface or Validation section: the owning phase for code, `hsdd-contract` for validation artifacts.", "status": "pass", "note": "Library, code owner and validation artifact lines unchanged except the topology-dsl version." },
+    { "gate": "A contract or version created by this run has its schema and its kind's fixtures written at the canonical paths.", "status": "n/a", "note": "No contract or version created." },
+    { "gate": "Open questions are cited by ID only and never defined here (the skill's text joins the two clauses with a dash, rewritten under the run's prose rule); prose justifying behavior as \"pending OQ-x\" is swept when the OQ resolves (hsdd-reconcile).", "status": "pass", "note": "Only OQ-M3 is cited, as decided (G5); untouched." },
+    { "gate": "A `stable` contract names a schema or a fixtures directory at the canonical paths and the artifact exists, or it carries `validation: grandfathered` (never on a contract authored after the upgrade).", "status": "pass", "note": "hsdd/contract/fixture/topic-model/ exists with surface, reject and behavior sets." },
+    { "gate": "No version is `retired` while a consumer or an external consumer still names it.", "status": "pass", "note": "Nothing retired." },
+    { "gate": "A `v0` contract carries `## Observed completeness`, and the block changed in any commit that added fixtures to it.", "status": "n/a", "note": "v1 contract." },
+    { "gate": "Step done-when: no live citation in this file or its fixture comments names a superseded version; every live sentence that restates another contract's guarantee is true under that contract's current text.", "status": "pass", "note": "Remaining v1 citations of superseded versions are the five historical occurrences on lines 426 and 439. Each moved sentence was checked against topology-dsl@v2 and bus-api@v2 and bus-testing@v2 (see notes)." },
+    { "gate": "node docs/auto-run/tools/gate.mjs --skill hsdd-contract", "status": "pass", "note": "Run after the report was written: 'gate: 0 error(s), 0 warning(s), 10 changed file(s)', exit 0. The changed-file count includes the owner's untracked files and S64.orchestrator.json, which this step did not write." }
+  ],
+  "notes_for_orchestrator": [
+    "COUNTS: moved 14 live citations, kept 5 historical. Moved in hsdd/contract/topic-model.md (12 on 11 lines): topology-dsl@v1 -> @v2 at Boundary row (line 30), Interface library line (39), Delivery (41), lineage paragraph (306); bus-api@v1 -> @v2 at Boundary 'Not in any of the three' (33), Tracing doc comment (60), StateTopic.computed doc comment (89), MultiWriterTopic paragraph (131), lineage paragraph (306), observer paragraph (369), G27 (419); bus-testing@v1 -> @v2 at line 33. Moved in fixture comments (2): reject/state_topic_is_not_multi_writer.dart line 2 and surface/topics.dart line 100, bus-api@v1 -> @v2. Kept (historical): line 426 Versioning amendment entry (bus-api@v1, topology-dsl@v1) and line 439 Validation's description of docs/auto-run/experiments/topic-model-multi-writer/ (topology-dsl@v1, bus-api@v1 twice). These match S59's count (6 topology-dsl@v1), S60's (9 lines of bus-api@v1, 10 occurrences) and S61's (1 bus-testing@v1).",
+    "MEANING CHECK: no moved citation changed meaning with the new version, so no sentence was restated. Checked: topology-dsl@v2 Boundary keeps the same declaration groups and still names topology_plan.dart as a library of its own (topic-model's 'unless those contracts name a library of their own' holds); topology-dsl@v2 Delivery still has a consumer wait on nidana.model.5; topology-dsl@v2's combinator table still states lineage per combinator, the read row applying Lineage.root() to a declared initial value. bus-api@v2: G30 (untraced topics), G6 (when createInitial() runs), Refinement 3 and the publish signatures over MultiWriterTopic<T>, the publish definition using MessageEnvelope.publishedTo, G12 (shell publish is root), G29 and G31 (observer zone, order, failure); ADR-003 item 2 as amended at S58 still invokes observers in the provider zone. bus-testing@v2 Boundary still holds VirtualSchedulerProvider, the providers being split across bus-api@v2 and bus-testing@v2.",
+    "FINDING (pre-existing, not caused by v0.15.1): topic-model.md line 306 says bus-api 'applies ... Lineage.root or Lineage.causedBy at shell publishes'. bus-api G12, the same in v1 and v2, makes every shell publish a root message, and both versions list causation from shell code (Guide §10.2) as not in the version. The disjunction is true but wider than bus-api states. Left as is under the touch rule; a later hsdd-contract touch could tighten it to 'Lineage.root at shell publishes (its G12)' as a compatible wording change. It needs no step in this intake.",
+    "No declaration, guarantee promise, case or fixture behavior changed. The fixture edits are comment lines only and touch no 'covers:' or 'expect-diagnostic:' marker, so no replay was needed. topic-model stays v1, stable, phase_ids final; hsdd/contract/INDEX.md regenerated with no change.",
+    "Out of scope and untouched: topic-model.md cites navigation-api@v1 and topology-ir@v1, both current. It cites no flutter-binding version. ADR citations (ADR-001, ADR-002, ADR-003 items 2, 8, 9) are unchanged and still resolve to the same item numbers."
+  ]
+}

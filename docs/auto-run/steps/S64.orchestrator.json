@@ -1,0 +1,24 @@
+{
+  "step_ref": "S64",
+  "skill": "none",
+  "target": "citation touches H7a to H8c",
+  "status": "completed",
+  "decisions": [
+    {
+      "at": "2026-10-20T19:28:30Z",
+      "artifact": null,
+      "question": "The record's citation touches (H7a to H7i, H8a to H8c) move live citations of a superseded version to the current one, change no declaration, guarantee or fixture semantics, and report any citation whose meaning changed. H2 to H6 already reported such citations (for example topology-dsl@v2's 'When an activation connects is bus-api@v1's to state', ADR-003 item 6's first-delivery sentence). When the touch moves a citation and the sentence around it restates the cited guarantee in words that the new version makes false, what does the touch do?",
+      "options": [
+        { "label": "Restate the sentence to match the cited contract's current text, recorded per sentence, and stop on anything that changes this file's own guarantees", "consequence": "One touch per file leaves every live sentence true. A restatement of another contract's rule is a compatible wording change here; a change to this file's own guarantee, fixture behavior or decision stays outside a touch and is reported." },
+        { "label": "Move the citation only and report the sentence", "consequence": "The literal reading of the prompt. Every reported sentence then needs another step later (a second contract touch or ADR amendment) before the tree is consistent, or it stays false after the citation moves." }
+      ],
+      "chosen": "Restate the sentence to match the cited contract's current text, recorded per sentence, and stop on anything that changes this file's own guarantees",
+      "why": "Moving a citation to a version under which the sentence is false makes the text wrong in a new way; the record's rule against silent rewording is met by recording each restatement as a decision. The boundary stays where hsdd-contract and hsdd-adr put it: a touch may make text agree with another contract, never change what this contract or ADR itself promises or decides.",
+      "evidence": ["hsdd/management/2026-10-20-intake-ref-arch-v0-15-1.md (Citations of a superseded version, H7, H8)", "docs/auto-run/steps/S59.json to S63.json notes_for_orchestrator"],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "would_upstream": false
+    }
+  ]
+}
