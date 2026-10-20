@@ -1,0 +1,24 @@
+{
+  "step_ref": "S67",
+  "skill": "none",
+  "target": "review of S67 (bus-api@v2 touch and G9)",
+  "status": "completed",
+  "decisions": [
+    {
+      "at": "2026-10-20T19:58:09Z",
+      "artifact": "hsdd/contract/topology-dsl.md",
+      "question": "S67 made bus-api@v2 G9's TopicRemoved carry no lineage, recovered by catchError with Lineage.root(). topology-dsl@v2's Errors and lineage lists the errors that carry none and omits TopicRemoved, and its first sentence can be read to give it the read's last lineage. When is topology-dsl aligned?",
+      "options": [
+        { "label": "Insert a topology-dsl@v2 wording touch now, before H7e", "consequence": "One short hsdd-contract step; both contracts state the same lineage for TopicRemoved before any spec or plan step reads them." },
+        { "label": "Leave it for the final reconcile", "consequence": "No extra step, but reconcile does not author contract bodies, and the runtime's re-plan (H11) would read the two contracts disagreeing." }
+      ],
+      "chosen": "Insert a topology-dsl@v2 wording touch now, before H7e",
+      "why": "The runtime phases that implement both contracts are re-planned at H11 and must read one rule. A contract body is hsdd-contract's to write, and topology-dsl@v2 is a draft authored in this intake, so the wording fix is a clarification of an unreleased version.",
+      "evidence": ["docs/auto-run/steps/S67.json notes", "hsdd/contract/bus-api.md G9", "hsdd/contract/topology-dsl.md Errors and lineage"],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "would_upstream": false
+    }
+  ]
+}

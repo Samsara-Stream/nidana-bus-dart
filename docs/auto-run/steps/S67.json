@@ -1,0 +1,142 @@
+{
+  "step_ref": "S67",
+  "skill": "hsdd-contract",
+  "target": "bus-api@v2 (hsdd/contract/bus-api.md and hsdd/contract/fixture/bus-api/)",
+  "status": "completed",
+  "stop": null,
+  "artifacts": [
+    "hsdd/contract/bus-api.md",
+    "hsdd/contract/fixture/bus-api/behavior/bus_api_conformance.dart",
+    "hsdd/contract/fixture/bus-api/behavior/bus_activation_test.dart",
+    "hsdd/contract/fixture/bus-api/behavior/nidana_dart_runtime_test.dart",
+    "hsdd/contract/INDEX.md (regenerated, unchanged)",
+    "docs/auto-run/experiments/bus-api-v2/run-g9.sh",
+    "docs/auto-run/experiments/bus-api-v2/output-g9.txt",
+    "docs/auto-run/steps/S67.json"
+  ],
+  "decisions": [
+    {
+      "at": "2026-10-20T19:51:59Z",
+      "artifact": "hsdd/contract/bus-api.md",
+      "question": "Which citations of a superseded version (bus-testing@v1, flutter-binding@v1, topology-dsl@v1, bus-api@v1) in bus-api.md and its fixture comments are live and move to v2, and which are historical and keep v1? In particular the Versioning migration note's 'flutter-binding@v1 Refinement 4' (line 415 before this step), which S63 reported as a citation whose meaning changed.",
+      "options": [
+        { "label": "move 19 live, keep 23 historical", "consequence": "Moves 14 bus-testing@v1 and 1 flutter-binding@v1 on 12 lines of bus-api.md (Boundary paragraph and table row, Refinements 1 and 4, Not here, Delivery, two Interface doc comments, the delivery rule on recorders, G38, Validation behavior and bindings paragraphs) and 4 bus-testing@v1 in the headers of the three behavior files; keeps the migration note's flutter-binding@v1 Refinement 4, the three v1 history bullets and the five Validation paragraphs that describe what an experiment replayed against which version." },
+        { "label": "also move the migration note's citation", "consequence": "The v1-to-v2 migration note would cite flutter-binding@v2 Refinement 4, which S63 rewrote to state the condition the note derives from G23; the note would then describe a consumer text that did not exist when the migration was classified." }
+      ],
+      "chosen": "move 19 live, keep 23 historical",
+      "why": "The orchestrator's touch rule (S64) keeps the version in a Versioning migration note, in dated history and in an experiment's description of what a version did; every other occurrence states what holds now. The migration note's sentence stays true as history: flutter-binding@v1 Refinement 4 was the page-holder rule G23's change reached, and flutter-binding@v2 Refinement 4 now states the same condition (named transformers), so nothing it says is false under v2. Each moved citation was checked against the cited contract's current text: bus-testing@v2 still declares testing.dart's names, VirtualSchedulerProvider in the library that declares Bus (its G2), the recorders called in attachment order (its G14, G17), the settle operation's real turns as the only timers outside a provider zone (its G12, G20), every name the bindings forward-reference (its Refinement 3) and the recorder a TestBus attaches at construction (its Refinement 1, G14); its Delivery has nidana.runtime.1 land every declaration; flutter-binding@v2 still holds the router and widget bindings of module and page scopes, NidanaModule among them.",
+      "evidence": [
+        "hsdd/management/2026-10-20-intake-ref-arch-v0-15-1.md 'Citations of a superseded version'",
+        "hsdd/contract/bus-testing.md (Boundary, Refinements 1 and 3, Delivery, G2, G12, G14, G17, G20)",
+        "hsdd/contract/flutter-binding.md (Boundary, Refinement 4)",
+        "docs/auto-run/steps/S61.json notes 0 and 2 (bus-api.md 16 lines of bus-testing@v1)",
+        "docs/auto-run/steps/S63.json notes 1 and 4 (bus-api.md 8 flutter-binding@v1, line 415)"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T19:52:20Z",
+      "artifact": "hsdd/contract/bus-api.md",
+      "question": "What lineage does the TopicRemoved error a forced removeTopic raises at a topology read carry (S65: neither bus-api@v2 nor topology-dsl@v2 says; topology-dsl lists the errors that carry none and TopicRemoved is not on it)?",
+      "options": [
+        { "label": "none, recovered with Lineage.root()", "consequence": "As a timeout error: a catchError that recovers it gives a value whose publish has no causation, no parent correlations and a fresh correlation id, so it starts a new flow. Every causation id stays the id of a published envelope that caused the value (topic-model@v1 'How the lineage functions are applied'). topology-dsl's carry-none list needs a matching wording touch." },
+        { "label": "the lineage of the read's last delivered value", "consequence": "A recovered value continues the flow that last reached the topic and names that envelope as its cause, although no message caused the removal; undefined for a read that received nothing yet (an event topic, an unconnected read), which would need a fallback rule." },
+        { "label": "leave it unstated", "consequence": "The new case could not pin the recovered value's envelope; two runtimes could differ in what an observer or recorder sees after a recovered removal, and topology-dsl's first Errors and lineage sentence invites the second reading." }
+      ],
+      "chosen": "none, recovered with Lineage.root()",
+      "why": "A removal is a shell operation, not a publish: no envelope causes it, so giving it a causation would put a false edge in the causation chain that Spec §2.4 'Correlation vs. Causation' and topic-model@v1 make walkable through published envelopes only. It is the same reason topology-dsl@v2 gives a timeout error none: the error is raised by an event that is not a value. The v2 stand-in already behaves this way (its catchError recovers an unwrapped error with Lineage.root()), and a seeded defect that gives the error the read's last lineage fails only the new case. The Specification is silent (Spec §3.2, §7.5 describe removeTopic without the error's lineage). What would have changed my mind: a Specification or Guide statement that a removal is traced as a message, or a consumer that needs to correlate a recovery with the flow that last touched the topic.",
+      "evidence": [
+        "Spec §3.2, §7.5, §2.4",
+        "hsdd/contract/topology-dsl.md Errors and lineage (timeout and raw-operator errors carry none)",
+        "hsdd/contract/topic-model.md 'How the lineage functions are applied', G18",
+        "docs/auto-run/experiments/bus-api-v2/output-g9.txt T6 (seeded defect 'lineage')"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T19:52:20Z",
+      "artifact": "hsdd/contract/fixture/bus-api/behavior/bus_api_conformance.dart",
+      "question": "What shape does the one new G9 case take, and where is its replay recorded? (Taken with the lineage decision, before the replay ran; the timestamp is that decision's.)",
+      "options": [
+        { "label": "one read reaching two chains, under bus-api-v2", "consequence": "One topology whose read of the removed topic feeds a merge with another read and a catchError into one sink, and directly a second sink: pins per write chain that a catchError on the path keeps the chain (its other input still publishes after the removal) while the chain without one ends with one PipelineTerminated naming its sink, and pins the recovered envelope's lineage through an observer. The replay reuses bus-api-v2's three runtimes as run-g9.sh and output-g9.txt." },
+        { "label": "two topologies, new experiment directory", "consequence": "One recovered topology and one unrecovered: the same per-topology outcome, but it does not pin that the rule is per chain for one read that reaches both; a new directory would copy the stand-in workspace and its runtimes." }
+      ],
+      "chosen": "one read reaching two chains, under bus-api-v2",
+      "why": "G9 and topology-dsl@v2 speak of the write chains a read reaches, so one read that reaches a recovered and an unrecovered chain tests exactly that sentence, and the merge shows the recovered chain is kept rather than merely not reported. The orchestrator allowed either location; bus-api-v2 already holds the v2, v1 and minimal-barrier runtimes the replay needs, unchanged.",
+      "evidence": [
+        "hsdd/contract/topology-dsl.md Write chains, G26",
+        "docs/auto-run/experiments/bus-api-v2/run.sh"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T19:55:01Z",
+      "artifact": "hsdd/contract/bus-api.md",
+      "question": "Classify the G9 clarification (a catchError on the path recovers TopicRemoved; it carries no lineage) against bus-api@v2's own Breaking list.",
+      "options": [
+        { "label": "compatible, within v2", "consequence": "A dated 'Touched within v2' entry in ## Versioning; version, status and phase_ids unchanged; no consumer reference moves. Matches the Compatible item 'a new guarantee that existing fixtures still pass'." },
+        { "label": "breaking, bus-api@v3", "consequence": "A third version inside one intake for a rule no runtime or consumer behaves otherwise on; every consumer reference moves again (DEC-688)." }
+      ],
+      "chosen": "compatible, within v2",
+      "why": "No declaration changed. The recovery is not a new delivery rule: G22 already has activation interpret the plan as topology-dsl@v2's Live interpretation states, and its Errors and lineage rules (restated at S65 to name TopicRemoved) let a catchError recover any error, so a runtime that ended a recovered chain already broke topology-dsl@v2 G26 through G22. The lineage was unstated, as G41's off-type behavior was before v1 amendment (g), which this file classified compatible for the same reason. Every one of the 108 existing cases passes on the v2 runtime with the new case (109 of 109), and all three runtimes of the experiment, v1 included, pass the new case, so it reverses no fixture. bus-api@v2 is a draft authored in this intake with no package or consumer code (DEC-813). What would have changed my mind: an existing case, here or in a consumer's suite, that asserted a recovered removal still ended its chain.",
+      "evidence": [
+        "hsdd/contract/bus-api.md ## Versioning (Breaking and Compatible lists, v1 amendment (g)), G22",
+        "hsdd/contract/topology-dsl.md Errors and lineage, G26",
+        "docs/auto-run/experiments/bus-api-v2/output-g9.txt T3, T4",
+        "DEC-813"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    }
+  ],
+  "experiments": [
+    {
+      "path": "docs/auto-run/experiments/bus-api-v2/ (run-g9.sh, output-g9.txt)",
+      "question": "Does the new G9 case pass on the v2 stand-in and fail on a stand-in that ends the chain regardless, and does anything else in the bus-api suite or topology-dsl's live suite change?",
+      "finding": "Structure: 42 guarantees, 109 cases, 2 bindings, S17's prototype 9 contracts 0 problems; surface, reject (every code) and behavior libraries clean. v2 runtime: bus-api suite 109/109, topology-dsl@v2 live suite 49/49; the suite before this step 108/108. The new case passes on v1 and on the minimal barrier too, which fail only their earlier 13 and 12 cases. Seeded defect 'regardless' (catchError passes TopicRemoved on): only the new case fails (recovered [1] where [1, -1, 2] was expected). Seeded defect 'lineage' (TopicRemoved carries the read's last lineage): only the new case fails (causation ['e1', 'e1', 'e5'] where ['e1', null, 'e5'] was expected)."
+    }
+  ],
+  "self_check": [
+    { "gate": "Frontmatter has id, version, status, kind, owner, compatibility, produced_by, consumers; external_consumers when any exist.", "status": "pass", "note": "Frontmatter untouched." },
+    { "gate": "`consumers` lists phase ids that actually consume this contract.", "status": "n/a", "note": "Not changed by this touch; phase ids are hsdd-reconcile's (H12, H16, H23)." },
+    { "gate": "The Interface section is concrete enough to mock against.", "status": "pass", "note": "Interface unchanged but for version numbers in two doc comments." },
+    { "gate": "At least one guarantee/invariant is stated.", "status": "pass", "note": "42 guarantees; G9 restated, the rest unchanged." },
+    { "gate": "A breaking change bumped the version and added a migration note.", "status": "n/a", "note": "No breaking change; the G9 clarification is classified compatible and recorded in a dated 'Touched within v2' entry." },
+    { "gate": "The registry was regenerated.", "status": "pass", "note": "node hsdd/scripts/gen-registry.mjs ran; hsdd/contract/INDEX.md unchanged because no frontmatter changed." },
+    { "gate": "`phase_ids` is present (`provisional` until `hsdd-reconcile` finalizes it).", "status": "pass", "note": "phase_ids: provisional, unchanged." },
+    { "gate": "Every code-level artifact both sides consume (types file, fixtures, shared package) names its canonical path and its owner in the Interface or Validation section: the owning phase for code, `hsdd-contract` for validation artifacts.", "status": "pass", "note": "Unchanged." },
+    { "gate": "A contract or version created by this run has its schema and its kind's fixtures written at the canonical paths.", "status": "n/a", "note": "No contract or version created; the new case is in the existing conformance library." },
+    { "gate": "Open questions are cited by ID only, never defined here (the skill joins these with a dash, rewritten under the run's prose rule); prose justifying behavior as \"pending OQ-x\" is swept when the OQ resolves (hsdd-reconcile).", "status": "pass", "note": "No OQ text added." },
+    { "gate": "A `stable` contract names a schema or a fixtures directory at the canonical paths and the artifact exists, or it carries `validation: grandfathered` (never on a contract authored after the upgrade).", "status": "n/a", "note": "Draft; the fixture directory exists." },
+    { "gate": "No version is `retired` while a consumer or an external consumer still names it.", "status": "pass", "note": "No retirement." },
+    { "gate": "A `v0` contract carries `## Observed completeness`, and the block changed in any commit that added fixtures to it.", "status": "n/a", "note": "v2 contract." },
+    { "gate": "Step done-when: no live citation in this file or its fixture comments names a superseded version; G9 states the catchError recovery and the lineage, with a case that passes on the v2 stand-in and fails on a stand-in that ends the chain regardless.", "status": "pass", "note": "grep after the edit: bus-testing@v1, flutter-binding@v1, topology-dsl@v1 and bus-api@v1 remain only on the eight historical lines (migration note, three v1 history bullets, four experiment paragraphs of Validation); no @v1 of a superseded contract in hsdd/contract/fixture/bus-api/. output-g9.txt T3 and T6." },
+    { "gate": "node docs/auto-run/tools/gate.mjs --skill hsdd-contract", "status": "pass", "note": "0 error(s), 0 warning(s)." },
+    { "gate": "Prose rules of the run: no em-dash and no banned phrase.", "status": "pass", "note": "grep over the diff, run-g9.sh and output-g9.txt: 0 of each." }
+  ],
+  "notes_for_orchestrator": [
+    "COUNTS: moved 19 live citations, kept 23 historical. Moved in hsdd/contract/bus-api.md, 15 on 12 lines (line numbers before this step): bus-testing@v1 -> @v2 at the Boundary paragraph (22) and table row (28), Refinement 1 (33, twice), Refinement 4 (36), Delivery (44), the SchedulerProvider doc comment (56), the Bus doc comment (104), the delivery rule on recorders (347), G38 (398, twice), Validation behavior (428) and the bindings' names paragraph (431, twice); flutter-binding@v1 -> @v2 in Not here (38). Moved in fixture header comments, 4: behavior/bus_activation_test.dart lines 6 and 15, behavior/nidana_dart_runtime_test.dart line 5, behavior/bus_api_conformance.dart line 6. Kept: the v1-to-v2 migration note's flutter-binding@v1 Refinement 4 (415); the three v1 history bullets (418 bus-testing@v1 x3, 419 flutter-binding@v1 x1); the Validation paragraphs describing bus-api-fixtures, bus-api-amendment, bus-api-widened, runtime-reconcile-amends and bus-api-v2 (438 to 442: topology-dsl@v1 x4, bus-testing@v1 x8, flutter-binding@v1 x5, bus-api@v1 x1). Unchanged versions (topic-model@v1, topology-ir@v1, navigation-api@v1, nidana-checks@v1) stay. These match S61 (16 lines of bus-testing@v1) and S63 (8 flutter-binding@v1).",
+    "MEANING CHECK: no moved citation changed meaning, so no sentence was restated besides G9. The migration note's 'flutter-binding@v1 Refinement 4' (S63's flag) is kept as history; flutter-binding@v2 Refinement 4 now states the same named-transformer condition, so the note is not false under v2.",
+    "G9 CLARIFIED (DEC-813): G9 now says the TopicRemoved a forced removal gives a topology read, connected or connected later by start(), is a pipeline error at the read stage that carries no lineage, because no publish caused the removal; a catchError on its path recovers it with Lineage.root(), so the recovered value's publish starts a new flow; otherwise it ends every write chain it reaches (G26), as topology-dsl@v2's Errors and lineage rules state. Classified compatible against v2's own Breaking list; recorded in a dated 'Touched within v2, 2026-10-21' entry in ## Versioning and a Validation paragraph. One new case after the existing G9 reads case: 'G9 the TopicRemoved a forced removal raises at a topology read carries no lineage: ...'. Version, status, phase_ids and INDEX.md unchanged.",
+    "REPLAY (docs/auto-run/experiments/bus-api-v2/run-g9.sh, output-g9.txt): on the v2 runtime the bus-api suite passes 109/109 (108/108 before the step) and topology-dsl@v2's live suite 49/49; the new case also passes on the v1 runtime and the minimal barrier, which fail only the 13 and 12 cases they failed at S60. The new case fails, alone, on a v2 runtime whose catchError passes TopicRemoved on (chain ended regardless) and on one whose TopicRemoved carries the read's last lineage.",
+    "TOPOLOGY-DSL NEEDS A MATCHING TOUCH (recommended, compatible wording, no case change): its Errors and lineage paragraph names the errors that carry none (a timeout error, an error a raw operator emits or that passed through one) and says a catchError recovers them with Lineage.root(); TopicRemoved is not on that list, while the sentence naming the two read-stage errors states the TypeError's lineage but not TopicRemoved's. Its first sentence (an error carries the lineage the raising stage would have given its output) can be read to give a read-stage TopicRemoved the lineage of the read's last delivery, which is the seeded 'lineage' defect bus-api@v2 G9 now excludes. Suggested: add TopicRemoved to the carry-none sentence, or append 'carrying none (its G9)' after TopicRemoved in the read-stage sentence. It restates bus-api@v2 G9, so the S64 touch rule covers it; whether it counts against topology-dsl's Breaking item 'the Errors and lineage rules' is the orchestrator's call; I read it as compatible because that paragraph already defers the read-stage errors' content to bus-api@v2.",
+    "PHASES WHOSE REPLAY CHANGES: nidana.runtime.12 (delivers G9 per Delivery; its G9 selection gains one case, which also needs merge and catchError in the live interpretation and an observer, all landed by .12 or earlier: G29 at .8, topology-dsl G18 to G29 at .12); nidana.runtime.14 (unrestricted, 109 cases); nidana.integration.6 to .8 (--all). No consumer contract's fixtures cite bus-api G9 apart from topology-dsl's Errors and lineage. For H11: check that .12's gate selection includes the new case and that its scope sentence 'A forced removeTopic delivers TopicRemoved to every topology read of the topic (G9)' (nidana.runtime.md line 423) gains the recovery rule if the scope restates G9.",
+    "FINDING, no step needed in this intake: G9 does not say whether a topology read whose topic was force-removed, and whose TopicRemoved a catchError recovered, receives deliveries of the fresh subject the next access creates. The v2 stand-in's read stays on the removed subject and receives nothing more, which matches Spec §3.2's reason for rejecting auto-GC (subscribers holding the dead subject's stream break); the new case does not pin it. A candidate clarification for a later content step.",
+    "FINDING, not changed: the existing case 'G9 a forced removal delivers TopicRemoved to the reads of active topologies, which ends their sinks' keeps v1's 'sinks' wording; it is true of that case (one chain, no catchError). Renaming it to 'write chains' is cosmetic and was left alone under the rule to change no case."
+  ]
+}
