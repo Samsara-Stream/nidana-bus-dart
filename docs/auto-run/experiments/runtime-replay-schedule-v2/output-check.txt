@@ -1,0 +1,27 @@
+.1: node default (its replay line is this phase's contract repla... (no replay command; node default)
+.2: node default (no replay command; node default)
+.3: node default (no replay command; node default)
+.4: node default (no replay command; node default)
+.5: bus-api replay, bus-api ids 1, 2 cases selected; equals the schedule
+.5: bus-testing replay, bus-testing ids 6, 14 cases selected; equals the schedule
+.6: bus-api replay, bus-api ids 1, 2 cases selected; equals the schedule
+.6: bus-testing replay, bus-testing ids 6, 14 cases selected; equals the schedule
+.7: bus-api replay, bus-api ids 3, 6 cases selected; equals the schedule
+.7: bus-testing replay, bus-testing ids 6, 14 cases selected; equals the schedule
+.8: bus-api replay, bus-api ids 14, 29 cases selected; equals the schedule
+.8: bus-testing replay, bus-testing ids 6, 14 cases selected; equals the schedule
+.9: node default (no replay command; node default)
+.10: node default (no replay command; node default)
+.11: bus-api replay, bus-api ids 21, 45 cases selected; equals the schedule
+.11: bus-testing replay, bus-testing ids 6, 14 cases selected; equals the schedule
+.12: bus-api replay, bus-api ids 31, 89 cases selected; equals the schedule
+.12: bus-api replay, topology-dsl ids 12, 49 cases selected; equals the schedule
+.12: bus-testing replay, bus-testing ids 6, 14 cases selected; equals the schedule
+.13: bus-api replay, bus-api ids 32, 92 cases selected; equals the schedule
+.13: bus-api replay, topology-dsl ids 12, 49 cases selected; equals the schedule
+.13: bus-testing replay, bus-testing ids 15, 44 cases selected; equals the schedule
+.14: bus-api bus-testing unrestricted
+.15: bus-api replay, bus-api ids 3, 6 cases selected; equals the schedule
+.15: bus-testing replay, bus-testing ids 6, 14 cases selected; equals the schedule
+.16: node default (no replay command; node default)
+check: 0 failure(s)
