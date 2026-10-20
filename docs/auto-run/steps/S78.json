@@ -1,0 +1,778 @@
+{
+  "step_ref": "S78",
+  "skill": "hsdd-spec",
+  "target": "nidana.runtime (leaf-parent touch for Specification v0.15.1, H10)",
+  "status": "completed",
+  "stop": null,
+  "artifacts": [
+    "hsdd/spec/nidana.runtime.md",
+    "docs/auto-run/experiments/runtime-topic-storage/run.sh",
+    "docs/auto-run/experiments/runtime-topic-storage/output.txt",
+    "docs/auto-run/experiments/runtime-topic-storage/pubspec.yaml",
+    "docs/auto-run/experiments/runtime-topic-storage/analysis_options.yaml",
+    "docs/auto-run/experiments/runtime-topic-storage/runtime/owned/bus.dart",
+    "docs/auto-run/experiments/runtime-topic-storage/runtime/owned/interpreter.dart",
+    "docs/auto-run/experiments/runtime-topic-storage/probe/first_delivery.dart",
+    "docs/auto-run/experiments/runtime-topic-storage/probe/broadcast_reentrant.dart"
+  ],
+  "decisions": [
+    {
+      "at": "2026-10-20T21:07:23Z",
+      "artifact": "hsdd/spec/nidana.runtime.md",
+      "question": "D3 restated (Guide §6.1's choice for a Dart bus that implements the startup barrier): does a topic's cell keep an RxDart subject wrapped by the bus, or is topic storage and fan-out the bus's own, with RxDart kept for operators?",
+      "options": [
+        {
+          "label": "bus-owned topic storage and fan-out",
+          "consequence": "the cell holds the current value or buffer with envelopes and one synchronous broadcast controller; the bus emits every first value, for a subscription made after start() in a provider-zone microtask it queues at listen; RxDart only in the pipeline's time stages; nidana writes G17's first-delivery rule itself (a few lines, pure-band candidate)"
+        },
+        {
+          "label": "wrapped subject (the bus-api-v2 stand-in)",
+          "consequence": "each cell keeps a sync: true RxDart subject for subscriptions made after start() beside a synchronous fan-out for reads and bootstrap subscriptions; keeps the primitives the Spec and Guide tables name; each value stored twice, two fan-outs per topic, G17's timing left to RxDart's replay, about 20 percent more per delivery on the stand-in"
+        },
+        {
+          "label": "subjects as topic storage, everything listening on them",
+          "consequence": "fails the barrier: a topology connected at start() sees the initial value first and the settled one a microtask later (Guide §6.1), and a read on the subject holds back deliveries before its first microtask (bus-api-amendment)"
+        }
+      ],
+      "chosen": "bus-owned topic storage and fan-out",
+      "why": "Both live options pass every suite that imports nidana_dart_runtime on the current fixtures (bus-api@v2 109/109, live 49/49, bus-testing@v2 50/50, navigation-api 42/42 and 52/52, flutter-binding@v2 69/69 and 26/26), so no runtime fact excludes either; the experiment settles that. The bus-owned cell wins on design: one store and one ordered fan-out per topic, G17's microtask a rule of the bus (Spec §2.1 'Replay timing': where a rule depends on when a subscriber gets its first value, the bus controls that delivery), RxDart confined to operators, which Spec §3.3 and Guide §6.1 name as one of the two Dart options, and about 700 to 760 ns against 860 to 880 ns per delivery to three subscriptions and a read. Root D9 left subject construction to this node (OQ-R1), so the choice is node-local; root D9's sentence 'keeps RxDart's first delivery' becomes inaccurate and is reported for H22. Close call: the signal that would have favored the wrapped subject is a bus-api guarantee only an RxDart subject can meet (an observed stream that is a ValueStream), or a reviewer who weighs keeping the Spec table's primitive above one store; none exists today.",
+      "evidence": [
+        "docs/auto-run/experiments/runtime-topic-storage/",
+        "docs/auto-run/experiments/bus-api-v2/",
+        "Spec §2.1",
+        "Spec §3.3",
+        "Guide §6.1",
+        "root D9",
+        "ADR-002 item 3"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T21:10:25Z",
+      "artifact": "hsdd/spec/nidana.runtime.md",
+      "question": "D3: when is a topology activated during bootstrap wired (its stages and sinks subscribed): at activate, with only the connection deferred to start(), or at start() just before its connection?",
+      "options": [
+        {
+          "label": "wire at start(), just before the connection",
+          "consequence": "activate checks, claims, creates cells and keeps the plan; nothing is subscribed until start(); a deactivation before start() has nothing to cancel"
+        },
+        {
+          "label": "wire at activate, connect at start()",
+          "consequence": "stages subscribed before their inputs connect: Stream.timeout and any operator that starts a timer at listen count from the activation, against topology-dsl@v2 G23's silence counted from connection"
+        }
+      ],
+      "chosen": "wire at start(), just before the connection",
+      "why": "Live interpretation item 3 only needs wiring before the connection. Stream.timeout starts its timer at listen (ADR-003 Context, virtual-scheduler Q2), so wiring at activate would start a timeout's silence before the connection. The v2 stand-in wires bootstrap activations only at start() and passes every suite. A first draft also cited the reduceInto seed; on review that reason was dropped, because topology-dsl@v2's Versioning shows the seed is the same either way (nothing reaches the topic during bootstrap). Evidence is a known SDK fact plus the stand-in; no separate experiment.",
+      "evidence": [
+        "ADR-003 Context (virtual-scheduler Q2)",
+        "topology-dsl@v2 G23, G24, Live interpretation item 3",
+        "bus-api@v2 G25, G34",
+        "docs/auto-run/experiments/bus-api-v2/"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T21:10:25Z",
+      "artifact": "hsdd/spec/nidana.runtime.md",
+      "question": "D3: where is bus-api@v2's connection order (writers before readers, ties in activation order) computed: in nidana.runtime as a pure function over the checked definitions, or as a new topology-ir@v1 analysis, which the intake record says that contract's Versioning would take compatibly?",
+      "options": [
+        {
+          "label": "a pure function in nidana.runtime",
+          "consequence": "no contract change; the function joins the pure band (Development flow) and is unit-tested there"
+        },
+        {
+          "label": "a new topology-ir@v1 analysis",
+          "consequence": "a compatible addition but a request through phase planning and a nidana.model phase for an ordering only activation uses and that checks nothing"
+        }
+      ],
+      "chosen": "a pure function in nidana.runtime",
+      "why": "The IR's analyses are the checks activation and CI share (root D4); the connection order is no check and has one user. The intake record leaves it inside nidana.runtime unless the bus-api handoff asked otherwise, and H3 did not. The signal that would change it: a second consumer, such as a CI rendering of bootstrap order.",
+      "evidence": [
+        "bus-api@v2 delivery rule 'The connection order'",
+        "intake record, Routing (connection order bullet)",
+        "root D4"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T21:10:25Z",
+      "artifact": "hsdd/spec/nidana.runtime.md",
+      "question": "D3 and D5, written by the node's decomposition, are contradicted by bus-api@v2 (G22, G34, G17; G18, G41). Restate each under its id or supersede it with a new decision id?",
+      "options": [
+        {
+          "label": "restate in place, first text quoted",
+          "consequence": "ids stay stable for the plan's citations (.6, .12, sizing floor cite D3; .6, .12 cite D5); a dated 'Restated 2026-10-21' paragraph quotes the first text, and D5's 'Corrected 2026-10-18' paragraph stays attached to the text it describes"
+        },
+        {
+          "label": "supersede with D10 and D11",
+          "consequence": "clean history per id, but every plan citation of D3 and D5 would point at a superseded decision until H11 rewrites it, and D10 risks colliding with an id H11 mints"
+        }
+      ],
+      "chosen": "restate in place, first text quoted",
+      "why": "Same question, new answer: the plan's citations of D3 and D5 still mean 'the read paths and their timing' and 'where a conversion error goes'. Quoting the first text keeps the decision history readable, the way this file's 'Corrected' paragraphs already do.",
+      "evidence": [
+        "hsdd-spec Open Questions rule (ids stable)",
+        "DEC-804 (touch rule)"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T21:10:25Z",
+      "artifact": "hsdd/spec/nidana.runtime.md",
+      "question": "D5 restated: how does the bus send a subscriber's errors to the listen zone while its callbacks stay in the provider zone (ADR-003 item 2 as amended)?",
+      "options": [
+        {
+          "label": "a forwarding subscription of the bus's own",
+          "consequence": "every handler, set at listen or later, runs in the provider zone inside a guard that forwards to the listen zone's handler; an unhandled error event forwarded the same way; about 8 ns per delivery per subscriber"
+        },
+        {
+          "label": "a fork of the provider zone per subscription",
+          "consequence": "errors routed by the fork's handleUncaughtError, no wrapper; callbacks run in a zone other than the provider zone, against bus-api@v2 G5's wording, and every listen forks a zone; not measured"
+        },
+        {
+          "label": "bind the callbacks to the listen zone",
+          "consequence": "rejected by ADR-003: timers a callback creates leave virtual time"
+        }
+      ],
+      "chosen": "a forwarding subscription of the bus's own",
+      "why": "ADR-003 (H1) chose forwarding and measured it (subscriber-error-zone C3 to C14, T2); the v2 stand-in builds it and its seeded defects fail the G18 cases. The zone fork is a real alternative not measured; G5's 'callbacks run there' gives the forwarding wrapper a stated reason. The signal that would change it: a measured wrapper cost that matters.",
+      "evidence": [
+        "ADR-003 item 2",
+        "bus-api@v2 G5, G18",
+        "docs/auto-run/experiments/subscriber-error-zone/",
+        "docs/auto-run/experiments/bus-api-v2/ T10"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T21:10:25Z",
+      "artifact": "hsdd/spec/nidana.runtime.md",
+      "question": "D5 restated: where does a topology read convert a value at its type argument, so that a failed conversion is G41's read-stage TypeError with the lineage the value would have had: in the pipeline's read stage, or in activation's port implementation?",
+      "options": [
+        {
+          "label": "in the read stage",
+          "consequence": "the port hands values at Object? with their envelopes; the read stage, which computes each value's lineage already (G25), converts and raises the error into the pipeline"
+        },
+        {
+          "label": "in the port",
+          "consequence": "the port hands typed values or an error and must repeat the read's lineage rule (Tracing.disabled, initial value) to give the error its lineage"
+        }
+      ],
+      "chosen": "in the read stage",
+      "why": "G41 and topology-dsl@v2 Errors and lineage want the error at the read stage with the value's lineage; the read stage is where that lineage exists. The v2 stand-in's interpreter converts there and passes the G41 read case. Consequence: D2's port bullet changes from 'at the read's type argument' to 'at Object? with its envelope'. D5's last bullet records the guard boundary G13 fixes (a delivery guards only observers, subscriber handlers and pipeline stages), which is the contract's, not a choice.",
+      "evidence": [
+        "bus-api@v2 G13, G41",
+        "topology-dsl@v2 Errors and lineage, G25, G26",
+        "docs/auto-run/experiments/bus-api-v2/"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T21:10:25Z",
+      "artifact": "hsdd/spec/nidana.runtime.md",
+      "question": "D2's slice boundaries checked against D3 and D5 as restated: do the slices and seams hold, and which bullets change?",
+      "options": [
+        {
+          "label": "slices hold; restate the port and RxDart bullets in place, with a dated Checked paragraph",
+          "consequence": "the port carries values at Object? with envelopes, the TopicRemoved of a forced removal, the report of an ended write chain; activation chooses when to wire and connect; RxDart imported by the pipeline's time stages only"
+        },
+        {
+          "label": "re-cut the slices (a separate barrier slice)",
+          "consequence": "a new slice and DAG edge for start()'s connection; D8 already moves lifecycle mechanisms into earlier phases, so nothing needs it"
+        },
+        {
+          "label": "leave D2 to H11",
+          "consequence": "D2 is a decomposition decision this skill owns; leaving it would keep a port that contradicts G41's read-stage error"
+        }
+      ],
+      "chosen": "slices hold; restate the port and RxDart bullets in place, with a dated Checked paragraph",
+      "why": "Neither the pipeline nor the delivery slice gains an import of the other; the port's content changes with D5 (conversion in the read stage), bus-api@v2 G9 (removal as a read-stage error), G26 (per write chain) and D3 (activation decides when; no RxDart in cells). S59 flagged 'the report of a terminated sink'. ADR-002 item 3 still holds with the seam narrowed to the pipeline (S75).",
+      "evidence": [
+        "bus-api@v2 G9, G26, G41",
+        "topology-dsl@v2 Live interpretation item 3",
+        "ADR-002 item 3",
+        "S59 and S75 notes"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T21:10:25Z",
+      "artifact": "hsdd/spec/nidana.runtime.md",
+      "question": "D1 (leaf-parent, not decomposed) checked against D3 and D5 as restated and the v2 contracts: does any new seam carry a child node, and how are its v1 numbers and citations handled?",
+      "options": [
+        {
+          "label": "unchanged, with a dated Checked paragraph; live citations moved, history kept",
+          "consequence": "points 1 to 3 and 5 hold under v2; point 4's seam moved twice more (bus-api-v2's read stage and start() wiring, this step's cells); point 4's experiment history and point 5's v1 counts stay as written, the paragraph gives the v2 counts (62 guarantees, 49 live cases)"
+        },
+        {
+          "label": "reopen: a pipeline child now that RxDart sits in the pipeline only",
+          "consequence": "the cycle of point 2 remains (the pipeline's time stages need the virtual scheduler that the producing node lands), and an internal contract still cannot be stable (point 3)"
+        }
+      ],
+      "chosen": "unchanged, with a dated Checked paragraph; live citations moved, history kept",
+      "why": "Moving RxDart out of the cells changes no dependency between slices; the connection order, first-delivery rule and error forwarding are delivery and activation state.",
+      "evidence": [
+        "bus-api@v2 Refinement 1, Validation",
+        "bus-testing@v2 G2, Interface",
+        "docs/auto-run/experiments/bus-api-v2/",
+        "docs/auto-run/experiments/runtime-topic-storage/"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T21:10:25Z",
+      "artifact": "hsdd/spec/nidana.runtime.md",
+      "question": "The Purpose ('turns ... into live RxDart subjects and subscriptions'), the Overview's state list ('subjects') and D4's 'the subject's elements' describe RxDart subjects that D3 now removes. Restate them?",
+      "options": [
+        {
+          "label": "restate to the bus's own topic storage",
+          "consequence": "Purpose: 'the bus's own topic storage and subscriptions and ... live pipelines on RxDart's operators (D3)'; Overview adds the activations and subscriptions that wait for start(); D4 holds 'the current value, the buffer and their envelopes'"
+        },
+        {
+          "label": "leave them",
+          "consequence": "three sentences false under D3"
+        }
+      ],
+      "chosen": "restate to the bus's own topic storage",
+      "why": "Direct consequence of D3. The contract word 'subject' (bus-api@v2 G6, G10) stays where the contracts use it; the Owns registry bullet names a cell as 'the subject of bus-api@v2 G6'.",
+      "evidence": [
+        "D3",
+        "bus-api@v2 G6"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T21:10:25Z",
+      "artifact": "hsdd/spec/nidana.runtime.md",
+      "question": "Owns, registry bullet: 'the runtime name-and-type collision check'. Spec §4.3's runtime row (L5) and bus-api@v2 G7 compare the first use of each declaration over named fields and free the name on removeTopic. Restate?",
+      "options": [
+        {
+          "label": "restate per Spec §4.3 and bus-api@v2 G7",
+          "consequence": "names the compared fields (tracing included, G7's would_upstream point), the first use of each declaration, and the name freed by removeTopic"
+        },
+        {
+          "label": "move citations only",
+          "consequence": "'name-and-type' understates the check"
+        }
+      ],
+      "chosen": "restate per Spec §4.3 and bus-api@v2 G7",
+      "why": "L5; one sentence restating another artifact's guarantee (DEC-804).",
+      "evidence": [
+        "Spec §4.3",
+        "bus-api@v2 G7, G9"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T21:10:25Z",
+      "artifact": "hsdd/spec/nidana.runtime.md",
+      "question": "Owns: the subscriber-error rule (L4) and the barrier's connection at start() (L1) are scope this node owns that the list does not name; the barrier sat inside the publish-path bullet as 'the startup barrier and its dev-mode window'. Add bullets?",
+      "options": [
+        {
+          "label": "add an observed-subscriptions bullet and split the barrier into its own bullet",
+          "consequence": "the Owns list names the provider-zone callbacks, the listen-zone errors, the conversion as an error event, the startup queue and the connection at start(), writers before readers"
+        },
+        {
+          "label": "keep the publish-path bullet as it was",
+          "consequence": "the barrier's connection and the subscriber-error rule stay implicit"
+        }
+      ],
+      "chosen": "add an observed-subscriptions bullet and split the barrier into its own bullet",
+      "why": "The H10 prompt asks for Owns restated for ADR-003, bus-api and bus-testing as settled; both mechanisms are new obligations of bus-api@v2 (G18, G41; G34).",
+      "evidence": [
+        "Spec §10.2 principle 5",
+        "Spec §3.13",
+        "ADR-003 item 2",
+        "bus-api@v2 G18, G34, G41"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T21:10:25Z",
+      "artifact": "hsdd/spec/nidana.runtime.md",
+      "question": "Owns: the live-interpretation bullet (topology-dsl@v1) and 'dev-mode logging of terminated pipelines'. Under topology-dsl@v2 and bus-api@v2 G26 the unit is the write chain. Restate?",
+      "options": [
+        {
+          "label": "restate for write chains",
+          "consequence": "the live interpretation names write chains ended by their first unrecovered error with what feeds no other live chain cancelled; the report concerns ended write chains (G26)"
+        },
+        {
+          "label": "move the version only",
+          "consequence": "'terminated pipelines' and a sink-level end stay, which topology-dsl@v2 G26 replaced"
+        }
+      ],
+      "chosen": "restate for write chains",
+      "why": "L3; S59 flagged the sink wording.",
+      "evidence": [
+        "Spec §10.2",
+        "Spec Appendix A.4",
+        "topology-dsl@v2 G26, Live interpretation item 7",
+        "bus-api@v2 G26"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T21:10:25Z",
+      "artifact": "hsdd/spec/nidana.runtime.md",
+      "question": "Owns: the activation bullet says 'idempotency on topologyId (Spec §3.9)' and 'scope compatibility (Spec §7.2)'. bus-api@v2 G23 compares the plan's functions and seeds (L6) and G42 adds scope timing (L2). Restate?",
+      "options": [
+        {
+          "label": "restate for G23 and scope timing",
+          "consequence": "the bullet names the plan comparison (Guide §6.3) and scope timing"
+        },
+        {
+          "label": "move citations only",
+          "consequence": "the bullet stays silent on the two v2 rules that change who conflicts and when activation is allowed"
+        }
+      ],
+      "chosen": "restate for G23 and scope timing",
+      "why": "L6 and L2.",
+      "evidence": [
+        "Spec §3.9",
+        "Spec §7.2",
+        "Guide §6.3",
+        "bus-api@v2 G23, G42"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T21:10:25Z",
+      "artifact": "hsdd/spec/nidana.runtime.md",
+      "question": "'Inherited from the root', RxDart bullet: 'Observed subscriptions keep RxDart's microtask-delayed first delivery for state and replay topics (bus-api@v1 G17, which decides OQ-R1); topology reads take a synchronous path of their own (D3).' False under bus-api@v2 G17/G34 and D3 as restated. Restate?",
+      "options": [
+        {
+          "label": "restate for G17, G34, G22 and D3",
+          "consequence": "root D9 kept as the engine decision that left subject construction to this node; first delivery stated per bus-api@v2 (after start(), during bootstrap, activation after start()); notes Spec §2.1 and §3.3 now state root D9's replay fact"
+        },
+        {
+          "label": "move the version only",
+          "consequence": "the sentence stays false (RxDart's delivery, one read path)"
+        }
+      ],
+      "chosen": "restate for G17, G34, G22 and D3",
+      "why": "L1 and L8; S60 flagged it. Root D9's own text is H22's.",
+      "evidence": [
+        "root D9",
+        "bus-api@v2 G17, G22, G34",
+        "Spec §2.1",
+        "Spec §3.3"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T21:10:25Z",
+      "artifact": "hsdd/spec/nidana.runtime.md",
+      "question": "'Inherited from the root', provider-zone bullet: says bus.observe subscriptions are in the provider zone, silent on where their errors go. ADR-003 item 2 as amended sends them to the listen zone. Restate?",
+      "options": [
+        {
+          "label": "restate with the listen-zone rule",
+          "consequence": "callbacks in the provider zone, errors and unhandled error events to the zone in which listen was called (ADR-003 item 2, bus-api@v2 G5, G18, D5)"
+        },
+        {
+          "label": "leave it",
+          "consequence": "reads as if errors stay in the provider zone, the v1 rule"
+        }
+      ],
+      "chosen": "restate with the listen-zone rule",
+      "why": "L4; S60 flagged it.",
+      "evidence": [
+        "ADR-003 item 2",
+        "bus-api@v2 G5, G18"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T21:10:25Z",
+      "artifact": "hsdd/spec/nidana.runtime.md",
+      "question": "'Inherited from the root', rxdart-sync-subjects findings bullet: do the root's RxDart findings still constrain this node once D3 drops subjects?",
+      "options": [
+        {
+          "label": "keep and say how D3 accounts for them, with probe P5",
+          "consequence": "the replay microtask is why the bus emits first values; the same-controller StateError holds for D3's own synchronous broadcast controller (P5: 'Cannot fire new event. Controller is already firing an event'), so reentrant publishes stay deferred (G14)"
+        },
+        {
+          "label": "keep unchanged",
+          "consequence": "true but no longer says why the findings matter here"
+        }
+      ],
+      "chosen": "keep and say how D3 accounts for them, with probe P5",
+      "why": "Settled the controller fact by a ten-line SDK probe rather than assuming it carries over from RxDart.",
+      "evidence": [
+        "docs/auto-run/experiments/runtime-topic-storage/ (probe P5)",
+        "docs/auto-run/experiments/rxdart-sync-subjects/",
+        "bus-api@v2 G14"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T21:10:25Z",
+      "artifact": "hsdd/spec/nidana.runtime.md",
+      "question": "Contracts table: versions move to topology-dsl@v2, bus-api@v2, bus-testing@v2. Does any row's description change?",
+      "options": [
+        {
+          "label": "move versions; topology-dsl row names write chains; topology-ir row names the connection order over definitions",
+          "consequence": "the table states what the node now does with each contract"
+        },
+        {
+          "label": "move versions only",
+          "consequence": "the table stays true but omits the new uses"
+        }
+      ],
+      "chosen": "move versions; topology-dsl row names write chains; topology-ir row names the connection order over definitions",
+      "why": "Edge types and counterparts are unchanged (root DAG); the following paragraph's Delivery citations move to v2, whose Delivery paragraphs still name nidana.runtime.1 and .14.",
+      "evidence": [
+        "bus-api@v2 Delivery",
+        "bus-testing@v2 Delivery",
+        "topology-dsl@v2"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T21:10:25Z",
+      "artifact": "hsdd/spec/nidana.runtime.md",
+      "question": "Slices table under v2: where do G42 (scope timing), G41's two halves, G9's read-stage half and start()'s three steps (G34) sit, and does the slice set change?",
+      "options": [
+        {
+          "label": "same ten slices; G42 split between activation (activate) and module scopes (acquire); G41 and G9 read halves in the pipeline; start()'s steps in lifecycle; RxDart seam removed from delivery; a note on the bootstrap cases of bus-testing@v2 G14 and G19",
+          "consequence": "the slice DAG is unchanged; the plan (D8) lands lifecycle parts early as it already does"
+        },
+        {
+          "label": "add a 'barrier' slice between activation and lifecycle",
+          "consequence": "a new slice and DAG edges for a mechanism D8 already moves; no ordering need it serves"
+        }
+      ],
+      "chosen": "same ten slices; G42 split between activation (activate) and module scopes (acquire); G41 and G9 read halves in the pipeline; start()'s steps in lifecycle; RxDart seam removed from delivery; a note on the bootstrap cases of bus-testing@v2 G14 and G19",
+      "why": "S61 flagged the G4, G14, G17 and G3, G19 rows; bus-testing@v2 Delivery says the bootstrap cases need the barrier. The virtual-time row now notes that G11's subscriber sentence needs the delivery slice (a G3 case checks it).",
+      "evidence": [
+        "bus-api@v2 Delivery, G9, G34, G41, G42",
+        "bus-testing@v2 Delivery, G3, G11, G14, G19",
+        "S61 notes"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T21:10:25Z",
+      "artifact": "hsdd/spec/nidana.runtime.md",
+      "question": "OQ-R1's resolution paragraph restates bus-api@v1 G17 ('an observed subscription ... receives its first values in the first provider-zone microtask after listen returns') and 'Topology reads, which bus-api@v1 G22 needs synchronously, take a separate path (D3)'. Under bus-api@v2 both are incomplete or false. Restate?",
+      "options": [
+        {
+          "label": "restate to bus-api@v2 G17 and G34 with a dated note",
+          "consequence": "the resolution states the after-start and bootstrap cases and D3's bus-owned emission; a 'Restated 2026-10-21' sentence records the first wording"
+        },
+        {
+          "label": "move the citation only",
+          "consequence": "the paragraph would restate G17 without its bootstrap case"
+        }
+      ],
+      "chosen": "restate to bus-api@v2 G17 and G34 with a dated note",
+      "why": "DEC-804, one sentence restating another artifact's guarantee. The question text of OQ-R1 (as asked, citing bus-api@v1 as an option) stays as history; the resolution date stays 2026-10-17.",
+      "evidence": [
+        "bus-api@v2 G17, G34",
+        "DEC-804"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T21:10:25Z",
+      "artifact": "hsdd/spec/nidana.runtime.md",
+      "question": "OQ-R2's resolution says 'a test activates the topologies under test' with no time; bus-testing@v2 'How a test uses it' and bus-api@v2 G42 now have APPLICATION topologies activated before start() and MODULE or PAGE ones after it. Restate?",
+      "options": [
+        {
+          "label": "restate with scope timing and a dated note",
+          "consequence": "the isolation answer names when a test activates"
+        },
+        {
+          "label": "move the citation only",
+          "consequence": "true but omits the rule that now makes the v1 usage throw"
+        }
+      ],
+      "chosen": "restate with scope timing and a dated note",
+      "why": "L2; S61 flagged it.",
+      "evidence": [
+        "bus-testing@v2 'How a test uses it', G18",
+        "bus-api@v2 G42"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T21:10:25Z",
+      "artifact": "hsdd/spec/nidana.runtime.md",
+      "question": "Which v1 citations in the non-plan text are live and move to v2, and which are historical?",
+      "options": [
+        {
+          "label": "move live ones; keep history",
+          "consequence": "moved: header, Isolation strategy, Contracts, Slices, Development flow, D1 points 1 and 2 and its Alternatives and Consequences, D2, D4, D6's and D7's present-tense citations, OQ rows and OQ-R3's resolution; kept: the Overview's 'run once bus-api@v1 and bus-testing@v1 were written', D1 point 4 and its Corrected paragraph, D6's and D7's 'as first written' and 'emitted it as amend' sentences, the quoted first texts of D3 and D5, the OQ-R1 question text"
+        },
+        {
+          "label": "move every citation",
+          "consequence": "rewrites history: the amends were made against v1"
+        }
+      ],
+      "chosen": "move live ones; keep history",
+      "why": "The intake's 'Citations of a superseded version' rule. Expect gate --final stale-version warnings on the kept historical lines.",
+      "evidence": [
+        "intake record, 'Citations of a superseded version'",
+        "DEC-804"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T21:10:25Z",
+      "artifact": "hsdd/spec/nidana.runtime.md",
+      "question": "Development flow: 'start() lands earlier, with the publish path at nidana.runtime.7' describes a start() that only delivers the queue. Under bus-api@v2 G34 start() also connects bootstrap activations (needs activation wiring) and bootstrap subscriptions. Restate this non-plan constraint, and does the pure band gain the connection order?",
+      "options": [
+        {
+          "label": "restate: start() lands step by step with the slices its steps reach; add the connection order to the pure band",
+          "consequence": "the constraint follows from G34 and D3; H11 places the steps (D8)"
+        },
+        {
+          "label": "leave it to H11",
+          "consequence": "the Development flow would state a start() that cannot meet G34 at .7"
+        }
+      ],
+      "chosen": "restate: start() lands step by step with the slices its steps reach; add the connection order to the pure band",
+      "why": "Development flow is non-plan text; it states constraints and leaves the cut to the plan. The wording no longer names .7 for the whole of start().",
+      "evidence": [
+        "bus-api@v2 G34",
+        "D3",
+        "D8 (plan)"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T21:10:25Z",
+      "artifact": "hsdd/spec/nidana.runtime.md",
+      "question": "Sources: how do the six entries sit (record rule), and which v0.15.1 sections join this node's entries?",
+      "options": [
+        {
+          "label": "interleave as nidana.model did; add Spec §2.1 'Replay timing', §4.3 (the runtime check), §7.2 'Scope timing', §10.2 principles 2, 4 and 5, Appendix A.4 'Write chain', Guide §6.1 'Dart: replay is asynchronous' and §6.3 'Name every transformer'",
+          "consequence": "each landing L1 to L6 and L8 that reaches this node is named; §3.3, §3.9, §3.10, §3.13 and §11.2 sit inside the ranges already listed"
+        },
+        {
+          "label": "copy the v0.15.0 sections only",
+          "consequence": "the v0.15.1 entry would not point a reader at the sections that changed this node"
+        }
+      ],
+      "chosen": "interleave as nidana.model did; add Spec §2.1 'Replay timing', §4.3 (the runtime check), §7.2 'Scope timing', §10.2 principles 2, 4 and 5, Appendix A.4 'Write chain', Guide §6.1 'Dart: replay is asynchronous' and §6.3 'Name every transformer'",
+      "why": "The record's Sources rule and S77's form. §4.3 was cited in Owns but missing from Sources; L5 makes it govern this node. The Rationale changes companion links only, so its v0.15.1 entry repeats the same sections.",
+      "evidence": [
+        "intake record, Sources rule",
+        "hsdd/spec/nidana.model.md (S77 form)"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    }
+  ],
+  "experiments": [
+    {
+      "path": "docs/auto-run/experiments/runtime-topic-storage/",
+      "question": "Guide §6.1: can a Dart bus that implements the startup barrier own its topic storage and fan-out with no RxDart subject, meeting bus-api@v2 G17's first delivery itself, and how does it compare with the wrapped subject of docs/auto-run/experiments/bus-api-v2/?",
+      "finding": "Yes. The v2 stand-in with its cell rebuilt (no subject; current value or buffer with envelopes; one synchronous broadcast controller; the bus queues a provider-zone microtask at listen for a later subscription's first values) passes every suite exactly as the wrapped-subject runtime does on the current fixtures: bus-api@v2 109/109, topology-dsl@v2 live 49/49, bus-testing@v2 50/50, navigation-api@v1 42/42 and 52/52, flutter-binding@v2 69/69 and 26/26 (stand-ins of flutter-binding-v0151). Same first values on both (P1 to P3). Cost per delivery to three subscriptions and a read: about 700 to 760 ns against 860 to 880 ns (P4). Seeded defects in the bus's own first delivery fail G17, G34 and bus-testing G19 cases; first values added during listen still arrive after listen returns (T7 check). P5: a synchronous broadcast controller throws StateError 'Cannot fire new event. Controller is already firing an event' on an add made while it delivers, as a sync RxDart subject does."
+    }
+  ],
+  "self_check": [
+    {
+      "gate": "The spec stays high-level; it is not an implementation plan.",
+      "status": "pass",
+      "note": "Only header, Overview, Inherited, Contracts, Slices, Development flow, D1 to D7 and the OQ section changed; D3 and D5 state rules and their evidence, no tasks. Phase Plan, D8, D9 and the pending section are byte-identical (checked by the splice)."
+    },
+    {
+      "gate": "Every node has explicit consumed/produced contract ids.",
+      "status": "pass",
+      "note": "Consumes [topic-model@v1, topology-dsl@v2, topology-ir@v1]; Produces [bus-api@v2, bus-testing@v2], the versions in hsdd/contract/INDEX.md."
+    },
+    {
+      "gate": "Every node is testable in isolation (fixtures, mocks, schemas).",
+      "status": "pass",
+      "note": "Isolation strategy unchanged but for versions; the pipeline is still tested against a port of its own (D2)."
+    },
+    {
+      "gate": "Every dependency edge is typed; parallel lanes are called out.",
+      "status": "n/a",
+      "note": "Leaf-parent touch; the Contracts table's edge types are unchanged from the root DAG."
+    },
+    {
+      "gate": "Each child is marked internal or leaf-parent.",
+      "status": "n/a",
+      "note": "No children; D1 checked and unchanged."
+    },
+    {
+      "gate": "Mermaid DAG matches the dependency table.",
+      "status": "pass",
+      "note": "The Slices DAG is unchanged and still matches the Needs column (no slice gained or lost an edge)."
+    },
+    {
+      "gate": "`conventions.md` exists/updated at the root.",
+      "status": "pass",
+      "note": "Exists; no new convention."
+    },
+    {
+      "gate": "The decomposition axis at each level matches ownership stated by the human, not assumed, and no node is owned by two teams.",
+      "status": "n/a",
+      "note": "No decomposition; single-team."
+    },
+    {
+      "gate": "Every child node has its own `hsdd/spec/{child-id}.md` file.",
+      "status": "n/a",
+      "note": "No children."
+    },
+    {
+      "gate": "Every input source appears in the Sources of at least one node, or is marked in the root `## Sources` as \"informative only, not decomposed\", with a reason.",
+      "status": "pass",
+      "note": "The three v0.15.1 files are in this node's Sources; the root inventory is H22's."
+    },
+    {
+      "gate": "No node's Sources lists a document that does not govern it.",
+      "status": "pass",
+      "note": "Each v0.15.1 entry names the governing sections."
+    },
+    {
+      "gate": "Field blocks are bullet lists and empty lists say \"none\".",
+      "status": "pass",
+      "note": "Unchanged form."
+    },
+    {
+      "gate": "Every open question is defined once, in its owning spec, with a table row and a `### {ID}` detail subsection; child views carry `[inherits …]`; no cited ID lacks a definition.",
+      "status": "pass",
+      "note": "OQ-R1 to OQ-R3 keep ids, rows and headings; no OQ minted."
+    },
+    {
+      "gate": "OQ prefixes used by node specs are declared in `conventions.md`.",
+      "status": "pass",
+      "note": "R = nidana.runtime."
+    },
+    {
+      "gate": "Under `multi-team`, every node whose team differs from its parent's carries `- **Team:**`; no node is owned by two teams.",
+      "status": "n/a",
+      "note": "single-team."
+    },
+    {
+      "gate": "Where children exchange contracts, an integration node exists or the decision not to add one is stated in the parent (one line).",
+      "status": "n/a",
+      "note": "No children (D1 Consequences)."
+    },
+    {
+      "gate": "A graft kept every existing child id and touched only the new child's file, the parent's summaries and the parent's DAG.",
+      "status": "n/a",
+      "note": "No graft."
+    },
+    {
+      "gate": "A retired node's file is kept; its contracts' retirement went through `hsdd-reconcile`.",
+      "status": "n/a",
+      "note": "No retirement."
+    },
+    {
+      "gate": "Promotion: the human confirmed before `- **Adopted:** promoted` was written; `## Observed surface` kept; `v0` contracts unchanged unless redesigned.",
+      "status": "n/a",
+      "note": "Not adopted."
+    },
+    {
+      "gate": "node docs/auto-run/tools/gate.mjs --skill hsdd-spec",
+      "status": "pass",
+      "note": "0 errors, 0 warnings; under hsdd/ only hsdd/spec/nidana.runtime.md changed. No em-dash and no banned phrase in the spec or the experiment."
+    }
+  ],
+  "notes_for_orchestrator": [
+    "CHANGED, non-plan text of hsdd/spec/nidana.runtime.md only (lines before '### D8' and the '## Open questions' section). Header Consumes [topic-model@v1, topology-dsl@v2, topology-ir@v1], Produces [bus-api@v2, bus-testing@v2]; Sources per the record's rule in S77's form. D3 restated as 'Topic storage and fan-out owned by the bus' and D5 as 'Where a subscriber's error and a failed conversion go', each with a dated 'Restated 2026-10-21' paragraph quoting the first text (D5's 'Corrected 2026-10-18' paragraph kept inside the quote). D1 and D2 carry dated 'Checked 2026-10-21' paragraphs; D2's port and RxDart bullets restated. Phase Plan, D8, D9 and the pending section are byte-identical to HEAD.",
+    "ORCHESTRATOR MAP CORRECTION: the step prompt describes docs/auto-run/experiments/bus-api-v2/'s v2 runtime as 'topic storage and fan-out owned by the bus'. It is the wrapped subject: each cell keeps a sync: true RxDart BehaviorSubject/ReplaySubject (subscriptions made after start() listen on it) beside a synchronous broadcast controller for reads and bootstrap subscriptions, and the bus reads first values from subject.value/values. This step built the bus-owned variant (docs/auto-run/experiments/runtime-topic-storage/) and chose it (D3); both pass every suite.",
+    "FOR H11 (plan text, not edited). Citations of superseded versions to move, by line as the file now stands: D8 lines 261 (\"66 of bus-api@v1's 95 cases and 23 of bus-testing@v1's 45\": recount for v2, 109 and 50 cases), 262 (bus-api@v1 G8, G18; bus-testing@v1 G5, G9, G14, G17, G18), 263 (bus-api@v1 G35); D9 lines 269 (bus-testing@v1 G12), 271 (bus-api@v1 G38, G39, bus-testing@v1 G20); Ordering policy 328; Textual contention 332 (bus-api@v1 Refinement 1); phase .1 lines 338, 339, 341, 347; .2 line 353; .3 line 365; .4 line 376; .5 lines 386, 388; .6 lines 399, 401; .7 lines 412, 414; .8 line 425; .9 lines 436, 439, 445; .10 lines 449, 452; .11 lines 462, 463, 464; .12 lines 474, 475, 477; .13 lines 488, 490; .14 lines 500, 501, 503; phase graph labels 564, 571, 572 (topology-dsl@v1).",
+    "FOR H11, plan decisions. D8 contradicted: its first bullet has start() land whole 'with the publish path'; under bus-api@v2 G34 and D3 start() has three steps (bootstrap activations wired and connected in the connection order with each connection settled before the next, then bootstrap subscriptions, then the queue), so step 1 lands with activation wiring and steps 2 and 3 with the publish path and cells (Development flow now says this); its case counts are v1's. D9 holds, with one consequence of D3: the first-value microtask of a subscription made after start() is now nidana's own code, created through D9's provider library (under the old D3 RxDart's subject created it).",
+    "FOR H11, phase by phase (all fourteen checked). Scope or gate must change: .2 (pure band gains the connection order over the bootstrap activations' definitions (D3) and the settle-before-next-connection drain rule of G34 step 1; G7 per v2; topology-dsl@v2 G19); .6 (scope says 'two read paths (D3): observed subscriptions on a sync: true RxDart subject ... RxDart imported by the cells only', a provider-zone handler for off-type values and subscriber errors (old D5), and shutdown 'rather than by closing the subject': all contradicted by D3 and D5 as restated; it must build the bus-owned cell with one fan-out, the bus-queued first-value microtask for subscriptions made after start() through the provider library, pending bootstrap subscriptions, the forwarding subscription (D5), conversion as an error event (G41), and G9's removal of subscriptions connected or not; its Verification line 'a state subscription receives its first value only under triggerActions, while a listener on the topology-read path receives each delivery during it' needs restating for one fan-out); .7 (start() must connect bootstrap subscriptions (step 2) before delivering the queue (step 3); G14 recorder text per bus-testing@v2); .9 (port per D2 as restated: values at Object? with envelopes, read-stage conversion raising G41's TypeError with lineage, TopicRemoved at the read stage with no lineage recovered with Lineage.root() (bus-api@v2 G9), report of an ended write chain; reduceInto seed 'at activation' becomes 'when the activation connects'; write chains end with cancellation of what feeds no other live chain (topology-dsl@v2 G26, item 7); Verification 'a throwing map ends only its own sink and is reported once' needs the chain wording); .10 (a chain's end cancels inner subscriptions, pending retries and timers that feed no other live chain; S59 suggests Verification 'pendingTimerCount is 0 after a chain ends with a debounce pending'); .11 (G23 now compares the plan's functions and seeds: its Verification 'two declarations that differ only in a scan seed activate as one handle' is now false, they throw TopologyConflict; G42's activate check before declare; a bootstrap activation is checked, claimed and creates cells but is not wired (D3); S60 says its G10, G20, G21 and G24 cases changed); .12 (scope contradicted: 'connection values emitted before activate returns ... a topology activated before start() connected when start() delivers the queue (G22, G34)' and 'off-type TypeError reaches the provider zone's handler and only that read skips it (D5)' and 'terminated sink'; must wire and connect bootstrap activations at start() step 1 in the connection order (D3), raise read-stage TypeErrors (D5), report per write chain, and deliver G9's TopicRemoved to unconnected reads at their connection; the gate's list should be re-derived against the v2 fixtures, the live suite now 49 cases); .13 (gate: bus-testing G3, G14 and G19 select rewritten cases that need D5's forwarding and the barrier's steps 1 and 2 (S61): keep them only if those land by .13); .14 (scope gains G42's acquire rejection before start(), which bus-api@v2 Delivery assigns to .14; shutdown must also end subscriptions and activations still waiting for start(); unrestricted replay is now 109 + 49 + 50 cases). Citations only: .1, .3, .4, .5, .8 (but .8's bus-api restriction selects the rewritten G17 and G18 cases, which pass once .6 builds D3 and D5, S60).",
+    "FOR H11, the intake's expected list (.1, .2, .6, .7, .9, .10, .11, .12) misses .14 (G42 acquire) and .13's gate check; .1 needs citations only.",
+    "FOR H22 (root touch): root D9 says an observed subscription 'keeps RxDart's first delivery in the first provider-zone microtask after listen (G17), while topology reads take a synchronous path of their own, so that a connection reaches the reads before activate returns (G22; nidana.runtime D3)'. Under D3 as restated the bus owns topic storage and fan-out and queues the first-value microtask itself; reads and bootstrap subscriptions connect from the bus's storage (at activate after start(), at start() during bootstrap). The root's child table row (hsdd/spec/nidana.md line 56, 'the bus on RxDart: subjects, ...') and the embedded nidana.runtime block's Purpose (line 78, 'live RxDart subjects') should mirror this file's header. RxDart remains the engine for the pipeline's operators, so root D9's engine choice and D3/D4 child set stand.",
+    "ADRs: no change needed. ADR-002 item 3 holds with the RxDart seam narrowed to the pipeline's time stages (S75 note; ADR-002's 2026-10-18 entry naming the delivery and pipeline slices is historical). ADR-003 item 2 (every subscription made in the provider zone, callbacks there, errors to the listen zone) and item 6 (first delivery after start() in a provider-zone microtask; bootstrap within start()) hold under D3 and D5 as restated.",
+    "No skill stop and no run-stop candidate. No ADR proposed, no OQ minted or reopened, no contract id named that did not exist, no would_upstream decision. Insert rule not triggered by this step: no contract changed.",
+    "Experiment hygiene: docs/auto-run/experiments/runtime-topic-storage/ copies ../flutter-binding-v0151/packages/ at setup and removes it at cleanup (packages/, hsdd/ and build/ are absent at rest; .dart_tool/ and pubspec.lock are git-ignored). Its own workspace, never a member of the repository's."
+  ]
+}
