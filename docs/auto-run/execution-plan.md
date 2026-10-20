@@ -264,6 +264,7 @@ orchestrator and recorded with `would_have_asked: true`.
 | S68 | 9 | hsdd-contract | inserted: topology-dsl@v2 TopicRemoved carries no lineage, matching bus-api@v2 G9 | done | 5126926 |
 | S69 | 9 | hsdd-contract | H7e: bus-testing@v2 citation touch (1 moved, 10 historical kept) | done | 48e292b |
 | S70 | 9 | hsdd-contract | H7f: navigation-api@v1 citation touch (8 moved, 29 historical kept) | done | b31627b |
+| S71 | 9 | hsdd-contract | H7g: flutter-binding@v2 citation touch (nothing live to move; empty artifact commit) | done | 5fcb772 |
 
 ## Change log
 

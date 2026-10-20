@@ -1,0 +1,121 @@
+{
+  "step_ref": "S71",
+  "skill": "hsdd-contract",
+  "target": "flutter-binding@v2 (hsdd/contract/flutter-binding.md, hsdd/contract/fixture/flutter-binding/)",
+  "status": "completed",
+  "stop": null,
+  "artifacts": [
+    "hsdd/contract/INDEX.md (regenerated, unchanged)",
+    "docs/auto-run/steps/S71.json"
+  ],
+  "decisions": [
+    {
+      "at": "2026-10-20T20:13:46Z",
+      "artifact": "hsdd/contract/flutter-binding.md",
+      "question": "Which of the 12 remaining occurrences of a superseded version in flutter-binding.md (bus-api@v1 x9, bus-testing@v1 x2, flutter-binding@v1 x1, on lines 426, 428, 429, 434, 451, 452) are live and move to v2, and which are historical and keep v1?",
+      "options": [
+        { "label": "all historical, keep every one", "consequence": "No edit. The --final gate keeps warning on this file (9 bus-api@v1, 2 bus-testing@v1), each warning in a migration note, the v1 history bullet or an experiment's description of what it ran." },
+        { "label": "move the Validation experiment paragraphs (451, 452) too", "consequence": "Clears more --final warnings but makes those paragraphs false: flutter-reconcile-amends ran a runtime meeting bus-api@v1 G41 and bus-testing@v1 G18 as amended, and flutter-binding-v0151 ran a bus-api@v1 runtime and a flutter-binding@v1 adapter beside the v2 ones." }
+      ],
+      "chosen": "all historical, keep every one",
+      "why": "Each occurrence sits in text the H7 rule names historical. 426, 428, 429: the v1-to-v2 migration note (which runtimes the replays used; what bus-api@v1 did for a bootstrap subscription; which runtime fails the new G8 case). 434: the 'v1 history, kept as written' bullet (amendment (a) and (d) cite bus-api@v1 G41 and G20 and bus-testing@v1 G18 as they stood). 451 and 452: Validation paragraphs describing what two experiments ran, a v1 runtime and a v1 adapter among them. Moving any of them would misstate the version the text describes. No live sentence (Boundary rows, Refinements, Terms, Interface comments, Delivery, guarantees, How an app uses it, the Validation bullets on the fixture sets and bindings) names a superseded version: S63 already wrote them at bus-api@v2, bus-testing@v2 and topology-dsl@v2, and every remaining @v1 outside Versioning is navigation-api@v1 or topic-model@v1, both current. Not a close call.",
+      "evidence": [
+        "hsdd/management/2026-10-20-intake-ref-arch-v0-15-1.md, section 'Citations of a superseded version'",
+        "hsdd/contract/flutter-binding.md lines 426 to 434 (## Versioning) and 450 to 452 (## Validation experiment paragraphs)",
+        "docs/auto-run/steps/S63.json notes_for_orchestrator ('Citations. Compatible.' entry)"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T20:13:46Z",
+      "artifact": "hsdd/contract/fixture/flutter-binding/",
+      "question": "Does any comment line under hsdd/contract/fixture/flutter-binding/ cite a superseded version?",
+      "options": [
+        { "label": "none, change no fixture", "consequence": "Fixtures untouched; no replay needed." },
+        { "label": "edit headers", "consequence": "Nothing to edit: would be a no-op or an invented change." }
+      ],
+      "chosen": "none, change no fixture",
+      "why": "Every version cited in the fixture comments is current: flutter-binding@v2 (7), bus-api@v2 (5), navigation-api@v1 (1, the executor binding's header, current since navigation-api kept v1). S63 rewrote the headers at v2. grep for topology-dsl@v1, bus-api@v1, bus-testing@v1 and flutter-binding@v1 under the fixture directory finds nothing.",
+      "evidence": [
+        "hsdd/contract/fixture/flutter-binding/behavior/flutter_navigation_executor_test.dart line 1",
+        "grep -rn -E '(topology-dsl|bus-api|bus-testing|flutter-binding)@v1' hsdd/contract/fixture/flutter-binding/ (no match)"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T20:13:46Z",
+      "artifact": "hsdd/contract/flutter-binding.md",
+      "question": "Does a live sentence restate a guarantee that S67 (bus-api@v2 G9) or S65/S68 (topology-dsl@v2 read-stage errors, Live interpretation item 3) changed after S63 wrote this file, so that it needs restating?",
+      "options": [
+        { "label": "no restatement needed, leave G5 as written", "consequence": "No edit. G5's 'an error on the subscription, such as TopicRemoved (bus-api@v2 G9), is not rethrown and ends the rebuilds' stays." },
+        { "label": "restate G5 to mirror the new G9 wording", "consequence": "Would import topology-read wording (a pipeline error carrying no lineage, recovered by catchError with Lineage.root()) into a guarantee about an observed subscription, which that wording does not govern." }
+      ],
+      "chosen": "no restatement needed, leave G5 as written",
+      "why": "A word diff of every contract this file cites, from S63's commit 311d3e3 to HEAD, shows the only substantive changes were bus-api G9 (what a forced removal gives a topology read), topology-dsl's Errors and lineage and Live interpretation item 3, and topology-ir's scope-compatibility note on Spec §7.2 'Scope timing'; everything else is citation moves and dated Touched entries. flutter-binding restates none of the changed clauses: its only G9 sentence is G5's, about the widget's observed subscription, and G9 still says a forced removal 'ends every observed subscription, connected or not, with a TopicRemoved error and then done before it returns'. It cites topology-dsl only in the Boundary row (Topology, topology(...)), which S68 did not change. The other restated guarantees (bus-api@v2 G8, G14, G17, G18, G19, G20, G23, G25, G27, G28, G34, G36, G41, G42; bus-testing@v2 G14, G18; navigation-api@v1 G18, G19, Refinements 6 and 7) are unchanged since S63.",
+      "evidence": [
+        "git diff --word-diff 311d3e3 HEAD -- hsdd/contract/{bus-api,bus-testing,topology-dsl,navigation-api,topic-model,topology-ir}.md",
+        "hsdd/contract/bus-api.md G9",
+        "docs/auto-run/steps/S67.json, S68.json notes_for_orchestrator"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T20:13:46Z",
+      "artifact": "hsdd/contract/flutter-binding.md",
+      "question": "How does this touch classify against flutter-binding@v2's Versioning, and does it add a dated 'Touched within v2' entry?",
+      "options": [
+        { "label": "no change, stays v2, no entry", "consequence": "The file is byte-identical; version, status draft and phase_ids provisional stay; hsdd/contract/INDEX.md regenerates unchanged." },
+        { "label": "add a Touched within v2 entry recording the check", "consequence": "Records a check that moved nothing, against the step's instruction to change nothing when nothing live needs moving." }
+      ],
+      "chosen": "no change, stays v2, no entry",
+      "why": "Nothing live needed moving (decisions above), and the H7 instruction is 'If nothing live needs moving, change nothing, say so, and record that.' This report and the orchestrator's ledger carry the record. With no edit, nothing is breaking or compatible to classify: the contract stays flutter-binding@v2, draft, provisional, which H16 and H23 may flip.",
+      "evidence": [
+        "Step S71 'How to touch' (orchestrator decision recorded at S64)",
+        "node hsdd/scripts/gen-registry.mjs: contract 9, adr 3, git status shows no change under hsdd/"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    }
+  ],
+  "experiments": [],
+  "self_check": [
+    { "gate": "Frontmatter has id, version, status, kind, owner, compatibility, produced_by, consumers; external_consumers when any exist.", "status": "pass", "note": "Unchanged from S63." },
+    { "gate": "`consumers` lists phase ids that actually consume this contract.", "status": "pass", "note": "Unchanged; phase_ids provisional, H16/H23 confirm." },
+    { "gate": "The Interface section is concrete enough to mock against.", "status": "pass", "note": "Unchanged." },
+    { "gate": "At least one guarantee/invariant is stated.", "status": "pass", "note": "G1 to G20." },
+    { "gate": "A breaking change bumped the version and added a migration note.", "status": "n/a", "note": "No change made." },
+    { "gate": "The registry was regenerated.", "status": "pass", "note": "node hsdd/scripts/gen-registry.mjs; hsdd/contract/INDEX.md and hsdd/adr/INDEX.md unchanged." },
+    { "gate": "`phase_ids` is present (`provisional` until `hsdd-reconcile` finalizes it).", "status": "pass", "note": "provisional." },
+    { "gate": "Every code-level artifact both sides consume (types file, fixtures, shared package) names its canonical path and its owner in the Interface or Validation section: the owning phase for code, `hsdd-contract` for validation artifacts.", "status": "pass", "note": "Interface 'Libraries' paragraph, unchanged." },
+    { "gate": "A contract or version created by this run has its schema and its kind's fixtures written at the canonical paths.", "status": "n/a", "note": "No contract or version created." },
+    { "gate": "Open questions are cited by ID only and never defined here; prose justifying behavior as \"pending OQ-x\" is swept when the OQ resolves (hsdd-reconcile).", "status": "pass", "note": "Only 'decides OQ-F1', unchanged." },
+    { "gate": "A `stable` contract names a schema or a fixtures directory at the canonical paths and the artifact exists, or it carries `validation: grandfathered` (never on a contract authored after the upgrade).", "status": "n/a", "note": "status draft; fixtures directory exists." },
+    { "gate": "No version is `retired` while a consumer or an external consumer still names it.", "status": "pass", "note": "No retired version." },
+    { "gate": "A `v0` contract carries `## Observed completeness`, and the block changed in any commit that added fixtures to it.", "status": "n/a", "note": "v2." },
+    { "gate": "node docs/auto-run/tools/gate.mjs --skill hsdd-contract", "status": "pass", "note": "0 error(s), 0 warning(s); the 5 changed files it counts are the owner's docs/auto-run files." }
+  ],
+  "notes_for_orchestrator": [
+    "NO CHANGE: hsdd/contract/flutter-binding.md and every file under hsdd/contract/fixture/flutter-binding/ are untouched. flutter-binding stays v2, draft, phase_ids provisional; hsdd/contract/INDEX.md and hsdd/adr/INDEX.md regenerated with no diff. S63 already wrote every live citation at bus-api@v2, bus-testing@v2 and topology-dsl@v2.",
+    "COUNTS: moved 0. Kept 12 historical occurrences on 6 lines: migration note 426 (bus-api@v1 x1, the replay runtimes), 428 (bus-api@v1 x2, what v1 did for a bootstrap subscription and which runtime fails), 429 (bus-api@v1 x1); v1 history bullet 434 (bus-api@v1 x3, bus-testing@v1 x1); Validation experiment paragraphs 451 (flutter-reconcile-amends: bus-api@v1 x1, bus-testing@v1 x1) and 452 (flutter-binding-v0151: bus-api@v1 x1, flutter-binding@v1 x1). This matches S63's count (9 bus-api@v1, 2 bus-testing@v1, 1 flutter-binding@v1). Fixture comments: 0 superseded; the one navigation-api@v1 header line is current.",
+    "--final gate preview: this file will warn '9 reference(s) to bus-api@v1' and '2 reference(s) to bus-testing@v1', all historical as above; it errors on status draft and phase_ids provisional until H16/H23 flip them.",
+    "MEANING CHECK: no citation's meaning changed. G5's 'TopicRemoved (bus-api@v2 G9)' concerns the widget's observed subscription, which G9 still ends with a TopicRemoved error then done; S67's change to G9 governs topology reads only. topology-dsl is cited only in the Boundary row. A word diff of all six cited contracts since S63's commit 311d3e3 shows no other substantive change to a clause this file restates.",
+    "OBSERVATION (no step required): G17's 'records every delivery of the bus, start()'s connections and queue included (bus-testing@v2 G14)' reads true as 'the deliveries that start()'s connections cause', which is what bus-testing@v2 G14 states (it records no connection's first values). A later content touch could say 'the publishes start()'s connections cause' for precision; not made false by any version change.",
+    "Decision timestamps: the four decisions were taken during the analysis that preceded the registry run and were stamped together at that run (2026-10-20T20:13:46Z, date -u).",
+    "No skill stop, no run-stop candidate, no ADR proposed, no OQ minted, no experiment needed. Remaining H7 members: topic-codegen (H7h) and nidana-checks (H7i; S63 counted 4 live flutter-binding@v1 there: Boundary row, G7, G14, G17)."
+  ]
+}
