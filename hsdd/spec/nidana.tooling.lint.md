@@ -9,12 +9,14 @@
   - the root analysis options' `plugins:` section that enables the plugin (ADR-002 item 7)
   - nidana-checks@v1's plugin host: G1, G2, G4 to G8, and G3 for the plugin (nidana.tooling D2)
 - **Does not own:** every check over more than one library or over the IR, the claim recognizer and the scan (nidana.tooling.codegen); the declarations it recognizes (nidana.model, nidana.runtime); the analysis server's configuration and suppression mechanism, which nidana-checks@v1 G8 relies on
-- **Consumes:** [topic-model@v1, topology-dsl@v1, bus-api@v1, bus-testing@v1]
+- **Consumes:** [topic-model@v1, topology-dsl@v2, bus-api@v2, bus-testing@v2]
 - **Produces:** [nidana-checks@v1]
 - **Governed by:** [ADR-001, ADR-002]
 - **Sources:**
-  - `ref/nidana-docs/arch/nidana-bus-ref-arch-spec-v0_15_0.md` §3.1, §4.2, §4.4, §9.2
-  - `ref/nidana-docs/arch/nidana-bus-ref-arch-guide-v0_15_0.md` §5.1, §5.2, Appendix C.1, C.2, C.5
+  - `ref/nidana-docs/arch/nidana-bus-ref-arch-spec-v0_15_0.md` §3.1, §4.2, §4.4, §9.2 (baseline, superseded by v0.15.1 on 2026-10-20; read only to see what changed)
+  - `ref/nidana-docs/arch/nidana-bus-ref-arch-spec-v0_15_1.md` §3.1, §4.2, §4.4, §9.2
+  - `ref/nidana-docs/arch/nidana-bus-ref-arch-guide-v0_15_0.md` §5.1, §5.2, Appendix C.1, C.2, C.5 (baseline, superseded by v0.15.1 on 2026-10-20; read only to see what changed)
+  - `ref/nidana-docs/arch/nidana-bus-ref-arch-guide-v0_15_1.md` §5.1, §5.2, Appendix C.1, C.2, C.5
 - **Decomposes into:** phases (see hsdd-phase-plan)
 - **Isolation strategy:** each rule is unit-tested with analyzer_testing over in-memory sources whose stand-in libraries carry the package names recognition matches, so the tests need no nidana package; every producing phase replays nidana-checks@v1 restricted by `--guarantee` to the ids delivered so far, which admits no `analyze-*` case before nidana.tooling.lint.4; there all eight recorded invocations run `dart analyze` over package trees that resolve the real `nidana_dart_contracts` and `nidana_dart_runtime` declarations through the workspace (ADR-001 items 7 and 10; nidana.tooling D2; D3); nothing runs a bus
 
@@ -37,10 +39,12 @@ It is a leaf-parent (nidana.tooling D1): four rules in one package, estimated at
 | Contract | Direction | Counterpart | Edge type | What this node does with it |
 |----------|-----------|-------------|-----------|-----------------------------|
 | topic-model@v1 | consumes | nidana.model | contract | `StateTopic`, `EventTopic` and `ReplayTopic` creations, their `name` and `sensitive` arguments and their type arguments, recognized by package and name |
-| topology-dsl@v1 | consumes | nidana.model | contract | `TopologyBuilder.write` and `reduceInto`, for `explicit_topic_type_arguments` |
-| bus-api@v1 | consumes | nidana.runtime | contract | `Bus` and its subclasses for `global_bus_accessor`; `Bus.publish` and `Publisher.publish` for `explicit_topic_type_arguments` (bus-api@v1 For static analysis) |
-| bus-testing@v1 | consumes | nidana.runtime | contract | `TestBus`, a `Bus` subclass the accessor rule reports, which the `analyze-*` cases declare in application and test code (nidana.tooling D3) |
+| topology-dsl@v2 | consumes | nidana.model | contract | `TopologyBuilder.write` and `reduceInto`, for `explicit_topic_type_arguments` |
+| bus-api@v2 | consumes | nidana.runtime | contract | `Bus` and its subclasses for `global_bus_accessor`; `Bus.publish` and `Publisher.publish` for `explicit_topic_type_arguments` (bus-api@v2 For static analysis) |
+| bus-testing@v2 | consumes | nidana.runtime | contract | `TestBus`, a `Bus` subclass the accessor rule reports, which the `analyze-*` cases declare in application and test code (nidana.tooling D3) |
 | nidana-checks@v1 | produces, with nidana.tooling.codegen | nidana.integration (hard) | hard | the plugin host: G1, G2, G4 to G8, G3 for the plugin |
+
+**Checked 2026-10-21** for Specification v0.15.1 (`hsdd/management/2026-10-20-intake-ref-arch-v0-15-1.md`). The header and the table cite topology-dsl@v2, bus-api@v2 and bus-testing@v2, the versions that intake gave those contracts, and each row holds of their current text. The declarations the rules recognize did not change: `TopologyBuilder.write` and `reduceInto`, `Bus.publish` and `Publisher.publish` with their type parameters, and `TestBus` extending `Bus` in `nidana_dart_runtime`; bus-api@v2 For static analysis defines a global bus accessor as before (nidana-checks@v1 Versioning, its touch of 2026-10-21). What the new versions change happens at run time: the startup barrier, scope timing, write chains, where a subscriber's error goes, and re-activation. No rule decides any of it, and nothing in this node runs a bus. flutter-binding@v2's new widget `NidanaModule` takes a module id, topologies and a child; it is neither a `Bus` nor a topic class nor a sink, so no rule reports a use of it, and this node does not consume flutter-binding.
 
 ## Slices
 
