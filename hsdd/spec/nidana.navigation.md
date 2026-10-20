@@ -9,24 +9,26 @@
   - `RouteState` and `RouteTransition` (Guide §3.2)
   - `RouteAccessRequirement` and `RouteAccessPolicy`, static or reactive, and the `AccessPrincipal` the guard decides over, projected from the app's auth state (Guide §3.2, §3.4; navigation-api@v1 Refinement 2)
   - `NavigationTopics`: `nav.intent`, `nav.resolved-intent`, `nav.current-route`, `nav.history`, `nav.access-policy` (Guide §3.3)
-  - the nav-resolver topology template at `APPLICATION` scope, with `resolveDeepLinks` and `applyAuthGuard` as pure functions, resolving before guarding; the two-topology split that keeps the read/write graph acyclic (Guide §3.4, Spec §3.8; navigation-api@v1 Refinement 3)
+  - the nav-resolver topology template at `APPLICATION` scope, with `resolveDeepLinks` and `applyAuthGuard` as pure functions, resolving before guarding; the two-topology split that keeps the read/write graph acyclic (Guide §3.4, Spec §3.8; navigation-api@v1 Refinement 3); its stage functions named in the recorded IR and built once per `navResolver` call, so activating the topology one call returns while it is active gives back its handle, and the topology of another call conflicts with it (Spec §3.9; Guide §6.3 "Name every transformer"; navigation-api@v1 G13; bus-api@v2 G23)
   - `NavigationExecutor`, written once for every platform, over the `NavigationRouter` port each platform implements: it observes resolved intents, plans them into router calls with the pure `planNavigation`, `BackTo` synthesis included for routers without a native pop-until (Guide §3.2), claims `nav.current-route` as its shell owner (Spec §3.11), and writes `currentRoute` and `history` together on each confirmed transition with the intent taken from the router's confirmation (Guide §3.4; navigation-api@v1 Refinement 6)
   - `InMemoryRouter`, a `NavigationRouter` in the package's `testing.dart`, and the executor's conformance suite, delivered as the `behavior/` fixtures of navigation-api@v1 that every platform router binds (ADR-001)
-  - the deep-link bootstrap order: the resolver is active and the executor constructed before `start()` (Guide §3.5, Spec §3.13)
+  - the deep-link bootstrap order: the resolver activated and the executor constructed before `start()`, which scope timing admits because the resolver is `APPLICATION`-scoped and the executor claims through a publisher; neither is connected before `start()`, which connects the resolver after the topologies that write its inputs, then the executor's subscription, and then delivers the queued deep link, with nothing run between the activation and `start()` (Guide §3.5, Spec §3.13, §7.2 "Scope timing"; bus-api@v2 G34, G42; navigation-api@v1 Refinement 8, G24)
   - result handling through typed result topics, matched on payload, never on envelope metadata (Guide §3.6)
 - **Does not own:** platform router calls and route observation (nidana.flutter); the app's auth state type, roles and route table (app code); bus mechanics (nidana.runtime)
-- **Consumes:** [topic-model@v1, topology-dsl@v1, topology-ir@v1, bus-api@v1, bus-testing@v1]
+- **Consumes:** [topic-model@v1, topology-dsl@v2, topology-ir@v1, bus-api@v2, bus-testing@v2]
 - **Produces:** [navigation-api@v1]
 - **Governed by:** [ADR-001, ADR-002, ADR-003]
 - **Sources:**
-  - `ref/nidana-docs/arch/nidana-bus-ref-arch-spec-v0_15_0.md` §2.4, §3.8, §3.11, §3.13, Appendix A.6
-  - `ref/nidana-docs/arch/nidana-bus-ref-arch-guide-v0_15_0.md` §2, §3.1 to §3.7, Appendix A
+  - `ref/nidana-docs/arch/nidana-bus-ref-arch-spec-v0_15_0.md` §2.4, §3.8, §3.11, §3.13, Appendix A.6 (baseline, superseded by v0.15.1 on 2026-10-20; read only to see what changed)
+  - `ref/nidana-docs/arch/nidana-bus-ref-arch-spec-v0_15_1.md` §2.4, §3.8, §3.9, §3.11, §3.13, §7.2 "Scope timing", §10.2 the third bullet of principle 5 ("Shell subscriber"), Appendix A.6
+  - `ref/nidana-docs/arch/nidana-bus-ref-arch-guide-v0_15_0.md` §2, §3.1 to §3.7, Appendix A (baseline, superseded by v0.15.1 on 2026-10-20; read only to see what changed)
+  - `ref/nidana-docs/arch/nidana-bus-ref-arch-guide-v0_15_1.md` §2, §3.1 to §3.7, §6.3 "Name every transformer", Appendix A
 - **Decomposes into:** phases (see hsdd-phase-plan)
-- **Isolation strategy:** `applyAuthGuard`, `resolveDeepLinks` and `planNavigation` are pure functions tested directly; the resolver topology is tested structurally through its recorded IR (model only) and live on `TestBus`; `NavigationExecutor` and its conformance suite are exercised with `InMemoryRouter`, so no Flutter is needed
+- **Isolation strategy:** `applyAuthGuard`, `resolveDeepLinks` and `planNavigation` are pure functions tested directly; the resolver topology is tested structurally through its recorded IR and its plans (model only) and live on `TestBus`; `NavigationExecutor` and its conformance suite are exercised with `InMemoryRouter`, so no Flutter is needed
 
 ## Overview
 
-Pages publish intents; the resolver topology guards and resolves them; an executor at the shell performs the platform call and reports the confirmed route. This node owns everything in that chain except the platform call. The package is opt-in by use: an app that never activates the resolver or constructs an executor pays nothing at run time, although the Flutter adapter depends on the package (root D7).
+Pages publish intents; the resolver topology resolves them and then guards them; an executor at the shell performs the platform call and reports the confirmed route. This node owns everything in that chain except the platform call. The package is opt-in by use: an app that never activates the resolver or constructs an executor pays nothing at run time, although the Flutter adapter depends on the package (root D7).
 
 Route transition timestamps go through the bus's scheduler provider clock, never `DateTime.now()` (ADR-003).
 
