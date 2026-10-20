@@ -1,4 +1,4 @@
-// Surface fixture for flutter-binding@v1 (ADR-001 item 4): the Flutter router
+// Surface fixture for flutter-binding@v2 (ADR-001 item 4): the Flutter router
 // and executor, the module-scope observer, and the bootstrap of Guide §3.5
 // wired into a WidgetsApp, used with the types the Interface states.
 import 'package:flutter/widgets.dart';

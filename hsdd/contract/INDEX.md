@@ -6,7 +6,7 @@
 |----|---------|------|--------|-------|-----------|
 | `bus-api` | v2 | api | draft | `nidana.runtime` | 20 |
 | `bus-testing` | v2 | api | draft | `nidana.runtime` | 13 |
-| `flutter-binding` | v1 | api | stable | `nidana.flutter` | 7 |
+| `flutter-binding` | v2 | api | draft | `nidana.flutter` | 7 |
 | `navigation-api` | v1 | api | stable | `nidana.navigation` | 16 |
 | `nidana-checks` | v1 | cli | stable | `nidana.tooling` | 4 |
 | `topic-codegen` | v1 | file | stable | `nidana.tooling` | 4 |

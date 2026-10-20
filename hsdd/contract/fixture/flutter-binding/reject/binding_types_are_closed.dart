@@ -24,6 +24,9 @@ abstract final class OwnModuleRoutes implements ModuleRoutes {}
 abstract final class OwnModuleObserver implements ModuleScopeObserver {}
 
 // expect-diagnostic: invalid_use_of_type_outside_library
+abstract final class OwnModule implements NidanaModule {}
+
+// expect-diagnostic: invalid_use_of_type_outside_library
 abstract final class OwnRouter implements FlutterNavigationRouter {}
 
 // expect-diagnostic: invalid_use_of_type_outside_library

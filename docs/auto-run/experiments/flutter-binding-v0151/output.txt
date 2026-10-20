@@ -1,0 +1,314 @@
+
+### setup: the before tree from git HEAD, resolve, versions, the stand-ins' provenance
+95aec63
+pub get exit: 0
+Dart SDK version: 3.13.5 (stable) (Tue Sep 29 01:00:52 2026 -0700) on "macos_arm64"
+Flutter 3.47.7 • channel stable • https://github.com/flutter/flutter.git
+-- stand-in packages against ../navigation-api-v0151/packages, the runtime sources excluded: every difference
+Files packages/nidana_dart_runtime_flutter/lib/nidana_dart_runtime_flutter.dart and packages/nidana_dart_runtime_flutter/lib/nidana_dart_runtime_flutter.dart differ
+Only in packages/nidana_dart_runtime_flutter/lib/src: nidana_module.dart
+Files packages/nidana_dart_runtime_flutter/lib/src/page_scope.dart and packages/nidana_dart_runtime_flutter/lib/src/page_scope.dart differ
+Files packages/nidana_dart_runtime_flutter/lib/src/topic_builders.dart and packages/nidana_dart_runtime_flutter/lib/src/topic_builders.dart differ
+Files packages/nidana_dart_runtime_flutter/lib/src/widget_test_bus.dart and packages/nidana_dart_runtime_flutter/lib/src/widget_test_bus.dart differ
+runtime/v1/bus.dart: same as ../bus-api-v2/runtime/v1/bus.dart
+runtime/v1/interpreter.dart: same as ../bus-api-v2/runtime/v1/interpreter.dart
+runtime/v2/bus.dart: same as ../bus-api-v2/runtime/v2/bus.dart
+runtime/v2/interpreter.dart: same as ../bus-api-v2/runtime/v2/interpreter.dart
+adapter/v1 bus_provider.dart: same as ../navigation-api-v0151/packages/
+adapter/v1 module_scope.dart: same as ../navigation-api-v0151/packages/
+adapter/v1 navigation.dart: same as ../navigation-api-v0151/packages/
+adapter/v1 page_scope.dart: same as ../navigation-api-v0151/patch/page_scope.amended.dart
+adapter/v1 topic_builders.dart: same as ../navigation-api-v0151/patch/topic_builders.amended.dart
+adapter/v1 widget_test_bus.dart: same as ../navigation-api-v0151/patch/widget_test_bus.amended.dart
+-- adapter v2 against adapter v1
+diff -r adapter/v1/lib/nidana_dart_runtime_flutter.dart adapter/v2/lib/nidana_dart_runtime_flutter.dart
+Only in adapter/v2/lib/src: nidana_module.dart
+diff -r adapter/v1/lib/src/topic_builders.dart adapter/v2/lib/src/topic_builders.dart
+topic_builders.dart: changed lines 27
+-- each seeded defect against adapter v2
+first-marks.topic_builders.dart: 2 changed lines in src/topic_builders.dart
+first-skip.topic_builders.dart: 27 changed lines in src/topic_builders.dart
+module-direct.nidana_module.dart: 12 changed lines in src/nidana_module.dart
+module-rebinds.nidana_module.dart: 3 changed lines in src/nidana_module.dart
+module-reports.nidana_module.dart: 6 changed lines in src/nidana_module.dart
+page-skip-held.page_scope.dart: 5 changed lines in src/page_scope.dart
+
+### T1 the fixture change: case names before and after; every scope binding a case mounts and every start()
+cases before: 57
+cases after: 69
+>     name: 'G5 a builder mounted before start() renders, after start(), the value a topology\'s connection settles with no publish after it'
+>     name: 'G6 a builder mounted before start() renders, after start(), the buffer a topology\'s connection fills with no publish after it'
+>     name: 'G8 before start() a PageScope with a topology fails to mount with the StateError of scope timing and activates nothing, while one that only claims mounts'
+>     name: 'G8 one route pushed twice holds one activation of a page topology equal to its next evaluation, and a page topology that passes a closure fails the second mount with TopologyConflict'
+>     name: 'G10 a route pushed before start() holds no reference: the acquire\'s StateError is reported, and only a route pushed after start() acquires'
+>     name: 'G20 a NidanaModule declares its module on the provided bus at mount and holds one reference until it unmounts; the topologies outlive it by the grace period'
+>     name: 'G20 constructing a NidanaModule rejects an empty id, no topologies, a topology that is not MODULE-scoped and a negative grace period, and keeps an unmodifiable copy of its topologies'
+>     name: 'G20 a NidanaModule in each page of the subtree holds the module while any of its pages is mounted: a covered page keeps its reference, a replace mounts the new page before the old unmounts, and a popped page releases when its exit transition ends'
+>     name: 'G20 a NidanaModule around a nested Navigator holds one reference while the routes inside it come and go, whatever their names'
+>     name: 'G20 NidanaModules and a ModuleScopeObserver that declare one module share its scope and add their references, and a NidanaModule that declares it otherwise fails to mount with ArgumentError'
+>     name: 'G20 a NidanaModule mounted before start() fails to mount with the StateError of scope timing, builds no child and holds no reference'
+>     name: 'G20 a NidanaModule binds once, at mount: a rebuild with other arguments, or a change of the provided bus, keeps its reference on the bus it mounted under until it unmounts'
+-- other files of the fixture tree that differ
+Files hsdd-before/hsdd/contract/fixture/flutter-binding/behavior/flutter_navigation_executor_test.dart and hsdd/contract/fixture/flutter-binding/behavior/flutter_navigation_executor_test.dart differ
+Files hsdd-before/hsdd/contract/fixture/flutter-binding/behavior/nidana_dart_runtime_flutter_test.dart and hsdd/contract/fixture/flutter-binding/behavior/nidana_dart_runtime_flutter_test.dart differ
+Files hsdd-before/hsdd/contract/fixture/flutter-binding/reject/binding_types_are_closed.dart and hsdd/contract/fixture/flutter-binding/reject/binding_types_are_closed.dart differ
+Files hsdd-before/hsdd/contract/fixture/flutter-binding/surface/binding.dart and hsdd/contract/fixture/flutter-binding/surface/binding.dart differ
+Files hsdd-before/hsdd/contract/fixture/flutter-binding/surface/navigation.dart and hsdd/contract/fixture/flutter-binding/surface/navigation.dart differ
+Files hsdd-before/hsdd/contract/fixture/flutter-binding/surface/testing.dart and hsdd/contract/fixture/flutter-binding/surface/testing.dart differ
+-- per case: the lines that start a bus, activate, or mount a PageScope with topologies or a NidanaModule (Spec §7.2)
+G5 the first frame renders getCurrentValue, and the subscrip | bus.start();
+G5 each later delivery marks the builder for rebuild, and th | bus.start();
+G5 a builder mounted before start() renders the initial valu | bus.start();
+G5 a builder mounted before start() renders, after start(),  | bus.activate(_derivedTopology());
+G5 a builder mounted before start() renders, after start(),  | bus.start();
+G5 a change of topic resubscribes: the new topic renders, it | bus.start();
+G5 a change of the provided bus resubscribes to the new bus | a.start();
+G5 a change of the provided bus resubscribes to the new bus | b.start();
+G5 unmounting cancels the subscription, and a forced removal | bus.start();
+G5 a value of another type, put in through a widened referen | bus.start();
+G6 the first frame renders getBufferedValues, and the replay | bus.start();
+G6 each later delivery is rendered in the next frame from ge | bus.start();
+G6 a builder mounted before start() renders, after start(),  | bus.activate(_labelTopology());
+G6 a builder mounted before start() renders, after start(),  | bus.start();
+G6 while the buffer holds a value of another type every buil | bus.start();
+G8 mounting activates the page topologies, and unmounting de | bus.start();
+G8 mounting activates the page topologies, and unmounting de | child: PageScope(route: 'fb/page', topologies: <Topology>[_pageTopolog
+G8 a topology two mounted PageScopes name stays active until | bus.start();
+G8 a topology two mounted PageScopes name stays active until | topologies: <Topology>[_pageTopology()],
+G8 a claim rejected at mount releases the topologies the mou | bus.start();
+G8 a claim rejected at mount releases the topologies the mou | topologies: <Topology>[_pageTopology()],
+G8 a PageScope binds once, at mount: a rebuild with other ar | bus.start();
+G8 a PageScope stays bound to the bus it mounted under when  | a.start();
+G8 a PageScope stays bound to the bus it mounted under when  | b.start();
+G8 a PageScope stays bound to the bus it mounted under when  | topologies: <Topology>[_pageTopology()],
+G8 before start() a PageScope with a topology fails to mount | child: PageScope(route: 'fb/page', topologies: <Topology>[_pageTopolog
+G8 before start() a PageScope with a topology fails to mount | bus.start();
+G8 before start() a PageScope with a topology fails to mount | topologies: <Topology>[_pageTopology()],
+G8 one route pushed twice holds one activation of a page top | bus.start();
+G10 constructing the observer declares each module on the bu | ModuleRoutes(moduleId: 'bad', prefix: 'bad', topologies: <Topology>[_p
+G10 each route whose path matches a module holds one referen | bus.start();
+G10 leaving the subtree and returning within the grace perio | bus.start();
+G10 a replace within the subtree acquires the new route befo | bus.start();
+G10 a route matching two modules holds a reference of each,  | bus.start();
+G10 an acquire the bus rejects is reported through FlutterEr | bus.start();
+G10 a route pushed before start() holds no reference: the ac | bus.start();
+G10 dispose releases every reference and is idempotent; afte | bus.start();
+G10 dispose releases every reference and is idempotent; afte | second.start();
+G14 a construction that throws claims nothing and forwards n | bus.start();
+G14 dispose is idempotent, disposes the NavigationExecutor a | bus.start();
+G15 the platform\ | bus.start();
+G15 the platform\ | atRoot.start();
+G15 a route the platform pushes is published as a deep link, | bus.start();
+G15 with forwarding off, the platform\ | bus.start();
+G16 with the resolver active and the executor constructed be | bus.activate(_resolver());
+G16 with the resolver active and the executor constructed be | bus.start();
+G17 a WidgetTestBus runs a production-provider bus built in  | t.bus.start();
+G17 the recorder is attached at construction and records eve | t.bus.start();
+G17 stub keeps one publisher per topic and returns its write | t.bus.start();
+G17 wrap gives an owning provider: unmounting it shuts the b | t.bus.start();
+G20 a NidanaModule declares its module on the provided bus a | bus.start();
+G20 a NidanaModule declares its module on the provided bus a | final NidanaModule wrapper = NidanaModule(
+G20 constructing a NidanaModule rejects an empty id, no topo | NidanaModule(moduleId: id, topologies: topologies, gracePeriod: grace,
+G20 a NidanaModule in each page of the subtree holds the mod | bus.start();
+G20 a NidanaModule in each page of the subtree holds the mod | ? NidanaModule(
+G20 a NidanaModule around a nested Navigator holds one refer | bus.start();
+G20 a NidanaModule around a nested Navigator holds one refer | unawaited(root.currentState!.push(unnamed(NidanaModule(
+G20 NidanaModules and a ModuleScopeObserver that declare one | bus.start();
+G20 NidanaModules and a ModuleScopeObserver that declare one | NidanaModule(
+G20 NidanaModules and a ModuleScopeObserver that declare one | child: NidanaModule(
+G20 a NidanaModule mounted before start() fails to mount wit | child: NidanaModule(
+G20 a NidanaModule binds once, at mount: a rebuild with othe | a.start();
+G20 a NidanaModule binds once, at mount: a rebuild with othe | b.start();
+G20 a NidanaModule binds once, at mount: a rebuild with othe | child: NidanaModule(
+
+### T2 structure (prototype) for flutter-binding, and S17's prototype over the repository's contracts
+guarantees: 20; cases: 69; bindings: 2; fixture files: 13
+exit: 0
+guarantees covered: 20
+bus-api (api): 42 guarantees; covered by reject 10, behavior 38; not executable 2; in part 0; data directories none
+bus-testing (api): 20 guarantees; covered by reject 2, behavior 17; not executable 1; in part 0; data directories none
+flutter-binding (api): 20 guarantees; covered by reject 7, behavior 16; not executable 2; in part 0; data directories none
+navigation-api (api): 27 guarantees; covered by reject 5, behavior 23; not executable 2; in part 0; data directories none
+nidana-checks (cli): 18 guarantees; covered by cli 17; not executable 1; in part 2; data directories none
+topic-codegen (file): 21 guarantees; covered by schema 1, file 12, cli 5; not executable 4; in part 3; data directories rejected
+topic-model (shared-model): 27 guarantees; covered by reject 10, behavior 18; not executable 2; in part 0; data directories none
+topology-dsl (api): 30 guarantees; covered by reject 8, behavior 22; not executable 0; in part 0; data directories none
+topology-ir (api): 23 guarantees; covered by reject 3, behavior 22; not executable 0; in part 0; data directories render
+9 contracts, 0 problem(s)
+
+### T3 surface, reject and behavior libraries analyzed against adapter v2; the adapters, the defects and the probes
+Analyzing surface...
+No issues found!
+surface exit: 0
+PASS adapter_exports_only_its_own.dart [10:undefined_class 13:undefined_class 16:undefined_class 19:undefined_class 22:undefined_class]
+PASS binding_types_are_closed.dart [9:invalid_use_of_type_outside_library 12:invalid_use_of_type_outside_library 15:invalid_use_of_type_outside_library 18:invalid_use_of_type_outside_library 21:invalid_use_of_type_outside_library 24:invalid_use_of_type_outside_library 27:invalid_use_of_type_outside_library 30:invalid_use_of_type_outside_library 33:invalid_use_of_type_outside_library 36:invalid_use_of_type_outside_library]
+PASS no_global_bus_accessor.dart [9:undefined_getter 11:undefined_getter 13:static_access_to_instance_member 15:not_enough_positional_arguments]
+PASS page_writes_are_state_topics.dart [13:set_element_type_not_assignable 15:set_element_type_not_assignable]
+PASS testing_exports_only_its_own.dart [10:undefined_class 13:undefined_class 16:undefined_class]
+PASS topic_builders_are_typed.dart [17:argument_type_not_assignable 19:argument_type_not_assignable 21:argument_type_not_assignable 23:argument_type_not_assignable 25:argument_type_not_assignable 27:argument_type_not_assignable]
+PASS widget_test_bus_has_no_virtual_time.dart [10:undefined_getter 12:undefined_method 14:invalid_assignment]
+reject exit: 0
+Analyzing behavior...
+No issues found!
+behavior exit: 0
+adapter v2 exit: 0
+adapter v1 exit: 0
+-- the after fixtures against adapter v1, which declares no NidanaModule
+   8 error hsdd/contract/fixture/flutter-binding/behavior/flutter_binding_conformance.dart: The function 'NidanaModule' isn't defined.
+   3 error hsdd/contract/fixture/flutter-binding/behavior/flutter_binding_conformance.dart: Undefined class 'NidanaModule'.
+   2 error hsdd/contract/fixture/flutter-binding/surface/binding.dart: The function 'NidanaModule' isn't defined.
+   1 error hsdd/contract/fixture/flutter-binding/surface/binding.dart: Undefined class 'NidanaModule'.
+-- errors there that do not name NidanaModule, outside the reject set (its errors are its expected codes)
+0
+defect first-marks: compiles
+defect first-skip: compiles
+defect module-direct: compiles
+defect module-rebinds: compiles
+defect module-reports: compiles
+defect page-skip-held: compiles
+Analyzing probe...
+No issues found!
+probes exit: 0
+
+### T4 both bindings after, on each runtime, adapter v2
+== runtime v2, adapter v2
+-- hsdd/contract/fixture/flutter-binding/behavior/nidana_dart_runtime_flutter_test.dart (fvm flutter test)
+00:00 +69: All tests passed!
+exit: 0
+-- hsdd/contract/fixture/flutter-binding/behavior/flutter_navigation_executor_test.dart (fvm flutter test)
+00:00 +26: All tests passed!
+exit: 0
+== runtime v1, adapter v2
+-- hsdd/contract/fixture/flutter-binding/behavior/nidana_dart_runtime_flutter_test.dart (fvm flutter test)
+FAILED: G10 a route pushed before start() holds no reference: the acquire's StateError is reported, and only a route pushed after start() acquires
+FAILED: G20 a NidanaModule mounted before start() fails to mount with the StateError of scope timing, builds no child and holds no reference
+FAILED: G5 a builder mounted before start() renders the initial value, then what start() delivers
+FAILED: G5 a builder mounted before start() renders, after start(), the value a topology's connection settles with no publish after it
+FAILED: G8 before start() a PageScope with a topology fails to mount with the StateError of scope timing and activates nothing, while one that only claims mounts
+FAILED: G8 one route pushed twice holds one activation of a page topology equal to its next evaluation, and a page topology that passes a closure fails the second mount with TopologyConflict
+00:00 +63 -6: Some tests failed.
+exit: 1
+-- hsdd/contract/fixture/flutter-binding/behavior/flutter_navigation_executor_test.dart (fvm flutter test)
+00:00 +26: All tests passed!
+exit: 0
+-- why: G5 a builder mounted before start() renders the initial value, then what start() delivers
+Expected: [0]
+  Actual: [0, 0]
+   Which: at location [1] is [0, 0] which longer than expected
+-- why: G8 one route pushed twice holds one activation of a page topology equal to its next evaluation, and a page topology that passes a closure fails the second mount with TopologyConflict
+Expected: <Instance of 'TopologyConflict'>
+  Actual: <null>
+   Which: is not an instance of 'TopologyConflict'
+
+### T5 both bindings before, on each runtime and each adapter
+== runtime v1, adapter v1
+-- hsdd/contract/fixture/flutter-binding/behavior/nidana_dart_runtime_flutter_test.dart (fvm flutter test)
+00:00 +57: All tests passed!
+exit: 0
+-- hsdd/contract/fixture/flutter-binding/behavior/flutter_navigation_executor_test.dart (fvm flutter test)
+00:00 +26: All tests passed!
+exit: 0
+== runtime v1, adapter v2
+-- hsdd/contract/fixture/flutter-binding/behavior/nidana_dart_runtime_flutter_test.dart (fvm flutter test)
+FAILED: G5 a builder mounted before start() renders the initial value, then what start() delivers
+00:00 +56 -1: Some tests failed.
+exit: 1
+-- hsdd/contract/fixture/flutter-binding/behavior/flutter_navigation_executor_test.dart (fvm flutter test)
+00:00 +26: All tests passed!
+exit: 0
+== runtime v2, adapter v1
+-- hsdd/contract/fixture/flutter-binding/behavior/nidana_dart_runtime_flutter_test.dart (fvm flutter test)
+FAILED: G8 a PageScope binds once, at mount: a rebuild with other arguments keeps that binding
+FAILED: G8 a PageScope stays bound to the bus it mounted under when its provider provides another bus, until it unmounts
+00:00 +55 -2: Some tests failed.
+LateInitializationError: Local 'page' has not been initialized.
+LateInitializationError: Local 'page' has not been initialized.
+exit: 1
+-- hsdd/contract/fixture/flutter-binding/behavior/flutter_navigation_executor_test.dart (fvm flutter test)
+00:00 +26: All tests passed!
+exit: 0
+== runtime v2, adapter v2
+-- hsdd/contract/fixture/flutter-binding/behavior/nidana_dart_runtime_flutter_test.dart (fvm flutter test)
+FAILED: G8 a PageScope binds once, at mount: a rebuild with other arguments keeps that binding
+FAILED: G8 a PageScope stays bound to the bus it mounted under when its provider provides another bus, until it unmounts
+00:00 +55 -2: Some tests failed.
+LateInitializationError: Local 'page' has not been initialized.
+LateInitializationError: Local 'page' has not been initialized.
+exit: 1
+-- hsdd/contract/fixture/flutter-binding/behavior/flutter_navigation_executor_test.dart (fvm flutter test)
+00:00 +26: All tests passed!
+exit: 0
+== runtime v1, adapter v1 plus NidanaModule alone (defect/first-skip: adapter v2 with v1's topic widgets)
+-- hsdd/contract/fixture/flutter-binding/behavior/nidana_dart_runtime_flutter_test.dart (fvm flutter test)
+00:00 +57: All tests passed!
+exit: 0
+-- why: G8 a PageScope binds once, at mount: a rebuild with other arguments keeps that binding
+Bad state: topology 'fb-page' has scope page, which activates only after start() (Spec §7.2)
+
+### T6 seeded defects in adapter v2, on the v2 runtime, after
+== defect first-marks
+-- hsdd/contract/fixture/flutter-binding/behavior/nidana_dart_runtime_flutter_test.dart (fvm flutter test)
+FAILED: G5 a change of the provided bus resubscribes to the new bus
+FAILED: G5 a change of topic resubscribes: the new topic renders, its first value causes no rebuild, and the old topic no longer rebuilds
+FAILED: G5 a value of another type, put in through a widened reference, fails the build with TypeError and reaches no zone handler, and the next value of the topic's type renders
+FAILED: G5 each later delivery marks the builder for rebuild, and the next frame renders the current value once
+FAILED: G5 the first frame renders getCurrentValue, and the subscription's first value causes no rebuild
+FAILED: G5 unmounting cancels the subscription, and a forced removal ends rebuilds without an error
+FAILED: G6 each later delivery is rendered in the next frame from getBufferedValues
+FAILED: G6 the first frame renders getBufferedValues, and the replay of the buffer causes no rebuild
+FAILED: G6 while the buffer holds a value of another type every build fails with TypeError and no zone handler is reached, and the delivery that pushes it out renders
+00:00 +60 -9: Some tests failed.
+exit: 1
+== defect first-skip
+-- hsdd/contract/fixture/flutter-binding/behavior/nidana_dart_runtime_flutter_test.dart (fvm flutter test)
+FAILED: G5 a builder mounted before start() renders, after start(), the value a topology's connection settles with no publish after it
+00:00 +68 -1: Some tests failed.
+exit: 1
+== defect module-direct
+-- hsdd/contract/fixture/flutter-binding/behavior/nidana_dart_runtime_flutter_test.dart (fvm flutter test)
+FAILED: G20 a NidanaModule around a nested Navigator holds one reference while the routes inside it come and go, whatever their names
+FAILED: G20 a NidanaModule binds once, at mount: a rebuild with other arguments, or a change of the provided bus, keeps its reference on the bus it mounted under until it unmounts
+FAILED: G20 a NidanaModule declares its module on the provided bus at mount and holds one reference until it unmounts; the topologies outlive it by the grace period
+FAILED: G20 a NidanaModule in each page of the subtree holds the module while any of its pages is mounted: a covered page keeps its reference, a replace mounts the new page before the old unmounts, and a popped page releases when its exit transition ends
+FAILED: G20 NidanaModules and a ModuleScopeObserver that declare one module share its scope and add their references, and a NidanaModule that declares it otherwise fails to mount with ArgumentError
+00:00 +64 -5: Some tests failed.
+exit: 1
+== defect module-rebinds
+-- hsdd/contract/fixture/flutter-binding/behavior/nidana_dart_runtime_flutter_test.dart (fvm flutter test)
+FAILED: G20 a NidanaModule binds once, at mount: a rebuild with other arguments, or a change of the provided bus, keeps its reference on the bus it mounted under until it unmounts
+00:00 +68 -1: Some tests failed.
+exit: 1
+== defect module-reports
+-- hsdd/contract/fixture/flutter-binding/behavior/nidana_dart_runtime_flutter_test.dart (fvm flutter test)
+FAILED: G20 a NidanaModule mounted before start() fails to mount with the StateError of scope timing, builds no child and holds no reference
+00:00 +68 -1: Some tests failed.
+exit: 1
+== defect page-skip-held
+-- hsdd/contract/fixture/flutter-binding/behavior/nidana_dart_runtime_flutter_test.dart (fvm flutter test)
+FAILED: G8 one route pushed twice holds one activation of a page topology equal to its next evaluation, and a page topology that passes a closure fails the second mount with TopologyConflict
+00:00 +68 -1: Some tests failed.
+exit: 1
+
+### T7 the name prefix 'G20 ' selects that guarantee's cases
+00:00 +7: All tests passed!
+
+### T8 probes N1 to N6: a widget in a page or around a nested Navigator, on Flutter's Navigator
+N1 when push returns: []; after one frame: [mount cart]; held with cart and pay covered by /profile: 2; pop of pay: at the pop [], mid-transition [], settled [unmount pay]
+N2 pushReplacement cart -> pay: after one frame [mount pay], mid-transition [mount pay], settled [mount pay, unmount cart]
+N3 popUntil /home over cart and pay: at the call [], after one frame [], settled [unmount cart, unmount pay]
+N4 maintainState false: covered by /profile [unmount cart] (held 0); after /profile pops [unmount cart, mount cart]
+N5 nested routes pushed, replaced and popped, all without names: []; the shell route popped: at the pop [], settled [unmount shell]
+N6 dialog shown and dismissed, /profile pushed and popped over cart: []
+00:00 +6: All tests passed!
+
+### T9 probes R6 to R8: the same under go_router 18.1.0, in its own package
+pub get exit: 0
+- go_router 18.1.0 [collection cupertino_ui flutter flutter_web_plugins logging material_ui meta]
+R6 ShellRoute: entering /checkout/cart [mount shell]; go pay, push cart, pop, go cart []; go /home [unmount shell]; names the root Navigator saw pushed: [/home, null, /checkout/cart, /checkout/pay, /checkout/cart, /checkout/cart, /home]
+R7 no transition: go cart -> pay: after one frame [mount pay], settled [mount pay, unmount cart]
+R7 300 ms fade: go cart -> pay: after one frame [mount pay], settled [mount pay, unmount cart]
+R8 route names pushed for /home, then go /checkout/cart, then push /checkout/item/7: [/home, /checkout, cart, item/:id]
+00:00 +3: All tests passed!
+
+### cleanup: restore the v2 runtime and adapter v2, remove the copied trees and the Flutter build output
+removed

@@ -1,12 +1,14 @@
-// Conformance library for flutter-binding@v1 (Spec §2.4, §2.5, §3.1, §7.1
-// to §7.3, §11.2, Appendix A.8; Guide §3.4, §3.5, §6.4; Rationale §5.1;
-// ADR-003 item 7): the bus provider, the topic widgets, page and module
-// scope binding, the Flutter router and executor, platform routes, the
-// bootstrap, and the widget-test bus. Its cases are values; a binding
-// registers them under testWidgets. It imports neither package:test nor
-// package:flutter_test: the binding supplies the widget tester's operations
-// through FlutterBindingHarness, and the cases observe the tree through
-// their own widgets and NavigatorObservers, never through finders.
+// Conformance library for flutter-binding@v2 (Spec §2.4, §2.5, §3.1, §3.13,
+// §7.1 to §7.3, §11.2, Appendix A.8; Guide §3.4, §3.5, §6.3, §6.4;
+// Rationale §5.1; ADR-003 item 7): the bus provider, the topic widgets, page
+// and module scope binding, the module wrapper widget, the Flutter router and
+// executor, platform routes, the bootstrap, and the widget-test bus. Its
+// cases are values; a binding registers them under testWidgets. It imports
+// neither package:test nor package:flutter_test: the binding supplies the
+// widget tester's operations through FlutterBindingHarness, and the cases
+// observe the tree through their own widgets and NavigatorObservers, never
+// through finders. A case mounts a page or module scope only after start(),
+// as bus-api@v2 G42 requires, except the cases that pin that rejection.
 import 'dart:async';
 
 import 'package:flutter/widgets.dart';
@@ -62,6 +64,8 @@ const StateTopic<int> _pageState = StateTopic<int>(name: 'fb.page-state', initia
 const StateTopic<int> _claimed = StateTopic<int>(name: 'fb.claimed', initial: 0);
 const EventTopic<int> _moduleTaps = EventTopic<int>(name: 'fb.module-taps');
 const StateTopic<bool> _signedIn = StateTopic<bool>(name: 'fb.signed-in', initial: true);
+const StateTopic<int> _derived = StateTopic<int>(name: 'fb.derived', initial: -1);
+const StateTopic<int> _closureState = StateTopic<int>(name: 'fb.closure-state', initial: 0);
 
 const ServiceSource _owner = ServiceSource('fb-owner');
 
@@ -77,6 +81,30 @@ NavigationEntry _entry(NavRoute<Object?> route, [Object? args]) =>
 
 Topology _pageTopology([String id = 'fb-page']) => topology(
     id, Scope.page, (TopologyBuilder b) => b.write(_pageState, b.read(_taps)));
+
+int _double(int v) => v * 2;
+
+/// A PAGE topology whose transformer is a top-level function, so every
+/// evaluation of its declaration is equal (bus-api@v2 G23; Guide §6.3).
+Topology _namedPageTopology() => topology('fb-named-page', Scope.page,
+    (TopologyBuilder b) => b.write(_pageState, b.read(_taps).map(_double)));
+
+/// A PAGE topology whose declaration passes an inline closure, which equals
+/// no other evaluation (bus-api@v2 G23).
+Topology _closurePageTopology() => topology('fb-closure-page', Scope.page,
+    (TopologyBuilder b) => b.write(_closureState, b.read(_taps).map((int v) => v * 2)));
+
+int _plusOne(int v) => v + 1;
+String _label(int v) => 'n$v';
+
+/// An APPLICATION topology that writes [_derived] from [_count], so its
+/// connection at start() sets [_derived] with no publish after it.
+Topology _derivedTopology() => topology('fb-derived', Scope.application,
+    (TopologyBuilder b) => b.write(_derived, b.read(_count).map(_plusOne)));
+
+/// An APPLICATION topology that appends a label of [_count] to [_log].
+Topology _labelTopology() => topology('fb-label', Scope.application,
+    (TopologyBuilder b) => b.write(_log, b.read(_count).map(_label)));
 
 /// A MODULE topology owning a state topic of its own, named after [id].
 Topology _moduleTopology([String id = 'fb-checkout']) => topology(id, Scope.module,
@@ -377,6 +405,31 @@ final List<ConformanceCase<FlutterBindingHarness>> flutterBindingConformance =
     },
   ),
   (
+    name: 'G5 a builder mounted before start() renders, after start(), the value a topology\'s connection settles with no publish after it',
+    body: (FlutterBindingHarness h) async {
+      final Bus bus = h.bus(_quiet);
+      bus.activate(_derivedTopology());
+      final List<int> built = <int>[];
+      await h.pumpWidget(BusProvider.value(
+        bus: bus,
+        child: StateTopicBuilder<int>(
+            topic: _derived,
+            builder: (BuildContext _, int v) {
+              built.add(v);
+              return _text('$v');
+            }),
+      ));
+      await h.pump();
+      expect(built, <int>[-1]);
+      bus.start();
+      expect(bus.getCurrentValue(_derived), 1);
+      await h.pump();
+      expect(built, <int>[-1, 1]);
+      await h.pumpAndSettle();
+      expect(built, <int>[-1, 1]);
+    },
+  ),
+  (
     name: 'G5 a change of topic resubscribes: the new topic renders, its first value causes no rebuild, and the old topic no longer rebuilds',
     body: (FlutterBindingHarness h) async {
       final Bus bus = h.bus(_quiet);
@@ -559,6 +612,31 @@ final List<ConformanceCase<FlutterBindingHarness>> flutterBindingConformance =
         <String>['a'],
         <String>['a', 'b'],
         <String>['b', 'c', 'd'],
+      ]);
+    },
+  ),
+  (
+    name: 'G6 a builder mounted before start() renders, after start(), the buffer a topology\'s connection fills with no publish after it',
+    body: (FlutterBindingHarness h) async {
+      final Bus bus = h.bus(_quiet);
+      bus.activate(_labelTopology());
+      final List<List<String>> built = <List<String>>[];
+      await h.pumpWidget(BusProvider.value(
+        bus: bus,
+        child: ReplayTopicBuilder<String>(
+            topic: _log,
+            builder: (BuildContext _, List<String> v) {
+              built.add(v);
+              return _text(v.join());
+            }),
+      ));
+      await h.pump();
+      bus.start();
+      await h.pump();
+      await h.pumpAndSettle();
+      expect(built, <List<String>>[
+        <String>[],
+        <String>['n0'],
       ]);
     },
   ),
@@ -786,6 +864,7 @@ final List<ConformanceCase<FlutterBindingHarness>> flutterBindingConformance =
     name: 'G8 a PageScope binds once, at mount: a rebuild with other arguments keeps that binding',
     body: (FlutterBindingHarness h) async {
       final Bus bus = h.bus(_quiet);
+      bus.start();
       late BuildContext page;
       Widget scope(String route, List<Topology> topologies) => BusProvider.value(
             bus: bus,
@@ -804,6 +883,8 @@ final List<ConformanceCase<FlutterBindingHarness>> flutterBindingConformance =
     body: (FlutterBindingHarness h) async {
       final Bus a = h.bus(_quiet);
       final Bus b = h.bus(_quiet);
+      a.start();
+      b.start();
       late BuildContext page;
       final Widget scope = PageScope(
           route: 'fb/page',
@@ -822,6 +903,87 @@ final List<ConformanceCase<FlutterBindingHarness>> flutterBindingConformance =
       expect(first.isDisposed, isTrue);
       expect(_active(a), isEmpty);
       expect(a.toGraph().claims, isEmpty);
+    },
+  ),
+  (
+    name: 'G8 before start() a PageScope with a topology fails to mount with the StateError of scope timing and activates nothing, while one that only claims mounts',
+    body: (FlutterBindingHarness h) async {
+      final Bus bus = h.bus(_quiet);
+      final _Activations activations = _Activations();
+      bus.addObserver(activations);
+      await h.pumpWidget(BusProvider.value(
+        bus: bus,
+        child: PageScope(route: 'fb/page', topologies: <Topology>[_pageTopology()], child: const SizedBox()),
+      ));
+      final Object? error = h.takeException();
+      expect(error, isA<StateError>());
+      expect('$error', contains('fb-page'));
+      expect(_active(bus), isEmpty);
+      expect(activations.ids, isEmpty);
+      late BuildContext page;
+      await h.pumpWidget(BusProvider.value(
+        bus: bus,
+        child: PageScope(
+            route: 'fb/form',
+            writes: <StateTopic<Object?>>{_claimed},
+            child: _Context((BuildContext c) => page = c)),
+      ));
+      expect(h.takeException(), isNull);
+      expect(PageScope.publisherOf(page).writes, <StateTopic<Object?>>{_claimed});
+      bus.start();
+      await h.pumpWidget(BusProvider.value(
+        bus: bus,
+        child: PageScope(
+            key: const ValueKey<String>('after start'),
+            route: 'fb/page',
+            topologies: <Topology>[_pageTopology()],
+            child: const SizedBox()),
+      ));
+      expect(h.takeException(), isNull);
+      expect(_active(bus), <String>['fb-page']);
+    },
+  ),
+  (
+    name: 'G8 one route pushed twice holds one activation of a page topology equal to its next evaluation, and a page topology that passes a closure fails the second mount with TopologyConflict',
+    body: (FlutterBindingHarness h) async {
+      final Bus bus = h.bus(_quiet);
+      final _Activations activations = _Activations();
+      bus.addObserver(activations);
+      bus.start();
+      Route<dynamic> pageOf(String name, Topology Function() topologyOf) => PageRouteBuilder<void>(
+            settings: RouteSettings(name: name),
+            pageBuilder: (BuildContext _, Animation<double> _, Animation<double> _) =>
+                PageScope(topologies: <Topology>[topologyOf()], child: _text(name)),
+          );
+      final GlobalKey<NavigatorState> key = GlobalKey<NavigatorState>();
+      await h.pumpWidget(BusProvider.value(bus: bus, child: _namedApp(key, <String>['/home'], <NavigatorObserver>[])));
+      final NavigatorState nav = key.currentState!;
+      for (var i = 0; i < 2; i++) {
+        unawaited(nav.push(pageOf('/fb/named', _namedPageTopology)));
+        await h.pumpAndSettle();
+      }
+      expect(h.takeException(), isNull);
+      expect(_active(bus), <String>['fb-named-page']);
+      expect(activations.ids, <String>['fb-named-page']);
+      nav.pop();
+      await h.pumpAndSettle();
+      expect(_active(bus), <String>['fb-named-page']);
+      nav.pop();
+      await h.pumpAndSettle();
+      expect(_active(bus), isEmpty);
+      unawaited(nav.push(pageOf('/fb/closure', _closurePageTopology)));
+      await h.pumpAndSettle();
+      expect(h.takeException(), isNull);
+      unawaited(nav.push(pageOf('/fb/closure', _closurePageTopology)));
+      await h.pumpAndSettle();
+      expect(h.takeException(), isA<TopologyConflict>());
+      expect(_active(bus), <String>['fb-closure-page']);
+      nav.pop();
+      await h.pumpAndSettle();
+      expect(_active(bus), <String>['fb-closure-page']);
+      nav.pop();
+      await h.pumpAndSettle();
+      expect(_active(bus), isEmpty);
     },
   ),
   // ------------------------------------------------------------ G9
@@ -1015,6 +1177,30 @@ final List<ConformanceCase<FlutterBindingHarness>> flutterBindingConformance =
       await h.pumpAndSettle();
       expect(mirror.paths, <String?>['/home', '/checkout/cart']);
       expect(h.takeException(), isNull);
+    },
+  ),
+  (
+    name: 'G10 a route pushed before start() holds no reference: the acquire\'s StateError is reported, and only a route pushed after start() acquires',
+    body: (FlutterBindingHarness h) async {
+      final Bus bus = h.bus(_quiet);
+      final ModuleScopeObserver o = ModuleScopeObserver(bus, <ModuleRoutes>[
+        ModuleRoutes(moduleId: 'checkout', prefix: 'checkout', topologies: <Topology>[_moduleTopology()]),
+      ]);
+      final GlobalKey<NavigatorState> key = GlobalKey<NavigatorState>();
+      final _Mirror mirror = _Mirror();
+      await h.pumpWidget(_namedApp(key, <String>['/home', '/checkout/cart'], <NavigatorObserver>[mirror, o]));
+      final Object? error = h.takeException();
+      expect(error, isA<StateError>());
+      expect('$error', contains('checkout'));
+      expect(mirror.paths, <String?>['/home', '/checkout/cart']);
+      bus.start();
+      expect(o.scopes.single.references, 0);
+      expect(o.scopes.single.isActive, isFalse);
+      unawaited(key.currentState!.push(_named('/checkout/pay')));
+      await h.pumpAndSettle();
+      expect(h.takeException(), isNull);
+      expect(o.scopes.single.references, 1);
+      expect(o.scopes.single.isActive, isTrue);
     },
   ),
   (
@@ -1475,6 +1661,226 @@ final List<ConformanceCase<FlutterBindingHarness>> flutterBindingConformance =
       await h.pumpWidget(const SizedBox());
       expect(t.bus.lifecycle, BusLifecycle.shutDown);
       expect(o.scopes.single.isActive, isFalse);
+    },
+  ),
+  // ------------------------------------------------------------ G20
+  (
+    name: 'G20 a NidanaModule declares its module on the provided bus at mount and holds one reference until it unmounts; the topologies outlive it by the grace period',
+    body: (FlutterBindingHarness h) async {
+      final Bus bus = h.bus(_quiet);
+      final _Activations activations = _Activations();
+      bus.addObserver(activations);
+      bus.start();
+      final NidanaModule wrapper = NidanaModule(
+          moduleId: 'checkout', topologies: <Topology>[_moduleTopology()], child: _text('checkout'));
+      await h.pumpWidget(BusProvider.value(bus: bus, child: wrapper));
+      final ModuleScope scope = bus.module('checkout', <Topology>[_moduleTopology()]);
+      expect(scope.references, 1);
+      expect(scope.isActive, isTrue);
+      expect(activations.ids, <String>['fb-checkout']);
+      await h.pumpWidget(BusProvider.value(bus: bus, child: const SizedBox()));
+      expect(scope.references, 0);
+      expect(scope.isActive, isTrue);
+      await h.pump(const Duration(milliseconds: 100));
+      expect(scope.isActive, isFalse);
+      expect(wrapper.moduleId, 'checkout');
+      expect(wrapper.gracePeriod, isNull);
+    },
+  ),
+  (
+    name: 'G20 constructing a NidanaModule rejects an empty id, no topologies, a topology that is not MODULE-scoped and a negative grace period, and keeps an unmodifiable copy of its topologies',
+    body: (FlutterBindingHarness h) async {
+      NidanaModule wrapper(String id, List<Topology> topologies, [Duration? grace]) =>
+          NidanaModule(moduleId: id, topologies: topologies, gracePeriod: grace, child: const SizedBox());
+      expect(() => wrapper('', <Topology>[_moduleTopology()]), throwsArgumentError);
+      expect(() => wrapper('m', <Topology>[]), throwsArgumentError);
+      expect(() => wrapper('m', <Topology>[_pageTopology()]), throwsArgumentError);
+      expect(() => wrapper('m', <Topology>[_moduleTopology()], const Duration(milliseconds: -1)),
+          throwsArgumentError);
+      final List<Topology> given = <Topology>[_moduleTopology()];
+      final NidanaModule m = wrapper('m', given, Duration.zero);
+      given.clear();
+      expect(m.topologies, hasLength(1));
+      expect(() => m.topologies.add(_moduleTopology()), throwsUnsupportedError);
+      expect(m.gracePeriod, Duration.zero);
+    },
+  ),
+  (
+    name: 'G20 a NidanaModule in each page of the subtree holds the module while any of its pages is mounted: a covered page keeps its reference, a replace mounts the new page before the old unmounts, and a popped page releases when its exit transition ends',
+    body: (FlutterBindingHarness h) async {
+      final Bus bus = h.bus(_quiet);
+      final _Activations activations = _Activations();
+      bus.addObserver(activations);
+      bus.start();
+      Route<dynamic> page(String name, {bool wrapped = true}) => PageRouteBuilder<void>(
+            settings: RouteSettings(name: name),
+            pageBuilder: (BuildContext _, Animation<double> _, Animation<double> _) => wrapped
+                ? NidanaModule(
+                    moduleId: 'checkout',
+                    topologies: <Topology>[_moduleTopology()],
+                    gracePeriod: Duration.zero,
+                    child: _text(name))
+                : _text(name),
+          );
+      final GlobalKey<NavigatorState> key = GlobalKey<NavigatorState>();
+      await h.pumpWidget(BusProvider.value(bus: bus, child: _namedApp(key, <String>['/home'], <NavigatorObserver>[])));
+      final ModuleScope scope =
+          bus.module('checkout', <Topology>[_moduleTopology()], gracePeriod: Duration.zero);
+      final NavigatorState nav = key.currentState!;
+      unawaited(nav.push(page('/checkout/cart')));
+      expect(scope.references, 0);
+      await h.pump();
+      expect(scope.references, 1);
+      await h.pumpAndSettle();
+      unawaited(nav.push(page('/checkout/pay')));
+      await h.pumpAndSettle();
+      unawaited(nav.push(page('/profile', wrapped: false)));
+      await h.pumpAndSettle();
+      expect(scope.references, 2);
+      nav.pop();
+      await h.pumpAndSettle();
+      unawaited(nav.pushReplacement<void, void>(page('/checkout/review')));
+      await h.pump();
+      expect(scope.references, 3);
+      await h.pumpAndSettle();
+      expect(scope.references, 2);
+      nav.pop();
+      await h.pump(const Duration(milliseconds: 150));
+      expect(scope.references, 2);
+      await h.pumpAndSettle();
+      expect(scope.references, 1);
+      expect(activations.ids, <String>['fb-checkout']);
+      nav.pop();
+      await h.pumpAndSettle();
+      expect(scope.references, 0);
+      expect(scope.isActive, isFalse);
+    },
+  ),
+  (
+    name: 'G20 a NidanaModule around a nested Navigator holds one reference while the routes inside it come and go, whatever their names',
+    body: (FlutterBindingHarness h) async {
+      final Bus bus = h.bus(_quiet);
+      bus.start();
+      Route<dynamic> unnamed(Widget child) => PageRouteBuilder<void>(
+          pageBuilder: (BuildContext _, Animation<double> _, Animation<double> _) => child);
+      final GlobalKey<NavigatorState> root = GlobalKey<NavigatorState>();
+      final GlobalKey<NavigatorState> nested = GlobalKey<NavigatorState>();
+      await h.pumpWidget(BusProvider.value(bus: bus, child: _namedApp(root, <String>['/home'], <NavigatorObserver>[])));
+      unawaited(root.currentState!.push(unnamed(NidanaModule(
+        moduleId: 'checkout',
+        topologies: <Topology>[_moduleTopology()],
+        child: Navigator(
+          key: nested,
+          onGenerateInitialRoutes: (NavigatorState _, String _) => <Route<dynamic>>[unnamed(_text('cart'))],
+          onGenerateRoute: (RouteSettings _) => null,
+        ),
+      ))));
+      await h.pumpAndSettle();
+      final ModuleScope scope = bus.module('checkout', <Topology>[_moduleTopology()]);
+      expect(scope.references, 1);
+      for (final String step in <String>['pay', 'review']) {
+        unawaited(nested.currentState!.push(unnamed(_text(step))));
+        await h.pumpAndSettle();
+      }
+      unawaited(nested.currentState!.pushReplacement<void, void>(unnamed(_text('done'))));
+      await h.pumpAndSettle();
+      nested.currentState!.pop();
+      await h.pumpAndSettle();
+      expect(scope.references, 1);
+      root.currentState!.pop();
+      await h.pumpAndSettle();
+      expect(scope.references, 0);
+    },
+  ),
+  (
+    name: 'G20 NidanaModules and a ModuleScopeObserver that declare one module share its scope and add their references, and a NidanaModule that declares it otherwise fails to mount with ArgumentError',
+    body: (FlutterBindingHarness h) async {
+      final Bus bus = h.bus(_quiet);
+      bus.start();
+      final ModuleScopeObserver o = ModuleScopeObserver(bus, <ModuleRoutes>[
+        ModuleRoutes(moduleId: 'checkout', prefix: 'checkout', topologies: <Topology>[_moduleTopology()]),
+      ]);
+      final Widget twoWrappers = Column(textDirection: TextDirection.ltr, children: <Widget>[
+        for (var i = 0; i < 2; i++)
+          NidanaModule(
+              key: ValueKey<int>(i),
+              moduleId: 'checkout',
+              topologies: <Topology>[_moduleTopology()],
+              child: const SizedBox()),
+      ]);
+      final GlobalKey<NavigatorState> key = GlobalKey<NavigatorState>();
+      await h.pumpWidget(BusProvider.value(
+        bus: bus,
+        child: WidgetsApp(
+          navigatorKey: key,
+          navigatorObservers: <NavigatorObserver>[o],
+          color: const Color(0xFF000000),
+          onGenerateInitialRoutes: (String _) => <Route<dynamic>>[_named('/checkout/cart', twoWrappers)],
+          onGenerateRoute: (RouteSettings _) => null,
+        ),
+      ));
+      expect(h.takeException(), isNull);
+      expect(o.scopes.single.references, 3);
+      o.dispose();
+      expect(o.scopes.single.references, 2);
+      await h.pumpWidget(BusProvider.value(
+        bus: bus,
+        child: NidanaModule(
+            moduleId: 'checkout',
+            topologies: <Topology>[_moduleTopology()],
+            gracePeriod: const Duration(milliseconds: 300),
+            child: const SizedBox()),
+      ));
+      expect(h.takeException(), isA<ArgumentError>());
+      expect(o.scopes.single.references, 0);
+    },
+  ),
+  (
+    name: 'G20 a NidanaModule mounted before start() fails to mount with the StateError of scope timing, builds no child and holds no reference',
+    body: (FlutterBindingHarness h) async {
+      final Bus bus = h.bus(_quiet);
+      var built = false;
+      await h.pumpWidget(BusProvider.value(
+        bus: bus,
+        child: NidanaModule(
+            moduleId: 'checkout',
+            topologies: <Topology>[_moduleTopology()],
+            child: _Context((BuildContext _) => built = true)),
+      ));
+      final Object? error = h.takeException();
+      expect(error, isA<StateError>());
+      expect('$error', contains('checkout'));
+      expect(built, isFalse);
+      final ModuleScope scope = bus.module('checkout', <Topology>[_moduleTopology()]);
+      expect(scope.references, 0);
+      expect(_active(bus), isEmpty);
+      await h.pumpWidget(BusProvider.value(bus: bus, child: const SizedBox()));
+      expect(scope.references, 0);
+    },
+  ),
+  (
+    name: 'G20 a NidanaModule binds once, at mount: a rebuild with other arguments, or a change of the provided bus, keeps its reference on the bus it mounted under until it unmounts',
+    body: (FlutterBindingHarness h) async {
+      final Bus a = h.bus(_quiet);
+      final Bus b = h.bus(_quiet);
+      a.start();
+      b.start();
+      Widget under(Bus bus, String moduleId) => BusProvider.value(
+            bus: bus,
+            child: NidanaModule(
+                moduleId: moduleId, topologies: <Topology>[_moduleTopology()], child: const SizedBox()),
+          );
+      await h.pumpWidget(under(a, 'checkout'));
+      final ModuleScope onA = a.module('checkout', <Topology>[_moduleTopology()]);
+      expect(onA.references, 1);
+      await h.pumpWidget(under(a, 'other'));
+      expect(onA.references, 1);
+      expect(a.module('other', <Topology>[_moduleTopology()]).references, 0);
+      await h.pumpWidget(under(b, 'checkout'));
+      expect(onA.references, 1);
+      expect(b.module('checkout', <Topology>[_moduleTopology()]).references, 0);
+      await h.pumpWidget(BusProvider.value(bus: b, child: const SizedBox()));
+      expect(onA.references, 0);
     },
   ),
 ];

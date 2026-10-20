@@ -1,0 +1,14 @@
+# go_router probe for NidanaModule (Spec §7.3: "works with any router"): a
+# standalone Flutter package with its own resolution, apart from the stand-in
+# workspace, so that go_router's dependencies never enter it.
+name: gorouter_wrapper_probe
+publish_to: none
+environment:
+  sdk: ^3.13.0
+dependencies:
+  flutter:
+    sdk: flutter
+  go_router: 18.1.0
+dev_dependencies:
+  flutter_test:
+    sdk: flutter

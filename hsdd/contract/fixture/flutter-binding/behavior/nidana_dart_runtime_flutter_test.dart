@@ -1,4 +1,4 @@
-// Binding: runs flutter-binding@v1's conformance suite against the producer's
+// Binding: runs flutter-binding@v2's conformance suite against the producer's
 // package:nidana_dart_runtime_flutter, under testWidgets (ADR-001 item 4).
 // Each case builds its buses in the test body on the production provider, so
 // tester.pump drives their clocks and timers (ADR-003 item 7); the binding

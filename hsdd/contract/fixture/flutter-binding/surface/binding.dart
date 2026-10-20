@@ -1,6 +1,7 @@
-// Surface fixture for flutter-binding@v1 (ADR-001 item 4): the bus provider,
-// the topic widgets and the page scope, used with the types the Interface
-// states, in the shape of an app's page.
+// Surface fixture for flutter-binding@v2 (ADR-001 item 4): the bus provider,
+// the topic widgets, the page scope and the module wrapper widget, used with
+// the types the Interface states, in the shape of an app's page and module
+// shell.
 import 'package:flutter/widgets.dart';
 import 'package:nidana_dart_contracts/nidana_dart_contracts.dart';
 import 'package:nidana_dart_runtime/nidana_dart_runtime.dart';
@@ -11,10 +12,35 @@ abstract final class CartTopics {
   static const ReplayTopic<String> recent = ReplayTopic<String>(name: 'cart.recent', bufferSize: 5);
   static const EventTopic<String> added = EventTopic<String>(name: 'cart.added');
   static const StateTopic<String> draft = StateTopic<String>(name: 'cart.draft', initial: '');
+  static const EventTopic<int> steps = EventTopic<int>(name: 'cart.steps');
+  static const StateTopic<int> step = StateTopic<int>(name: 'cart.step', initial: 0);
 }
 
 final Topology cartPage = topology('cart-page', Scope.page,
     (TopologyBuilder b) => b.write(CartTopics.recent, b.read(CartTopics.added)));
+
+final Topology checkoutFlow = topology('checkout-flow', Scope.module,
+    (TopologyBuilder b) => b.write(CartTopics.step, b.read(CartTopics.steps)));
+
+/// A module's shell, as a router's shell route builds it: the wrapper holds
+/// the module while the shell is mounted, whatever router mounted it and
+/// whatever its routes are named (Spec §7.3).
+Widget checkoutShell(Widget nestedNavigator) {
+  final NidanaModule module = NidanaModule(
+    key: const ValueKey<String>('checkout'),
+    moduleId: 'checkout',
+    topologies: <Topology>[checkoutFlow],
+    gracePeriod: const Duration(milliseconds: 300),
+    child: nestedNavigator,
+  );
+  final StatefulWidget widget = module;
+  final String moduleId = module.moduleId;
+  final List<Topology> topologies = module.topologies;
+  final Duration? grace = module.gracePeriod;
+  final Widget child = module.child;
+  print(<Object?>[widget, moduleId, topologies, grace, child]);
+  return NidanaModule(moduleId: 'checkout', topologies: <Topology>[checkoutFlow], child: child);
+}
 
 /// The app root: the owning provider ends the coordination domain with it.
 Widget app(Bus bus, Widget home) {
