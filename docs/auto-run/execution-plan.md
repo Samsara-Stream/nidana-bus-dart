@@ -279,6 +279,7 @@ orchestrator and recorded with `would_have_asked: true`.
 | S83 | 9 | hsdd-phase-plan | inserted: nidana.navigation re-plan (D3 checked, D5 and D6 restated, .3 and .6 rewritten, citations to v2; no phase added) | done | e9d9138 |
 | S84 | 9 | hsdd-reconcile | inserted: nidana.navigation pending section drained (four confirms already matched; no flips) | done | c82e3a3 |
 | S85 | 9 | hsdd-spec | H14: nidana.flutter touch (Sources, header at v2, Purpose and Owns for NidanaModule, Overview for connection at start() and scope timing, OQ-F1 restated; D1 to D11 plan-written) | done | 67809cb |
+| S86 | 9 | hsdd-phase-plan | H15: nidana.flutter re-plan (append mode; .1, .4 to .7 rewritten, .8 Module wrapper appended for NidanaModule; D1 to D11 restated or checked, D12 new) | done | fa48cb5 |
 
 ## Change log
 

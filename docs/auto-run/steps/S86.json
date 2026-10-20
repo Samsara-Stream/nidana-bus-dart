@@ -1,0 +1,220 @@
+{
+  "step_ref": "S86",
+  "skill": "hsdd-phase-plan",
+  "target": "nidana.flutter (append mode, H15 of hsdd/management/2026-10-20-intake-ref-arch-v0-15-1.md)",
+  "status": "completed",
+  "stop": null,
+  "artifacts": [
+    "hsdd/spec/nidana.flutter.md",
+    "docs/auto-run/steps/S86.json"
+  ],
+  "decisions": [
+    {
+      "at": "2026-10-20T22:53:27Z",
+      "artifact": "hsdd/spec/nidana.flutter.md",
+      "question": "Which phase delivers NidanaModule (flutter-binding@v2 G20), which the contract's Delivery paragraph assigns to nidana.flutter.6 provisionally?",
+      "options": [
+        { "label": "append nidana.flutter.8 after .6 and before .7", "consequence": "One more cycle (~170 lines, <=4 tasks) and one new edge, .8 -> .7, because .7 replays unrestricted; every phase stays within one PE; nidana.flutter.7 stays the last producing phase, so no consumer edge moves; the chain after nidana.runtime.14 becomes .4, .6, .8, .7 with .5 beside .6 and .8." },
+        { "label": "G20 in nidana.flutter.6", "consequence": "No new cycle or edge, but .6 grows from ~380 to ~550 lines and about nine tasks: two review sittings in one." },
+        { "label": "G20 in nidana.flutter.5", "consequence": "Same mount-binding shape as PageScope, but one G20 case constructs a ModuleScopeObserver, so .5's gate fails until .6 merges: .5 would have to wait on .6, losing the .5/.6 parallel lane, at ~540 lines." },
+        { "label": "G20 in nidana.flutter.7", "consequence": "No new cycle or edge, but ~490 lines of full-review in the composition phase, an effect-band widget reviewed together with the executor." },
+        { "label": "both module bindings in .6, widget-test bus moved to .7", "consequence": "No new cycle, but .6 ~450 and .7 ~420 lines, both above the guideline, and G17's delivery moves as well." }
+      ],
+      "chosen": "append nidana.flutter.8 after .6 and before .7",
+      "why": "Fixture fact: the G20 case 'NidanaModules and a ModuleScopeObserver that declare one module share its scope' constructs ModuleScopeObserver and ModuleRoutes, so G20 replays only within .6's closure; that rules out .5 without a new .6 -> .5 edge. Size: the stand-in wrapper is 69 lines by wc -l (about 170 with doc comments and own tests); added to .6 or .7 it breaks the PE guideline that every other phase meets. Appending keeps every phase within one PE and keeps .7 the last producing phase, which consumers' hard edges name. Close call against folding into .7: the signal that would change my mind is review sittings on .5 and .6 showing a ~490-line full-review phase fits one sitting, which would save a cycle.",
+      "evidence": [
+        "hsdd/contract/fixture/flutter-binding/behavior/flutter_binding_conformance.dart (G20 cases, lines 1668 to 1880)",
+        "docs/auto-run/experiments/flutter-binding-v0151/adapter/v2/lib/src/nidana_module.dart (69 lines)",
+        "hsdd/contract/flutter-binding.md Delivery",
+        ".agents/skills/hsdd-phase-plan/SKILL.md (Sizing, sizing floor, Append Mode)",
+        "hsdd/management/2026-10-20-intake-ref-arch-v0-15-1.md H15"
+      ],
+      "blast_radius": "contract",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T22:53:32Z",
+      "artifact": "hsdd/spec/nidana.flutter.md",
+      "question": "Which review tier does nidana.flutter.8 (the module wrapper) take?",
+      "options": [
+        { "label": "spot-check", "consequence": "Brief proposal and short verification doc, keeping process artifacts below the ~170-line diff (the sizing floor's smell); review glances at the diff and trusts seven conformance cases." },
+        { "label": "full-review", "consequence": "Matches .5 and .6, the other scope bindings, but the full artifact set would likely exceed the diff of a ~170-line phase." }
+      ],
+      "chosen": "spot-check",
+      "why": "The wrapper composes BusProvider.of, bus.module and one reference; G20's seven cases pin mount, unmount, failure, rebind and shared scope; the Flutter lifecycle facts it rests on are measured in the contract's experiment (N1 to N6). A spot-check is 'well-constrained with clear contracts'. The signal that would change it: lifecycle defects found in .5 or .6 that their fixtures missed.",
+      "evidence": [
+        "hsdd/contract/flutter-binding.md G20, Refinement 8",
+        "docs/auto-run/experiments/flutter-binding-v0151/output.txt (T7, T8)",
+        ".agents/skills/hsdd-phase-plan/SKILL.md (Review Tiers, sizing floor smell)"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T22:53:32Z",
+      "artifact": "hsdd/spec/nidana.flutter.md",
+      "question": "Where is the placement of NidanaModule recorded: folded into D1 (the phase cut) or as a new plan decision?",
+      "options": [
+        { "label": "new D12, D1 restated to point to it", "consequence": "The placement, its fixture fact, sizes and four alternatives sit in one decision; D1 stays a short statement of the bands." },
+        { "label": "fold into D1", "consequence": "One decision for the cut, but D1 grows by a page of alternatives specific to one widget." }
+      ],
+      "chosen": "new D12, D1 restated to point to it",
+      "why": "The placement is a choice this re-plan took, with its own alternatives and signal; a new id keeps D1's first text and its restatement legible. No evidence beyond readability.",
+      "evidence": ["hsdd/conventions.md Naming (D{n})"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T22:56:10Z",
+      "artifact": "hsdd/spec/nidana.flutter.md",
+      "question": "D7: how does a topic widget treat its subscription's first values now that bus-api@v2 G17 and G34 connect a subscription made during bootstrap at start(), and does the widened reference still hold under bus-api@v2 G41 and G18?",
+      "options": [
+        { "label": "widened reference; skip first values only when bus.lifecycle is not bootstrapping at listen", "consequence": "Meets flutter-binding@v2 G5 and G6: no double frame after start(), and the frame after start() renders what a topology's connection settled; a widget mounted from work start() runs counts as after start(), as bus-api@v2 G34 says." },
+        { "label": "skip first values in every case (D7 as first written)", "consequence": "Fails the new G5 bootstrap case: the initial value stays on screen when a connection set the topic and no later publish came." },
+        { "label": "skip none in any case", "consequence": "Every mount after start() renders its first frame twice; nine G5 and G6 cases fail." },
+        { "label": "typed subscription at T", "consequence": "Under bus-api@v2 G41 an off-type value arrives as a TypeError error event, which G5's error rule turns into a widget that never rebuilds again, or, without onError, an error in the listen zone." }
+      ],
+      "chosen": "widened reference; skip first values only when bus.lifecycle is not bootstrapping at listen",
+      "why": "The S63 adapter v2 does exactly this and passes all 69 adapter cases on the bus-api@v2 stand-in runtime; its seeded defects show the other two skip rules failing G5/G6 cases. bus-api@v2 G41 strengthens the widened reference: a typed subscription would now end the rebuilds. flutter-binding@v2 G5 and G6 already state both rules, so no amend is emitted.",
+      "evidence": [
+        "docs/auto-run/experiments/flutter-binding-v0151/ (adapter/v2/lib/src/topic_builders.dart, output.txt)",
+        "hsdd/contract/flutter-binding.md G5, G6, Validation",
+        "hsdd/contract/bus-api.md G17, G18, G34, G41"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T22:56:16Z",
+      "artifact": "hsdd/spec/nidana.flutter.md",
+      "question": "Which plan-written decisions are restated and which only checked?",
+      "options": [
+        { "label": "Restated: D1, D2, D3, D6, D7; Checked: D4, D5, D8, D9, D10, D11", "consequence": "Restated where what the plan does changed (eight phases, the declaration list, a new file, the chain and its closure, the first-value rule); Checked where the decision stands and only its citations or its description of contract text moved, the first text quoted in the dated paragraph." },
+        { "label": "Restated for every decision whose body text changed", "consequence": "D8, D10 and D11 would read as changed decisions although their rules are unchanged and already folded into flutter-binding@v2 (v1 amendments (b) to (d))." }
+      ],
+      "chosen": "Restated: D1, D2, D3, D6, D7; Checked: D4, D5, D8, D9, D10, D11",
+      "why": "The house convention: a restated decision quotes its first text in a dated 'Restated 2026-10-21' paragraph, a decision checked and found still true gets a dated 'Checked 2026-10-21' paragraph. D8, D10 and D11 described v1's pre-amendment wording in the present tense; their bodies now state the rule and cite flutter-binding@v2, and the Checked paragraph quotes what the first text said, so no live line cites a superseded version.",
+      "evidence": [
+        "step instructions (house conventions)",
+        "hsdd/contract/flutter-binding.md Versioning, v1 history (a) to (d)",
+        "DEC-804"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T22:56:16Z",
+      "artifact": "hsdd/spec/nidana.flutter.md",
+      "question": "Does nidana.flutter.4 (and through it .5 to .8) need a new edge to nidana.runtime.15, which lands start()'s step 2 (bootstrap subscriptions), for the G5 and G6 bootstrap cases?",
+      "options": [
+        { "label": "keep the edge on nidana.runtime.14", "consequence": "bus-api@v2's Delivery keeps nidana.runtime.14 as the last producing phase and the phase every hard edge of nidana.flutter.4 to .7 waits on; nidana.runtime.15 runs between nidana.runtime.7 and .8, inside that closure; G42 is delivered by nidana.runtime.14 itself. Dependencies lines now name G34 and G42." },
+        { "label": "add an explicit edge to nidana.runtime.15", "consequence": "Redundant with the closure, and the record's rule keeps existing edges unless the change requires another." }
+      ],
+      "chosen": "keep the edge on nidana.runtime.14",
+      "why": "Producer phase ids come from the contracts' Delivery paragraphs: bus-api@v2 Delivery says step 3 at nidana.runtime.7, step 2 at .15, step 1 at .12, G34 replaying from .12 on, G42 at .14, and .14 replays both bindings unrestricted, so its closure holds every producing phase.",
+      "evidence": ["hsdd/contract/bus-api.md Delivery", "hsdd/contract/bus-testing.md Delivery", "hsdd/management/2026-10-20-intake-ref-arch-v0-15-1.md (rules for phase-plan handoffs)"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T22:56:16Z",
+      "artifact": "hsdd/spec/nidana.flutter.md",
+      "question": "nidana.flutter.2 and .3 change only in the contract versions they cite (topology-dsl@v2, flutter-binding@v2 Refinements 1 and 2). Do their Scopes name the intake record?",
+      "options": [
+        { "label": "no: citation moves only", "consequence": "hsdd-checkpoint lists only phases with work for the request under the record's Produced; .2 and .3 keep their scope, gate and dependencies." },
+        { "label": "yes", "consequence": "The checkpoint would count two phases as work of the request that do nothing for it." }
+      ],
+      "chosen": "no: citation moves only",
+      "why": "DEC-910's reading for nidana.runtime: a phase names the record when its scope, gate, dependencies or verification changed for v0.15.1, plus appended phases. .2's holder counts still serve G8 under v2 (every mount activates; the release's 'became unheld' decides deactivation); .3's router is unchanged by v2 Refinement 2. A bullet under the summary table records which phases were rewritten and which only moved citations.",
+      "evidence": ["DEC-910", "hsdd/contract/flutter-binding.md Refinements 2 and 4"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T22:56:16Z",
+      "artifact": "hsdd/spec/nidana.flutter.md",
+      "question": "PageScope under bus-api@v2 G23 and flutter-binding@v2 Refinement 4: does nidana.flutter.2's holder-count algebra change now that every mount activates?",
+      "options": [
+        { "label": "leave .2 unchanged; .5 activates at every mount and uses the release result to deactivate", "consequence": "The pure counts still answer 'became unheld' on release; their 'was unheld' on acquire is no longer needed to decide activation but stays harmless. No rewrite of .2." },
+        { "label": "rewrite .2's counts to release-only", "consequence": "A rewrite of a pure phase for a bit the effect phase stops reading; .2 would then name the record." }
+      ],
+      "chosen": "leave .2 unchanged; .5 activates at every mount and uses the release result to deactivate",
+      "why": "Refinement 4 changes the effect (activate on every mount, rethrow TopologyConflict, leave earlier mounts' activation), not the count algebra. No evidence needed beyond the contract text.",
+      "evidence": ["hsdd/contract/flutter-binding.md Refinement 4, G8", "hsdd/contract/bus-api.md G23, G25"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T22:56:16Z",
+      "artifact": "hsdd/spec/nidana.flutter.md",
+      "question": "nidana.flutter.8 binds in the wrapper's first didChangeDependencies (before its child builds) and releases in dispose (after its subtree's States are disposed). Is that ordering a semantic consumers rely on that needs an amend of flutter-binding@v2 G20?",
+      "options": [
+        { "label": "no amend: the contract already pins it", "consequence": "Terms define mount and unmount as the State's insertion and disposal, which Flutter orders parent before child and child before parent; G20's 'fails to mount ... builds no child' case pins acquire before the child builds; G4 relies on the same disposal order." },
+        { "label": "amend G20 to state the order explicitly", "consequence": "A clearer guarantee for pages under a wrapper that read module topics, at the cost of a contract change and probably a new case." }
+      ],
+      "chosen": "no amend: the contract already pins it",
+      "why": "The Terms plus the G20 failure case leave no other conforming implementation; the stand-in does exactly this and passes. The signal that would change it: a consumer plan (nidana.integration's module slice) that needs the order stated, or a review that reads 'at mount' as allowing a post-frame acquire.",
+      "evidence": ["hsdd/contract/flutter-binding.md Terms, G4, G20", "docs/auto-run/experiments/flutter-binding-v0151/adapter/v2/lib/src/nidana_module.dart"],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    }
+  ],
+  "experiments": [],
+  "self_check": [
+    { "gate": "Phase 1 defines all shared types and contract-bounded interfaces.", "status": "pass", "note": "nidana.flutter.1 now also declares NidanaModule (G1's tenth name, G2's fifth widget) with its unmodifiable copy (D2)." },
+    { "gate": "Phases 2..N-1 are maximally independent (parallelizable where possible).", "status": "pass", "note": ".2/.3 run beside .4; .5 runs beside .6 and .8; .8 must follow .6 because one G20 case uses ModuleScopeObserver." },
+    { "gate": "Each phase has <= 8 OpenSpec tasks (split if more).", "status": "pass", "note": "max 7 plan tasks (.1, .3, .6); .8 <= 4." },
+    { "gate": "Adjacent same-tier phases were checked against the sizing floor; every merge candidate kept separate names its reason (tier boundary, parallel lane, isolated risk).", "status": "pass", "note": ".8 differs in tier from .6 and .7 and merged with either exceeds one PE; recorded under the summary table and in D12." },
+    { "gate": "Contract ids are defined before the phase that implements them.", "status": "pass", "note": "flutter-binding@v2 declarations at .1; consumed contracts' declaration phases from their Delivery paragraphs." },
+    { "gate": "Phase N is testable against contract fixtures even if Phase N-1 is not implemented.", "status": "pass", "note": "Every gate replays only guarantees in its own closure; .8's selects 49 cases, .7 replays all 69 + 26." },
+    { "gate": "No phase couples to another phase's internals.", "status": "pass", "note": ".8 depends on .6 through the public ModuleScopeObserver that a G20 case constructs." },
+    { "gate": "Each phase has a concrete gate, a verification description, and a review tier.", "status": "pass", "note": "" },
+    { "gate": "The phase dependency graph is included as a Mermaid flowchart and matches the Dependencies fields.", "status": "pass", "note": "F8 added with F6 --> F8 and F8 --> F7; dashed labels moved to v2; existing edges not redrawn; styling matches the existing pastel graph." },
+    { "gate": "Summary table opens the section and matches the phase sections.", "status": "pass", "note": "Default gate line, then the table; .8 row appended; .7 depends on .5, .6, .8." },
+    { "gate": "Field blocks are bullet lists; empty lists say \"none\".", "status": "pass", "note": "no empty list" },
+    { "gate": "Every contingent phase names the OQ id it waits on; no contingency without a minted OQ.", "status": "n/a", "note": "no contingent phase" },
+    { "gate": "The plan names the ordering policy it followed, matching the conventions line (or `interfaces-first` when absent, `fp-progression` when only the pre-v0.10 `FP ordering:` bullet is present).", "status": "pass", "note": "fp-progression; .8 in the effect band." },
+    { "gate": "Every producing phase's Gate includes the contract replay for each contract it produces.", "status": "pass", "note": ".8's gate: flutter-binding --guarantee G3,G4,G5,G6,G9,G10,G11,G12,G13,G17,G20." },
+    { "gate": "In append mode: no existing id changed, no shipped phase edited, numbering continued from the highest existing id.", "status": "pass", "note": "no hsdd/verify/, so no phase has shipped; ids .1 to .7 kept; .8 appended." },
+    { "gate": "Governance freeze: never edit hsdd/contract/, hsdd/adr/, hsdd/conventions.md or any INDEX.md.", "status": "pass", "note": "only hsdd/spec/nidana.flutter.md written; gate.mjs --skill hsdd-phase-plan --node nidana.flutter: 0 errors, 0 warnings." },
+    { "gate": "Sibling isolation: never read sibling phase plans.", "status": "pass", "note": "producer phase ids taken from the contracts' Delivery paragraphs; no sibling spec was read." },
+    { "gate": "Change Requests: every phase planned for the request names the record in its Scope.", "status": "pass", "note": ".1, .4, .5, .6, .7 rewritten and .8 appended name it; .2 and .3 moved citations only (DEC-910 reading)." }
+  ],
+  "notes_for_orchestrator": [
+    "PLAN SHAPE: eight phases. New nidana.flutter.8 'Module wrapper' (NidanaModule, G20; spot-check; ~170 loc, <=4 tasks; depends on nidana.flutter.6), D12. New edge nidana.flutter.8 -> nidana.flutter.7 (required: .7 replays unrestricted). nidana.flutter.7 stays the last producing phase; .1 still lands every declaration. Rewritten in place, naming the record: .1 (NidanaModule declaration, ~470 loc), .4 (bootstrap first-value rule via bus.lifecycle at listen, ~400 loc), .5 (G42 rejection, every mount activates, TopologyConflict path, ~370 loc), .6 (G10 pre-start acquire, recorder records start(), G20 moved out), .7 (G16 rests on bus-api@v2 G34 alone; unrestricted 69 + 26; executor binding mounts before start() with no scope). .2 and .3: citation moves only.",
+    "DECISIONS: D1, D2, D3, D6, D7 restated with dated 'Restated 2026-10-21' paragraphs; D4, D5, D8, D9, D10, D11 checked with 'Checked 2026-10-21' paragraphs; D12 new (module wrapper placement). Every remaining flutter-binding@v1, bus-api@v1, bus-testing@v1 and topology-dsl@v1 citation in the plan text is inside a Restated or Checked paragraph quoting the first text.",
+    "PENDING SECTION (for H16): confirm flutter-binding@v2 produced_by [.1 to .8]; amend flutter-binding@v2 Delivery (G20 from .6 to .8; '.5 runs beside .6 and then .8'; consumer sentence naming .8); confirm consumers for bus-api@v2 (+ .8, with a sub-bullet that bus-api@v2's Delivery parenthetical 'nidana.flutter.4 to .7' should read '.4 to .8'), bus-testing@v2 (unchanged), topology-dsl@v2 (+ .8), navigation-api@v1 (unchanged), topic-model@v1 (+ .8; stable, phase_ids final, so reconcile adds a consumer to a stable contract) and topology-ir@v1 (unchanged). No request entry, no note, no amend for G5 to G8 or G17 (v2 already states them).",
+    "GATE CASE COUNTS (flutter-binding@v2 fixtures): .1 surface,reject only; .2 G9 = 2 cases; .3 = 10; .4 = 17; .5 = 40; .6 = 42; .8 = 49; .7 unrestricted = 69 adapter + 26 executor. A bare G20 at .8 does not select navigation-api's executor-suite cases named G20 (ADR-001 item 9: a bare id restricts only the replayed slug's own suite).",
+    "FOR H21/H22: the flutter chain after nidana.runtime.14 is now .4, then .5 beside .6, .8 after .6, then .7; root Development flow / critical path text and root D10 examples that list nidana.flutter phases may need .8. nidana.integration's hard edge on nidana.flutter.7 is unchanged; a module slice that uses NidanaModule needs nothing earlier than .7.",
+    "HEADER: non-plan text (lines 1 to 51) is byte-identical to S85's. Sources already hold the v0.15.1 request files (S85), so the skill's 'request path joins Sources' rule needed no edit.",
+    "TIMESTAMPS: decision 'at' values are date -u (2026-10-20T22:5xZ); artifact dates use 2026-10-21 per the house convention for this intake (S85 and bus-api's amendment use it too).",
+    "No skill stop, no run-stop candidate, no ADR proposed, no OQ minted, no experiment run (every runtime fact cited comes from docs/auto-run/experiments/flutter-binding-v0151/ and the contracts)."
+  ]
+}
