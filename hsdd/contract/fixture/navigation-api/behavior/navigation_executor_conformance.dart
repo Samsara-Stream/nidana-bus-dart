@@ -6,7 +6,7 @@
 // type: a binding supplies a bus and the implementation under test through
 // NavigationExecutorHarness, so one suite binds on the VM (a TestBus and the
 // in-memory router, in_memory_router_test.dart) and under testWidgets (a
-// production-provider bus and a Flutter router, bound by flutter-binding@v1).
+// production-provider bus and a Flutter router, bound by flutter-binding@v2).
 import 'package:matcher/expect.dart';
 import 'package:nidana_contract_check/fixture.dart';
 import 'package:nidana_dart_contracts/nidana_dart_contracts.dart';
