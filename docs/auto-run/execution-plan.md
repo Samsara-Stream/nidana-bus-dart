@@ -272,6 +272,7 @@ orchestrator and recorded with `would_have_asked: true`.
 | S76 | 9 | hsdd-adr | H8c: ADR-003 citation touch (13 moved; item 6 cites bus-api@v2 G34; Consequences follow G41 and bus-testing@v2 G3, G11) | done | 1fa6f41 |
 | S77 | 9 | hsdd-spec | H9: nidana.model touch (Sources, Produces topology-dsl@v2, 10 citations moved, Overview and Owns restated for scope timing and the name check) | done | 7e556fd |
 | S78 | 9 | hsdd-spec | H10: nidana.runtime touch (D3 restated: bus-owned topic storage and fan-out; D5 restated: listen-zone errors, read-stage TypeError; Sources, header, Owns, tables) | done | 536b17f |
+| S79 | 9 | hsdd-phase-plan | H11: nidana.runtime re-plan (append mode; 13 phases rewritten in place, .15 observed streams and .16 write chains appended; D8 restated, D10 new) | done | c9f5239 |
 
 ## Change log
 

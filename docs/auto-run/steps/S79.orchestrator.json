@@ -1,0 +1,40 @@
+{
+  "step_ref": "S79",
+  "skill": "none",
+  "target": "review of S79 (nidana.runtime re-plan)",
+  "status": "completed",
+  "decisions": [
+    {
+      "at": "2026-10-20T21:47:59Z",
+      "artifact": "hsdd/spec/nidana.runtime.md",
+      "question": "S79 appended nidana.runtime.15 (observed streams, cut from .6) and .16 (write chains, reduceInto and the re-activation comparison, cut from .9 and .11), reading the record's 'appends only work no existing phase owns' as covering work v0.15.1 rebuilt. Is the reading accepted?",
+      "options": [
+        { "label": "Accept the two appended phases", "consequence": "Sixteen phases, every id kept, .14 still the last producing phase; each phase stays inside one review window. The record's rule is read as 'no existing phase owns this work as now specified'." },
+        { "label": "Rework to the strict reading: rewrite in place only", "consequence": "Fourteen phases, three of them at about 530 to 700 lines, past the review window hsdd-phase-plan's sizing rule exists to protect; one more dispatch." }
+      ],
+      "chosen": "Accept the two appended phases",
+      "why": "hsdd-phase-plan's sizing rule outranks a routing record's wording: the record routes work, the skill sizes it. The rebuilt observe path and the write chains are new work under bus-api@v2 and topology-dsl@v2, sized on stand-ins (runtime-topic-storage, runtime-replay-schedule-v2), and append mode is the HSDD way to add phases to a plan with existing ids. The signal that would have changed my mind: another plan or contract naming .6 or .9 for the moved work, which S79 checked and found none.",
+      "evidence": ["docs/auto-run/steps/S79.json", ".agents/skills/hsdd-phase-plan/SKILL.md (sizing floor, Append Mode)", "docs/auto-run/experiments/runtime-replay-schedule-v2/output-check.txt"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T21:47:59Z",
+      "artifact": "hsdd/spec/nidana.runtime.md",
+      "question": "S79 left three non-plan passages of nidana.runtime that its re-plan made stale (the Development flow's lanes, the pure-band sentence now that .16 holds two pure functions, the Slices table's pipeline row without the plan comparison). Who fixes them?",
+      "options": [
+        { "label": "Insert an hsdd-spec touch of nidana.runtime after H12", "consequence": "One short step; the node's non-plan text agrees with its plan before the root touch reads it." },
+        { "label": "Leave them to the H23 sweep", "consequence": "No extra step, but reconcile does not own a node's non-plan text." }
+      ],
+      "chosen": "Insert an hsdd-spec touch of nidana.runtime after H12",
+      "why": "Non-plan text is hsdd-spec's, as at S78; the root touch (H22) reads this node's Development flow for the critical path.",
+      "evidence": ["docs/auto-run/steps/S79.json notes"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "would_upstream": false
+    }
+  ]
+}
