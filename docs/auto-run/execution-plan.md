@@ -274,6 +274,7 @@ orchestrator and recorded with `would_have_asked: true`.
 | S78 | 9 | hsdd-spec | H10: nidana.runtime touch (D3 restated: bus-owned topic storage and fan-out; D5 restated: listen-zone errors, read-stage TypeError; Sources, header, Owns, tables) | done | 536b17f |
 | S79 | 9 | hsdd-phase-plan | H11: nidana.runtime re-plan (append mode; 13 phases rewritten in place, .15 observed streams and .16 write chains appended; D8 restated, D10 new) | done | c9f5239 |
 | S80 | 9 | hsdd-reconcile | H12: nidana.runtime pending section drained (bus-api@v2 produced_by .15, Delivery restated; running from start()'s first step; no flips) | done | 419e96d |
+| S81 | 9 | hsdd-spec | inserted: nidana.runtime touch (Development flow lanes and start() steps, pure-band exception for .16, Slices and Contracts rows for G23 and G34) | done | d70ab31 |
 
 ## Change log
 
