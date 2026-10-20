@@ -1,0 +1,24 @@
+{
+  "step_ref": "S83",
+  "skill": "none",
+  "target": "review of S83 (nidana.navigation re-plan)",
+  "status": "completed",
+  "decisions": [
+    {
+      "at": "2026-10-20T22:30:00Z",
+      "artifact": "hsdd/spec/nidana.navigation.md",
+      "question": "S83 disclosed that it read parts of nidana.runtime's phase plan (its .1 section, Scope lines naming the record, a Restated paragraph, S79's pending section) to match the house format, while hsdd-phase-plan reads sibling node specs but never sibling phase plans. Is the plan reworked?",
+      "options": [
+        { "label": "Keep the plan, record the slip", "consequence": "No rework; the record shows the isolation rule was broken for formatting, and every producer fact in the plan is checked to come from the contracts." },
+        { "label": "Rework S83 in a fresh subagent told not to read sibling plans", "consequence": "About 20 minutes; the same edits are expected, since the changes come from the contracts and S82's line list." }
+      ],
+      "chosen": "Keep the plan, record the slip",
+      "why": "The rule exists so a plan does not lean on a sibling's internals. S83's changed lines cite only contracts (navigation-api@v1 G13, bus-api@v2 G18, G34, G42, bus-testing@v2 G14) and its own experiments; the producer phase ids it names are the ones the contracts' Delivery paragraphs state. The format it borrowed (how a Scope names the record, a Restated paragraph) is the run's own convention, not a sibling's design. Later phase-plan prompts will say explicitly that the format examples are in this prompt, not in sibling plans.",
+      "evidence": ["docs/auto-run/steps/S83.json", ".agents/skills/hsdd-phase-plan/SKILL.md"],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "would_upstream": false
+    }
+  ]
+}

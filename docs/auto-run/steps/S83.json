@@ -1,0 +1,203 @@
+{
+  "step_ref": "S83",
+  "skill": "hsdd-phase-plan",
+  "target": "nidana.navigation (append mode: Phase Plan, plan-written decisions D1 to D6, pending section)",
+  "status": "completed",
+  "stop": null,
+  "artifacts": [
+    "hsdd/spec/nidana.navigation.md",
+    "docs/auto-run/experiments/navigation-executor-during-start/probe.dart",
+    "docs/auto-run/experiments/navigation-executor-during-start/output.txt",
+    "docs/auto-run/steps/S83.json"
+  ],
+  "decisions": [
+    {
+      "at": "2026-10-20T22:23:17Z",
+      "artifact": "hsdd/spec/nidana.navigation.md",
+      "question": "D3 cites bus-api@v1's bus_activation_test.dart and flutter-binding@v1's binding of the executor suite. Move the citations silently, or move them and record that each sentence and every gate still holds under the current fixtures?",
+      "options": [
+        { "label": "Move and add a dated Checked paragraph", "consequence": "The reader sees that the sentences hold of the v2 text and that every --guarantee list still selects cases (42 and 52), at the cost of one paragraph" },
+        { "label": "Move silently", "consequence": "Shorter, but the record's rule asks that a citation whose meaning could have changed be checked, and nothing would show it was" }
+      ],
+      "chosen": "Move and add a dated Checked paragraph",
+      "why": "The record's citation rule (DEC-804's reading) restates or checks a sentence rather than moving a version silently. Both sentences hold under v2: bus-api@v2's bus_activation_test.dart still binds topology-dsl@v2's live suite under ADR-001 item 9, and flutter-binding@v2's executor binding still lives in its own fixture directory. Counting the fixtures confirmed every gate: the navigation suite holds 42 cases, the new G13 case needs no bus and is selected by .3's list, and the executor suite holds 26 cases registered twice.",
+      "evidence": ["hsdd/contract/fixture/navigation-api/behavior/navigation_conformance.dart", "hsdd/contract/fixture/navigation-api/behavior/navigation_executor_conformance.dart", "hsdd/contract/bus-api.md Delivery", "ADR-001 item 9"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T22:23:32Z",
+      "artifact": "hsdd/spec/nidana.navigation.md",
+      "question": "Where does navResolver construct the stage objects whose method tear-offs its stages hold (D5)?",
+      "options": [
+        { "label": "Once per navResolver call, outside the declaration body", "consequence": "Every plan of one call's topology holds == stage functions, so re-activating that value returns its handle; another call's topology conflicts; passes the new G13 case (T4) and re-activates as P5 shows" },
+        { "label": "Inside the declaration body", "consequence": "Named stages, but new receivers on every evaluation, so the resolver conflicts with its own second activation under bus-api@v2 G23 (P5) and fails the new G13 case (T4)" },
+        { "label": "Canonicalized per configuration in a static cache", "consequence": "Another call of one configuration re-activates to the active handle, which G13 rules out, so it fails the same case (T4); the cache also holds the app's functions for the isolate's life" },
+        { "label": "Closures", "consequence": "Unnamed edges in every graph and unequal to their own next evaluation; fails the naming case and the new G13 case (T4)" }
+      ],
+      "chosen": "Once per navResolver call, outside the declaration body",
+      "why": "navigation-api@v1 G13's last sentence, written at S62, requires it, and the declaration body runs on every planOf call (topology-dsl@v2 Interface) while bus-api@v2 G23 compares tear-offs by receiver identity. The S62 experiment ran all four stand-ins on both runtimes; only the once-per-call one passes both suites. The evidence moves from navigation-stage-names/, whose stand-in built the objects inside the declaration, to navigation-api-v0151/ T4 and P5. D5 keeps its id and title stem and gains a dated Restated paragraph.",
+      "evidence": ["navigation-api@v1 G13", "bus-api@v2 G23", "topology-dsl@v2 G18 and its Interface comment on topology(...)", "Spec §3.9", "Guide §6.3", "docs/auto-run/experiments/navigation-api-v0151/ (T4, P5)"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T22:24:13Z",
+      "artifact": "hsdd/spec/nidana.navigation.md",
+      "question": "D6: with bus-api@v2 G18 sending a subscriber's error to the zone it listened in, does the executor still add no error handling of its own, and how is D6 restated?",
+      "options": [
+        { "label": "Keep no error handling; restate both paths as reaching the constructor's zone", "consequence": "A throwing perform and an error event on the confirmations now reach one zone, the one the executor was constructed in; the executor goes on with later intents (P6); no declaration added" },
+        { "label": "Catch a perform's error and report a new ShellDiagnostic", "consequence": "Compatible under navigation-api@v1 Versioning, but a declaration and a contract amend for a path no conforming router reaches" }
+      ],
+      "chosen": "Keep no error handling; restate both paths as reaching the constructor's zone",
+      "why": "The decision's reasons are unchanged and stronger: under v1 the two paths could land in two zones (P6 on the v1 runtime: bus zone and executor zone); under v2 both land in the zone that constructed the executor (P6 on the v2 runtime). The evidence moves from navigation-stage-names/ S3, which showed the confirmation path alone, to navigation-api-v0151/ P6, which shows both. It stays node-local because no conforming router produces either event.",
+      "evidence": ["bus-api@v2 G18", "Spec §10.2 principle 5, third bullet", "ADR-003 item 2 as amended 2026-10-20", "docs/auto-run/experiments/navigation-api-v0151/ (T9, P6)"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T22:24:13Z",
+      "artifact": "hsdd/spec/nidana.navigation.md",
+      "question": "How are the plan-written decisions D5 and D6 rewritten: in place under their ids with a dated Restated paragraph, or superseded by new decision ids?",
+      "options": [
+        { "label": "In place with a dated Restated paragraph", "consequence": "Ids D5 and D6 stay, so D2's and the phases' citations still resolve; the paragraph says what the first text held and why it changed, without a live citation of a superseded version" },
+        { "label": "New D7 and D8 superseding D5 and D6", "consequence": "A cleaner audit trail, but every citation of D5 and D6 in D2, .3 and .6 would move, and the step instructions ask for a rewrite in place" }
+      ],
+      "chosen": "In place with a dated Restated paragraph",
+      "why": "The step instructions say rewrite in place, the plan already uses dated Corrected paragraphs for the same purpose, and keeping ids keeps every in-plan citation valid. The restated paragraphs avoid writing a superseded version as a slug@vN token, so the final gate's stale-version scan stays quiet for this file.",
+      "evidence": ["hsdd/management/2026-10-20-intake-ref-arch-v0-15-1.md, rules for phase-plan handoffs", "hsdd/spec/nidana.navigation.md D1 and D3 Corrected paragraphs"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T22:24:35Z",
+      "artifact": "hsdd/spec/nidana.navigation.md",
+      "question": "Which phases name the intake record in their Scope: every phase whose text moved (.1, .3, .6), or only those whose Scope this plan rewrote (.3, .6)?",
+      "options": [
+        { "label": "Only .3 and .6", "consequence": "hsdd-checkpoint lists under the record's Produced the two phases whose deliverable changed; .1, whose declarations and Scope are unchanged, is not counted as the intake's output" },
+        { "label": ".1, .3 and .6", "consequence": "The checkpoint would list .1 too, although only its Consumes and Dependencies citations moved and it lands the same declarations" }
+      ],
+      "chosen": "Only .3 and .6",
+      "why": "The rule names the phases a plan rewrites or appends for the request so the checkpoint can close the record when they ship. .1's Scope is unchanged: bus-api@v2 and topology-dsl@v2 changed no declaration, and navigation-api@v1's declarations are the same. Close call; the signal that would have changed it is the checkpoint reading Produced as every phase whose text the intake touched.",
+      "evidence": ["hsdd-phase-plan Change Requests", "bus-api@v2 Versioning (every declaration unchanged)", "topology-dsl@v2 Versioning (no declaration changed)"],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T22:24:35Z",
+      "artifact": "hsdd/spec/nidana.navigation.md",
+      "question": "nidana.navigation.3 now delivers G13's once-per-call clause. Does it add its own unit tests for it (about 20 lines, size about 420) or rely on the fixture case its gate replays?",
+      "options": [
+        { "label": "Rely on G13's fixture case", "consequence": "Size stays about 400; the clause is checked by the conformance case the gate selects, and the Verification line names the observable behavior" },
+        { "label": "Add own unit tests", "consequence": "Duplicates the fixture case and pushes the phase past the PE target" }
+      ],
+      "chosen": "Rely on G13's fixture case",
+      "why": "The once-per-call construction moves existing constructor calls out of the declaration body and adds no code; the new G13 case compares plans without a bus and is replayed by .3's gate. Repeating it buys nothing the replay does not.",
+      "evidence": ["hsdd/contract/fixture/navigation-api/behavior/navigation_conformance.dart (the new G13 case, _stageFunctions over planOf)", "docs/auto-run/experiments/navigation-api-v0151/navigation/once.dart"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T22:25:27Z",
+      "artifact": "hsdd/spec/nidana.navigation.md",
+      "question": "nidana.navigation.6 reports LateExecutorConstruction when bus.lifecycle is running, and bus-api@v2 G34 makes the bus running from the moment start() begins. State the consistency in Scope only, or also pin it with a test of an executor constructed during start()?",
+      "options": [
+        { "label": "State it and add a test", "consequence": "About 15 more lines of tests (size 360 to 375, within the PE); the phase verifies that an executor constructed from a bootstrap subscription's callback during start() is reported and works" },
+        { "label": "State it in Scope only", "consequence": "No size change, but no case of either suite constructs an executor during start(), so nothing would check the reading" }
+      ],
+      "chosen": "State it and add a test",
+      "why": "No fixture covers construction during start(), and the probe shows the test is writable on a bus-api@v2 runtime: constructed from a callback of step 2 and of step 3, the executor sees BusLifecycle.running, is reported as LateExecutorConstruction, and performs the next resolved intent.",
+      "evidence": ["bus-api@v2 G34 (amended 2026-10-21)", "navigation-api@v1 G19", "docs/auto-run/experiments/navigation-executor-during-start/"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T22:26:09Z",
+      "artifact": "hsdd/spec/nidana.navigation.md",
+      "question": "Does this plan emit an amend on navigation-api@v1 G19 stating that an executor constructed from the work start() runs is reported as LateExecutorConstruction?",
+      "options": [
+        { "label": "No amend", "consequence": "G19's 'after start()' reads through bus-api@v2 G34, which already counts what start()'s work makes as made after start(); no contract change, no fixture case owed" },
+        { "label": "Amend G19", "consequence": "Explicit for consumers, but reopens a stable, final contract for a dev-mode diagnostic in an edge no consumer reaches, and owes a case or a not-executable line" }
+      ],
+      "chosen": "No amend",
+      "why": "The plan settles no new semantics: the check reads bus.lifecycle, and bus-api@v2 G34 defines when the bus is running and what start()'s work counts as. The pending section records the reasoning under the navigation-api confirm. The signal that would have changed it: a consumer plan (nidana.flutter or nidana.integration) constructing an executor from a callback during start().",
+      "evidence": ["bus-api@v2 G34", "navigation-api@v1 G19", "hsdd-phase-plan Producer-side discoveries"],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T22:26:09Z",
+      "artifact": "hsdd/spec/nidana.navigation.md",
+      "question": "Which confirm entries does the pending section emit: the v2 contracts and navigation-api@v1 only, or topic-model@v1 and topology-ir@v1 as well?",
+      "options": [
+        { "label": "navigation-api@v1 produced_by and the three v2 contracts' consumers", "consequence": "bus-api@v2 [.1, .6], bus-testing@v2 [.6] and topology-dsl@v2 [.1, .3, .6] can count this node's side as confirmed; nothing reopens the two unchanged v1 contracts" },
+        { "label": "Also topic-model@v1 and topology-ir@v1", "consequence": "No-op entries: both contracts are unchanged, stable and final, and already list [nidana.navigation.1, .3, .6] and [nidana.navigation.3, .6]" }
+      ],
+      "chosen": "navigation-api@v1 produced_by and the three v2 contracts' consumers",
+      "why": "The step asks for the v1 entries only if their consumer lists need it. They do not: no phase's consumption of either contract changed (the new G13 case reads topology-dsl@v2's planOf and stage classes, not topology-ir@v1).",
+      "evidence": ["hsdd/contract/topic-model.md frontmatter", "hsdd/contract/topology-ir.md frontmatter"],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    }
+  ],
+  "experiments": [
+    {
+      "path": "docs/auto-run/experiments/navigation-executor-during-start/",
+      "question": "On a bus-api@v2 runtime, can a NavigationExecutor be constructed from a bootstrap subscription's callback during start(), is it reported as LateExecutorConstruction, and does it then work?",
+      "finding": "Yes, from a callback of step 2 (first value) and of step 3 (queue delivery): the callback sees BusLifecycle.running, the one diagnostic is LateExecutorConstruction(origin: executor:during-start), and a later resolved intent is performed and written (stack [p/home, p/detail:2], nav.current-route p/detail). Run on the stand-in packages of navigation-api-v0151/ through its package configuration, without editing that experiment."
+    }
+  ],
+  "self_check": [
+    { "gate": "Phase 1 defines all shared types and contract-bounded interfaces.", "status": "pass", "note": "nidana.navigation.1 unchanged but for its Consumes and Dependencies citations" },
+    { "gate": "Phases 2..N-1 are maximally independent (parallelizable where possible).", "status": "pass", "note": "Lanes and edges unchanged" },
+    { "gate": "Each phase has <= 8 OpenSpec tasks (split if more).", "status": "pass", "note": "Task counts unchanged; .6 stays <= 7" },
+    { "gate": "Adjacent same-tier phases were checked against the sizing floor; every merge candidate kept separate names its reason (tier boundary, parallel lane, isolated risk).", "status": "pass", "note": ".4 and .5 keep their recorded reason; .6 grows to about 375 lines, which changes no pair" },
+    { "gate": "Contract ids are defined before the phase that implements them.", "status": "pass", "note": "All cited ids exist at their current versions" },
+    { "gate": "Phase N is testable against contract fixtures even if Phase N-1 is not implemented.", "status": "pass", "note": "The new G13 case needs no bus, so .3 replays it without nidana.runtime.14" },
+    { "gate": "No phase couples to another phase's internals.", "status": "pass", "note": "unchanged" },
+    { "gate": "Each phase has a concrete gate, a verification description, and a review tier.", "status": "pass", "note": ".3 and .6 Verification lines extended" },
+    { "gate": "The phase dependency graph is included as a Mermaid flowchart and matches the Dependencies fields.", "status": "pass", "note": "Edges unchanged; three edge labels moved to v2" },
+    { "gate": "Summary table opens the section and matches the phase sections.", "status": "pass", "note": ".6 size updated in both places (~375)" },
+    { "gate": "Field blocks are bullet lists; empty lists say \"none\".", "status": "pass", "note": "" },
+    { "gate": "Every contingent phase names the OQ id it waits on; no contingency without a minted OQ.", "status": "n/a", "note": "No contingent phase" },
+    { "gate": "The plan names the ordering policy it followed, matching the conventions line (or `interfaces-first` when absent, `fp-progression` when only the pre-v0.10 `FP ordering:` bullet is present).", "status": "pass", "note": "fp-progression, unchanged" },
+    { "gate": "Every producing phase's Gate includes the contract replay for each contract it produces.", "status": "pass", "note": "Every --guarantee list selects existing cases for each id it names (42 and 52 cases)" },
+    { "gate": "In append mode: no existing id changed, no shipped phase edited, numbering continued from the highest existing id.", "status": "pass", "note": "No hsdd/verify/, so no phase has shipped; no phase appended or removed; ids and dependency edges kept" },
+    { "gate": "node docs/auto-run/tools/gate.mjs --skill hsdd-phase-plan --node nidana.navigation", "status": "pass", "note": "0 errors, 0 warnings; no em-dash and no banned phrase in the changed files; no live or historical slug@v1 citation of bus-api, bus-testing, topology-dsl or flutter-binding remains in the file; lines 1 to 88 (non-plan text) byte-identical to HEAD" }
+  ],
+  "notes_for_orchestrator": [
+    "WHAT CHANGED in hsdd/spec/nidana.navigation.md (plan text only, from D3 on): D3's third and sixth bullets cite bus-api@v2 and flutter-binding@v2, plus a 'Checked 2026-10-21' paragraph; D5 retitled 'The nav-resolver names its stage functions and builds them once per call', rewritten in place with a 'Restated 2026-10-21' paragraph, evidence moved to navigation-api-v0151/ T4 and P5, two alternatives added (in-declaration, static cache); D6 rewritten in place (both error paths reach the zone the constructor ran in, bus-api@v2 G18), evidence moved to navigation-api-v0151/ T9 P6, 'Restated 2026-10-21' paragraph; .1 Consumes and Dependencies at v2; .3 Consumes at v2, Scope names the record (landing L6) and the once-per-call construction, Verification extended; .6 Consumes and Dependencies at v2, Scope names the record (landings L1, L2, L4) and covers G42 (publisher in bootstrap, G16's PAGE picker after start()), G34 (bootstrap test, LateExecutorConstruction during start()), G18 (D6), bus-testing@v2 G14 (recorder order), size 360 to 375; graph labels at v2. D1, D2, D4, .2, .4, .5 unchanged.",
+    "PENDING SECTION for the inserted reconcile: a new emission line under the 2026-10-18 stamp, with four confirm entries: navigation-api@v1 produced_by [nidana.navigation.1 to .6] (unchanged; Delivery stands; stays stable and final), bus-api@v2 consumers [nidana.navigation.1, nidana.navigation.6], bus-testing@v2 consumers [nidana.navigation.6], topology-dsl@v2 consumers [nidana.navigation.1, nidana.navigation.3, nidana.navigation.6]. No amend, no request, no note. All four consumer lists already hold these ids in the contracts' frontmatter; the entries let the v2 contracts count this node's side as confirmed.",
+    "Producer phase ids this plan depends on are unchanged (nidana.model.2, .5, .6, .8 to .12; nidana.runtime.1 and .14). bus-api@v2's produced_by includes nidana.runtime.15, but its Delivery paragraph keeps nidana.runtime.14 as the last producing phase, which is what .6 waits on.",
+    "H23 should skip nidana.navigation under the insert rule: no plan line cites a superseded version, D6 and .6's reliance on G22 and G34 are restated here.",
+    "DISCLOSURE (sibling isolation): to match the house format for restated decisions, record naming and the pending emission line, I read parts of nidana.runtime's phase plan: its phase .1 section, a grep of its 'per hsdd/management/...' Scope lines, one 'Restated 2026-10-21' decision paragraph, and S79's pending section from git history. No inter-node fact in this plan rests on them; every producer fact cited comes from the contracts (bus-api@v2 and bus-testing@v2 Delivery paragraphs and guarantees).",
+    "The new experiment runs on navigation-api-v0151/'s stand-ins through --packages and does not modify that directory."
+  ]
+}
