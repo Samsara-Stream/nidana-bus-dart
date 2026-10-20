@@ -404,20 +404,4 @@ flowchart TD
 
 ## Governance updates (pending reconcile)
 
-> Reconciled 2026-10-18 by hsdd-reconcile. Drained entries are in git history.
-
-> Emitted by hsdd-phase-plan on 2026-10-21. Drained by hsdd-reconcile;
-> do not apply by hand.
-
-- confirm `flutter-binding@v2` produced_by: [nidana.flutter.1, nidana.flutter.2, nidana.flutter.3, nidana.flutter.4, nidana.flutter.5, nidana.flutter.6, nidana.flutter.7, nidana.flutter.8]
-  - per `hsdd/management/2026-10-20-intake-ref-arch-v0-15-1.md` (H15): nidana.flutter.8 is appended for `NidanaModule` (D12); nidana.flutter.1 still lands every declaration, and nidana.flutter.7 is still the last producing phase, which a `hard` edge waits on. No phase of this node consumes flutter-binding@v2, so no consumers entry is emitted for it.
-- amend `flutter-binding@v2`: the Delivery paragraph assigns G20 to nidana.flutter.8, not nidana.flutter.6. Its guarantee sentence reads "nidana.flutter.6 G10 and G17 (`ModuleScopeObserver` and `WidgetTestBus`); nidana.flutter.8 G20 (`NidanaModule`), after nidana.flutter.6, because one G20 case has wrappers share a module with a `ModuleScopeObserver`; nidana.flutter.7 G14 to G16 ...", its lanes sentence "nidana.flutter.5 runs beside nidana.flutter.6 and then nidana.flutter.8", and its last consumer sentence "a consumer that needs `PageScope` and the module observer waits on both nidana.flutter.5 and .6, one that needs `NidanaModule` on nidana.flutter.8, or any of them on nidana.flutter.7".
-  - Compatible: the phase ids of the Delivery paragraph only. No declaration, guarantee or fixture changes, and no consumer's edge moves, because consumers wait on nidana.flutter.1 (`contract` edges) or nidana.flutter.7 (`hard` edges).
-  - Why not nidana.flutter.6: with the wrapper it would come to about 550 lines and nine plan tasks, beyond one PE; nidana.flutter.5 cannot replay the shared-scope case before nidana.flutter.6 merges; nidana.flutter.7 would come to about 490 lines (D12).
-- confirm `bus-api@v2` consumers: [nidana.flutter.1, nidana.flutter.4, nidana.flutter.5, nidana.flutter.6, nidana.flutter.7, nidana.flutter.8]
-  - nidana.flutter.8 is new and runs a bus. The Delivery paragraph's list of the phases of nidana.flutter whose `hard` edge waits on nidana.runtime.14, "nidana.flutter.4 to .7", now reads "nidana.flutter.4 to .8". The edge itself is unchanged: nidana.runtime.14 delivers G42, and its closure holds G34's three steps (nidana.runtime.7, .15 and .12), which the bootstrap cases of flutter-binding@v2 G5 and G6 need.
-- confirm `bus-testing@v2` consumers: [nidana.flutter.1, nidana.flutter.6, nidana.flutter.7]
-- confirm `topology-dsl@v2` consumers: [nidana.flutter.1, nidana.flutter.2, nidana.flutter.5, nidana.flutter.6, nidana.flutter.7, nidana.flutter.8]
-- confirm `navigation-api@v1` consumers: [nidana.flutter.1, nidana.flutter.2, nidana.flutter.3, nidana.flutter.5, nidana.flutter.6, nidana.flutter.7]
-- confirm `topic-model@v1` consumers: [nidana.flutter.1, nidana.flutter.4, nidana.flutter.5, nidana.flutter.6, nidana.flutter.7, nidana.flutter.8]
-- confirm `topology-ir@v1` consumers: [nidana.flutter.5, nidana.flutter.6, nidana.flutter.7]
+> Reconciled 2026-10-21 by hsdd-reconcile. Drained entries are in git history.
