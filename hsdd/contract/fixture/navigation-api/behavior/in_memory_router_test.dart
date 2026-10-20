@@ -1,7 +1,7 @@
 // Binding: runs navigation-api@v1's executor conformance suite against
 // NavigationExecutor over the producer's InMemoryRouter (package:
 // nidana_dart_navigation/testing.dart), each case on fresh TestBus instances
-// (bus-testing@v1), under `dart test`. Every case runs twice: on a router
+// (bus-testing@v2), under `dart test`. Every case runs twice: on a router
 // that pops until natively, and on one that does not, so that BackTo is
 // also synthesized from pops (Guide §3.2). Both registrations begin with the
 // case's guarantee id, so a --guarantee restriction selects both.

@@ -2,7 +2,7 @@
 // A deep link is impossible by construction after resolution (Spec Appendix
 // A.6; Guide §3.4): no declaration that takes or yields a resolved intent
 // accepts a DeepLink, and neither does a publish to nav.resolved-intent with
-// its type arguments inferred (bus-api@v1 G40; Refinement 9).
+// its type arguments inferred (bus-api@v2 G40; Refinement 9).
 import 'package:nidana_dart_navigation/nidana_dart_navigation.dart';
 import 'package:nidana_dart_runtime/nidana_dart_runtime.dart';
 

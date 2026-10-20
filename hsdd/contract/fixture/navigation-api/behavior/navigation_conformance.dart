@@ -6,13 +6,14 @@
 // binding registers them with a test runner. It imports neither
 // package:test nor package:flutter_test. The declarations have one
 // implementation, the producer's, so the cases construct them directly and
-// run live topologies on bus-testing@v1's TestBus, asserting on its
+// run live topologies on bus-testing@v2's TestBus, asserting on its
 // recorder; the harness only settles. The executor protocol, which has an
 // implementation per platform, is navigation_executor_conformance.dart.
 import 'package:matcher/expect.dart';
 import 'package:nidana_contract_check/fixture.dart';
 import 'package:nidana_dart_contracts/nidana_dart_contracts.dart';
 import 'package:nidana_dart_contracts/topology_ir.dart';
+import 'package:nidana_dart_contracts/topology_plan.dart';
 import 'package:nidana_dart_navigation/nidana_dart_navigation.dart';
 import 'package:nidana_dart_navigation/testing.dart';
 import 'package:nidana_dart_runtime/nidana_dart_runtime.dart';
@@ -151,6 +152,17 @@ String _empty() => '';
 
 List<CombinatorKind?> _kinds(TopologyDefinition d) =>
     <CombinatorKind?>[for (final TransformEdge e in d.transforms) e.combinator];
+
+/// The functions one plan of a nav-resolver holds, in G13's edge order: the
+/// intent map's transformer, the auth map's, the withLatestFrom's combiner.
+List<Function> _stageFunctions(Topology resolver) {
+  final TopologyPlan plan = planOf(resolver);
+  return <Function>[
+    plan.stages.whereType<MapStage<NavIntent, Object?>>().single.transform,
+    plan.stages.whereType<MapStage<_Auth, Object?>>().single.transform,
+    plan.stages.whereType<WithLatestFromStage<ResolvedNavIntent, Object?>>().single.combiner,
+  ];
+}
 
 final List<ConformanceCase<NavigationHarness>> navigationConformance =
     <ConformanceCase<NavigationHarness>>[
@@ -596,6 +608,23 @@ final List<ConformanceCase<NavigationHarness>> navigationConformance =
         expect(d.transforms[1].transformer, FunctionRef.of(_principalOf), reason: form);
         expect(d.transforms[2].transformer, FunctionRef.named('applyAuthGuard'),
             reason: form);
+      }
+    },
+  ),
+  (
+    name: 'G13 one nav-resolver holds the same stage functions in every plan of it, and another navResolver call holds its own resolution and guard functions',
+    body: (NavigationHarness h) async {
+      for (final (String form, Topology Function() make) in <(String, Topology Function())>[
+        ('reactive', _reactiveResolver),
+        ('static', () => _staticResolver(_guarded)),
+      ]) {
+        final Topology resolver = make();
+        final List<Function> first = _stageFunctions(resolver);
+        expect(_stageFunctions(resolver), equals(first), reason: form);
+        final List<Function> other = _stageFunctions(make());
+        expect(other[0], isNot(equals(first[0])), reason: '$form: resolveDeepLinks');
+        expect(other[1], equals(first[1]), reason: '$form: the given projection');
+        expect(other[2], isNot(equals(first[2])), reason: '$form: applyAuthGuard');
       }
     },
   ),

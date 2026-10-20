@@ -1,0 +1,19 @@
+# navigation-api-v0151: S62 (hsdd-contract, H5 of the v0.15.1 intake)
+# replays navigation-api's fixtures, before and after this step, on the
+# stand-in runtimes of ../bus-api-v2/ (a bus-api@v1 runtime and a bus-api@v2
+# runtime) and on navigation stand-ins that differ only in where navResolver
+# builds its stage objects; probes the bootstrap facts the contract restates
+# (see run.sh). Its own pub workspace, never a member of the repository's
+# workspace.
+name: nav0151_root
+publish_to: none
+environment:
+  sdk: ^3.13.0
+workspace:
+  - packages/nidana_dart_contracts
+  - packages/nidana_contract_check
+  - packages/nidana_dart_runtime
+  - packages/nidana_dart_navigation
+  - packages/nidana_dart_runtime_flutter
+dev_dependencies:
+  lints: ^6.1.0

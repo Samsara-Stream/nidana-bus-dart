@@ -2,7 +2,7 @@
 // (Guide §3.2, §3.4, §3.5; Spec §3.11, §3.13, Appendix A.6): the router port
 // a platform implements, and NavigationExecutor driving it on a bus. Its
 // cases are values; a binding registers them with a test runner. It imports
-// neither package:test nor package:flutter_test and names no bus-testing@v1
+// neither package:test nor package:flutter_test and names no bus-testing@v2
 // type: a binding supplies a bus and the implementation under test through
 // NavigationExecutorHarness, so one suite binds on the VM (a TestBus and the
 // in-memory router, in_memory_router_test.dart) and under testWidgets (a

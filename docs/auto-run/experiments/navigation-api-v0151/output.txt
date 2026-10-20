@@ -1,0 +1,280 @@
+
+### setup: the before tree from git HEAD, resolve, versions, the stand-ins' provenance
+3eddcd2
+pub get exit: 0
+Dart SDK version: 3.13.5 (stable) (Tue Sep 29 01:00:52 2026 -0700) on "macos_arm64"
+stand-in packages: same as ../bus-testing-v0151/packages but for the runtime and navigation sources swapped in
+runtime/v1/bus.dart: same as ../bus-api-v2/runtime/v1/bus.dart
+runtime/v1/interpreter.dart: same as ../bus-api-v2/runtime/v1/interpreter.dart
+runtime/v2/bus.dart: same as ../bus-api-v2/runtime/v2/bus.dart
+runtime/v2/interpreter.dart: same as ../bus-api-v2/runtime/v2/interpreter.dart
+navigation/in-declare.dart: same as ../bus-api-v2/patch/navigation.named.dart
+navigation/closures.dart: same as ../bus-api-v2/packages/nidana_dart_navigation/lib/src/navigation.dart
+packages/ holds navigation/once.dart
+patch/page_scope.amended.dart: same as ../bus-api-v2/patch/
+patch/topic_builders.amended.dart: same as ../bus-api-v2/patch/
+patch/widget_test_bus.amended.dart: same as ../bus-api-v2/patch/
+-- once and cached against in-declare: the navResolver body only
+once: changed lines 36
+cached: changed lines 45
+
+### T1 the fixture change: case names and other lines before and after; every activation and its scope
+-- navigation_conformance
+cases before: 41
+cases after: 42
+>     name: 'G13 one nav-resolver holds the same stage functions in every plan of it, and another navResolver call holds its own resolution and guard functions'
+-- navigation_executor_conformance
+cases before: 26
+cases after: 26
+-- every file of the fixture tree that differs, and how
+diff -r hsdd-before/hsdd/contract/fixture/navigation-api/behavior/in_memory_router_test.dart hsdd/contract/fixture/navigation-api/behavior/in_memory_router_test.dart
+< // (bus-testing@v1), under `dart test`. Every case runs twice: on a router
+> // (bus-testing@v2), under `dart test`. Every case runs twice: on a router
+diff -r hsdd-before/hsdd/contract/fixture/navigation-api/behavior/navigation_conformance.dart hsdd/contract/fixture/navigation-api/behavior/navigation_conformance.dart
+< // run live topologies on bus-testing@v1's TestBus, asserting on its
+> // run live topologies on bus-testing@v2's TestBus, asserting on its
+> import 'package:nidana_dart_contracts/topology_plan.dart';
+> /// The functions one plan of a nav-resolver holds, in G13's edge order: the
+> /// intent map's transformer, the auth map's, the withLatestFrom's combiner.
+> List<Function> _stageFunctions(Topology resolver) {
+> }
+> 
+diff -r hsdd-before/hsdd/contract/fixture/navigation-api/behavior/navigation_executor_conformance.dart hsdd/contract/fixture/navigation-api/behavior/navigation_executor_conformance.dart
+< // neither package:test nor package:flutter_test and names no bus-testing@v1
+> // neither package:test nor package:flutter_test and names no bus-testing@v2
+diff -r hsdd-before/hsdd/contract/fixture/navigation-api/behavior/nidana_dart_navigation_test.dart hsdd/contract/fixture/navigation-api/behavior/nidana_dart_navigation_test.dart
+< // own TestBus instances (bus-testing@v1), so the harness only settles, which
+> // own TestBus instances (bus-testing@v2), so the harness only settles, which
+diff -r hsdd-before/hsdd/contract/fixture/navigation-api/reject/resolved_intent_is_never_a_deep_link.dart hsdd/contract/fixture/navigation-api/reject/resolved_intent_is_never_a_deep_link.dart
+< // its type arguments inferred (bus-api@v1 G40; Refinement 9).
+> // its type arguments inferred (bus-api@v2 G40; Refinement 9).
+-- activations in both suites (Spec §7.2: MODULE or PAGE only after start())
+navigation_conformance.dart:100:   bus.activate(_reactiveResolver());
+navigation_conformance.dart:104:   bus.start();
+navigation_conformance.dart:146: Topology _picker() => topology('suite-picker', Scope.page, (TopologyBuilder b) {
+navigation_conformance.dart:562:       expect(t.scope, Scope.application);
+navigation_conformance.dart:675:       bus.activate(_staticResolver(RouteAccessPolicy.empty));
+navigation_conformance.dart:677:       bus.start();
+navigation_conformance.dart:708:       bus.activate(_reactiveResolver());
+navigation_conformance.dart:717:       bus.activate(_reactiveResolver());
+navigation_conformance.dart:719:           () => bus.activate(topology('suite-echo', Scope.application,
+navigation_conformance.dart:743:       bus.start();
+navigation_conformance.dart:744:       bus.activate(_picker());
+navigation_executor_conformance.dart:87:   bus.start();
+navigation_executor_conformance.dart:158:       bus.start();
+navigation_executor_conformance.dart:292:           () => bus.activate(topology('suite-rival', Scope.application,
+navigation_executor_conformance.dart:305:       bus.start();
+navigation_executor_conformance.dart:316:       bus.start();
+navigation_executor_conformance.dart:460:       bus.start();
+navigation_executor_conformance.dart:581:       bus.activate(_resolver(_signedIn));
+navigation_executor_conformance.dart:583:       bus.start();
+navigation_executor_conformance.dart:597:       bus.activate(_resolver(_signedOut));
+navigation_executor_conformance.dart:599:       bus.start();
+
+### T2 structure (prototype) for navigation-api, and S17's prototype over the repository's contracts
+guarantees: 27; cases: 68; bindings: 2; fixture files: 13
+exit: 0
+guarantees covered: 27
+bus-api (api): 42 guarantees; covered by reject 10, behavior 38; not executable 2; in part 0; data directories none
+bus-testing (api): 20 guarantees; covered by reject 2, behavior 17; not executable 1; in part 0; data directories none
+flutter-binding (api): 19 guarantees; covered by reject 7, behavior 15; not executable 2; in part 0; data directories none
+navigation-api (api): 27 guarantees; covered by reject 5, behavior 23; not executable 2; in part 0; data directories none
+nidana-checks (cli): 18 guarantees; covered by cli 17; not executable 1; in part 2; data directories none
+topic-codegen (file): 21 guarantees; covered by schema 1, file 12, cli 5; not executable 4; in part 3; data directories rejected
+topic-model (shared-model): 27 guarantees; covered by reject 10, behavior 18; not executable 2; in part 0; data directories none
+topology-dsl (api): 30 guarantees; covered by reject 8, behavior 22; not executable 0; in part 0; data directories none
+topology-ir (api): 23 guarantees; covered by reject 3, behavior 22; not executable 0; in part 0; data directories render
+9 contracts, 0 problem(s)
+
+### T3 surface, reject and behavior libraries analyzed; the stand-ins and the probes
+Analyzing surface...
+No issues found!
+surface exit: 0
+PASS current_route_is_claimed_by_the_executor.dart [10:argument_type_not_assignable 12:argument_type_not_assignable 14:undefined_getter 16:undefined_getter]
+PASS intents_are_closed.dart [8:invalid_use_of_type_outside_library 11:invalid_use_of_type_outside_library 14:invalid_use_of_type_outside_library 17:invalid_use_of_type_outside_library 20:non_exhaustive_switch_expression 29:non_exhaustive_switch_expression]
+PASS navigation_types_are_closed.dart [8:invalid_use_of_type_outside_library 11:invalid_use_of_type_outside_library 14:invalid_use_of_type_outside_library 17:invalid_use_of_type_outside_library 20:invalid_use_of_type_outside_library 23:invalid_use_of_type_outside_library 28:invalid_use_of_type_outside_library 31:invalid_use_of_type_outside_library 34:non_exhaustive_switch_expression 41:non_exhaustive_switch_expression 47:non_exhaustive_switch_expression 54:non_exhaustive_switch_expression]
+PASS navigation_values_are_immutable.dart [8:assignment_to_final 10:assignment_to_final 12:assignment_to_final 14:assignment_to_final 16:assignment_to_final 18:assignment_to_final]
+PASS resolved_intent_is_never_a_deep_link.dart [11:invalid_assignment 13:argument_type_not_assignable 18:argument_type_not_assignable 21:return_of_invalid_type_from_closure 23:argument_type_not_assignable 25:could_not_infer 27:could_not_infer 33:pattern_never_matches_value_type]
+PASS route_arguments_are_typed.dart [11:argument_type_not_assignable 13:argument_type_not_assignable 15:argument_type_not_assignable 17:new_with_undefined_constructor_default 19:new_with_undefined_constructor_default 21:new_with_undefined_constructor_default 23:invalid_assignment]
+reject exit: 0
+Analyzing behavior...
+No issues found!
+behavior exit: 0
+navigation stand-in once exit: 0
+navigation stand-in in-declare exit: 0
+navigation stand-in cached exit: 0
+Analyzing probe...
+No issues found!
+probes exit: 0
+
+### T4 both suites after, on each runtime and each navigation stand-in
+== runtime v2, navigation once
+-- hsdd/contract/fixture/navigation-api/behavior/nidana_dart_navigation_test.dart
+00:00 +42: All tests passed!
+exit: 0
+-- hsdd/contract/fixture/navigation-api/behavior/in_memory_router_test.dart
+00:00 +52: All tests passed!
+exit: 0
+== runtime v2, navigation in-declare
+-- hsdd/contract/fixture/navigation-api/behavior/nidana_dart_navigation_test.dart
+FAILED: G13 one nav-resolver holds the same stage functions in every plan of it, and another navResolver call holds its own resolution and guard functions
+00:00 +41 -1: Some tests failed.
+exit: 1
+-- hsdd/contract/fixture/navigation-api/behavior/in_memory_router_test.dart
+00:00 +52: All tests passed!
+exit: 0
+== runtime v2, navigation cached
+-- hsdd/contract/fixture/navigation-api/behavior/nidana_dart_navigation_test.dart
+FAILED: G13 one nav-resolver holds the same stage functions in every plan of it, and another navResolver call holds its own resolution and guard functions
+00:00 +41 -1: Some tests failed.
+exit: 1
+-- hsdd/contract/fixture/navigation-api/behavior/in_memory_router_test.dart
+00:00 +52: All tests passed!
+exit: 0
+== runtime v2, navigation closures
+-- hsdd/contract/fixture/navigation-api/behavior/nidana_dart_navigation_test.dart
+FAILED: G13 both nav-resolver forms name their stage functions: resolveDeepLinks on the intent map, the given projection on the auth map, applyAuthGuard on the withLatestFrom
+FAILED: G13 one nav-resolver holds the same stage functions in every plan of it, and another navResolver call holds its own resolution and guard functions
+00:00 +40 -2: Some tests failed.
+exit: 1
+-- hsdd/contract/fixture/navigation-api/behavior/in_memory_router_test.dart
+00:00 +52: All tests passed!
+exit: 0
+== runtime v1, navigation once
+-- hsdd/contract/fixture/navigation-api/behavior/nidana_dart_navigation_test.dart
+00:00 +42: All tests passed!
+exit: 0
+-- hsdd/contract/fixture/navigation-api/behavior/in_memory_router_test.dart
+00:00 +52: All tests passed!
+exit: 0
+== runtime v1, navigation in-declare
+-- hsdd/contract/fixture/navigation-api/behavior/nidana_dart_navigation_test.dart
+FAILED: G13 one nav-resolver holds the same stage functions in every plan of it, and another navResolver call holds its own resolution and guard functions
+00:00 +41 -1: Some tests failed.
+exit: 1
+-- hsdd/contract/fixture/navigation-api/behavior/in_memory_router_test.dart
+00:00 +52: All tests passed!
+exit: 0
+== runtime v1, navigation cached
+-- hsdd/contract/fixture/navigation-api/behavior/nidana_dart_navigation_test.dart
+FAILED: G13 one nav-resolver holds the same stage functions in every plan of it, and another navResolver call holds its own resolution and guard functions
+00:00 +41 -1: Some tests failed.
+exit: 1
+-- hsdd/contract/fixture/navigation-api/behavior/in_memory_router_test.dart
+00:00 +52: All tests passed!
+exit: 0
+== runtime v1, navigation closures
+-- hsdd/contract/fixture/navigation-api/behavior/nidana_dart_navigation_test.dart
+FAILED: G13 both nav-resolver forms name their stage functions: resolveDeepLinks on the intent map, the given projection on the auth map, applyAuthGuard on the withLatestFrom
+FAILED: G13 one nav-resolver holds the same stage functions in every plan of it, and another navResolver call holds its own resolution and guard functions
+00:00 +40 -2: Some tests failed.
+exit: 1
+-- hsdd/contract/fixture/navigation-api/behavior/in_memory_router_test.dart
+00:00 +52: All tests passed!
+exit: 0
+-- why: G13 one nav-resolver holds the same stage functions
+  Expected: [
+    Actual: [
+     Which: at location [0] is <Closure: (NavIntent) => ResolvedNavIntent from Function 'resolveDeepLinks':.> instead of <Closure: (NavIntent) => ResolvedNavIntent from Function 'resolveDeepLinks':.>
+-- why: G13 one nav-resolver holds the same stage functions
+  Expected: not <Closure: (NavIntent) => ResolvedNavIntent from Function 'resolveDeepLinks':.>
+    Actual: <Closure: (NavIntent) => ResolvedNavIntent from Function 'resolveDeepLinks':.>
+-- why: G13 both nav-resolver forms name their stage functions
+  Expected: FunctionRef:<FunctionRef(resolveDeepLinks)>
+    Actual: FunctionRef:<FunctionRef.anonymous()>
+
+### T5 both suites before, on each runtime, with the stand-ins the suites passed against before (in-declare) and the once stand-in
+== runtime v1, navigation in-declare
+-- hsdd/contract/fixture/navigation-api/behavior/nidana_dart_navigation_test.dart
+00:00 +41: All tests passed!
+exit: 0
+-- hsdd/contract/fixture/navigation-api/behavior/in_memory_router_test.dart
+00:00 +52: All tests passed!
+exit: 0
+== runtime v1, navigation once
+-- hsdd/contract/fixture/navigation-api/behavior/nidana_dart_navigation_test.dart
+00:00 +41: All tests passed!
+exit: 0
+-- hsdd/contract/fixture/navigation-api/behavior/in_memory_router_test.dart
+00:00 +52: All tests passed!
+exit: 0
+== runtime v2, navigation in-declare
+-- hsdd/contract/fixture/navigation-api/behavior/nidana_dart_navigation_test.dart
+00:00 +41: All tests passed!
+exit: 0
+-- hsdd/contract/fixture/navigation-api/behavior/in_memory_router_test.dart
+00:00 +52: All tests passed!
+exit: 0
+== runtime v2, navigation once
+-- hsdd/contract/fixture/navigation-api/behavior/nidana_dart_navigation_test.dart
+00:00 +41: All tests passed!
+exit: 0
+-- hsdd/contract/fixture/navigation-api/behavior/in_memory_router_test.dart
+00:00 +52: All tests passed!
+exit: 0
+
+### T6 flutter-binding's binding of the executor suite, after, on the v2 runtime with the once stand-in
+-- hsdd/contract/fixture/flutter-binding/behavior/flutter_navigation_executor_test.dart (fvm flutter test)
+00:00 +26: All tests passed!
+exit: 0
+
+### T7 probes P1 to P4: the nav-resolver and the executor at bootstrap, on each runtime
+-- runtime v1
+P1 policy topology from a state topic, resolver activated first: resolved [GoTo(route:p/detail, 5)]
+P1 policy topology from a state topic, policy topology activated first: resolved [GoTo(route:p/detail, 5)]
+P2 policy topology from a lock event queued before the deep link: resolved [GoTo(route:p/detail, 5)]; when start() returned: resolved [], policy locked: false; delivery order: p.lock-event, nav.intent, nav.access-policy, nav.resolved-intent
+P3 claimed publisher, policy published before the deep link, both before start(): resolved [GoTo(route:p/denied, GoTo(route:p/detail, 5))]
+P3 claimed publisher, policy published after the deep link, both before start(): resolved [GoTo(route:p/detail, 5)]
+P4a a topology publishing to nav.intent at its connection: nav.intent delivered [GoTo(route:p/detail, 3)], resolved [GoTo(route:p/detail, 3)], router stack [p/home, p/detail]
+P4b an own resolver publishing to nav.resolved-intent at its connection, executor constructed before start(): resolved delivered [GoTo(route:p/detail, 3)], router stack [p/home, p/detail]
+-- runtime v2
+P1 policy topology from a state topic, resolver activated first: resolved [GoTo(route:p/denied, GoTo(route:p/detail, 5))]
+P1 policy topology from a state topic, policy topology activated first: resolved [GoTo(route:p/denied, GoTo(route:p/detail, 5))]
+P2 policy topology from a lock event queued before the deep link: resolved [GoTo(route:p/detail, 5)]; when start() returned: resolved [], policy locked: false; delivery order: p.lock-event, nav.intent, nav.access-policy, nav.resolved-intent
+P3 claimed publisher, policy published before the deep link, both before start(): resolved [GoTo(route:p/denied, GoTo(route:p/detail, 5))]
+P3 claimed publisher, policy published after the deep link, both before start(): resolved [GoTo(route:p/detail, 5)]
+P4a a topology publishing to nav.intent at its connection: nav.intent delivered [GoTo(route:p/detail, 3)], resolved [], router stack [p/home]
+P4b an own resolver publishing to nav.resolved-intent at its connection, executor constructed before start(): resolved delivered [GoTo(route:p/detail, 3)], router stack [p/home]
+
+### T8 probe P5: re-activating a nav-resolver, on each runtime and each navigation stand-in
+-- runtime v1, navigation in-declare
+P5 reactive form, during bootstrap: the same value again -> the active handle; another navResolver call of one configuration -> the active handle
+P5 reactive form, after start(): the same value again -> the active handle; another navResolver call of one configuration -> the active handle
+P5 static form, during bootstrap: the same value again -> the active handle; another navResolver call of one configuration -> the active handle
+P5 static form, after start(): the same value again -> the active handle; another navResolver call of one configuration -> the active handle
+-- runtime v1, navigation once
+P5 reactive form, during bootstrap: the same value again -> the active handle; another navResolver call of one configuration -> the active handle
+P5 reactive form, after start(): the same value again -> the active handle; another navResolver call of one configuration -> the active handle
+P5 static form, during bootstrap: the same value again -> the active handle; another navResolver call of one configuration -> the active handle
+P5 static form, after start(): the same value again -> the active handle; another navResolver call of one configuration -> the active handle
+-- runtime v1, navigation cached
+P5 reactive form, during bootstrap: the same value again -> the active handle; another navResolver call of one configuration -> the active handle
+P5 reactive form, after start(): the same value again -> the active handle; another navResolver call of one configuration -> the active handle
+P5 static form, during bootstrap: the same value again -> the active handle; another navResolver call of one configuration -> the active handle
+P5 static form, after start(): the same value again -> the active handle; another navResolver call of one configuration -> the active handle
+-- runtime v2, navigation in-declare
+P5 reactive form, during bootstrap: the same value again -> TopologyConflict; another navResolver call of one configuration -> TopologyConflict
+P5 reactive form, after start(): the same value again -> TopologyConflict; another navResolver call of one configuration -> TopologyConflict
+P5 static form, during bootstrap: the same value again -> TopologyConflict; another navResolver call of one configuration -> TopologyConflict
+P5 static form, after start(): the same value again -> TopologyConflict; another navResolver call of one configuration -> TopologyConflict
+-- runtime v2, navigation once
+P5 reactive form, during bootstrap: the same value again -> the active handle; another navResolver call of one configuration -> TopologyConflict
+P5 reactive form, after start(): the same value again -> the active handle; another navResolver call of one configuration -> TopologyConflict
+P5 static form, during bootstrap: the same value again -> the active handle; another navResolver call of one configuration -> TopologyConflict
+P5 static form, after start(): the same value again -> the active handle; another navResolver call of one configuration -> TopologyConflict
+-- runtime v2, navigation cached
+P5 reactive form, during bootstrap: the same value again -> the active handle; another navResolver call of one configuration -> the active handle
+P5 reactive form, after start(): the same value again -> the active handle; another navResolver call of one configuration -> the active handle
+P5 static form, during bootstrap: the same value again -> the active handle; another navResolver call of one configuration -> the active handle
+P5 static form, after start(): the same value again -> the active handle; another navResolver call of one configuration -> the active handle
+
+### T9 probe P6: where an error the executor leaves unhandled goes, on each runtime
+-- runtime v1
+P6 errors: bus zone: Bad state: router defect on the first perform; executor zone: Bad state: router defect on its confirmations
+P6 stack after a throwing perform, a working one and a confirmation error: [p/home:null, p/detail:2]; nav.current-route p/detail:2
+-- runtime v2
+P6 errors: executor zone: Bad state: router defect on the first perform; executor zone: Bad state: router defect on its confirmations
+P6 stack after a throwing perform, a working one and a confirmation error: [p/home:null, p/detail:2]; nav.current-route p/detail:2
+
+### cleanup: restore the v2 runtime and the once stand-in, remove the copied trees and the Flutter build output
+removed

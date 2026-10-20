@@ -1,7 +1,7 @@
 // Binding: runs navigation-api@v1's navigation conformance suite against the
 // producer's declarations in package:nidana_dart_navigation, under
 // `dart test`. The suite constructs the declarations directly and drives its
-// own TestBus instances (bus-testing@v1), so the harness only settles, which
+// own TestBus instances (bus-testing@v2), so the harness only settles, which
 // has nothing left to run.
 //
 // The package import names the implementation, so the replay tool reports
