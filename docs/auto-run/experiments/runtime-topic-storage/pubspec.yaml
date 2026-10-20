@@ -1,0 +1,18 @@
+# runtime-topic-storage: S78 (hsdd-spec touch of nidana.runtime, H10 of the
+# v0.15.1 intake) settles Guide v0.15.1 §6.1's choice for the runtime's
+# cells, topic storage and fan-out owned by the bus or a wrapped subject, by
+# replaying every suite that imports nidana_dart_runtime on two runtimes
+# (see run.sh). The stand-in packages are copied from ../bus-api-v2/ at
+# setup. Its own pub workspace, never a member of the repository's workspace.
+name: rts_root
+publish_to: none
+environment:
+  sdk: ^3.13.0
+workspace:
+  - packages/nidana_dart_contracts
+  - packages/nidana_contract_check
+  - packages/nidana_dart_runtime
+  - packages/nidana_dart_navigation
+  - packages/nidana_dart_runtime_flutter
+dev_dependencies:
+  lints: ^6.1.0

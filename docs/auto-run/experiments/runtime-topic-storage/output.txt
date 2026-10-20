@@ -1,0 +1,200 @@
+
+### setup: the stand-in packages from ../flutter-binding-v0151/packages, the fixtures, resolve, versions
+8aa907c
+pub get exit: 0
+Flutter 3.47.7 • channel stable • https://github.com/flutter/flutter.git
+Dart SDK version: 3.13.5 (stable) (Tue Sep 29 01:00:52 2026 -0700) on "macos_arm64"
+copied package bus.dart: same as ../bus-api-v2/runtime/v2/bus.dart
+copied package interpreter.dart: same as ../bus-api-v2/runtime/v2/interpreter.dart
+-- lines the owned runtime changes against v2
+bus.dart: 114
+interpreter.dart: 10
+-- RxDart names left in the owned runtime's cell and observe code (expect none)
+matches: 0
+
+### T1 the owned runtime and the probe analyze clean
+Analyzing packages...
+No issues found!
+stand-in exit: 0
+Analyzing first_delivery.dart...
+No issues found!
+probe exit: 0
+
+### T2 probe: first values on each runtime (G17, G34)
+== runtime v2
+== P1 a subscription made after start (G17)
+after listen and publish(2), before the microtask: []
+after triggerActions: [1, 2]
+after publish(3): [1, 2, 3]
+replay subscriber, its own first values then a publish another subscriber made from its first value: [20, 30]
+event subscriber, at once: [7]
+== P2 a subscription made during bootstrap (G34 step 2)
+before start, after triggerActions: []
+start() returned: [1, 5]
+after triggerActions: [1, 5]
+== P3 a reader activated before its input writer (G34 step 1)
+start() returned: x=2 y=20; recorder: [p.x=2, p.y=20]
+== runtime owned
+== P1 a subscription made after start (G17)
+after listen and publish(2), before the microtask: []
+after triggerActions: [1, 2]
+after publish(3): [1, 2, 3]
+replay subscriber, its own first values then a publish another subscriber made from its first value: [20, 30]
+event subscriber, at once: [7]
+== P2 a subscription made during bootstrap (G34 step 2)
+before start, after triggerActions: []
+start() returned: [1, 5]
+after triggerActions: [1, 5]
+== P3 a reader activated before its input writer (G34 step 1)
+start() returned: x=2 y=20; recorder: [p.x=2, p.y=20]
+
+### T2b probe P5: an add to a synchronous broadcast controller while it delivers (SDK only)
+Analyzing broadcast_reentrant.dart...
+No issues found!
+probe exit: 0
+a got 1
+reentrant add(2) threw StateError: Bad state: Cannot fire new event. Controller is already firing an event
+b got 1
+add(1) returned
+a got 3
+b got 3
+add(3) from a microtask returned
+
+### T3 probe: cost of one delivery to three subscriptions and one read, three runs each
+== runtime v2
+== P4 cost of one delivery to three subscriptions and one read
+ns per publish: 863 (subscriber calls: all)
+== P4 cost of one delivery to three subscriptions and one read
+ns per publish: 880 (subscriber calls: all)
+== P4 cost of one delivery to three subscriptions and one read
+ns per publish: 862 (subscriber calls: all)
+== runtime owned
+== P4 cost of one delivery to three subscriptions and one read
+ns per publish: 711 (subscriber calls: all)
+== P4 cost of one delivery to three subscriptions and one read
+ns per publish: 697 (subscriber calls: all)
+== P4 cost of one delivery to three subscriptions and one read
+ns per publish: 758 (subscriber calls: all)
+
+### T4 bus-api@v2's suite on each runtime
+== runtime v2
+-- hsdd/contract/fixture/bus-api/behavior/nidana_dart_runtime_test.dart
+00:00 +109: All tests passed!
+exit: 0
+== runtime owned
+-- hsdd/contract/fixture/bus-api/behavior/nidana_dart_runtime_test.dart
+00:00 +109: All tests passed!
+exit: 0
+
+### T5 topology-dsl@v2's live suite through bus_activation_test.dart, on each runtime
+== runtime v2
+-- hsdd/contract/fixture/bus-api/behavior/bus_activation_test.dart
+00:00 +49: All tests passed!
+exit: 0
+== runtime owned
+-- hsdd/contract/fixture/bus-api/behavior/bus_activation_test.dart
+00:00 +49: All tests passed!
+exit: 0
+
+### T6 every other suite that imports nidana_dart_runtime, on each runtime
+== runtime v2
+-- hsdd/contract/fixture/bus-testing/behavior/nidana_dart_runtime_test.dart
+00:00 +50: All tests passed!
+exit: 0
+-- hsdd/contract/fixture/navigation-api/behavior/nidana_dart_navigation_test.dart
+00:00 +42: All tests passed!
+exit: 0
+-- hsdd/contract/fixture/navigation-api/behavior/in_memory_router_test.dart
+00:00 +52: All tests passed!
+exit: 0
+-- hsdd/contract/fixture/flutter-binding/behavior/nidana_dart_runtime_flutter_test.dart (fvm flutter test)
+00:00 +69: All tests passed!
+exit: 0
+-- hsdd/contract/fixture/flutter-binding/behavior/flutter_navigation_executor_test.dart (fvm flutter test)
+00:00 +26: All tests passed!
+exit: 0
+== runtime owned
+-- hsdd/contract/fixture/bus-testing/behavior/nidana_dart_runtime_test.dart
+00:00 +50: All tests passed!
+exit: 0
+-- hsdd/contract/fixture/navigation-api/behavior/nidana_dart_navigation_test.dart
+00:00 +42: All tests passed!
+exit: 0
+-- hsdd/contract/fixture/navigation-api/behavior/in_memory_router_test.dart
+00:00 +52: All tests passed!
+exit: 0
+-- hsdd/contract/fixture/flutter-binding/behavior/nidana_dart_runtime_flutter_test.dart (fvm flutter test)
+00:00 +69: All tests passed!
+exit: 0
+-- hsdd/contract/fixture/flutter-binding/behavior/flutter_navigation_executor_test.dart (fvm flutter test)
+00:00 +26: All tests passed!
+exit: 0
+
+### T7 a check, then seeded defects in the owned runtime's first delivery, which fail the cases of what they break
+-- check, not a defect: the bus adds a later subscription's first values during listen; a Dart
+-- stream delivers nothing during listen, so they still arrive after it returns and every case passes
+== check: first values added during listen
+-- hsdd/contract/fixture/bus-api/behavior/nidana_dart_runtime_test.dart
+00:00 +109: All tests passed!
+exit: 0
+-- hsdd/contract/fixture/bus-testing/behavior/nidana_dart_runtime_test.dart
+00:00 +50: All tests passed!
+exit: 0
+== seeded defect: the deliveries made before the first-value microtask are dropped
+-- hsdd/contract/fixture/bus-api/behavior/nidana_dart_runtime_test.dart
+FAILED: G17 a state topic subscription made after start receives the value current when it listened in the first bus microtask, then the values delivered meanwhile, in order (decides OQ-R1)
+00:00 +108 -1: Some tests failed.
+exit: 1
+-- hsdd/contract/fixture/bus-testing/behavior/nidana_dart_runtime_test.dart
+FAILED: G19 a probe of a state topic starts every sequence with the value current at attachment
+00:00 +49 -1: Some tests failed.
+exit: 1
+== seeded defect: the first values read when the microtask runs, not at listen
+-- hsdd/contract/fixture/bus-api/behavior/nidana_dart_runtime_test.dart
+FAILED: G17 a state topic subscription made after start receives the value current when it listened in the first bus microtask, then the values delivered meanwhile, in order (decides OQ-R1)
+00:00 +108 -1: Some tests failed.
+exit: 1
+-- hsdd/contract/fixture/bus-testing/behavior/nidana_dart_runtime_test.dart
+FAILED: G19 a probe of a state topic starts every sequence with the value current at attachment
+00:00 +49 -1: Some tests failed.
+exit: 1
+== seeded defect: an event topic subscription made after start waits for the microtask
+-- hsdd/contract/fixture/bus-api/behavior/nidana_dart_runtime_test.dart
+FAILED: G14 a publish made during a delivery is delivered after that delivery completes, in the next bus microtask, in the order made
+FAILED: G14 a subscriber that publishes to the topic it is receiving does not fail, and its publish follows the current delivery
+FAILED: G15 a reentrant chain deeper than maxReentrancyDepth is reported once in dev mode with its topics, and delivery goes on
+FAILED: G17 a replay topic subscription made after start receives its buffer first, in the first bus microtask; an event topic subscription receives only what is published after it listened, at once
+FAILED: G18 a cancelled subscription receives nothing more; shutdown ends every subscription before it returns, and observe then throws StateError
+FAILED: G18 a subscriber that throws stops neither the publish nor the delivery to the others, keeps receiving, and its error reaches the zone in which it listened, not the zone the bus was built in
+FAILED: G21 a publish not yet delivered when its publisher is disposed is discarded
+FAILED: G29 observers are called in registration order, before any subscriber, with the topic reference, the envelope and the configured ObserveContext
+FAILED: G30 no observer receives an envelope of a Tracing.disabled topic, while its subscribers receive its values
+FAILED: G31 an observer that throws is reported in dev mode, and delivery to later observers and subscribers goes on
+FAILED: G34 start is idempotent, and after it a publish is delivered at once
+FAILED: G41 an event topic published through MultiWriterTopic<Object?> references and at its value type reaches the observers and the subscriptions at both types, whichever is reached first
+FAILED: G5 a production-provider bus keeps the zone and the clock current where it was constructed
+FAILED: G7 equal declarations share one subject, and a declaration that differs in its sensitive flag collides
+FAILED: G9 removeTopic called during a delivery throws StateError
+FAILED: G9 removeTopic refuses a topic that has subscribers unless forced, and changes nothing when it refuses
+00:00 +93 -16: Some tests failed.
+exit: 1
+-- hsdd/contract/fixture/bus-testing/behavior/nidana_dart_runtime_test.dart
+FAILED: G14 publishes queued before start are recorded when start delivers them, and a publish never delivered is not recorded
+FAILED: G14 the deliveries of the shutdown drain are recorded, and the records stay readable after shutdown
+FAILED: G19 cancel stops a probe and is idempotent, and fewer than two subscriptions throws ArgumentError
+FAILED: G4 a timer or microtask that a subscriber callback creates waits for a scheduler operation, whatever zone the subscriber listened from
+FAILED: G4 on a TestBus a reentrant publish and a first value wait for triggerActions, never for a real event-loop turn
+00:00 +45 -5: Some tests failed.
+exit: 1
+== seeded defect: a bootstrap subscription's first values skipped at start
+-- hsdd/contract/fixture/bus-api/behavior/nidana_dart_runtime_test.dart
+FAILED: G34 a subscription made before start receives nothing until start, which connects it after the topologies, with the settled current value or the buffer as its first values, then the queue
+00:00 +108 -1: Some tests failed.
+exit: 1
+-- hsdd/contract/fixture/bus-testing/behavior/nidana_dart_runtime_test.dart
+FAILED: G19 a probe attached during bootstrap receives nothing before start, and every sequence starts within start with the value start settled
+00:00 +49 -1: Some tests failed.
+exit: 1
+
+### cleanup: remove the copied packages, the fixtures and the build output
+removed
