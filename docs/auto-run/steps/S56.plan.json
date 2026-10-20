@@ -1,0 +1,57 @@
+{
+  "step_ref": "S56",
+  "skill": "none",
+  "target": "stage 9 plan",
+  "status": "completed",
+  "decisions": [
+    {
+      "at": "2026-10-20T16:12:40Z",
+      "artifact": "docs/auto-run/decision.schema.json",
+      "question": "Under which step type do the intake's decisions enter the ledger?",
+      "options": [
+        { "label": "A new step type, intake", "consequence": "The routing decisions (class, landing, handoff order) are counted and later judged on their own; the schema and ledger.mjs gain one enum value." },
+        { "label": "Reuse plan", "consequence": "No schema change, but routing decisions mix with the orchestrator's own planning decisions and a judge calibrated per step type cannot separate them." }
+      ],
+      "chosen": "A new step type, intake",
+      "why": "hsdd-intake is its own skill with its own question (which class, which nodes), and JUDGEMENT-LAYER.md calibrates the judge per step type, as TBM R6 does. Adding an enum value invalidates no earlier line.",
+      "evidence": [".agents/skills/hsdd-intake/SKILL.md", "docs/auto-run/JUDGEMENT-LAYER.md (untracked, owner's)"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T16:13:05Z",
+      "artifact": "docs/auto-run/execution-plan.md",
+      "question": "Where does the report for the v0.15.1 intake go?",
+      "options": [
+        { "label": "A new file, docs/auto-run/REPORT-v0_15_1.md", "consequence": "REPORT.md stays the S54 record and keeps the owner's uncommitted edit untouched; the owner reads two reports." },
+        { "label": "A new section of REPORT.md", "consequence": "One report to read, but committing it would commit the owner's own edit with it, or need a partial stage of the file." }
+      ],
+      "chosen": "A new file, docs/auto-run/REPORT-v0_15_1.md",
+      "why": "S55 keeps the owner's files out of every commit. A separate report also matches HSDD's split: the intake is one unit of work with its own record.",
+      "evidence": ["DEC-691"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T16:13:35Z",
+      "artifact": null,
+      "question": "What does the orchestrator hand the intake step about the change, given that hsdd-intake's step 2 is to locate the landing from the request's own sources?",
+      "options": [
+        { "label": "The changed sections and the earlier experiments on the same topics, no conclusions", "consequence": "The subagent reads every changed passage itself and judges impact; the list keeps it from missing a section, and the experiment paths keep it from re-measuring facts the run already has." },
+        { "label": "The orchestrator's own impact table", "consequence": "Faster, but the routing would rest on the orchestrator's reading instead of the skill's, which is the judgement the record exists to show." },
+        { "label": "Nothing beyond the request", "consequence": "The subagent diffs 4,000 lines itself and may miss a two-word change such as getCurrentValue's \\\"recently delivered\\\"." }
+      ],
+      "chosen": "The changed sections and the earlier experiments on the same topics, no conclusions",
+      "why": "The skill says to read the request's sources, not a summary of them. A list of where the text changed is a pointer, not a summary.",
+      "evidence": [".agents/skills/hsdd-intake/SKILL.md step 2"],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "would_upstream": false
+    }
+  ]
+}
