@@ -10,12 +10,14 @@
   - the workspace scan: topic name uniqueness (Spec §4.3), single-writer (Spec §3.11 layer 2), cycles and self-reference (Spec §3.8), scope compatibility (Spec §7.2), as reports of topology-ir@v1's analyses, with its line form and exit codes
   - nidana-checks@v1's scan host: G3 for the scan, G9 to G18 (nidana.tooling D2)
 - **Does not own:** the plugin rules (nidana.tooling.lint); the analyses, renderers, decoder and recorder it calls (nidana.model, root D4); the topologies and claims an app declares, and its registration library
-- **Consumes:** [topic-model@v1, topology-dsl@v1, topology-ir@v1, bus-api@v1, navigation-api@v1, flutter-binding@v1]
+- **Consumes:** [topic-model@v1, topology-dsl@v2, topology-ir@v1, bus-api@v2, navigation-api@v1, flutter-binding@v2]
 - **Produces:** [topic-codegen@v1, nidana-checks@v1]
 - **Governed by:** [ADR-001, ADR-002]
 - **Sources:**
-  - `ref/nidana-docs/arch/nidana-bus-ref-arch-spec-v0_15_0.md` §3.8, §3.11, §4.3 to §4.6, §6.5, §7.2, §9.2
-  - `ref/nidana-docs/arch/nidana-bus-ref-arch-guide-v0_15_0.md` §5.2, Appendix C.1 to C.5
+  - `ref/nidana-docs/arch/nidana-bus-ref-arch-spec-v0_15_0.md` §3.8, §3.11, §4.3 to §4.6, §6.5, §7.2, §9.2 (baseline, superseded by v0.15.1 on 2026-10-20; read only to see what changed)
+  - `ref/nidana-docs/arch/nidana-bus-ref-arch-spec-v0_15_1.md` §3.8, §3.11, §4.3 to §4.6, §6.5, §7.2, §9.2
+  - `ref/nidana-docs/arch/nidana-bus-ref-arch-guide-v0_15_0.md` §5.2, Appendix C.1 to C.5 (baseline, superseded by v0.15.1 on 2026-10-20; read only to see what changed)
+  - `ref/nidana-docs/arch/nidana-bus-ref-arch-guide-v0_15_1.md` §5.2, Appendix C.1 to C.5 with C.1 "Platforms without runtime reflection" (the explicit list D1 chose)
 - **Decomposes into:** phases (see hsdd-phase-plan)
 - **Isolation strategy:** the pure slices are tested by direct calls over topic-codegen@v1's `valid/`, `invalid/`, `rejected/` and `input/` documents; every producing phase replays the contract it produces, restricted to what its dependency closure has delivered, which for topic-codegen@v1 admits the `structure` and `schema` sets at every such phase, the file replay and `generate`'s recorded invocations at nidana.tooling.codegen.6 and .11 alone, and `catalog`'s at nidana.tooling.codegen.11, and for nidana-checks@v1 the `structure` set alone at nidana.tooling.codegen.7 and .8 and every `scan-*` recorded invocation at nidana.tooling.codegen.9 and .11 (ADR-001 item 10; nidana.tooling D2); the recognizer is tested over fixture packages; `catalog` runs over fixture packages with registration libraries, its document is decoded and schema-checked and its claims compared with the scan's over the scan cases' packages (topic-codegen@v1 G20, G21; nidana-checks@v1 G18); nothing runs a bus
 
@@ -38,11 +40,11 @@ It is a leaf-parent (nidana.tooling D1): one package, owned by one node (ADR-002
 | Contract | Direction | Counterpart | Edge type | What this node does with it |
 |----------|-----------|-------------|-----------|-----------------------------|
 | topic-model@v1 | consumes | nidana.model | shared-model | generated registries declare `StateTopic`, `EventTopic` and `ReplayTopic` values; `isWellFormedTopicName` checks generated names (G7) |
-| topology-dsl@v1 | consumes | nidana.model | contract | the generated entry point calls `buildDefinition()` of each registered topology (D1) |
+| topology-dsl@v2 | consumes | nidana.model | contract | the generated entry point calls `buildDefinition()` of each registered topology (D1) |
 | topology-ir@v1 | consumes | nidana.model | contract | `generate` decodes the graph and renders it with `MermaidRenderer`; `catalog` builds `TopologyGraph` from definitions and `ShellClaim`s and renders it with `JsonRenderer`; the scan runs `analyzeTopologyGraph` and `findTopicNameCollisions` |
-| bus-api@v1 | consumes | nidana.runtime | contract | `Bus.publisher` is a claim site, recognized by package and name (bus-api@v1 For static analysis) |
+| bus-api@v2 | consumes | nidana.runtime | contract | `Bus.publisher` is a claim site, recognized by package and name (bus-api@v2 For static analysis) |
 | navigation-api@v1 | consumes | nidana.navigation | contract | `NavigationExecutor` is a claim site |
-| flutter-binding@v1 | consumes | nidana.flutter | contract | `PageScope` and `FlutterNavigationExecutor` are claim sites |
+| flutter-binding@v2 | consumes | nidana.flutter | contract | `PageScope` and `FlutterNavigationExecutor` are claim sites |
 | topic-codegen@v1 | produces | nidana.integration (hard) | hard | every artifact |
 | nidana-checks@v1 | produces, with nidana.tooling.lint | nidana.integration (hard) | hard | the scan host: G3 for the scan, G9 to G18 |
 
@@ -59,7 +61,7 @@ Each slice is one or more libraries under `lib/src/`, reached by the others thro
 | generate and builder | `generate` and the builder over the pure slices: reads, writes, exit codes, the builder's failure mode | topic-codegen@v1 G2, G3, G11, G14, G17 to G19 | registry, documents |
 | recognizer | the analysis context over the given packages, application code, recognition by package and element name, topic declarations and the four claim sites with their write-set, scope and source rules, site and VM type-name rendering (D2) | nidana-checks@v1 G3 for the scan, G10 to G12 | skeleton |
 | scan | the analysis graph from the document's topologies and the resolved claims, the two analyses over it and the declarations, the report's order, line form and escapes, exit codes | nidana-checks@v1 G9, G13 to G17 | recognizer; topology-ir@v1's analyses and decoder |
-| catalog | the registration library (D1), the generated entry point and its two runners, the merge of the recorded definitions with the recognizer's claims, the rendering and exit codes | topic-codegen@v1 G20, G21; nidana-checks@v1 G18 | recognizer; topology-dsl@v1's recorder; topology-ir@v1's renderer and decoder |
+| catalog | the registration library (D1), the generated entry point and its two runners, the merge of the recorded definitions with the recognizer's claims, the rendering and exit codes | topic-codegen@v1 G20, G21; nidana-checks@v1 G18 | recognizer; topology-dsl@v2's recorder; topology-ir@v1's renderer and decoder |
 
 topic-codegen@v1 G2's acceptance of `valid/` and rejection of `invalid/` by `generate` and every decision of the builder, G9, G10, G11, G19's diagnostic form and its unchanged `<output>` file, G20, and G21 beyond its two recorded usage cases, and nidana-checks@v1 G9's "writes no file", G17 and G18, are not executable in their contracts and are checked by this node's gates (their Validation sections).
 
@@ -121,12 +123,14 @@ Evidence: `docs/auto-run/experiments/catalog-loading/` (`run.sh`, `output.txt`),
 
 Alternatives considered:
 
-- **An annotation, the `@Topology` registration of Spec §6.5.** Dart's `Topology` is topology-dsl@v1's abstract base class, so the annotation needs another name and a declaration in `nidana_dart_contracts` (an `amend topology-dsl@v1`), a builder that writes the entry point (a file layout in topic-codegen@v1), and, for a topology with dependencies, an annotated factory, which is the registration library with two more mechanisms. Marked for upstreaming: Spec §6.5 names a `@Topology` registration mechanism, which Dart cannot declare under that name; "a registration mechanism per platform" would cover this one.
+- **An annotation, the `@Topology` registration of Spec §6.5.** Dart's `Topology` is topology-dsl@v2's abstract base class, so the annotation needs another name and a declaration in `nidana_dart_contracts` (an `amend topology-dsl@v2`), a builder that writes the entry point (a file layout in topic-codegen@v1), and, for a topology with dependencies, an annotated factory, which is the registration library with two more mechanisms. Marked for upstreaming: Spec §6.5 names a `@Topology` registration mechanism, which Dart cannot declare under that name; "a registration mechanism per platform" would cover this one. The mark ended on 2026-10-21 with Guide Appendix C.1 (the check below).
 - **A convention scan** that constructs every concrete public `Topology` subclass with a zero-argument constructor and every top-level `Topology` value. It still needs the library for topologies with dependencies, cannot reach private or local declarations from a generated entry point, and has to rule on a topology both found and listed. The signal that would favor it: an adopter whose registration lists drift. An unregistered topology is absent from the static graph, so the scan's checks miss its writes, and only the runtime rejects it at activation.
 - **The Flutter tester for every package.** It needs the Flutter SDK for pure-Dart packages and takes about twice as long (T1, T3).
 - **Recording inside `catalog`'s own process,** by isolate or import. `catalog` runs on `dart run`, which cannot load `dart:ui` (T2), and its own dependencies would join the app's resolution.
 
 **Corrected 2026-10-18.** As first written, point 3 said the Flutter tester needs no `flutter_test` dependency (T5), and the Evidence line described T5 without its workspace. The phase plan's experiment found that the tester refuses a package whose resolution holds neither `flutter_test` nor `test` (D4 point 1), and topic-codegen@v1 Registration, point 3, states the requirement, so point 3 and the Evidence line now carry it; the refusal is a runner exit other than 0 or 79, which point 4 already makes a failure. Point 5 described the amendment of topic-codegen@v1 before hsdd-reconcile applied it, and now says where it landed. The decision did not change.
+
+**Checked 2026-10-21 for Specification v0.15.1** (`hsdd/management/2026-10-20-intake-ref-arch-v0-15-1.md`, landing L9). The decision holds. Guide Appendix C.1 "Platforms without runtime reflection" now describes the mechanism it chose: where the runtime cannot enumerate or instantiate classes by reflection, as on Flutter and in Dart compiled ahead of time, the catalog takes an explicit list, calls `buildDefinition()` on each listed topology and runs the IR-level checks over what is listed, and a topology left off the list is covered by the runtime checks only, as the convention scan's alternative says of an unregistered topology. That ends the first alternative's upstream mark: Spec §6.5 keeps its wording, "a `@Topology` registration mechanism per platform", and points at Guide Appendix C, whose C.1 now gives the explicit list as that mechanism on Dart, so the Specification needs no change for this point. Two details differ from the Guide's description, and neither needs the Specification to change. The list is point 1's library under `tool/`, where the Guide calls a test typical, and `catalog` runs it under the Flutter tester when it reaches `dart:ui` (point 3). The Guide's list also names the publisher claims. Here the recognizer finds them in the package's application code (D2), so no claim site there is left off, a site whose write set or scope does not resolve is reported, and the document's claims are the scan's (nidana-checks@v1 G18). Orphan and unreachable-topic analysis, which the Guide says needs the full walk, stays out of v1 (root D1). As first written, the first alternative cited topology-dsl@v1; it now cites topology-dsl@v2, whose `Topology` is still the abstract base class. Point 5 records the amendment of 2026-10-18 and keeps the versions it names; the registration needs no change to topology-dsl@v2 either.
 
 ### D2: The claim recognizer is one package-internal library
 
