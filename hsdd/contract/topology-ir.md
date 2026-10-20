@@ -19,21 +19,21 @@ The data form of a topology (Spec §6.5, Appendix A.4) and everything computed f
 
 ## Boundary
 
-topic-model@v1 and topology-dsl@v1 assigned this contract the IR, its JSON form (with the JSON encodings of `TopicRef`, `Scope` and `MessageSource`), graphs and renderers, and every analysis over sets of definitions. This contract keeps those assignments and refines them in five places:
+topic-model@v1 and topology-dsl@v2 assigned this contract the IR, its JSON form (with the JSON encodings of `TopicRef`, `Scope` and `MessageSource`), graphs and renderers, and every analysis over sets of definitions. This contract keeps those assignments and refines them in five places:
 
 | Declaration group | Contract |
 |-------------------|----------|
 | `TopologyDefinition`, `TransformEdge`, `EdgeInput`, `TopicInput`, `StageInput`, `CombinatorKind`, `FunctionRef`; the projection of a plan (refinement 1); the naming of a transformer (OQ-M1) | topology-ir@v1, main library |
 | `TopologyGraph`, `ShellClaim`, `toGraph()`, `GraphRenderer` and the three renderers, the JSON codec, the analyses and their findings, `TopicDeclaration`, `TopicNameCollision` | topology-ir@v1, library `topology_ir.dart` (refinement 2) |
-| `Topology.buildDefinition()`, `TopologyPlan.definition`, the stage classes and which `CombinatorKind` each projects to | topology-dsl@v1 |
-| `Bus.activate`, the activation checks' wiring and their diagnostics, `bus.toGraph()`, the ownership table, idempotency on `topologyId` (Spec §3.9) | bus-api@v1 |
+| `Topology.buildDefinition()`, `TopologyPlan.definition`, the stage classes and which `CombinatorKind` each projects to | topology-dsl@v2 |
+| `Bus.activate`, the activation checks' wiring and their diagnostics, `bus.toGraph()`, the ownership table, idempotency on `topologyId` (Spec §3.9) | bus-api@v2 |
 | `Catalog.scanTopologies`, the path and generator of `topology-graph.json`, the workspace scan that finds publisher claims and topic declarations, the build-time HTML graph | nidana.tooling: topic-codegen@v1, nidana-checks@v1 |
 | `TopicRef`, `Scope`, `MessageSource`, `Dedup` | topic-model@v1 |
 
 - **Refinement 1.** Spec §6.5 sketches `TransformEdge` with topic references at both ends, which cannot describe a pipeline of more than one stage, nor which stage a write takes. Here an edge's inputs are topics or earlier edges, a write and a reduceInto are edges whose output is a topic, and each edge carries what the analyses and an equality check need: its function references, its duration and the dedup argument of each read. The definition keeps the Spec's five fields; `reads` and `writes` are derived from the edges.
 - **Refinement 2.** The value types sit in the main library because `buildDefinition()`, which topology modules call, returns them. Graphs, renderers, the JSON codec and the analyses sit in a second public library (ADR-002 item 3) that the runtime, the tooling and tests import, so a topology module's namespace carries no renderer or analysis names.
 - **Refinement 3.** One graph type serves both views of Spec §6.5: `bus.toGraph()` builds it from the active topologies and the live publishers' claims, the catalog from every topology and claim the workspace declares. A shell publisher's claim enters as a `ShellClaim` value (its source, its scope, its state topics), so the analyses see topology owners and shell owners alike (Spec §3.11, §7.2) and this contract names no bus type.
-- **Refinement 4.** The analyses are the only implementation of the checks of Spec §3.8, §3.11 and §7.2. Activation (bus-api@v1) and the workspace scan (nidana-checks@v1, ADR-002 item 8) call the same functions over graphs they build differently (root D4).
+- **Refinement 4.** The analyses are the only implementation of the checks of Spec §3.8, §3.11 and §7.2 "Scope compatibility". Spec §7.2 "Scope timing" is not an analysis: bus-api@v2 rejects a `MODULE` or `PAGE` activation before `start()` itself (its G42), and the rejection is no finding of this contract. Activation (bus-api@v2) and the workspace scan (nidana-checks@v1, ADR-002 item 8) call the same functions over graphs they build differently (root D4).
 - **Refinement 5.** The serialized form is one document type, the graph document, with one schema. `topology-graph.json` (Guide C.3) is the JSON rendering of the catalog's graph; a single definition's JSON form is the object a graph document lists for it.
 
 Not here: duplicate topology ids across modules (the graph rejects them, G11; reporting them is the catalog's), orphan and unreachable topics and the sequencer check (v2, root D1), topology diff (root D1), binary-module manifests (root D1), and the topic catalog `topics.md` (topic-codegen@v1).
@@ -42,7 +42,7 @@ Not here: duplicate topology ids across modules (the graph rejects them, G11; re
 
 **Libraries:** `package:nidana_dart_contracts/nidana_dart_contracts.dart`, the main library of `nidana_dart_contracts` at `packages/nidana_dart_contracts/`, carries every declaration under The IR and Function references; `package:nidana_dart_contracts/topology_ir.dart`, a second public library named by this contract (ADR-002 item 3), carries every declaration under Graphs, Renderers, The JSON form and Analyses. `topology_ir.dart` does not re-export the main library. Both import nothing beyond the SDK (`dart:convert` included), `package:meta` and the package's own libraries (topic-model@v1 G26). **Code owner:** nidana.model, whose first producing phase lands every declaration below (ordering policy `fp-progression`, root D10; Delivery, below). **Validation artifacts:** `hsdd/contract/schema/topology-ir.schema.json` and `hsdd/contract/fixture/topology-ir/`, owned by hsdd-contract (ADR-001 item 8).
 
-**Delivery**, by the phases `produced_by` names. nidana.model.5 lands every declaration, `TopologyDefinition` having landed with topology-dsl@v1 at nidana.model.4, and a consumer's edge on this contract waits on it. A `hard` edge waits instead on nidana.model.14, the last producing phase (nidana.integration). Until the phase that delivers it merges, a body that computes throws `UnimplementedError` and a value compares by identity: nidana.model.10 delivers the IR values, `TransformEdge`'s rules, `FunctionRef`, `isStateBearing` and the findings' value semantics (G2, G5, G6, G9, G10, G23); nidana.model.11 the projection, `ShellClaim` and `TopologyGraph` (G3, G7, G8, G11, G12); nidana.model.12 the analyses (G13 to G18); nidana.model.13 the JSON codec and `JsonRenderer` (G4, G19 to G21); nidana.model.14 the Mermaid and Graphviz renderers (G22).
+**Delivery**, by the phases `produced_by` names. nidana.model.5 lands every declaration, `TopologyDefinition` having landed with topology-dsl@v2 at nidana.model.4, and a consumer's edge on this contract waits on it. A `hard` edge waits instead on nidana.model.14, the last producing phase (nidana.integration). Until the phase that delivers it merges, a body that computes throws `UnimplementedError` and a value compares by identity: nidana.model.10 delivers the IR values, `TransformEdge`'s rules, `FunctionRef`, `isStateBearing` and the findings' value semantics (G2, G5, G6, G9, G10, G23); nidana.model.11 the projection, `ShellClaim` and `TopologyGraph` (G3, G7, G8, G11, G12); nidana.model.12 the analyses (G13 to G18); nidana.model.13 the JSON codec and `JsonRenderer` (G4, G19 to G21); nidana.model.14 the Mermaid and Graphviz renderers (G22).
 
 The declarations are the schema of the Dart surface (ADR-001 item 4); the JSON Schema is the schema of the serialized form (ADR-001 item 5). Bodies are omitted; the comments, the rules and the guarantees state the semantics. Every class here other than the sealed bases `EdgeInput` and `TopologyFinding` and the interface `GraphRenderer` is final; every value type is immutable (annotated `@immutable`) with value equality.
 
@@ -57,8 +57,8 @@ The declarations are the schema of the Dart surface (ADR-001 item 4); the JSON S
 
 ```dart
 /// The combinator of an edge (Spec §6.5, Appendix A.4): one value per stage
-/// class of topology-dsl@v1 other than ReadStage, and one for reduceInto, in
-/// topology-dsl@v1's combinator-table order.
+/// class of topology-dsl@v2 other than ReadStage, and one for reduceInto, in
+/// topology-dsl@v2's combinator-table order.
 enum CombinatorKind {
   map, filter, combine, withLatestFrom, merge, switchMap, scan, pairwise,
   distinctUntilChanged, debounce, throttle, delay, sample, buffer, timeout,
@@ -70,7 +70,7 @@ sealed class EdgeInput {}
 
 /// The values one read of [topic] delivers: a ReadStage of the plan. [dedup]
 /// is the read's argument, null when the read kept the topic's own policy
-/// (topology-dsl@v1 G13).
+/// (topology-dsl@v2 G13).
 final class TopicInput extends EdgeInput {
   const TopicInput(TopicRef topic, {Dedup? dedup});
   TopicRef get topic;
@@ -149,23 +149,23 @@ final class TopologyDefinition {
 
 A write has one input and nothing else; a reduceInto has one input and a transformer.
 
-**State-bearing edges** (Spec §3.8, topology-dsl@v1's Self-reference column): `isStateBearing` holds for `scan` and `reduceInto`, and for `debounce`, `delay`, `sample` and `buffer` with a positive duration; for no other edge. The IR carries every time stage's duration so that this rule is decided from the IR alone.
+**State-bearing edges** (Spec §3.8, topology-dsl@v2's Self-reference column): `isStateBearing` holds for `scan` and `reduceInto`, and for `debounce`, `delay`, `sample` and `buffer` with a positive duration; for no other edge. The IR carries every time stage's duration so that this rule is decided from the IR alone.
 
-**A well-formed definition.** `TopologyDefinition` rejects with ArgumentError: an empty `topologyId`; a `StageInput` whose index is negative, is not below its own edge's index, or names a sink edge; a stage edge after a sink edge; a stage edge no later edge consumes; a second sink edge on one state topic (topology-dsl@v1 G14). `reads` and `writes` are derived, never given.
+**A well-formed definition.** `TopologyDefinition` rejects with ArgumentError: an empty `topologyId`; a `StageInput` whose index is negative, is not below its own edge's index, or names a sink edge; a stage edge after a sink edge; a stage edge no later edge consumes; a second sink edge on one state topic (topology-dsl@v2 G14). `reads` and `writes` are derived, never given.
 
 **Equality.** Two definitions are equal exactly when their `topologyId`, `scope` and `transforms` (element by element) are equal; two edges exactly when all six fields are equal, `inputs` element by element; inputs and function references by their fields. A definition does not record a `scan`'s initial value, a closure's body, or which of two functions rendering the same name a stage holds, so two declarations that differ only there project to equal definitions.
 
 ### From a plan
 
-`TopologyPlan.definition` (topology-dsl@v1) projects a plan to a definition, and `buildDefinition()` returns it:
+`TopologyPlan.definition` (topology-dsl@v2) projects a plan to a definition, and `buildDefinition()` returns it:
 
 1. One stage edge per non-read stage of the plan, in stage order, then one sink edge per sink, in sink order. Read stages are not edges.
 2. A stage's handle becomes `TopicInput(topic.ref, dedup: dedup)` when the handle is a `ReadStage`, else `StageInput(i)`, where `i` is the index of that stage's edge.
-3. A stage edge's combinator is topology-dsl@v1's `CombinatorKind` for its class; its inputs are the stage's in order: `input` for single-input stages, `inputs` for `CombineStage` and `MergeStage`, `primary` then `latest` for `WithLatestFromStage`.
+3. A stage edge's combinator is topology-dsl@v2's `CombinatorKind` for its class; its inputs are the stage's in order: `input` for single-input stages, `inputs` for `CombineStage` and `MergeStage`, `primary` then `latest` for `WithLatestFromStage`.
 4. Its `transformer` is `FunctionRef.of` the function the stage holds: `transform`, `test`, `combiner`, `toStream`, `accumulator`, `recover`, `operator`. Its `duration` is the stage's for the six time stages. Its `retry` is `FunctionRef.of(retry)` for a `SwitchMapStage` with a retry policy.
 5. A `WriteSink` becomes `TransformEdge.write(topic.ref, input)`; a `ReduceIntoSink` becomes `TransformEdge.reduceInto(topic.ref, events, FunctionRef.of(reducer))`.
 
-Projection calls none of the plan's functions (topology-dsl@v1 G10): `FunctionRef.of` reads a function's `toString()`, nothing else. Every definition a plan projects to is well formed, because `planOf` already rejects a stage that reaches no sink and a second sink on one state topic.
+Projection calls none of the plan's functions (topology-dsl@v2 G10): `FunctionRef.of` reads a function's `toString()`, nothing else. Every definition a plan projects to is well formed, because `planOf` already rejects a stage that reaches no sink and a second sink on one state topic.
 
 ### Function references
 
@@ -436,12 +436,12 @@ What each analysis computes; every returned list is unmodifiable and holds disti
 - **Scope violations.** For each state topic in canonical order, each owner (its writers, with the topology's or the claim's scope) and each topology that reads it, in graph order: a violation when `ownerScope.isAtLeastAsLongAs(readerScope)` does not hold (Spec §7.2). Ordered by topic, then owner, then reader.
 - **Topic name collisions.** Over the distinct declarations given, one `TopicNameCollision` per name with two or more of them, whatever their variants and types, ordered by name (Spec §4.3: the CI step fails on any collision; the runtime's own check compares types).
 
-How the two hosts use them (root D4): activation (bus-api@v1) builds a graph of the active definitions, the candidate and the live claims, and rejects the activation, or the publisher construction, when `analyzeTopologyGraph` reports a finding; because a graph without findings stays without them when topologies or claims are removed (G17), the active set it keeps stays clean. The workspace scan (nidana-checks@v1) builds the catalog's graph and reports every finding, and calls `findTopicNameCollisions` over the topic declarations it finds.
+How the two hosts use them (root D4): activation (bus-api@v2) builds a graph of the active definitions, the candidate and the live claims, and rejects the activation, or the publisher construction, when `analyzeTopologyGraph` reports a finding; because a graph without findings stays without them when topologies or claims are removed (G17), the active set it keeps stays clean. The workspace scan (nidana-checks@v1) builds the catalog's graph and reports every finding, and calls `findTopicNameCollisions` over the topic declarations it finds.
 
 ## Guarantees / invariants
 
 - **G1** The IR's families are closed: `EdgeInput` is sealed with exactly `TopicInput` and `StageInput`, `TopologyFinding` is sealed with exactly `TopologyCycle`, `SelfReference`, `WriterConflict` and `ScopeViolation`, every class here other than those two and `GraphRenderer` is final, no type outside the library extends or implements any of them, and a switch that omits an input form, a finding variant or a `CombinatorKind` value does not compile.
-- **G2** `CombinatorKind` has exactly the eighteen values topology-dsl@v1 names, in the order listed.
+- **G2** `CombinatorKind` has exactly the eighteen values topology-dsl@v2 names, in the order listed.
 - **G3** IR values, graphs, claims, declarations and findings are immutable: no field can be assigned, and every list and set they expose is an unmodifiable copy that later changes to the argument do not reach.
 - **G4** The IR holds no function (Spec §6.5, Appendix A.4): `FunctionRef` is not a `Function`, cannot be called and exposes no function, nor does any edge; every definition a plan projects to encodes to JSON and decodes back equal.
 - **G5** `TransformEdge.stage` accepts exactly the inputs, transformer, duration and retry the stage-edge table allows for its combinator, rejects reduceInto and negative durations with `ArgumentError`, and accepts a zero duration; `TransformEdge.write` makes an edge with no combinator; `TransformEdge.reduceInto` accepts only a state topic.
@@ -471,6 +471,7 @@ How the two hosts use them (root D4): activation (bus-api@v1) builds a graph of 
 - Compatible: a new analysis function; a new getter on a final class; a new optional named parameter with a default that keeps current behavior; a new guarantee that existing fixtures still pass.
 - Amended within v1, from nidana.model's phase plan (nidana.model.10), drained by hsdd-reconcile on 2026-10-18: G23, the finding and collision constructors sort their lists into the orders the Interface's comments name, with a sentence under Analyses and one behavior case. Compatible: no declaration changes; every finding the suite and the `findings` sample build is already in those orders, so every existing case passes against a stand-in that sorts and one that keeps the order given, and only the new case tells them apart (`docs/auto-run/experiments/model-reconcile-amends/`); no other contract's fixtures construct a finding or a collision. A constructor that keeps the order given is now a defect.
 - Amended within v1 by hsdd-contract on 2026-10-18, from a finding of the hsdd-reconcile pass that drained nidana.navigation's plan: the Function references table gains the row for private names, which the VM renders with `@` and the library's key; a Private names paragraph says what the key depends on and that a definition, graph or graph document holding a private transformer compares unequal across programs and runners; the sentence after the table says public names are as written; G9's gloss names the key; and one G9 behavior case covers the row without asserting the key's value. Compatible: G9's rule, the text between `from Function '` and the next `'`, already yields the key, so no declaration, rule, canonical order, rendering rule, JSON key or schema changes. The stand-in that follows the rule passes every case, and a `FunctionRef.of` that strips the key, which passed every case before, fails the new case alone (`docs/auto-run/experiments/function-ref-private-key/`). No other contract's fixtures bind this suite; no consumer phase compares a private transformer's name across programs (nidana.integration D8 and nidana.tooling.codegen's note on function references keep their transformers public), and for the external consumers the paragraph states behavior they already meet.
+- Touched within v1, 2026-10-21, for Specification v0.15.1 (`hsdd/management/2026-10-20-intake-ref-arch-v0-15-1.md`, section "Citations of a superseded version", handoff H7c). Every live citation of topology-dsl and bus-api names v2, the version those contracts took in that intake; the Validation paragraph on `docs/auto-run/experiments/topology-ir-fixtures/` keeps the version of topology-dsl that experiment replayed. Refinement 4 now limits the analyses to Spec §7.2 "Scope compatibility" and names bus-api@v2's G42 as where Spec §7.2 "Scope timing" is enforced, a rejection that is no finding of this contract. Compatible: no declaration, guarantee, case, fixture behavior, JSON key or schema changed; the one fixture edit is a comment line of `surface/definitions.dart`.
 - Not in v1, each a candidate for a later version: stage type arguments in the IR; a `scan`'s initial value; a qualified name for static methods; orphan and unreachable topic analyses, sequencer detection and binary-module manifests (root D1); topology diff (root D1); a finding for duplicate topology ids.
 
 ## Validation

@@ -100,7 +100,7 @@ final String? derived = FunctionRef.of(total).name;
 const FunctionRef anonymous = FunctionRef.anonymous();
 final bool sameRef = FunctionRef.named('total') == FunctionRef.of(total);
 
-/// What a recorded topology yields (topology-dsl@v1 buildDefinition()).
+/// What a recorded topology yields (topology-dsl@v2 buildDefinition()).
 final TopologyDefinition recorded = topology('recorded', Scope.module,
     (TopologyBuilder b) => b.write(const EventTopic<int>(name: 'demo.out'),
         b.read(const EventTopic<int>(name: 'demo.taps')))).buildDefinition();
