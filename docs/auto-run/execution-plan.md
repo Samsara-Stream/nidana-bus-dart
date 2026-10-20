@@ -158,6 +158,37 @@ dropped flag in ADR-002 (nidana.integration D7 records it for the one member tha
 
 `docs/auto-run/REPORT.md` per protocol step 9, committed. Then the run stops.
 
+### Stage 9. The v0.15.1 intake (from S55)
+
+On 2026-10-20 the owner updated `ref/nidana-docs` to 968a337, which adds the v0.15.1 Specification,
+Guide and Rationale, and asked for the whole tree to be brought in line with it, through hsdd-intake
+and the proper HSDD workflow, without asking anything. The protocol of stages 0 to 8 holds unchanged:
+one skill invocation per step in a fresh subagent, the gate, two commits per step, the ledger. Two
+things differ, both set at S55: v0.15.1 is the normative source (v0.15.0 is read only as the baseline
+the tree was planned against), and the conditions that used to stop the run are decided by the
+orchestrator and recorded with `would_have_asked: true`.
+
+- **S55, setup (orchestrator).** Inputs, the owner's new fact, the stop reading, the version rule for
+  breaking changes to stable contracts, the submodule pointer, CLAUDE.md.
+- **S56, plan (orchestrator).** This section; the gate learns hsdd-intake's write set and guards the
+  owner's uncommitted files by hash (`tools/owner-files.json`); the ledger learns the `intake` step type.
+- **S57, hsdd-intake.** "Route reference architecture v0.15.1 into the tree." Reads the three v0.15.1
+  files, the v0.15.0 baseline for the diff, the whole tree (there is no atlas), and every open intake
+  record (there are none; `hsdd/management/` does not exist yet). Done when
+  `hsdd/management/2026-10-20-intake-{slug}.md` exists with its class, the landing nodes and contracts,
+  and a Routing section that names every handoff with its exact prompt, in order, written before any
+  handoff runs; nothing else under `hsdd/` changed; the gate passes with `--skill hsdd-intake`.
+- **S58 onward, the handoffs.** One step per handoff the record names, in its order: hsdd-contract steps
+  (a breaking change takes the next version, S55), hsdd-adr steps, hsdd-spec touches (Sources and node
+  decisions), and the phase-plan work the record routes (append mode, or an hsdd-reconcile sweep over
+  phases that no verification doc has shipped). The step log grows as the record is executed.
+- **Finish line.** Every pending governance section drained; `gate.mjs --final` passes and its
+  stale-version warnings are read; the intake record's `## Produced` lists the contracts bumped, ADRs
+  touched and phases appended or rewritten; `docs/auto-run/REPORT-v0_15_1.md` is committed: what
+  changed in the Specification, what the tree changed in response, the decisions to look at first
+  (every `would_have_asked`), and which `would_upstream` decisions of S00 to S54 v0.15.1 adopted,
+  contradicted or left open.
+
 ## Step log
 
 | Step | Stage | Skill | Target | Status | Artifact commit |
@@ -217,6 +248,9 @@ dropped flag in ADR-002 (nidana.integration D7 records it for the one member tha
 | S52 | 7 | hsdd-spec (touch) | nidana.tooling.codegen: Development flow start conditions and the drained "Carried into" section | done | a298bf6 |
 | S53 | 7 | hsdd-reconcile (sweep) | phase scopes, gates and plan-written decisions that contradict amended ADR-001, ADR-002 and the contracts; then `gate.mjs --final` | done | 3dd24d0 |
 | S54 | 8 | none (orchestrator) | REPORT.md | done | this report's commit |
+| S55 | 9 | none (orchestrator) | inputs for the v0.15.1 intake | done | a9feca6 |
+| S56 | 9 | none (orchestrator) | stage 9 plan, gate and ledger changes | done | this entry's commit |
+| S57 | 9 | hsdd-intake | reference architecture v0.15.1 | planned | |
 
 ## Change log
 
@@ -400,3 +434,8 @@ dropped flag in ADR-002 (nidana.integration D7 records it for the one member tha
   the pure members' tests, nidana.tooling.codegen.10's note) and restated plan scopes and plan-written
   decisions; no phase, dependency or contention entry changed. Stage 8 (REPORT) is S54.
 - 2026-10-18 (UTC), S54: `docs/auto-run/REPORT.md` written and committed; the run stops here.
+- 2026-10-20 (UTC), S55 and S56: stage 9 opened for the v0.15.1 intake. The step preamble now names
+  v0.15.1 as normative and v0.15.0 as the baseline, and says the orchestrator decides what used to stop
+  the run. The gate gained hsdd-intake's write set, the intake slug rule, a hash guard over the owner's
+  uncommitted files and, under `--final`, warnings for references to a contract version that is no
+  longer current. The ledger gained the `intake` step type.

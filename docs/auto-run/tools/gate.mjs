@@ -14,6 +14,7 @@
 // Exit 0 when no error; warnings never fail the gate.
 
 import { readFileSync, readdirSync, existsSync, statSync } from "node:fs";
+import { createHash } from "node:crypto";
 import { execFileSync } from "node:child_process";
 import { join } from "node:path";
 
@@ -44,9 +45,13 @@ function changed() {
 const NEVER = [/^ref\//, /^hsdd\/judgement\//, /^\.agents\//, /^\.claude\//, /^skills-lock\.json$/, /^\.fvmrc$/];
 const ALWAYS = [/^docs\/auto-run\/experiments\//, /^docs\/auto-run\/steps\//];
 // Orchestrator-owned run files: edited between steps, never by a step.
-const ORCH = [/^docs\/auto-run\/execution-plan\.md$/, /^docs\/auto-run\/REPORT\.md$/, /^docs\/auto-run\/timestamp-corrections\.md$/, /^docs\/auto-run\/tools\//];
+const ORCH = [/^docs\/auto-run\/execution-plan\.md$/, /^docs\/auto-run\/REPORT(-v0_15_1)?\.md$/, /^docs\/auto-run\/timestamp-corrections\.md$/, /^docs\/auto-run\/tools\//];
+// The owner's uncommitted files (S55): skipped by the write-set check, but they must stay byte-identical
+// to the snapshot in tools/owner-files.json, so a step that touches one still fails.
+const OWNER = [/^docs\/auto-run\/HARNESS\.md$/, /^docs\/auto-run\/JUDGEMENT-LAYER\.md$/, /^docs\/auto-run\/explorer\//];
 const ALLOW = {
   "hsdd-spec": [/^hsdd\/spec\/[^/]+\.md$/, /^hsdd\/conventions\.md$/],
+  "hsdd-intake": [/^hsdd\/management\/[0-9]{4}-[0-9]{2}-[0-9]{2}-intake-[a-z0-9-]+\.md$/],
   "hsdd-adr": [/^hsdd\/adr\/[^/]+\.md$/, /^hsdd\/spec\/[^/]+\.md$/, /^hsdd\/contract\/[^/]+\.md$/, /^hsdd\/scripts\/gen-registry\.mjs$/],
   "hsdd-contract": [/^hsdd\/contract\//, /^hsdd\/scripts\/gen-registry\.mjs$/, /^hsdd\/adr\/INDEX\.md$/],
   "hsdd-phase-plan": node ? [new RegExp(`^hsdd/spec/${node.replace(/\./g, "\\.")}\\.md$`)] : [],
@@ -59,10 +64,24 @@ if (skill) {
   if (skill === "hsdd-phase-plan" && !node) err("--node is required for hsdd-phase-plan");
   for (const f of files) {
     if (NEVER.some((r) => r.test(f))) { err(`forbidden path changed: ${f}`); continue; }
-    if (ALWAYS.some((r) => r.test(f)) || ORCH.some((r) => r.test(f))) continue;
+    if (ALWAYS.some((r) => r.test(f)) || ORCH.some((r) => r.test(f)) || OWNER.some((r) => r.test(f))) continue;
     if (!(ALLOW[skill] || []).some((r) => r.test(f))) err(`${skill} may not write ${f}`);
   }
   if (!files.length) warn("the step changed no file");
+}
+
+// owner files unchanged since the snapshot
+const SNAP = join(ROOT, "docs", "auto-run", "tools", "owner-files.json");
+if (existsSync(SNAP)) {
+  for (const [p, h] of Object.entries(JSON.parse(read(SNAP)))) {
+    const now = existsSync(join(ROOT, p)) ? createHash("sha256").update(readFileSync(join(ROOT, p))).digest("hex") : null;
+    if (now !== h) err(`owner file changed or removed: ${p}`);
+  }
+}
+// intake records: the skill's name rule
+for (const f of files.filter((x) => x.startsWith("hsdd/management/"))) {
+  const slug = (/^hsdd\/management\/[0-9-]{10}-intake-(.+)\.md$/.exec(f) || [])[1];
+  if (slug && /progress|execution-plan|milestones|atlas/.test(slug)) err(`${f}: intake slug contains a reserved word`);
 }
 
 // ---------- 2. registry: verbatim generator, regenerates clean ----------
@@ -248,6 +267,16 @@ if (final) {
     if (fm.status !== "stable") err(`hsdd/contract/${c.f}: status ${fm.status}`);
     if (fm.phase_ids !== "final") err(`hsdd/contract/${c.f}: phase_ids ${fm.phase_ids}`);
     void slug;
+  }
+  // references to a version that is no longer current, outside the contract's own file (a migration
+  // note may name the old version): warnings, read by the orchestrator
+  for (const { where, text } of allText) {
+    const stale = new Map();
+    for (const m of text.matchAll(/(?<![\w/.-])([a-z][a-z0-9-]*)@(v\d+)\b/g)) {
+      const hit = conById.get(m[1]);
+      if (hit && hit.fm.version !== m[2] && where !== `hsdd/contract/${hit.c.f}`) stale.set(m[0], (stale.get(m[0]) || 0) + 1);
+    }
+    for (const [ref, n] of stale) warn(`${where}: ${n} reference(s) to ${ref}, not the current version`);
   }
   const index = existsSync(join(H, "contract", "INDEX.md")) ? read(join(H, "contract", "INDEX.md")) : "";
   for (const slug of named) if (!index.includes(`\`${slug}\``)) err(`hsdd/contract/INDEX.md does not list ${slug}`);
