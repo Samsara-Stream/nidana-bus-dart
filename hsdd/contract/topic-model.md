@@ -27,18 +27,18 @@ nidana.model produces three contracts from one package. This contract holds the 
 | `MessageEnvelope`, `MessageSource` and its five variants, `Lineage` with its combination rules, `RedactedPayload` | topic-model@v1 |
 | `Scope` and its lifetime order | topic-model@v1 |
 | `BusObserver`, `ObserveContext`, `SpanHandle`, `LogLevel`, `ObserverCapability` and its admission rule | topic-model@v1 |
-| `Topology`, the `topology(id, scope, body)` form, `TopologyBuilder`, the opaque stream handle and every combinator (`reduceInto`, error and time-dependent combinators, the raw-engine escape hatch), the per-read dedup opt-out, any typed topology id, the recording builder and `buildDefinition()`; which lineage function each combinator applies | topology-dsl@v1 |
+| `Topology`, the `topology(id, scope, body)` form, `TopologyBuilder`, the opaque stream handle and every combinator (`reduceInto`, error and time-dependent combinators, the raw-engine escape hatch), the per-read dedup opt-out, any typed topology id, the recording builder and `buildDefinition()`; which lineage function each combinator applies | topology-dsl@v2 |
 | `TopologyDefinition`, `TransformEdge`, `CombinatorKind`, `FunctionRef`, the IR's JSON form (including the JSON encoding of `TopicRef`, `Scope` and `MessageSource`), `TopologyGraph`, `toGraph()`, the renderers; the analyses over sets of definitions: inter-topology cycles, intra-topology self-reference, scope compatibility over an ownership table, topic name uniqueness over a set of declarations | topology-ir@v1 |
 
-Not in any of the three: navigation types (root D7, navigation-api@v1); `Bus`, `BusConfig`, publishers, writer handles, `getCurrentValue`, `getBufferedValues` and the providers (bus-api@v1, bus-testing@v1); the cross-feature `AppError` of Guide §4.1, which stays an application type.
+Not in any of the three: navigation types (root D7, navigation-api@v1); `Bus`, `BusConfig`, publishers, writer handles, `getCurrentValue`, `getBufferedValues` and the providers (bus-api@v2, bus-testing@v2); the cross-feature `AppError` of Guide §4.1, which stays an application type.
 
 Placement rule the next two contracts follow: a value that crosses more than one of the three contracts, or that application code constructs without declaring a topology, lives here; an analysis over a collection of definitions lives in topology-ir@v1, even when it only compares values defined here (scope compatibility uses `Scope.isAtLeastAsLongAs`).
 
 ## Interface
 
-**Library:** `package:nidana_dart_contracts/nidana_dart_contracts.dart`, the main library of the package `nidana_dart_contracts` at `packages/nidana_dart_contracts/` (ADR-002 item 3). This contract defines no second public library; the same main library carries the declarations of topology-dsl@v1 and topology-ir@v1 unless those contracts name a library of their own. **Code owner:** nidana.model, whose first producing phase lands every declaration below (ordering policy `fp-progression`, root D10; Delivery, below). **Validation artifacts:** `hsdd/contract/fixture/topic-model/`, owned by hsdd-contract (ADR-001 item 8).
+**Library:** `package:nidana_dart_contracts/nidana_dart_contracts.dart`, the main library of the package `nidana_dart_contracts` at `packages/nidana_dart_contracts/` (ADR-002 item 3). This contract defines no second public library; the same main library carries the declarations of topology-dsl@v2 and topology-ir@v1 unless those contracts name a library of their own. **Code owner:** nidana.model, whose first producing phase lands every declaration below (ordering policy `fp-progression`, root D10; Delivery, below). **Validation artifacts:** `hsdd/contract/fixture/topic-model/`, owned by hsdd-contract (ADR-001 item 8).
 
-**Delivery**, by the phases `produced_by` names. nidana.model.3 lands every declaration, and a consumer's edge on this contract alone waits on it; a consumer of topology-dsl@v1 or topology-ir@v1 as well waits on nidana.model.5, where their declarations complete the main library the three contracts share. A `hard` edge waits instead on nidana.model.8, the last producing phase (nidana.integration). Until nidana.model.8 merges, a body that computes throws `UnimplementedError` and values compare by identity; nidana.model.8 delivers every behavior guarantee.
+**Delivery**, by the phases `produced_by` names. nidana.model.3 lands every declaration, and a consumer's edge on this contract alone waits on it; a consumer of topology-dsl@v2 or topology-ir@v1 as well waits on nidana.model.5, where their declarations complete the main library the three contracts share. A `hard` edge waits instead on nidana.model.8, the last producing phase (nidana.integration). Until nidana.model.8 merges, a body that computes throws `UnimplementedError` and values compare by identity; nidana.model.8 delivers every behavior guarantee.
 
 The declarations below are the schema of this contract (ADR-001 item 4). Bodies are omitted; the comments and the guarantees state the semantics. Every class here other than the three observer interfaces is an immutable value, annotated `@immutable` from `package:meta`, the package's only dependency.
 
@@ -57,7 +57,7 @@ enum Dedup {
 
 /// Whether the bus attaches envelope metadata to a topic's publishes
 /// (Guide §8.1; Spec §3.5 "Cost"). What the bus and its observers do with an
-/// untraced topic is bus-api@v1's; here it only fixes how an untraced value
+/// untraced topic is bus-api@v2's; here it only fixes how an untraced value
 /// enters lineage (Lineage.root).
 enum Tracing { enabled, disabled }
 
@@ -86,7 +86,7 @@ final class StateTopic<T> extends Topic<T> {
   });
 
   /// A pure factory (Spec §2.5 "Allowed: pure factory"), never called at
-  /// construction. When the bus calls createInitial() is bus-api@v1's.
+  /// construction. When the bus calls createInitial() is bus-api@v2's.
   const StateTopic.computed({
     required String name,
     required T Function() initial,
@@ -128,7 +128,7 @@ final class ReplayTopic<T> extends MultiWriterTopic<T> {
 }
 ```
 
-The family has three variants, the final classes. `StateTopic<T>` extends `Topic<T>` directly; `EventTopic<T>` and `ReplayTopic<T>` extend it through `MultiWriterTopic<T>`, which declares no member of its own and adds no variant, so `TopicVariant` keeps its three values. A switch over a `Topic` is exhaustive when it names the three variants, or `StateTopic` and `MultiWriterTopic`. Spec §2.1 makes state topics single-writer and the other two multi-writer; `MultiWriterTopic<T>` is that split as a type, which bus-api@v1's `Bus.publish` and `Publisher.publish` take so that the only path from shell code to a state topic is a writer handle (Spec §2.4).
+The family has three variants, the final classes. `StateTopic<T>` extends `Topic<T>` directly; `EventTopic<T>` and `ReplayTopic<T>` extend it through `MultiWriterTopic<T>`, which declares no member of its own and adds no variant, so `TopicVariant` keeps its three values. A switch over a `Topic` is exhaustive when it names the three variants, or `StateTopic` and `MultiWriterTopic`. Spec §2.1 makes state topics single-writer and the other two multi-writer; `MultiWriterTopic<T>` is that split as a type, which bus-api@v2's `Bus.publish` and `Publisher.publish` take so that the only path from shell code to a state topic is a writer handle (Spec §2.4).
 
 A topic declaration takes no dispatcher hint; on Dart every topic of a bus shares the bus's provider zone (ADR-003 item 9). This decides OQ-M3 (G5). It takes no owner or writer annotation (Spec §3.11) and no persistence option (root D1).
 
@@ -303,7 +303,7 @@ final class Lineage {
 }
 ```
 
-**How the lineage functions are applied.** Lineage is computed per published message, not per pipeline stage. A value enters a pipeline with `Lineage.causedBy(envelope)` of the envelope its read handle delivered, or with `Lineage.root()` when the topic is `Tracing.disabled` or the value is a state topic's declared initial value. A subject seeded from `createInitial()` holds a value that no publish delivered, so no envelope and no message caused it: the initial value enters with `Lineage.root()` at every read that delivers it, a read after a removal reseeds the subject included. With the defaults it carries no correlation id, so a publish it leads to starts a new flow, and it is not sensitive, while the envelope of that publish carries its own topic's flag (G14). A single-input stage (`map`, `filter`, `switchMap` over its outer emission, `pairwise`), a time-shifting stage (`debounce`, `throttle`, `delay`, `sample`, `buffer`) and an accumulator (`scan`, `reduceInto`) pass the lineage of their triggering, surviving or most recent input through unchanged; `Lineage.combine` and `Lineage.withLatestFrom` are the only functions that make a new lineage inside a pipeline. A write publishes with `MessageEnvelope.publishedTo`, given a fresh id and the provider clock's time (ADR-003 item 8). The consequence: every `causationId` a published envelope carries is null or the id of a published envelope, so a causation chain can be walked through observed envelopes only (Spec §2.4 "Correlation vs. Causation"). Spec §3.5 describes a fresh envelope with a fresh id at every stage; those intermediate envelopes are invisible (Spec §3.5 "Where Envelopes Are Visible"), and a published envelope whose cause is one of them could not be traced. topology-dsl@v1 states, per combinator, which of these rules it applies; bus-api@v1 applies `publishedTo` at every publish and `Lineage.root` or `Lineage.causedBy` at shell publishes.
+**How the lineage functions are applied.** Lineage is computed per published message, not per pipeline stage. A value enters a pipeline with `Lineage.causedBy(envelope)` of the envelope its read handle delivered, or with `Lineage.root()` when the topic is `Tracing.disabled` or the value is a state topic's declared initial value. A subject seeded from `createInitial()` holds a value that no publish delivered, so no envelope and no message caused it: the initial value enters with `Lineage.root()` at every read that delivers it, a read after a removal reseeds the subject included. With the defaults it carries no correlation id, so a publish it leads to starts a new flow, and it is not sensitive, while the envelope of that publish carries its own topic's flag (G14). A single-input stage (`map`, `filter`, `switchMap` over its outer emission, `pairwise`), a time-shifting stage (`debounce`, `throttle`, `delay`, `sample`, `buffer`) and an accumulator (`scan`, `reduceInto`) pass the lineage of their triggering, surviving or most recent input through unchanged; `Lineage.combine` and `Lineage.withLatestFrom` are the only functions that make a new lineage inside a pipeline. A write publishes with `MessageEnvelope.publishedTo`, given a fresh id and the provider clock's time (ADR-003 item 8). The consequence: every `causationId` a published envelope carries is null or the id of a published envelope, so a causation chain can be walked through observed envelopes only (Spec §2.4 "Correlation vs. Causation"). Spec §3.5 describes a fresh envelope with a fresh id at every stage; those intermediate envelopes are invisible (Spec §3.5 "Where Envelopes Are Visible"), and a published envelope whose cause is one of them could not be traced. topology-dsl@v2 states, per combinator, which of these rules it applies; bus-api@v2 applies `publishedTo` at every publish and `Lineage.root` or `Lineage.causedBy` at shell publishes.
 
 ### Scope
 
@@ -366,7 +366,7 @@ abstract interface class BusObserver {
 }
 ```
 
-When an observer runs, in which zone, in what order, and what happens when it throws are bus-api@v1's guarantees (Spec §3.7, ADR-003 item 2). A span's links are given when the span opens, by message id, so the seam names no telemetry SDK type; the sink that owns the spans resolves an id to the span it opened for that envelope (Guide §8.2 "Causation chain").
+When an observer runs, in which zone, in what order, and what happens when it throws are bus-api@v2's guarantees (Spec §3.7, ADR-003 item 2). A span's links are given when the span opens, by message id, so the seam names no telemetry SDK type; the sink that owns the spans resolves an id to the span it opened for that envelope (Guide §8.2 "Causation chain").
 
 ### Redaction
 
@@ -416,7 +416,7 @@ The hash follows Dart's `==` and `hashCode` contract, so equal payloads redact a
 - **G24** `RedactedPayload.of(p)` has `typeName == p.runtimeType.toString()` and `hash` equal to the low 32 bits of `p.hashCode` as eight lowercase hexadecimal digits, renders as `<redacted {typeName} #{hash}>`, never contains `p`'s own rendering, and is equal for equal payloads.
 - **G25** `nidana_dart_contracts` reads no clock, creates no timer or microtask, generates no id and performs no I/O; a function that needs a timestamp or a fresh id takes it as an argument (ADR-003 item 8).
 - **G26** `nidana_dart_contracts` depends on nothing beyond the Dart SDK and `package:meta` (ADR-002 item 4), so a pure Dart module that declares topics and observers pulls in nothing else (root D2).
-- **G27** A state topic is not a multi-writer topic (Spec §2.1, §3.11): an `EventTopic<T>` and a `ReplayTopic<T>` are assignable where a `MultiWriterTopic<T>` is expected, and neither a `StateTopic<T>` nor a `Topic<T>` whose variant is not known statically is; at run time `topic is MultiWriterTopic` holds exactly for event and replay topics. A publish path typed over `MultiWriterTopic<T>`, as bus-api@v1's `Bus.publish` and `Publisher.publish` are, therefore does not compile for a state topic.
+- **G27** A state topic is not a multi-writer topic (Spec §2.1, §3.11): an `EventTopic<T>` and a `ReplayTopic<T>` are assignable where a `MultiWriterTopic<T>` is expected, and neither a `StateTopic<T>` nor a `Topic<T>` whose variant is not known statically is; at run time `topic is MultiWriterTopic` holds exactly for event and replay topics. A publish path typed over `MultiWriterTopic<T>`, as bus-api@v2's `Bus.publish` and `Publisher.publish` are, therefore does not compile for a state topic.
 
 ## Versioning
 

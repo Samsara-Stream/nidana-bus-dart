@@ -1,5 +1,5 @@
 // Reject fixture for topic-model@v1 G27: a state topic is not a multi-writer
-// topic, so a publish path typed over MultiWriterTopic, as bus-api@v1's
+// topic, so a publish path typed over MultiWriterTopic, as bus-api@v2's
 // publisher-less publish and Publisher.publish are, does not take one.
 // covers: G27
 import 'package:nidana_dart_contracts/nidana_dart_contracts.dart';

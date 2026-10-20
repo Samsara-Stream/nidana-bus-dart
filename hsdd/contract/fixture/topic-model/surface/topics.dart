@@ -97,7 +97,7 @@ String describeMultiWriter(MultiWriterTopic<Object?> topic) => switch (topic) {
     };
 
 /// The shape of a publish path that takes no ownership claim (G27), as
-/// bus-api@v1's publisher-less publish and Publisher.publish are.
+/// bus-api@v2's publisher-less publish and Publisher.publish are.
 void publishTo<T>(MultiWriterTopic<T> topic, T value) {}
 
 void publishWithoutClaim() {
