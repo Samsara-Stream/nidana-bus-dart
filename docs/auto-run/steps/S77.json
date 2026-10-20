@@ -1,0 +1,184 @@
+{
+  "step_ref": "S77",
+  "skill": "hsdd-spec",
+  "target": "nidana.model (touch for Specification v0.15.1, intake handoff H9)",
+  "status": "completed",
+  "stop": null,
+  "artifacts": ["hsdd/spec/nidana.model.md"],
+  "decisions": [
+    {
+      "at": "2026-10-20T20:50:13Z",
+      "artifact": "hsdd/spec/nidana.model.md",
+      "question": "The record's Sources rule keeps each v0.15.0 entry, marked '(baseline, superseded by v0.15.1 on 2026-10-20; read only to see what changed)', with a v0.15.1 entry following it. How do the six entries sit in the Sources field, and where does the marker go?",
+      "options": [
+        { "label": "interleave, marker at the end", "consequence": "Each document's baseline entry keeps its path and sections and ends with the marker; its v0.15.1 entry follows at once. A reader compares the two section lists side by side, and the path stays the first token of every entry." },
+        { "label": "baseline block, then v0.15.1 block", "consequence": "Three baseline entries, then three current ones. Reads as two lists, but the record says a v0.15.1 entry follows its baseline entry, and the pairs drift apart." },
+        { "label": "marker after the path", "consequence": "The superseded status is seen first, but the section list then sits after a long parenthetical, unlike every other Sources entry in the tree." }
+      ],
+      "chosen": "interleave, marker at the end",
+      "why": "The record says 'Each v0.15.1 entry follows it', which reads as immediately after. Putting the marker after the section list keeps every entry in the tree's existing 'path, then sections' form. This is the first hsdd-spec touch of the intake, so H10, H13, H14, H17 to H20 and H22 can copy the form. No evidence beyond the record's wording.",
+      "evidence": ["hsdd/management/2026-10-20-intake-ref-arch-v0-15-1.md (Sources)", "hsdd/spec/nidana.runtime.md Sources field (current form)"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T20:50:17Z",
+      "artifact": "hsdd/spec/nidana.model.md",
+      "question": "Do Spec §10.2 and Appendix A.4 'Write chain' govern nidana.model, which does not own the live interpretation of the DSL, and if so, which parts of §10.2?",
+      "options": [
+        { "label": "add §10.2 principles 2 and 4 and principle 5's first bullet, with A.4 'Write chain'", "consequence": "The node's v0.15.1 entry names the passages that define the write chain over the DSL's own `write` and `reduceInto` declarations. The observer and shell-subscriber bullets and the atomicity paragraph stay out, because they concern the bus." },
+        { "label": "add the whole of §10.2", "consequence": "Simpler to write, but principles 1 and 3 (errors as values, recoverable against fatal) concern topic design, and principle 5's observer and subscriber bullets concern the bus, so the field would list passages that govern other nodes." },
+        { "label": "leave §10.2 out", "consequence": "Matches the baseline, which left §10 out although topology-dsl@v1 G26 cited it, because ending a pipeline is live. A.4 stays listed inside A.1 to A.4 either way. The write chain would have no source pointer in the node that records the sinks delimiting it." }
+      ],
+      "chosen": "add §10.2 principles 2 and 4 and principle 5's first bullet, with A.4 'Write chain'",
+      "why": "The record names Appendix A.4 and §10.2 for nidana.model. What changed from the baseline is that v0.15.1 defines the unit of termination by the DSL's own declaration: 'the pipeline that one write(topic, stream) declaration connects to its output topic'. topology-dsl@v2, which this node owns and produces, states it in its Write chains paragraph and in the `write` and `reduceInto` doc comments ('one write chain'). nidana.model.4 lands those doc comments as dartdoc, and nidana.model.9 records the sinks that delimit the chains. Ending a chain stays nidana.runtime's. If the orchestrator reads Sources as only what this node's phases implement, that would have changed my mind: I would drop §10.2 and keep A.4 inside A.1 to A.4.",
+      "evidence": ["hsdd/management/2026-10-20-intake-ref-arch-v0-15-1.md (Sources, L3)", "Spec §10.2", "Spec Appendix A.4", "hsdd/contract/topology-dsl.md Write chains, `write` and `reduceInto` comments, G26", "docs/auto-run/steps/S59.json notes_for_orchestrator"],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T20:50:18Z",
+      "artifact": "hsdd/spec/nidana.model.md",
+      "question": "Which other sections that changed in v0.15.1, or that this node's contracts cite, join the v0.15.1 Sources entries?",
+      "options": [
+        { "label": "none beyond §10.2 and A.4 'Write chain'; Guide §6.3 kept and named", "consequence": "The v0.15.1 entries list the baseline's sections plus the write-chain passages. Guide §6.3, already listed, names its new 'Name every transformer' passage. Spec §3.13 and §3.1 and Guide §6.1 and Appendix C.1 stay with the nodes that implement them." },
+        { "label": "also Spec §3.13 and §3.1", "consequence": "Follows topology-dsl@v2 G19, G24 and Live interpretation item 3, which cite §3.13, and the (name, type) keying of §3.1. Lists the startup barrier and the bus registry in a node that implements neither." },
+        { "label": "also Guide §6.1 and Appendix C.1", "consequence": "Covers the Dart replay note and the catalog's explicit list. Neither changes anything this node builds." }
+      ],
+      "chosen": "none beyond §10.2 and A.4 'Write chain'; Guide §6.3 kept and named",
+      "why": "topology-dsl@v2's Boundary assigns when an activation connects (Spec §3.13) to bus-api@v2, and the baseline left §3.13 out although topology-dsl@v1 G19 cited it. v0.15.1 §3.1 keys the bus's subjects by the (name, type) identity of §2.1, which this node owns and which is already listed; the registry is bus-api@v2 G7. Guide §6.1 describes the runtime's replay machinery. Guide Appendix C.1's new paragraph is the catalog's explicit list (L9, nidana.tooling.codegen), and the analyses it runs over what is listed are unchanged. Guide §6.3's 'Name every transformer' governs OQ-M1's resolution and topology-dsl@v2's 'Not in v2' line (L10), so it is named in the entry.",
+      "evidence": ["hsdd/contract/topology-dsl.md Boundary table", "hsdd/contract/bus-api.md G7", "Spec §3.1", "Spec §3.13", "Guide §6.1", "Guide §6.3", "Guide Appendix C.1", "hsdd/management/2026-10-20-intake-ref-arch-v0-15-1.md (L5, L9, L10)"],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T20:50:27Z",
+      "artifact": "hsdd/spec/nidana.model.md",
+      "question": "The non-plan text cites superseded versions ten times (bus-api@v1 at Owns line 7 and the Inherited diagnostics bullet; topology-dsl@v1 at Owns line 13, Produces, Isolation strategy, the Inherited ordering bullet, the OQ-M1 and OQ-M2 rows and both resolution paragraphs). Which are live and move, and which are historical and keep v1?",
+      "options": [
+        { "label": "all ten are live, OQ resolution pointers included", "consequence": "Every non-plan citation names the version that exists now. The OQ status rows and resolution paragraphs keep their date of 2026-10-18 and point at topology-dsl@v2, which carries the same Refinements 1 to 3, G18 and Versioning entry." },
+        { "label": "keep the dated OQ resolution pointers at v1", "consequence": "Reads the 'Resolved (2026-10-18)' paragraphs as history. They would point at a version that keeps no file (topology-dsl@v2 Versioning: 'v1 keeps no file of its own'), and gate --final would warn on them for good." }
+      ],
+      "chosen": "all ten are live, OQ resolution pointers included",
+      "why": "DEC-804 keeps historical text (a dated change-log line, 'Corrected' text) at its version. An OQ's status row and resolution paragraph are where a reader finds where the decision lives now, which hsdd-spec states as 'row points at where the decision landed'. DEC-858 (S75) moved 'OQ-F1, resolved by flutter-binding@v1 Refinement 1 and G18' the same way. Each moved sentence keeps its meaning: topology-dsl@v2 Refinements 1 to 3 and G18 are unchanged, its Delivery still has a consumer wait on nidana.model.5, and its Validation still has nidana.runtime bind the live suite. bus-api@v2 Refinement 3 still takes MultiWriterTopic. The five occurrences in Decisions D1, D3 and D6 are plan-written and left to H23.",
+      "evidence": ["DEC-804", "DEC-858", "hsdd/contract/topology-dsl.md Boundary, Delivery, Versioning, Validation", "hsdd/contract/bus-api.md Refinement 3", "hsdd/management/2026-10-20-intake-ref-arch-v0-15-1.md (Citations of a superseded version)"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T20:50:40Z",
+      "artifact": "hsdd/spec/nidana.model.md",
+      "question": "The Inherited bullet 'Diagnostics and dev mode are runtime concerns reached through bus-api@v1 (root D8); nothing here logs.' Move the version only, or also name §10.2's dev-mode report of an ended write chain?",
+      "options": [
+        { "label": "move only", "consequence": "The smallest change. The bullet stays true, but nothing in the node says which part of §10.2, now in its Sources, it does not do." },
+        { "label": "move and name the write-chain report", "consequence": "The bullet says that the report of a write chain an error ended is bus-api@v2 G26's (`PipelineTerminated`), so a reader of the new Sources entry sees that this package logs nothing for it." }
+      ],
+      "chosen": "move and name the write-chain report",
+      "why": "With §10.2 newly in the node's Sources, the bullet is where the node says what of §10.2 it leaves to the runtime. topology-dsl@v2's 'Not here' line and bus-api@v2 G26 put the report there. No sentence was false: this is a clarification, not a correction. An orchestrator reading the touch as citations and contradictions only would have changed my mind; the bullet would then revert to move only.",
+      "evidence": ["Spec §10.2 principle 2", "hsdd/contract/bus-api.md G26 and PipelineTerminated", "hsdd/contract/topology-dsl.md Boundary 'Not here'", "hsdd/spec/nidana.md D8"],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T20:50:47Z",
+      "artifact": "hsdd/spec/nidana.model.md",
+      "question": "The Overview says 'the activation-time checks of Spec §3.8 and §7.2 and the CI checks cannot drift apart (root D4)'. v0.15.1 §7.2 adds 'Scope timing', which bus-api@v2 G42 enforces and CI cannot see (L2). How does the sentence read now?",
+      "options": [
+        { "label": "restate for §7.2 'Scope compatibility', name §3.11, and say scope timing is bus-api@v2 G42's", "consequence": "The sentence matches topology-ir@v1 Refinement 4 as restated at S66 and root D4's list of sections. A reader no longer infers that the scope-timing rejection is an analysis of this package." },
+        { "label": "restate for §7.2 only", "consequence": "Fixes the overstatement but keeps the §3.11 omission that S48 recorded as a one-token fix at the next touch." },
+        { "label": "leave it and report", "consequence": "The sentence stays an overstatement under v0.15.1 until a later step." }
+      ],
+      "chosen": "restate for §7.2 'Scope compatibility', name §3.11, and say scope timing is bus-api@v2 G42's",
+      "why": "Under v0.15.1 the sentence implies that every activation-time check of §7.2 is shared with CI, and the scope-timing rejection is not: L2 puts it in bus-api because CI cannot see when an activation happens relative to `start()`, and a new finding variant would break topology-ir@v1 G1. DEC-804 restates such a sentence; DEC-815 restated topology-ir@v1 Refinement 4 for the same reason. §3.11 is added because the sentence is rewritten anyway and S48 named it as a fix for this touch.",
+      "evidence": ["Spec §7.2 'Scope timing'", "hsdd/contract/bus-api.md G42", "hsdd/contract/topology-ir.md Refinement 4", "DEC-804", "DEC-815", "docs/auto-run/steps/S48.json decision 4", "hsdd/spec/nidana.md D4"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T20:50:51Z",
+      "artifact": "hsdd/spec/nidana.model.md",
+      "question": "OQ-M1's resolution says 'No combinator takes an explicit name in v1 (topology-dsl@v1 Versioning)'. topology-dsl@v2's Versioning now lists the name under 'Not in v2' after weighing Guide §6.3 'Name every transformer' (L10). Move the citation only, or restate?",
+      "options": [
+        { "label": "restate to topology-dsl@v2's Versioning with Guide §6.3 weighed", "consequence": "The sentence names the version that exists and answers in place the question a reader of OQ-M1 now asks: whether the Guide's advice to name transformers reopens the resolution. It does not." },
+        { "label": "move the citation only", "consequence": "'No combinator takes an explicit name in v1 (topology-dsl@v2 Versioning)' names a contract version beside a release version and says nothing of the Guide's new advice." },
+        { "label": "add a dated re-read paragraph", "consequence": "Keeps the resolution paragraph as written and adds a v0.15.1 note under it. More text for the same content, and the old sentence still cites v1." }
+      ],
+      "chosen": "restate to topology-dsl@v2's Versioning with Guide §6.3 weighed",
+      "why": "topology-dsl@v2 records that Guide §6.3 advises an explicit name where FunctionRef labels must be stable across compilation modes or under --obfuscate, and that no consumer compares labels that way. The resolution (derivation by topology-ir@v1 G9) is unchanged. Because the inserted sentences moved the referent of 'The table there', that phrase now reads 'The table in topology-ir@v1's Function references section'. The OQ keeps its RESOLVED (2026-10-18) status.",
+      "evidence": ["Guide §6.3 'Name every transformer'", "hsdd/contract/topology-dsl.md Versioning 'Not in v2'", "hsdd/contract/topology-ir.md G9 and Function references", "hsdd/management/2026-10-20-intake-ref-arch-v0-15-1.md (L10)", "DEC-804"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T20:52:17Z",
+      "artifact": "hsdd/spec/nidana.model.md",
+      "question": "The Owns analyses bullet ends 'the runtime runs them at activation and the workspace scan in CI (topology-ir@v1)', where 'them' includes topic name uniqueness. topology-ir@v1 has activation run analyzeTopologyGraph only and the scan call findTopicNameCollisions, and v0.15.1 §4.3's runtime row (L5) makes the bus's name check a registry comparison at the first use of each declaration (bus-api@v2 G7). Restate or leave?",
+      "options": [
+        { "label": "restate per topology-ir@v1 and bus-api@v2 G7", "consequence": "The bullet says that the runtime runs the first four analyses through analyzeTopologyGraph at activation and at publisher construction, that the scan runs all five, and that the bus's own name check is its registry's. Every clause matches the contracts' current text." },
+        { "label": "leave it and report", "consequence": "The bullet keeps restating topology-ir@v1 wrongly for the fifth analysis. The imprecision predates v0.15.1, and S48 checked the bullet as current." }
+      ],
+      "chosen": "restate per topology-ir@v1 and bus-api@v2 G7",
+      "why": "DEC-804 restates a sentence that gets another artifact's guarantee wrong under that artifact's current version. topology-ir@v1 'How the two hosts use them' gives findTopicNameCollisions to the workspace scan alone. v0.15.1 §4.3 now states the runtime check as the registry's comparison at first use, which is no analysis at activation. The imprecision is partly older than v0.15.1. If the orchestrator confines this touch to sentences that v0.15.1 itself made false, that would have changed my mind: the bullet would revert to its v1 wording, with a finding routed to H23.",
+      "evidence": ["hsdd/contract/topology-ir.md 'How the two hosts use them', G17, G18", "hsdd/contract/bus-api.md G7", "Spec §4.3", "DEC-804", "docs/auto-run/steps/S48.json notes_for_orchestrator"],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    }
+  ],
+  "experiments": [],
+  "self_check": [
+    { "gate": "The spec stays high-level; it is not an implementation plan.", "status": "pass", "note": "Only the header, Overview, Inherited and OQ text changed; no phase text." },
+    { "gate": "Every node has explicit consumed/produced contract ids.", "status": "pass", "note": "Consumes none; Produces [topic-model@v1, topology-dsl@v2, topology-ir@v1], the versions in hsdd/contract/INDEX.md." },
+    { "gate": "Every node is testable in isolation (fixtures, mocks, schemas).", "status": "pass", "note": "Isolation strategy unchanged but for topology-dsl@v2; the recording suite this node replays did not change (S59)." },
+    { "gate": "Every dependency edge is typed; parallel lanes are called out.", "status": "n/a", "note": "Leaf-parent touch; no child edges. The root's edge table is H22's." },
+    { "gate": "Each child is marked internal or leaf-parent.", "status": "n/a", "note": "Kind leaf-parent unchanged; no children." },
+    { "gate": "Mermaid DAG matches the dependency table.", "status": "n/a", "note": "No child DAG; the phase graph is plan text, left to H23." },
+    { "gate": "`conventions.md` exists/updated at the root.", "status": "pass", "note": "Exists; this touch adds no convention." },
+    { "gate": "The decomposition axis at each level matches ownership stated by the human, not assumed, and no node is owned by two teams.", "status": "n/a", "note": "No decomposition; conventions say single-team." },
+    { "gate": "Every child node has its own `hsdd/spec/{child-id}.md` file.", "status": "n/a", "note": "No children." },
+    { "gate": "Every input source appears in the Sources of at least one node, or is marked in the root `## Sources` as \"informative only, not decomposed\", with a reason.", "status": "pass", "note": "All three v0.15.1 files now sit in this node's Sources. The root inventory is H22's." },
+    { "gate": "No node's Sources lists a document that does not govern it.", "status": "pass", "note": "Each v0.15.1 entry names the governing sections; §10.2 limited to principles 2, 4 and 5's first bullet (decision 2)." },
+    { "gate": "Field blocks are bullet lists and empty lists say \"none\".", "status": "pass", "note": "Sources stays a bullet list; Consumes reads none." },
+    { "gate": "Every open question is defined once, in its owning spec, with a table row and a `### {ID}` detail subsection; child views carry `[inherits …]`; no cited ID lacks a definition.", "status": "pass", "note": "OQ-M1 to OQ-M3 unchanged in id, row and heading form; gate.mjs reports no undefined OQ." },
+    { "gate": "OQ prefixes used by node specs are declared in `conventions.md`.", "status": "pass", "note": "M = nidana.model." },
+    { "gate": "Under `multi-team`, every node whose team differs from its parent's carries `- **Team:**`; no node is owned by two teams.", "status": "n/a", "note": "single-team." },
+    { "gate": "Where children exchange contracts, an integration node exists or the decision not to add one is stated in the parent (one line).", "status": "n/a", "note": "No children." },
+    { "gate": "A graft kept every existing child id and touched only the new child's file, the parent's summaries and the parent's DAG.", "status": "n/a", "note": "Not a graft." },
+    { "gate": "A retired node's file is kept; its contracts' retirement went through `hsdd-reconcile`.", "status": "n/a", "note": "Not a retirement." },
+    { "gate": "Promotion: the human confirmed before `- **Adopted:** promoted` was written; `## Observed surface` kept; `v0` contracts unchanged unless redesigned.", "status": "n/a", "note": "Not a promotion." },
+    { "gate": "node docs/auto-run/tools/gate.mjs --skill hsdd-spec passes and only hsdd/spec/nidana.model.md changed under hsdd/", "status": "pass", "note": "gate: 0 error(s), 0 warning(s); git diff under hsdd/ is nidana.model.md alone. No em-dash, no banned phrase." }
+  ],
+  "notes_for_orchestrator": [
+    "CHANGED, non-plan text of hsdd/spec/nidana.model.md only. Header: Produces [topic-model@v1, topology-dsl@v2, topology-ir@v1]; Consumes none. Sources: six entries, each v0.15.0 entry kept with the record's baseline marker at its end and followed by its v0.15.1 entry. The Spec v0.15.1 entry adds '§10.2 principles 2 and 4 and the first bullet of principle 5' and 'Appendix A.1 to A.4 with A.4 \"Write chain\"'; the Guide v0.15.1 entry names '§6.3 with \"Name every transformer\"'. Later spec touches (H10, H13, H14, H17 to H20, H22) can copy this form.",
+    "CHANGED, citations moved (live): Owns lines 7 (bus-api@v2 publish path) and 13 (topology-dsl@v2 Refinements 1 to 3), Isolation strategy (topology-dsl@v2's live suite), Inherited ordering bullet (nidana.model.5 for topology-dsl@v2), Inherited diagnostics bullet (bus-api@v2), OQ-M1 and OQ-M2 rows (Affects, and OQ-M2's status pointer) and OQ-M2's resolution paragraph (topology-dsl@v2 Refinement 3 and G18). Restated sentences, one decision each: the Overview's activation-time checks (§3.8, §3.11 and §7.2 'Scope compatibility'; §7.2 'Scope timing' is bus-api@v2 G42's, not an analysis); OQ-M1's 'No combinator takes an explicit name' (topology-dsl@v2 Versioning, Guide §6.3 weighed, L10); the Owns analyses bullet (the runtime runs four analyses through analyzeTopologyGraph, the scan all five, the bus's own name check is bus-api@v2 G7's); the Inherited diagnostics bullet now names the report of an ended write chain (bus-api@v2 G26).",
+    "L3 (write chain) contradicts no non-plan sentence of this node: the node owns no live interpretation, and the recording, reject and surface sets it replays are unchanged (S59). L3 lands here as Sources (§10.2, A.4) and the diagnostics clause. L1, L4, L6, L7 and L8 touch no non-plan sentence of this node; L5 is reflected in the Owns analyses bullet; L2 in the Overview; L10 in OQ-M1.",
+    "FOR H23 (plan text and plan-written decisions, not edited here). Live citations of topology-dsl@v1 to move to @v2: D1 item 2 (line 77, twice), D1 item 3 (line 78), D6 (line 131, 'topology-dsl@v1 G10'); the phase table row and the phase-graph label for nidana.model.4 (lines 144 and 183, the phase name 'topology-dsl@v1 declarations', also the heading at line 272); 'Where consumers start' (line 163); nidana.model.4 Produces and Scope (lines 275, 277 x3); nidana.model.5 Consumes and Dependencies (lines 287, 296); nidana.model.9 Produces and Scope '(topology-dsl@v1 Delivery)' (lines 340, 342); nidana.model.11 Produces and Scope (lines 366, 368 x2); Consumes of nidana.model.12, .13, .14 (lines 378, 391, 404). Live citations of bus-api@v1: nidana.model.11 Scope (line 368, 'the live suite is bound in bus-api@v1's fixture directory') and nidana.model.12 Scope (line 381, 'activation (bus-api@v1)'). Historical, keep v1: D3's 'Corrected 2026-10-18' paragraph (line 106, the Delivery paragraphs of topic-model@v1, topology-dsl@v1 and topology-ir@v1 as drained then). After H23, gate --final will still warn once on topology-dsl@v1 for line 106; that warning is expected.",
+    "FOR H23, a statement a landing changed: nidana.model.12's Scope (line 381) says 'the single implementation of the checks of Spec §3.8, §3.11, §4.3 and §7.2 that activation (bus-api@v1) and the workspace scan ... both call (root D4)'. Under v0.15.1 §7.2 also carries 'Scope timing', which bus-api@v2 G42 enforces and is no analysis; topology-ir@v1 Refinement 4 (restated at S66, DEC-815) now reads '§3.8, §3.11 and §7.2 \"Scope compatibility\"'. Also, per topology-ir@v1 'How the two hosts use them', activation calls analyzeTopologyGraph only, and findTopicNameCollisions (§4.3) is the workspace scan's alone, while the bus's name check is bus-api@v2 G7's registry. The non-plan Overview and Owns now say both; the phase scope should match.",
+    "FOR H22 (root touch): root D4 bullet 1 ('the activation-time checks (Spec §3.8, §3.11, §7.2) and the CI checks run the same functions') has the same §7.2 'Scope timing' overstatement this step restated in nidana.model's Overview. The root's embedded nidana.model block (hsdd/spec/nidana.md around lines 62 to 75: Produces topology-dsl@v1, the one-line Sources, the Isolation strategy's 'topology-dsl@v1's live suite') and the child table row (line 55) should mirror this file's header as now written.",
+    "INSERT RULE: not triggered by this step. This touch changes no phase. No guarantee that a nidana.model phase implements or replays changed behavior beyond citations: topology-dsl@v2's recording suite, reject and surface sets are v1's but for header lines (S59), and topic-model@v1 and topology-ir@v1 are unchanged. The gate restriction at nidana.model.9 (topology-dsl G10, G11, G13 to G17, G30) still selects the same recording cases.",
+    "No skill stop, no run-stop candidate, no ADR proposed, no OQ minted or reopened, no contract id named that did not already exist. No experiment was needed: every fact this touch rests on is contract text."
+  ]
+}

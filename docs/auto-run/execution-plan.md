@@ -270,6 +270,7 @@ orchestrator and recorded with `would_have_asked: true`.
 | S74 | 9 | hsdd-adr | H8a: ADR-001 citation touch (17 moved, 5 historical kept) | done | 4c49471 |
 | S75 | 9 | hsdd-adr | H8b: ADR-002 citation touch (5 moved; runtime-split signal not met under v0.15.1) | done | c35c540 |
 | S76 | 9 | hsdd-adr | H8c: ADR-003 citation touch (13 moved; item 6 cites bus-api@v2 G34; Consequences follow G41 and bus-testing@v2 G3, G11) | done | 1fa6f41 |
+| S77 | 9 | hsdd-spec | H9: nidana.model touch (Sources, Produces topology-dsl@v2, 10 citations moved, Overview and Owns restated for scope timing and the name check) | done | 7e556fd |
 
 ## Change log
 
