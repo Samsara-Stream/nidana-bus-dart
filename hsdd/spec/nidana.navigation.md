@@ -294,20 +294,4 @@ Solid edges are this node's phase dependencies; dashed edges are the producer ph
 
 ## Governance updates (pending reconcile)
 
-> Reconciled 2026-10-18 by hsdd-reconcile. Drained entries are in git history.
-
-> Emitted by hsdd-phase-plan on 2026-10-21, per hsdd/management/2026-10-20-intake-ref-arch-v0-15-1.md (the phase-plan step that record's insert rule adds after handoff H13). Drained by hsdd-reconcile; do not apply by hand.
-
-- confirm `navigation-api@v1` produced_by: [nidana.navigation.1, nidana.navigation.2, nidana.navigation.3, nidana.navigation.4, nidana.navigation.5, nidana.navigation.6]
-  - Unchanged ids, roles and deliveries, so the contract stays `stable` with `phase_ids: final` and its Delivery paragraph stands as written: nidana.navigation.1 lands every declaration; nidana.navigation.2 delivers G1 and G4 to G8; nidana.navigation.3 G9 to G13, G13's once-per-call clause included (D5), whose case compares plans and needs no bus; nidana.navigation.4 G17; nidana.navigation.5 G25; nidana.navigation.6 G14 to G16 and G18 to G24, and replays both bindings unrestricted.
-  - Every gate's `--guarantee` list selects existing cases of the current fixtures, the navigation suite's 42 cases and the executor suite's 52 registrations (D3).
-  - nidana.navigation.6 still waits on nidana.runtime.14, the last producing phase of bus-api@v2 and bus-testing@v2, by which bus-api@v2 G18, G23, G34 and G42 and bus-testing@v2 G14, on which its Scope now rests, are delivered.
-  - No `amend`: D5's once-per-call construction is G13's own clause; D6 stays node-local; nidana.navigation.6 reports an executor constructed during `start()` as late because bus-api@v2 G34 makes the bus `running` from the moment `start()` begins, which navigation-api@v1 G19's "after `start()`" already reads through.
-- confirm `bus-api@v2` consumers: [nidana.navigation.1, nidana.navigation.6]
-  - nidana.navigation.1 waits on nidana.runtime.1, the `contract` edge, for the declarations, which v2 did not change (`Bus`, `Publisher`, `StateWriter`, `ShellDiagnostic`, and the publish signature of G40 that navigation-api@v1 G1's reject lines rest on).
-  - nidana.navigation.6 waits on nidana.runtime.14 for publishers, claims, `observe`, activation with its scope timing, `start()`, `shutdown()`, `onShutdown`, `reportDiagnostic` and `toGraph()`. Its Scope reads v2's breaking items where they reach it: G18 (where D6's two error paths go, one zone), G34 (the bootstrap test; `LateExecutorConstruction` for an executor constructed during `start()`), G42 (G16's `PAGE` picker activated after `start()`; the executor's publisher works during bootstrap) and G23 (the resolver it activates re-activates to its handle, because nidana.navigation.3 constructs its stage objects once per call, which G13's case pins without a bus).
-- confirm `bus-testing@v2` consumers: [nidana.navigation.6]
-  - waits on nidana.runtime.14, the `hard` edge (`TestBus`, the virtual scheduler with `settle`, `stub`, `input`, the recorder). A test of this phase that reads `TestBus.recorder` expects `start()`'s connection publishes before the queued publishes (G14). The conformance libraries that every behavior replay compiles import `testing.dart`, whose declarations land at nidana.runtime.1, which nidana.navigation.1 already waits on; no phase before nidana.navigation.6 runs a case on a `TestBus`.
-- confirm `topology-dsl@v2` consumers: [nidana.navigation.1, nidana.navigation.3, nidana.navigation.6]
-  - nidana.navigation.1 waits on nidana.model.5; nidana.navigation.3 on nidana.model.9 (recording, `planOf`, and the stage classes whose functions G13's new case compares) and nidana.model.11 (`buildDefinition()`); nidana.navigation.6 on the live interpretation, which bus-api@v2's activation delivers by nidana.runtime.14.
-  - v2's write-chain rule changes no phase here: the resolver has one write chain, and both navigation suites pass under the rule (topology-dsl@v2 Versioning, migration note).
+> Reconciled 2026-10-21 by hsdd-reconcile. Drained entries are in git history.
