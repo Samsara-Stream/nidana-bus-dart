@@ -1,0 +1,161 @@
+{
+  "step_ref": "S82",
+  "skill": "hsdd-spec",
+  "target": "nidana.navigation (hsdd/spec/nidana.navigation.md), touch for Specification v0.15.1 (intake handoff H13), non-plan text only",
+  "status": "completed",
+  "stop": null,
+  "artifacts": ["hsdd/spec/nidana.navigation.md"],
+  "decisions": [
+    {
+      "at": "2026-10-20T22:15:23Z",
+      "artifact": "hsdd/spec/nidana.navigation.md",
+      "question": "Which contract versions does the header's Consumes line name, now that the intake gave topology-dsl, bus-api and bus-testing a v2 and kept navigation-api at v1?",
+      "options": [
+        { "label": "current versions", "consequence": "Consumes reads [topic-model@v1, topology-dsl@v2, topology-ir@v1, bus-api@v2, bus-testing@v2]; Produces stays [navigation-api@v1]; the header agrees with the registry before the plan text moves" },
+        { "label": "keep v1 until the phase-plan step", "consequence": "the header cites three superseded versions until the inserted hsdd-phase-plan step, against the record's rule that the hsdd-spec touches move node headers" }
+      ],
+      "chosen": "current versions",
+      "why": "The record's section 'Citations of a superseded version' assigns node headers to the hsdd-spec touches (DEC-688), and S62 kept navigation-api at v1, so Produces does not move.",
+      "evidence": ["hsdd/management/2026-10-20-intake-ref-arch-v0-15-1.md (Citations of a superseded version)", "hsdd/contract/INDEX.md", "docs/auto-run/steps/S62.json"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T22:15:31Z",
+      "artifact": "hsdd/spec/nidana.navigation.md",
+      "question": "Which sections does the node's v0.15.1 Sources entry name beyond the sections the v0.15.0 entry named?",
+      "options": [
+        { "label": "the v0.15.0 sections only", "consequence": "Spec §2.4, §3.8, §3.11, §3.13, Appendix A.6 and Guide §2, §3.1 to §3.7, Appendix A; the sections behind landing L4 (where D6's unhandled errors go) and L6 (G13's re-activation clause) stay unreachable from the node's closure" },
+        { "label": "add the sections landings L4 and L6 bring", "consequence": "adds Spec §3.9 and Guide §6.3 'Name every transformer' (L6: the resolver's re-activation, navigation-api@v1 G13) and the third bullet of Spec §10.2 principle 5, 'Shell subscriber' (L4: nidana.navigation D6); the inserted phase-plan step finds them when it restates D5 and D6" }
+      ],
+      "chosen": "add the sections landings L4 and L6 bring",
+      "why": "The record's Sources rule names the v0.15.0 sections plus the ones this record's landings add to the node. L4 names nidana.navigation D6, L6 names D5 and navResolver, and S62 wrote G13's new clause on Spec §3.9 and Guide §6.3. The node had no Rationale entry, so the rule adds none.",
+      "evidence": ["hsdd/management/2026-10-20-intake-ref-arch-v0-15-1.md (L4, L6, Sources)", "Spec §3.9", "Spec §10.2", "Guide §6.3", "hsdd/contract/navigation-api.md (G13, Versioning)"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T22:15:36Z",
+      "artifact": "hsdd/spec/nidana.navigation.md",
+      "question": "Do Spec §7.2 'Scope timing' and Spec §2.1 'Replay timing' govern nidana.navigation, although landing L1 names only §3.13 for it and landing L2 does not name the node?",
+      "options": [
+        { "label": "add §7.2 'Scope timing' only", "consequence": "the bootstrap order the node owns and nidana.navigation.6's tests trace to the rule that admits an APPLICATION resolver before start() and requires a PAGE topology after it; §2.1 stays out" },
+        { "label": "add both §7.2 and §2.1", "consequence": "also names when a new subscriber receives its replay, which bus-api@v2 G17, G22 and G34 state and navigation reads only through them" },
+        { "label": "add neither", "consequence": "keeps the Sources rule read narrowly (only landings that name the node), and leaves the scope-timing reliance of the bootstrap order and of G16's PAGE picker without a source" }
+      ],
+      "chosen": "add §7.2 'Scope timing' only",
+      "why": "The bootstrap order activates the resolver before start(), which bus-api@v2 G42 admits only because it is APPLICATION-scoped; the executor claims through a publisher, which G42 admits at any time; and G16's PAGE picker must be activated after start(). H5 checked both suites against §7.2 (S62: no change), so L2 reached this node through its contract. §2.1 'Replay timing' governs when a subscriber receives its first value: the executor subscribes to an event topic, which does not replay, and the resolver's reads connect as G34 and G22 state, so navigation reads §3.13's order, not §2.1. Close call: a strict reading of the Sources rule (landings whose Reaches list names the node) drops §7.2. A navigation guarantee or phase that depended on replay timing after start() would have added §2.1.",
+      "evidence": ["Spec §7.2", "Spec §2.1", "Spec §3.13", "hsdd/contract/bus-api.md (G42, G34, G17, G22)", "hsdd/contract/navigation-api.md (Versioning, Scope timing entry)", "docs/auto-run/steps/S62.json"],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T22:15:43Z",
+      "artifact": "hsdd/spec/nidana.navigation.md",
+      "question": "Does the Owns bullet on the deep-link bootstrap order ('the resolver is active and the executor constructed before start()') stay word for word, or is it restated for Spec §3.13 as v0.15.1 rewrote it?",
+      "options": [
+        { "label": "keep the bullet", "consequence": "stays true (bus-api@v2 G34 connects the activations 'still active' at start()), but names no reliance, so a reader can assume the bus-api@v1 reading of a connection before activate returns" },
+        { "label": "restate the bullet", "consequence": "names scope timing's admission of the APPLICATION resolver and the executor's publisher, that neither connects before start(), and start()'s order: the resolver after the topologies that write its inputs, then the executor's subscription, then the queued deep link; cites bus-api@v2 G34 and G42 and navigation-api@v1 Refinement 8 and G24" }
+      ],
+      "chosen": "restate the bullet",
+      "why": "H13 names this bullet. S60 and S62 report that the bootstrap reliance moved from bus-api@v1 G22 and G34 to bus-api@v2 G34 alone, and the inserted phase-plan step and hsdd-config read the header. G24 holds unchanged on the v2 stand-in, so the restatement changes what the bullet cites, not the order the node owns.",
+      "evidence": ["Spec §3.13", "Spec §7.2", "Guide §3.5", "hsdd/contract/bus-api.md (G34, G42)", "hsdd/contract/navigation-api.md (Refinement 8, G24)", "docs/auto-run/experiments/navigation-api-v0151/ (T5, P1 to P4)"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T22:15:56Z",
+      "artifact": "hsdd/spec/nidana.navigation.md",
+      "question": "Does the header carry navigation-api@v1 G13's new clause (the resolver's stage functions built once per navResolver call, so re-activation under bus-api@v2 G23 returns the handle, and another call's topology conflicts), or is it left to D5, which the phase plan wrote?",
+      "options": [
+        { "label": "leave it to D5", "consequence": "the header says nothing of re-activation until the inserted phase-plan step restates D5, and the Sources' Spec §3.9 and Guide §6.3 trace to no header item" },
+        { "label": "add it to the resolver's Owns bullet", "consequence": "the Owns list names a guarantee this node produces and whose replay changed; the Isolation strategy says the resolver is tested through its recorded IR and its plans, where the new G13 case compares the stage functions without a bus" }
+      ],
+      "chosen": "add it to the resolver's Owns bullet",
+      "why": "S62 added the clause to G13, a guarantee of the contract this node produces, and its new case changes the replay of nidana.navigation.3 and .6 (the insert rule, DEC-775). The Owns list is where the node states what it delivers. D5 stays plan-written and goes to the inserted phase-plan step.",
+      "evidence": ["hsdd/contract/navigation-api.md (G13; Versioning, re-activation entry)", "hsdd/contract/bus-api.md (G23)", "Spec §3.9", "Guide §6.3", "docs/auto-run/experiments/navigation-api-v0151/ (T4, P5)"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T22:16:05Z",
+      "artifact": "hsdd/spec/nidana.navigation.md",
+      "question": "The Overview says the resolver topology 'guards and resolves' intents, Guide §3.4's order, which navigation-api@v1 Refinement 3 reverses. Is the sentence restated?",
+      "options": [
+        { "label": "keep the sentence", "consequence": "names both duties without a stated order, but in the order Refinement 3 rejects because a deep link would bypass the guard" },
+        { "label": "restate the sentence", "consequence": "reads 'resolves them and then guards them', matching Refinement 3, G13's edge order and G14" }
+      ],
+      "chosen": "restate the sentence",
+      "why": "The S64 touch rule (DEC-804) restates a sentence that restates another artifact's guarantee falsely, and this step's done-when requires every non-plan sentence to be true under navigation-api@v1. The sentence predates Refinement 3 (S02) and v0.15.1 did not cause it.",
+      "evidence": ["hsdd/contract/navigation-api.md (Refinement 3, G13, G14)", "git show f127e15:hsdd/spec/nidana.navigation.md"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T22:16:14Z",
+      "artifact": "hsdd/spec/nidana.navigation.md",
+      "question": "Which of D1 to D6 did the decomposition write, so that this touch restates the ones a contract contradicts, and which did the phase plan write?",
+      "options": [
+        { "label": "all six plan-written", "consequence": "D1 to D6 stay byte-identical here; the inserted hsdd-phase-plan step restates D3 (two citations), D5 (stage objects once per call) and D6 (the listen zone)" },
+        { "label": "D5 and D6 decomposition-written", "consequence": "this touch restates D5 and D6 with alternatives, and the phase-plan step finds them already moved" }
+      ],
+      "chosen": "all six plan-written",
+      "why": "Git history settles it: at b39c80d (S27, the last hsdd-spec edit before planning) the file had no Decisions section; b8137e4 (S32, hsdd-phase-plan nidana.navigation) wrote D1 to D6, and S33 and S53 kept their headings. D5 speaks as the plan ('this plan emits the choice as an amend'), and D6 was written with nidana.navigation.6's Scope. So no decomposition-written decision exists for a contract to contradict.",
+      "evidence": ["git log -- hsdd/spec/nidana.navigation.md", "git show b39c80d:hsdd/spec/nidana.navigation.md", "git show b8137e4:hsdd/spec/nidana.navigation.md"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    }
+  ],
+  "experiments": [],
+  "self_check": [
+    { "gate": "The spec stays high-level; it is not an implementation plan.", "status": "pass", "note": "Only the header, Sources, two Owns bullets, the Isolation strategy and one Overview sentence changed." },
+    { "gate": "Every node has explicit consumed/produced contract ids.", "status": "pass", "note": "Consumes at current versions; Produces navigation-api@v1." },
+    { "gate": "Every node is testable in isolation (fixtures, mocks, schemas).", "status": "pass", "note": "Isolation strategy kept, naming the plans G13's new case compares." },
+    { "gate": "Every dependency edge is typed; parallel lanes are called out.", "status": "n/a", "note": "Leaf-parent; its edges live in the Phase Plan, left to the inserted phase-plan step." },
+    { "gate": "Each child is marked internal or leaf-parent.", "status": "n/a", "note": "Leaf-parent with phases, no child nodes." },
+    { "gate": "Mermaid DAG matches the dependency table.", "status": "n/a", "note": "The only DAG is the plan's phase graph, byte-identical to HEAD." },
+    { "gate": "`conventions.md` exists/updated at the root.", "status": "pass", "note": "Exists; no new convention, unchanged." },
+    { "gate": "The decomposition axis at each level matches ownership stated by the human, not assumed, and no node is owned by two teams.", "status": "n/a", "note": "No decomposition in a touch; single-team." },
+    { "gate": "Every child node has its own `hsdd/spec/{child-id}.md` file.", "status": "n/a", "note": "No child nodes." },
+    { "gate": "Every input source appears in the Sources of at least one node, or is marked in the root `## Sources` as informative only and not decomposed, with a reason.", "status": "n/a", "note": "The root inventory is H22's; this node lists the v0.15.1 Specification and Guide." },
+    { "gate": "No node's Sources lists a document that does not govern it.", "status": "pass", "note": "Each added section is cited by an Owns bullet (§3.9, §7.2, Guide §6.3) or by D6 (§10.2 principle 5)." },
+    { "gate": "Field blocks are bullet lists and empty lists say \"none\".", "status": "pass", "note": "Unchanged form." },
+    { "gate": "Every open question is defined once, in its owning spec, with a table row and a `### {ID}` detail subsection; child views carry `[inherits ...]`; no cited ID lacks a definition.", "status": "pass", "note": "OQ-N1 and OQ-N2 unchanged, both RESOLVED." },
+    { "gate": "OQ prefixes used by node specs are declared in `conventions.md`.", "status": "pass", "note": "`N` = nidana.navigation." },
+    { "gate": "Under `multi-team`, every node whose team differs from its parent's carries `- **Team:**`; no node is owned by two teams.", "status": "n/a", "note": "single-team." },
+    { "gate": "Where children exchange contracts, an integration node exists or the decision not to add one is stated in the parent (one line).", "status": "n/a", "note": "No children." },
+    { "gate": "A graft kept every existing child id and touched only the new child's file, the parent's summaries and the parent's DAG.", "status": "n/a", "note": "Not a graft." },
+    { "gate": "A retired node's file is kept; its contracts' retirement went through `hsdd-reconcile`.", "status": "n/a", "note": "Not a retirement." },
+    { "gate": "Promotion: the human confirmed before `- **Adopted:** promoted` was written; `## Observed surface` kept; `v0` contracts unchanged unless redesigned.", "status": "n/a", "note": "Not a promotion." },
+    { "gate": "node docs/auto-run/tools/gate.mjs --skill hsdd-spec passes; only hsdd/spec/nidana.navigation.md changed under hsdd/; text from ## Phase Plan on is byte-identical to HEAD (step's done-when)", "status": "pass", "note": "gate: 0 errors, 0 warnings. The text from ## Decisions on is byte-identical to HEAD as well, so D1 to D6 are untouched. No em-dash in the file." }
+  ],
+  "notes_for_orchestrator": [
+    "EDITS (non-plan only): Consumes moved to topology-dsl@v2, bus-api@v2, bus-testing@v2; Sources follow the record's rule (v0.15.0 entries marked baseline, v0.15.1 entries add Spec §3.9, §7.2 'Scope timing', the third bullet of §10.2 principle 5, and Guide §6.3 'Name every transformer'); the bootstrap Owns bullet restated for bus-api@v2 G34 and G42; the resolver Owns bullet gains G13's once-per-call clause; the Isolation strategy names the resolver's plans; the Overview says 'resolves them and then guards them'. Before this touch no non-plan sentence relied on a connection before activate returns. The old bootstrap bullet did not say so, and the restated one cites G34.",
+    "D1 TO D6 ARE ALL PLAN-WRITTEN (S32, commit b8137e4). This touch leaves them, and everything from ## Phase Plan on, byte-identical. All of it goes to the inserted hsdd-phase-plan step (DEC-775).",
+    "INSERT RULE (confirmed, already applied by DEC-775): H5 (S62) changed G13's behavior. One new case pins that the plans of one navResolver call hold == stage functions and that another call's hold its own. It is replayed by nidana.navigation.3's gate (its --guarantee list already holds G13) and by nidana.navigation.6's unrestricted replay. G14 and G24 did not change behavior (S62 T5).",
+    "FOR THE INSERTED PHASE-PLAN STEP, plan lines that cite a superseded version or that a landing contradicts (line numbers as the file now stands): (1) D3 third bullet, line 93: 'nidana.runtime's gates read bus-api@v1's bus_activation_test.dart the same way' becomes bus-api@v2; the empty-binding rule it relies on is ADR-001 item 9, unchanged. (2) D3 sixth bullet, line 96: 'flutter-binding@v1's binding of the executor suite' becomes flutter-binding@v2. (3) D5, lines 112 to 122: must say that navResolver builds its stage objects once per call, outside the declaration body (the topology() form runs its body on every planOf call), so the value one call returns re-activates to its handle under bus-api@v2 G23 and another call's throws TopologyConflict. D5's evidence (docs/auto-run/experiments/navigation-stage-names/) built them inside the declaration, which fails the new G13 case; cite docs/auto-run/experiments/navigation-api-v0151/ T4 and P5. Add as alternatives 'built inside the declaration' (conflicts with its own second activation) and 'canonicalized per configuration in a static cache' (fails the case). Sources now hold Spec §3.9 and Guide §6.3. (4) D6, line 126: 'which bus-api@v1 G18 sends to the provider zone's uncaught-error handler' becomes bus-api@v2 G18: the uncaught-error handler of the zone in which the executor's subscription listened, the zone its constructor ran in. Both of D6's error paths then reach one zone, and the executor goes on handling later intents (navigation-api-v0151 P6; Spec §10.2 third bullet of principle 5; ADR-003 item 2 as amended). (5) nidana.navigation.1 Consumes, line 159: topology-dsl@v1 and bus-api@v1 become v2. (6) nidana.navigation.1 Dependencies, line 167: 'topology-dsl@v1 declarations', 'bus-api@v1 declarations' and 'bus-testing@v1's' become v2. (7) nidana.navigation.3 Consumes, line 183: topology-dsl@v1 becomes v2. (8) nidana.navigation.3 Scope, line 186: add that the stage objects are built once per navResolver call, outside the declaration body, and that the phase delivers G13's new case; its Verification may add re-activation of one resolver value. (9) nidana.navigation.6 Consumes, line 219: topology-dsl@v1, bus-api@v1 and bus-testing@v1 become v2. (10) nidana.navigation.6 Scope, line 222: a recorder attached before start() also records start()'s connection publishes (bus-testing@v2 G14; S61). The G16 test activates its PAGE picker after start() (bus-api@v2 G42), as the fixture does. The 'bus.lifecycle is running' check for LateExecutorConstruction agrees with G34, under which the bus is running from the moment start() begins, so an executor constructed from work that start() runs is reported late. The bootstrap test (deep link before the activation, then start()) is unchanged (S62 T5). (11) nidana.navigation.6 Dependencies, line 227: 'bus-testing@v1' and 'bus-api@v1's publishers, ... activation, start()' become v2; the list could name start()'s connection order and scope timing (G34, G42) where it names activation. (12) Phase dependency graph labels, lines 259, 260, 262 and 263: topology-dsl@v1, bus-api@v1 and bus-testing@v1 become v2.",
+    "PRODUCER PHASE IDS the plan names are unchanged: nidana.model.2, .5, .6, .8 to .12 and nidana.runtime.1 and .14 keep their ids and roles (S79). nidana.model's own plan headings still read 'topology-dsl@v1 declarations' (nidana.model.4), pending the H23 sweep.",
+    "OBSERVATION, no action taken: OQ-N1's resolution cites Spec §7.6 (the Initializing variant behind PendingPrincipal), which no Sources entry of this node lists, before or after this touch. The record's Sources rule adds only sections that landings bring, so it was left out. A later touch could add it."
+  ]
+}
