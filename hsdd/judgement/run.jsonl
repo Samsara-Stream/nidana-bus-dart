@@ -55,3 +55,4 @@
 {"step_ref":"S54","skill":"none","target":"REPORT.md","started":"2026-10-18T10:17:14Z","finished":"2026-10-18T10:18:15Z","commit":"8e5bc10","dispatches":0,"note":"orchestrator writes the report"}
 {"step_ref":"S55","skill":"none","target":"inputs for the v0.15.1 intake","started":"2026-10-20T16:00:00Z","finished":"2026-10-20T16:11:41Z","commit":"a9feca6","dispatches":0,"note":"orchestrator settles inputs"}
 {"step_ref":"S56","skill":"none","target":"stage 9 plan","started":"2026-10-20T16:11:30Z","finished":"2026-10-20T16:13:52Z","commit":"ef1921e","dispatches":0,"note":"orchestrator plans stage 9"}
+{"step_ref":"S57","skill":"hsdd-intake","target":"reference architecture v0.15.1","started":"2026-10-20T16:15:09Z","finished":"2026-10-20T16:39:50Z","commit":"82417d8","dispatches":1}
