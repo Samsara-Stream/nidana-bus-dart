@@ -282,6 +282,7 @@ orchestrator and recorded with `would_have_asked: true`.
 | S86 | 9 | hsdd-phase-plan | H15: nidana.flutter re-plan (append mode; .1, .4 to .7 rewritten, .8 Module wrapper appended for NidanaModule; D1 to D11 restated or checked, D12 new) | done | fa48cb5 |
 | S87 | 9 | hsdd-reconcile | H16: nidana.flutter pending section drained (flutter-binding@v2 produced_by .8, Delivery amended; consumers gain .8; no flips) | done | 125d9db |
 | S88 | 9 | hsdd-spec | H17: nidana.tooling.codegen touch (Sources, Consumes at v2, D1 checked against Guide C.1: its @Topology upstream mark ends) | done | 68799e6 |
+| S89 | 9 | hsdd-spec | H18: nidana.tooling.lint touch (Sources, Consumes at v2, contracts table, checked: no rule changes) | done | 15ad352 |
 
 ## Change log
 
