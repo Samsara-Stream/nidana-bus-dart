@@ -1,0 +1,145 @@
+{
+  "step_ref": "S90",
+  "skill": "hsdd-spec",
+  "target": "nidana.tooling (touch for Specification v0.15.1, handoff H19)",
+  "status": "completed",
+  "stop": null,
+  "artifacts": ["hsdd/spec/nidana.tooling.md"],
+  "decisions": [
+    {
+      "at": "2026-10-20T23:29:44Z",
+      "artifact": "hsdd/spec/nidana.tooling.md",
+      "question": "Which sections do the header's v0.15.1 Sources entries name: the same sections as the baseline entries, with or without the Guide Appendix C.1 subsection that landing L9 adds to nidana.tooling.codegen, or more sections that v0.15.1 changed?",
+      "options": [
+        { "label": "Same sections, Guide C.1 subsection named", "consequence": "The parent's v0.15.1 Guide entry names C.1 \"Platforms without runtime reflection\" as nidana.tooling.codegen's does, so each child's Sources stays a visible subset of the parent's. No Spec section added." },
+        { "label": "Same sections, plain", "consequence": "Shorter; Appendix C.1 to C.5 already covers the subsection, but the parent no longer shows the one passage of v0.15.1 that lands in its subtree." },
+        { "label": "Add Spec §10.2 and Guide §6.3", "consequence": "Names passages v0.15.1 changed, but they govern run-time behavior (write chains, transformer equality at re-activation) that no check here decides; neither child lists them, so the parent would list a source that governs no node in its subtree." }
+      ],
+      "chosen": "Same sections, Guide C.1 subsection named",
+      "why": "The record's Sources rule asks for the same sections plus those the landing adds to the node; L9 adds Guide Appendix C.1's new paragraph to nidana.tooling.codegen, and hsdd-spec says sources trickle down as subsets of the parent's. Within the sections this node already lists, v0.15.1 changes only run-time rules: §3.1's subject keyed by (name, type), §4.3's runtime row and §7.2's scope timing; §4.3's CI row and §7.2's compatibility rule, which the checks implement, are unchanged, and the record says CI cannot see when an activation happens relative to start(). Guide §5.1 and §5.2 changed links only. Guide §6.3 'Name every transformer' was not added: L10 records no change, nidana.integration D8 keeps the catalog's labels stable, and S88 did not add it to nidana.tooling.codegen.",
+      "evidence": ["hsdd/management/2026-10-20-intake-ref-arch-v0-15-1.md (Sources; L9; L10; L2)", "diff of ref/nidana-docs/arch/nidana-bus-ref-arch-spec-v0_15_0.md against v0_15_1.md (§3.1 line 441, §4.3 line 815, §7.2 lines 1446 to 1450)", "diff of the Guide v0.15.0 against v0.15.1 (Appendix C.1 'Platforms without runtime reflection' the only content change in §5.1, §5.2, Appendix C)", "hsdd/spec/nidana.tooling.codegen.md Sources (S88)"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T23:29:54Z",
+      "artifact": "hsdd/spec/nidana.tooling.md",
+      "question": "The embedded child blocks used a short Sources form ('Spec §3.8, ...; Guide §5.2, ...') with no file. H17 and H18 gave the children four entries each, baseline then v0.15.1, with paths. What form do the embedded blocks take?",
+      "options": [
+        { "label": "The children's four entries with paths", "consequence": "Each embedded Sources names the same files, sections and baseline markers as the child's header, so a reader of the parent cannot take 'Spec' for the superseded version; four more lines per block, and a form the root's embedded blocks do not use." },
+        { "label": "Short form with versions named", "consequence": "Compact and keeps the parent's earlier form, for example 'Spec v0.15.1 §3.8 ...; the v0.15.0 baseline at the same sections'; the reader resolves the file from the header above, and the block no longer matches the child's field text." }
+      ],
+      "chosen": "The children's four entries with paths",
+      "why": "hsdd-spec: 'The summary indexes the source; it never replaces it: restatement thins at each level, the pointer does not.' The path is the pointer, and before H22 the root's Sources inventory still maps 'Spec' to v0.15.0, so the short form would be ambiguous in this file. The step's Done when asks the embedded blocks to match the children's Sources. One change from verbatim: the codegen block's Guide entry says 'nidana.tooling.codegen D1' where the child says 'D1', because in this file D1 is nidana.tooling's own decision, as the embedded Owns lines already qualify it. Close call; the signal that would have changed it: the root choosing the short form for every embedded block at H22, in which case the parent's blocks would follow the root's convention.",
+      "evidence": ["hsdd-spec SKILL.md Process step 1 (Sources trickle down)", "hsdd/spec/nidana.tooling.codegen.md and hsdd/spec/nidana.tooling.lint.md headers (S88, S89)", "docs/auto-run/steps/S88.json and S89.json notes_for_orchestrator (H19)"],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T23:30:06Z",
+      "artifact": "hsdd/spec/nidana.tooling.md",
+      "question": "The DAG labels and the edge table cite topology-dsl@v1, bus-api@v1, bus-testing@v1 and flutter-binding@v1. Move the citations as they are, or restate a row whose 'Why this type' the new version makes false?",
+      "options": [
+        { "label": "Move, rows unchanged", "consequence": "Ten citations move to v2 (six labels, six table cells, counting the two runtime labels separately); every row's reason stays word for word." },
+        { "label": "Move and restate rows", "consequence": "Needed only where a reason became false under DEC-804." }
+      ],
+      "chosen": "Move, rows unchanged",
+      "why": "Each reason still holds under v2: catalog calls buildDefinition() (topology-dsl@v2 Delivery: nidana.model.11); the recognizer matches Bus.publisher, PageScope and FlutterNavigationExecutor by package and name, whose arguments are unchanged (nidana-checks@v1 Versioning, H7i touch); NidanaModule is no claim site (nidana-checks@v1 G11); the plugin matches Bus, Publisher, TopologyBuilder.write and reduceInto, and TestBus still extends Bus (S89). Nothing here runs a bus, so the run-time changes of v2 reach no row.",
+      "evidence": ["hsdd/contract/nidana-checks.md Versioning (Touched within v1, 2026-10-21)", "hsdd/contract/topology-dsl.md Delivery", "docs/auto-run/steps/S73.json", "docs/auto-run/steps/S89.json"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T23:30:19Z",
+      "artifact": "hsdd/spec/nidana.tooling.md",
+      "question": "D3's opening sentence says 'The root lists bus-api@v1 as consumed by this node'. The root still lists bus-api@v1 until H22 touches it. Move the citation now, drop the version, or keep v1?",
+      "options": [
+        { "label": "Move to v2", "consequence": "Follows the record's rule that every live citation moves inside the intake; the sentence describes the root as H22 will leave it, and is ahead of the root's text between this step and H22." },
+        { "label": "Drop the version", "consequence": "True at every point of the intake, but rewords a live sentence the record only asks to move, and loses the version D3 reasons about." },
+        { "label": "Keep v1", "consequence": "True until H22, then stale; the final gate would warn on a live citation." }
+      ],
+      "chosen": "Move to v2",
+      "why": "D3 is a live decision, not historical text, and the record moves every live citation of a superseded version inside the intake. H22 is routed to move the root's embedded Consumes and edge table, after which the sentence is exact; the notes ask H22 to do so. The bullets and the paragraph after them moved the same way (bus-testing@v2, flutter-binding@v2), and their content was checked: the analyze-global-bus-accessor and analyze-clean cases import package:nidana_dart_runtime/testing.dart; scan-clean and scan-writer-conflict import nidana_dart_runtime_flutter and nidana_dart_navigation, scan-scope-violation and scan-unresolved-claim nidana_dart_runtime_flutter; bus-testing@v2's and flutter-binding@v2's Delivery paragraphs still name nidana.runtime.1 and nidana.flutter.1 for a consumer's contract edge; nidana.flutter.1 still waits on nidana.runtime.1 and nidana.navigation.1 (and nidana.model.5).",
+      "evidence": ["hsdd/management/2026-10-20-intake-ref-arch-v0-15-1.md (Citations of a superseded version; H22)", "hsdd/contract/fixture/nidana-checks/invocation/ (imports grepped)", "hsdd/contract/bus-testing.md Delivery", "hsdd/contract/flutter-binding.md Delivery", "hsdd/spec/nidana.flutter.md nidana.flutter.1 Dependencies"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T23:30:19Z",
+      "artifact": "hsdd/spec/nidana.tooling.md",
+      "question": "Two passages still name a superseded version: the first bullet of 'Carried into the children's phase plans' (bus-api@v1 For static analysis and bus-api@v1's amendment (f), drained 2026-10-18) and OQ-T1's 'Resolved (2026-10-18)' paragraph ('no topology-dsl@v1 change is needed'). Live or historical?",
+      "options": [
+        { "label": "Historical, keep v1", "consequence": "Both describe what happened on 2026-10-18 to the version then current; the final gate reports two bus-api@v1 and one topology-dsl@v1 reference here as stale-version warnings, which are intended." },
+        { "label": "Live, move to v2", "consequence": "Would date an amendment and a resolution to a version that did not exist then." }
+      ],
+      "chosen": "Historical, keep v1",
+      "why": "The record keeps the version in historical text: a dated amendment entry, a migration note, a Corrected paragraph. The Carried-into bullet is a pointer to a drained 2026-10-18 entry, and S89 kept the matching line of nidana.tooling.lint; nidana-checks@v1's H7i touch kept its amendment (a) at bus-api@v1 for the same reason. OQ-T1's dated Resolved paragraph is the audit trail hsdd-spec says to keep; nidana.tooling.codegen D1's Checked paragraph (S88) already states that the registration needs no change to topology-dsl@v2 either.",
+      "evidence": ["hsdd/management/2026-10-20-intake-ref-arch-v0-15-1.md (Citations of a superseded version)", "docs/auto-run/steps/S89.json notes_for_orchestrator", "docs/auto-run/steps/S73.json decisions", "hsdd/spec/nidana.tooling.codegen.md D1 (Checked 2026-10-21)"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T23:30:29Z",
+      "artifact": "hsdd/spec/nidana.tooling.md",
+      "question": "Record the touch in the node's text, as both children did with a 'Checked 2026-10-21' paragraph, or leave the version moves to git history?",
+      "options": [
+        { "label": "A Checked paragraph under D3", "consequence": "One paragraph says which citations moved, why no run-time change of the new versions reaches a check here, that the edges' waiting phases are unchanged, and that L9 changes no edge; D3 is where the consumed contracts are reasoned about." },
+        { "label": "No note", "consequence": "Smaller diff; a reader of D3 sees v2 citations with no statement that the edges were rechecked against v2." }
+      ],
+      "chosen": "A Checked paragraph under D3",
+      "why": "Both children recorded their touch in place (nidana.tooling.codegen D1, nidana.tooling.lint after its Contracts table), and D3 is the parent's one decision whose subject is consumed contract versions. The paragraph names the old versions as 'at v1' rather than as contract@v1 tokens, so the final gate's stale-version warnings for this file list only the two pre-existing historical passages.",
+      "evidence": ["hsdd/spec/nidana.tooling.codegen.md D1 (Checked 2026-10-21)", "hsdd/spec/nidana.tooling.lint.md (Checked 2026-10-21)", "docs/auto-run/tools/gate.mjs (final stale-version warnings)"],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    }
+  ],
+  "experiments": [],
+  "self_check": [
+    { "gate": "The spec stays high-level; it is not an implementation plan.", "status": "pass", "note": "Touch only: Sources, versions, one Checked paragraph." },
+    { "gate": "Every node has explicit consumed/produced contract ids.", "status": "pass", "note": "Header and both embedded blocks at current versions." },
+    { "gate": "Every node is testable in isolation (fixtures, mocks, schemas).", "status": "pass", "note": "Isolation strategies unchanged; nothing here runs a bus." },
+    { "gate": "Every dependency edge is typed; parallel lanes are called out.", "status": "pass", "note": "Edge types unchanged; Development flow unchanged and its phase ids checked against the current plans and Delivery paragraphs." },
+    { "gate": "Each child is marked internal or leaf-parent.", "status": "pass", "note": "Both leaf-parents." },
+    { "gate": "Mermaid DAG matches the dependency table.", "status": "pass", "note": "Labels and table rows carry the same contract versions and types." },
+    { "gate": "`conventions.md` exists/updated at the root.", "status": "n/a", "note": "Not a root run; no new convention." },
+    { "gate": "The decomposition axis at each level matches ownership stated by the human, not assumed; no node is owned by two teams.", "status": "pass", "note": "Unchanged; one team. Gate text quoted with the skill's em-dash replaced by a semicolon (prose rule)." },
+    { "gate": "Every child node has its own `hsdd/spec/{child-id}.md` file.", "status": "pass", "note": "Gate checked." },
+    { "gate": "Every input source appears in the Sources of at least one node, or is marked in the root `## Sources` as \"informative only, not decomposed\", with a reason.", "status": "n/a", "note": "Root's inventory is H22's; the v0.15.1 Specification and Guide appear here. Gate text quoted with the skill's em-dash replaced by a comma (prose rule)." },
+    { "gate": "No node's Sources lists a document that does not govern it.", "status": "pass", "note": "Same sections as the baseline; each child's list is a subset." },
+    { "gate": "Field blocks are bullet lists and empty lists say \"none\".", "status": "pass", "note": "Sources are nested bullet lists." },
+    { "gate": "Every open question is defined once, in its owning spec, with a table row and a `### {ID}` detail subsection; child views carry `[inherits …]`; no cited ID lacks a definition.", "status": "pass", "note": "OQ-T1 and OQ-T2 unchanged; gate checked OQ references." },
+    { "gate": "OQ prefixes used by node specs are declared in `conventions.md`.", "status": "pass", "note": "Unchanged." },
+    { "gate": "Under `multi-team`, every node whose team differs from its parent's carries `- **Team:**`; no node is owned by two teams.", "status": "n/a", "note": "Single team." },
+    { "gate": "Where children exchange contracts, an integration node exists or the decision not to add one is stated in the parent (one line).", "status": "pass", "note": "D1 Consequences: the children exchange no contract." },
+    { "gate": "A graft kept every existing child id and touched only the new child's file, the parent's summaries and the parent's DAG.", "status": "n/a", "note": "No graft." },
+    { "gate": "A retired node's file is kept; its contracts' retirement went through `hsdd-reconcile`.", "status": "n/a", "note": "No retirement." },
+    { "gate": "Promotion: the human confirmed before `- **Adopted:** promoted` was written; `## Observed surface` kept; `v0` contracts unchanged unless redesigned.", "status": "n/a", "note": "No promotion." },
+    { "gate": "node docs/auto-run/tools/gate.mjs --skill hsdd-spec passes and only hsdd/spec/nidana.tooling.md changed under hsdd/", "status": "pass", "note": "gate: 0 error(s), 0 warning(s); git status under hsdd/ shows only hsdd/spec/nidana.tooling.md. No em-dash, no banned phrase." }
+  ],
+  "notes_for_orchestrator": [
+    "H22 (root touch): the root's embedded nidana.tooling block (hsdd/spec/nidana.md lines 114 to 125) should mirror this header: Consumes [topic-model@v1, topology-dsl@v2, topology-ir@v1, bus-api@v2, bus-testing@v2, navigation-api@v1, flutter-binding@v2]; Produces [topic-codegen@v1, nidana-checks@v1], unchanged; Governed by [ADR-001, ADR-002], unchanged; Sources the same sections read as v0.15.1 with v0.15.0 as the marked baseline: Spec §3.1, §3.8, §3.11, §4.2 to §4.6, §6.3, §6.4, §6.5, §7.2, §7.6, §9.2; Guide §5.1, §5.2, Appendix C.1 to C.5, with C.1 'Platforms without runtime reflection' (the explicit list nidana.tooling.codegen D1 chose). The root uses a short form for embedded Sources; it can keep it once its ## Sources inventory makes 'Spec' and 'Guide' mean v0.15.1, or take this file's four-entry form. Purpose, Owns, Does not own, Decomposes into and Isolation strategy are unchanged.",
+    "H22 also: the root's edge table rows for nidana.tooling (topology-dsl@v1 line 188, bus-api@v1 line 194, bus-testing@v1 line 195, flutter-binding@v1 line 198), its DAG labels into nidana.tooling, D10's paragraph at line 201 ('nidana.runtime (bus-testing@v1)'), and the Contracts paragraph at line 216 ('the tooling consumers of bus-testing@v1, navigation-api@v1 and flutter-binding@v1 (nidana.tooling D3)') are live and move to v2. nidana.tooling D3's opening sentence now reads 'The root lists bus-api@v2 as consumed by this node', which becomes exact when H22 moves the root's embedded Consumes and edge table.",
+    "H23 / final gate: nidana.tooling.md keeps three superseded-version tokens on purpose, all historical: the first bullet of 'Carried into the children's phase plans' (bus-api@v1 twice, the drained 2026-10-18 amend and bus-api@v1's amendment (f)) and OQ-T1's 'Resolved (2026-10-18)' paragraph (topology-dsl@v1). gate.mjs --final reports them as '2 reference(s) to bus-api@v1' and '1 reference(s) to topology-dsl@v1'. This node has no phase plan, so H23 has no plan text to sweep here.",
+    "Insert rule: not triggered by this node; it has no phases, and no guarantee its children replay changed beyond citations (S59 to S63, S73).",
+    "Not changed, pre-existing: the embedded nidana.tooling.codegen Owns summary omits the child's `pubspec.yaml` and `bin/` wording; it is a summary predating the intake and no v0.15.1 landing reaches it.",
+    "No ADR proposed, no OQ minted, no experiment needed, no skill stop, no run-stop candidate."
+  ]
+}
