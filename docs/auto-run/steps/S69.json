@@ -1,0 +1,119 @@
+{
+  "step_ref": "S69",
+  "skill": "hsdd-contract",
+  "target": "bus-testing@v2 (hsdd/contract/bus-testing.md, hsdd/contract/fixture/bus-testing/)",
+  "status": "completed",
+  "stop": null,
+  "artifacts": [
+    "hsdd/contract/bus-testing.md"
+  ],
+  "decisions": [
+    {
+      "at": "2026-10-20T20:04:07Z",
+      "artifact": "hsdd/contract/bus-testing.md",
+      "question": "The Interface's 'Not here' line cites flutter-binding@v1 for the widget-test helpers that build a production-provider bus inside a testWidgets body and shut it down at unmount. Move it to flutter-binding@v2, and does the sentence still hold under v2?",
+      "options": [
+        { "label": "move to flutter-binding@v2, sentence unchanged", "consequence": "The citation names the current version; the sentence stays as written because flutter-binding@v2 G17 and the WidgetTestBus doc comment still construct Bus(config) on the production provider inside the testWidgets body, and wrap(child) is an owning BusProvider whose unmount shuts the bus down (G4, ADR-003 item 7)." },
+        { "label": "move to flutter-binding@v2 and restate the sentence", "consequence": "Only needed if v2 changed what WidgetTestBus builds or when it shuts down; it did not, so a restatement would be churn in a citation touch." },
+        { "label": "keep flutter-binding@v1", "consequence": "Leaves a live citation of a superseded version, which DEC-688 and the intake record forbid." }
+      ],
+      "chosen": "move to flutter-binding@v2, sentence unchanged",
+      "why": "The line states what holds now (what this contract excludes and where it lives), so it is live under the S64 rule. flutter-binding@v2 G17 states the same construction and shutdown the sentence paraphrases, and S63 classified this citation as live with its meaning unchanged. No sentence needed restating.",
+      "evidence": [
+        "hsdd/contract/flutter-binding.md G17, G4, WidgetTestBus doc comment",
+        "docs/auto-run/steps/S63.json notes_for_orchestrator[1]",
+        "hsdd/management/2026-10-20-intake-ref-arch-v0-15-1.md 'Citations of a superseded version'"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T20:04:31Z",
+      "artifact": "hsdd/contract/bus-testing.md",
+      "question": "Which of the remaining superseded-version occurrences are historical and keep their version?",
+      "options": [
+        { "label": "keep all 10 as historical", "consequence": "The v1-to-v2 migration note (bus-api@v1 at its intro and in four entries describing the v1 stand-in runtime; bus-api@v1 and topology-dsl@v1 in the Citations entry), the v1 history bullet (bus-api@v1 G20) and the Validation paragraphs describing the bus-testing-fixtures and runtime-reconcile-amends experiments (bus-api@v1's two bindings) keep the versions they describe." },
+        { "label": "move the Validation experiment paragraphs too", "consequence": "Would make those paragraphs false: the experiments ran bus-api@v1's bindings, and v2 bindings did not exist then." }
+      ],
+      "chosen": "keep all 10 as historical",
+      "why": "Each occurrence sits in text the S64 rule names as historical: a migration note, a dated v1 history entry, or an experiment's description of what a version did. Each describes a past state or a measured run, so moving it would make it false.",
+      "evidence": [
+        "hsdd/contract/bus-testing.md ## Versioning (migration note, v1 history), ## Validation (experiment paragraphs)",
+        "hsdd/management/2026-10-20-intake-ref-arch-v0-15-1.md 'Citations of a superseded version'"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T20:04:31Z",
+      "artifact": "hsdd/contract/bus-testing.md",
+      "question": "Should the touch leave a dated entry in ## Versioning, or change only the citation?",
+      "options": [
+        { "label": "add a 'Touched within v2' entry", "consequence": "The contract records which citation moved, that its meaning held, what stayed historical and the compatibility classification, as topology-dsl (H7b), topology-ir (H7c) and bus-api (H7d) did. One more bullet in Versioning." },
+        { "label": "change only the citation", "consequence": "Smaller diff, as topic-model (H7a) did, but the contract carries no trace of the touch or its classification; a reader learns it only from the commit." }
+      ],
+      "chosen": "add a 'Touched within v2' entry",
+      "why": "Three of the four earlier citation touches recorded an entry, and the classification of the touch belongs in the contract's own Versioning section where a later reader looks for it. Close call; a stated orchestrator preference for the minimal diff of H7a would have changed it.",
+      "evidence": [
+        "hsdd/contract/topology-dsl.md ## Versioning (Touched within v2, H7b)",
+        "hsdd/contract/topology-ir.md ## Versioning (Touched within v1, H7c)",
+        "hsdd/contract/bus-api.md ## Versioning (Touched within v2, H7d)"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T20:04:37Z",
+      "artifact": "hsdd/contract/bus-testing.md",
+      "question": "Classify the touch against this contract's Versioning: does bus-testing stay at v2?",
+      "options": [
+        { "label": "compatible, stays v2", "consequence": "No declaration, guarantee, case or fixture changed; status draft and phase_ids provisional unchanged; no consumer reference moves; INDEX.md is unchanged by the regeneration." },
+        { "label": "breaking, v3", "consequence": "Would need a declaration or guarantee change, of which there is none." }
+      ],
+      "chosen": "compatible, stays v2",
+      "why": "The only edit is a citation version in Not here, whose meaning flutter-binding@v2 keeps, plus the Versioning entry. Nothing on the Breaking list is reached, and G3 still names bus-api@v2, whose text since S61 changed only in G9, which this contract does not restate.",
+      "evidence": [
+        "hsdd/contract/bus-testing.md ## Versioning (Breaking, Compatible)",
+        "git diff --word-diff c0dae3a HEAD -- hsdd/contract/bus-api.md (only citation moves and G9)"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    }
+  ],
+  "experiments": [],
+  "self_check": [
+    { "gate": "Frontmatter has id, version, status, kind, owner, compatibility, produced_by, consumers; external_consumers when any exist.", "status": "pass", "note": "Frontmatter untouched." },
+    { "gate": "`consumers` lists phase ids that actually consume this contract.", "status": "n/a", "note": "Unchanged by a citation touch; phase_ids provisional until H12 or H23." },
+    { "gate": "The Interface section is concrete enough to mock against.", "status": "pass", "note": "Unchanged." },
+    { "gate": "At least one guarantee/invariant is stated.", "status": "pass", "note": "G1 to G20 unchanged." },
+    { "gate": "A breaking change bumped the version and added a migration note.", "status": "n/a", "note": "No breaking change; touch classified compatible within v2." },
+    { "gate": "The registry was regenerated.", "status": "pass", "note": "node hsdd/scripts/gen-registry.mjs ran; INDEX.md byte-identical (no version or status change)." },
+    { "gate": "`phase_ids` is present (`provisional` until `hsdd-reconcile` finalizes it).", "status": "pass", "note": "phase_ids: provisional." },
+    { "gate": "Every code-level artifact both sides consume (types file, fixtures, shared package) names its canonical path and its owner in the Interface or Validation section: the owning phase for code, `hsdd-contract` for validation artifacts.", "status": "pass", "note": "Unchanged." },
+    { "gate": "A contract or version created by this run has its schema and its kind's fixtures written at the canonical paths.", "status": "n/a", "note": "No contract or version created." },
+    { "gate": "Open questions are cited by ID only, never defined here; prose justifying behavior as \"pending OQ-x\" is swept when the OQ resolves (hsdd-reconcile).", "status": "pass", "note": "No OQ text added." },
+    { "gate": "A `stable` contract names a schema or a fixtures directory at the canonical paths and the artifact exists, or it carries `validation: grandfathered` (never on a contract authored after the upgrade).", "status": "n/a", "note": "Status draft." },
+    { "gate": "No version is `retired` while a consumer or an external consumer still names it.", "status": "pass", "note": "No retirement." },
+    { "gate": "A `v0` contract carries `## Observed completeness`, and the block changed in any commit that added fixtures to it.", "status": "n/a", "note": "Contract is v2." },
+    { "gate": "node docs/auto-run/tools/gate.mjs --skill hsdd-contract", "status": "pass", "note": "0 error(s), 0 warning(s)." }
+  ],
+  "notes_for_orchestrator": [
+    "COUNTS: moved 1 live citation, kept 10 historical. Moved: hsdd/contract/bus-testing.md line 36 (Interface 'Not here'), flutter-binding@v1 -> @v2; this matches S63's prediction (bus-testing.md 1, live 'Not here'). Kept (line numbers after this step): the v1-to-v2 migration note, bus-api@v1 at lines 230, 232, 233, 234, 235 and bus-api@v1 plus topology-dsl@v1 at 236; the v1 history bullet at 238 (bus-api@v1 G20); the Validation experiment paragraphs at 254 (bus-api@v1's two bindings, bus-testing-fixtures) and 255 (bus-api@v1's two bindings, runtime-reconcile-amends). Fixture comments under hsdd/contract/fixture/bus-testing/: 0 moved; every header and comment already names bus-testing@v2 or bus-api@v2 (S61), and none names topology-dsl, flutter-binding or navigation-api at a version. Unchanged-version citations (topic-model@v1, topology-ir@v1, navigation-api@v1) stay.",
+    "MEANING CHECK: no moved citation changed meaning, so no sentence was restated. flutter-binding@v2 G17 still has WidgetTestBus construct a production-provider bus in the testWidgets body and shut it down at unmount through its owning BusProvider (ADR-003 item 7). The live sentences that restate bus-api@v2 (G5, G10, G12, G16, G17, G18, G20, G22, G34, G36, G39, G41, G42, Refinement 1, the delivery rule) were checked by word-diff of bus-api.md since S61: only citation moves and G9 changed, and this contract does not restate G9, TopicRemoved or lineage of a removal. Delivery's 'bus-api@v2 G34 ... placed before nidana.runtime.13' still holds (bus-api Delivery puts G34 at nidana.runtime.12). The topology-dsl@v2 and topology-ir@v1 Boundary rows name declaration groups those contracts still hold after S65, S66 and S68.",
+    "Added a 'Touched within v2, 2026-10-21 ... handoff H7e' bullet in ## Versioning between the migration note and the v1 history, following H7b, H7c and H7d (H7a added none). The bullet names 'flutter-binding in Not here' without a version, so it adds no @v1 occurrence.",
+    "No skill stop, no run-stop candidate, no ADR proposed, no OQ minted, no experiment needed (no runtime fact at stake). hsdd/contract/INDEX.md regenerated and unchanged. gate.mjs --skill hsdd-contract: 0 errors, 0 warnings.",
+    "Remaining H7 members: navigation-api@v1 (H7f) still has live flutter-binding@v1 citations per S63 (13, some historical) and its fixture navigation_executor_conformance.dart (1 header line); flutter-binding (H7g), topic-codegen (H7h) and nidana-checks (H7i, 4 live flutter-binding@v1 per S63) are for their own touches. bus-testing needs no further citation step unless a later handoff versions another contract it cites."
+  ]
+}
