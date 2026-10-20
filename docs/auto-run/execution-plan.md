@@ -254,8 +254,8 @@ orchestrator and recorded with `would_have_asked: true`.
 | S58 | 9 | hsdd-adr | H1: ADR-003 amendment (subscriber errors to the listen zone, first delivery under the barrier) | done | 4fd1e41 |
 | S59 | 9 | hsdd-contract | H2: topology-dsl@v2 (write chains; breaking, draft) | done | dc16733 |
 | S60 | 9 | hsdd-contract | H3: bus-api@v2 (barrier, scope timing, subscriber errors, re-activation breaking; draft) | done | 77b7eb6 |
-| S61 | 9 | hsdd-contract | H4: bus-testing | running | |
-| S62 | 9 | hsdd-contract | H5: navigation-api | planned | |
+| S61 | 9 | hsdd-contract | H4: bus-testing@v2 (bootstrap recorder and probe, subscriber errors, scope timing; draft) | done | c0dae3a |
+| S62 | 9 | hsdd-contract | H5: navigation-api | running | |
 | S63 | 9 | hsdd-contract | H6: flutter-binding (NidanaModule, scope timing) | planned | |
 
 ## Change log

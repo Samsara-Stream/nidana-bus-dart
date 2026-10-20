@@ -1,0 +1,241 @@
+{
+  "step_ref": "S61",
+  "skill": "hsdd-contract",
+  "target": "bus-testing@v1 (now bus-testing@v2)",
+  "status": "completed",
+  "stop": null,
+  "artifacts": [
+    "hsdd/contract/bus-testing.md",
+    "hsdd/contract/fixture/bus-testing/behavior/bus_testing_conformance.dart",
+    "hsdd/contract/fixture/bus-testing/behavior/nidana_dart_runtime_test.dart (header only)",
+    "hsdd/contract/fixture/bus-testing/surface/recording.dart, scheduler.dart, test_bus.dart (header line only)",
+    "hsdd/contract/INDEX.md (regenerated)",
+    "docs/auto-run/experiments/bus-testing-v0151/",
+    "docs/auto-run/steps/S61.json"
+  ],
+  "decisions": [
+    {
+      "at": "2026-10-20T18:14:28Z",
+      "artifact": "hsdd/contract/bus-testing.md",
+      "question": "G11 against Spec §10.2 principle 5 and ADR-003 item 2 as amended: where does the statement that a subscriber's exception never reaches the scheduler live, and which case checks it, given that nidana.runtime.5 to .12 replay bus-testing with --guarantee G5,G6,G7,G8,G10,G11 before any publisher, observed stream, start() or TestBus.input exists?",
+      "options": [
+        { "label": "S58's sentence appended to G11, checked by the first G3 case", "consequence": "G11 keeps its id and its scheduler meaning and gains the subscriber sentence; the check needs a delivering bus, so it sits in the G3 case, which v1 already used to check where a TestBus's subscriber errors go and which nidana.runtime.13 delivers; the gates of .5 to .12 select the same G11 case as before; Validation names the case that checks G11's sentence." },
+        { "label": "A new guarantee G21 for subscriber errors on a virtual provider", "consequence": "Clean one-to-one mapping of sentence to case, but a new id that every restricted gate must add (H11), and G11, the guarantee the intake names, would only point at it." },
+        { "label": "A new G11 case", "consequence": "The case needs observe, a publisher, start() and TestBus.input; every gate from nidana.runtime.5 to .12 selects G11 and would fail on UnimplementedError until .13." }
+      ],
+      "chosen": "S58's sentence appended to G11, checked by the first G3 case",
+      "why": "The meaning of G11 carries over and the Delivery paragraph already puts G3 at nidana.runtime.13, where TestBus.input lands; v1's G3 case was where a TestBus subscriber's error zone was checked, so the check stays where the gates expect it. The case also runs the throwing delivery inside triggerActions() (a reentrant drain), which bus-api@v2's own G18 cases do not, so it checks 'never reaches the scheduler' and not only 'reaches the listen zone'. Signal that would have changed my mind: H11 moving publishers and observed streams before nidana.runtime.5, which would let a G11 case run there.",
+      "evidence": ["Spec §10.2 principle 5", "ADR-003 items 2 and 5 (amended 2026-10-20)", "docs/auto-run/steps/S58.json notes (G11 sentence)", "hsdd/spec/nidana.runtime.md gates of nidana.runtime.5 to .13", "docs/auto-run/experiments/bus-testing-v0151/output.txt T4, T7"],
+      "blast_radius": "contract",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T18:14:28Z",
+      "artifact": "hsdd/contract/bus-testing.md",
+      "question": "G4: keep its meaning as measured, or take S58's optional strengthening (the timers and microtasks a subscriber's callbacks create run only inside a scheduler operation, wherever the test listens from)?",
+      "options": [
+        { "label": "Adopt the strengthening, limited to a subscriber's own callbacks", "consequence": "G4 names callbacks passed to listen on an observed stream or set later through the subscription, and leaves out operators chained onto the stream (RxDart creates some of their timers at listen, ADR-003 Consequences); a new case pins it; a runtime that binds callbacks to the listen zone, which ADR-003 rejected, fails it." },
+        { "label": "Keep G4 as written", "consequence": "The fact still follows from bus-api@v2 G5 and this contract's G6, but nothing in bus-testing's suite would catch a runtime that satisfies Spec §10.2 by binding callbacks to the listen zone and loses virtual time for them." }
+      ],
+      "chosen": "Adopt the strengthening, limited to a subscriber's own callbacks",
+      "why": "ADR-003 item 2 chose forwarding over binding precisely because binding makes a callback's timers real on a TestBus (subscriber-error-zone C7, C8, T3, T4); pinning it in the test substrate makes that reason executable. Compatible: the new case passes on the bus-api@v1 stand-in and the binding defect fails it.",
+      "evidence": ["ADR-003 item 2 and Alternatives considered", "docs/auto-run/experiments/subscriber-error-zone/output.txt C7, T3, T4", "docs/auto-run/experiments/bus-testing-v0151/output.txt T4, T7 (defect: callbacks bound to the zone that listened)"],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T18:17:42Z",
+      "artifact": "hsdd/contract/fixture/bus-testing/behavior/bus_testing_conformance.dart",
+      "question": "Seven v1 cases activate a MODULE topology before start(), which bus-api@v2 G42 rejects. How is each rewritten, and does its meaning change?",
+      "options": [
+        { "label": "APPLICATION before start() for six, MODULE after start() for the G18 isolation case", "consequence": "'G4 a bus on a virtual provider...' (debounced), 'G12 settle delivers...' (doubler), 'G13 a TestBus numbers...' (doubler), 'G13 two TestBuses...' (debounced), 'G18 stub rejects...' (owner, which keeps pinning that a stub's claim is checked at once during bootstrap) and 'G19 an ordering probe reports one sequence...' (echo) activate an APPLICATION topology before start(); 'G18 a test activates only the topologies under test...' (derive) stubs, starts, then activates its MODULE topology, the pattern 'How a test uses it' now prescribes. None of the seven changes meaning." },
+        { "label": "APPLICATION before start() for all seven", "consequence": "Smallest diff, but no case would exercise the MODULE-after-start() isolation pattern consumers must now follow." },
+        { "label": "Start first for all seven", "consequence": "Nothing would pin that a stub's claim is rejected at once during bootstrap (Spec §3.13 'validate and claim at once')." }
+      ],
+      "chosen": "APPLICATION before start() for six, MODULE after start() for the G18 isolation case",
+      "why": "Same rule as S60: keep a bootstrap check where the case is about one, start first where the case is about the post-start pattern. Each rewritten case passes on both the bus-api@v1 and the bus-api@v2 stand-in, so none pins a change.",
+      "evidence": ["Spec §3.13", "Spec §7.2 'Scope timing'", "bus-api@v2 G42", "docs/auto-run/steps/S60.json (case rewrite rule)", "docs/auto-run/experiments/bus-testing-v0151/output.txt T1, T4, T5"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T18:17:42Z",
+      "artifact": "hsdd/contract/bus-testing.md",
+      "question": "G3 and G11: what of a timer or microtask that a subscriber's callback creates and that then throws? Its callback runs in the provider zone (bus-api@v2 G5), so the timer is scheduled work there, and its error goes to the zone that built the scheduler, not the zone that listened.",
+      "options": [
+        { "label": "State it in G11 and pin it in the G3 case", "consequence": "The G3 case's throwing timer is created inside the subscriber's callback; the case expects the callback's own exception in the listen zone and the timer's in the construction zone; a binding runtime fails it too." },
+        { "label": "Leave it implied by bus-api@v2 G5 and G11's general rule", "consequence": "A reader of G11 could take every error that starts in a subscriber to go to the listen zone." }
+      ],
+      "chosen": "State it in G11 and pin it in the G3 case",
+      "why": "It is the one place where the amended zone rule and the scheduler's rule meet, and a test author would otherwise guess wrong. It follows from ADR-003 items 2 and 5 and needs no new behavior; the v2 stand-in shows it (T4).",
+      "evidence": ["ADR-003 items 2 and 5", "bus-api@v2 G5, G18", "docs/auto-run/experiments/bus-testing-v0151/output.txt T4, T7"],
+      "blast_radius": "contract",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T18:17:42Z",
+      "artifact": "hsdd/contract/bus-testing.md",
+      "question": "G14 for a recorder attached during bootstrap, which Spec §3.13 and bus-api@v2 G34 now deliver to at start(): restate and pin, or leave G14 as is because the recorder rule (each delivery, in delivery order) is unchanged?",
+      "options": [
+        { "label": "Restate G14 and add a bootstrap case", "consequence": "G14 says a recorder attached during bootstrap, TestBus.recorder included, records nothing before start() and then the publishes the bootstrap connections cause, in the connection order, an event no later-connected reader receives included, then the queue; the case records ['testing.derived:2', 'testing.out:4', 'testing.e:7'] on the v2 stand-in and ['testing.e:7', 'testing.out:0', 'testing.derived:2'] on the v1 stand-in." },
+        { "label": "Leave G14's text", "consequence": "True as a rule, but a consumer reading it would not learn that TestBus.recorder's contents for a bootstrap script changed, and nothing in this suite would catch a recorder that skips start()'s connection deliveries." }
+      ],
+      "chosen": "Restate G14 and add a bootstrap case",
+      "why": "The intake names G14 for exactly this; the replay shows the recorded contents and order change for the same script, which is what consumers assert on. The seeded defect that skips recorders during start()'s connection step fails only this case.",
+      "evidence": ["Spec §3.13", "bus-api@v2 G34", "docs/auto-run/experiments/bus-testing-v0151/output.txt T4 (why), T7"],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T18:17:42Z",
+      "artifact": "hsdd/contract/bus-testing.md",
+      "question": "G19 for an OrderingProbe attached during bootstrap: its first values were 'what bus-api@v1 G17 delivers first' (a microtask after listen, even during bootstrap); restate for bus-api@v2 G17 and G34?",
+      "options": [
+        { "label": "Restate G19 with both cases and add a bootstrap case", "consequence": "After start(): the current value or buffer, in the first provider-zone microtask after listen (G17); during bootstrap: nothing before start(), then the value start() settled, within start() (G34); the case expects [[], [], []] before start(), [[2], [2], [2]] after it and [[2, 10], ...] after triggerActions; the v1 stand-in gives [[0], [0], [0]] before start()." },
+        { "label": "Only move the citation to bus-api@v2 G17", "consequence": "G17 of v2 covers only subscriptions made after start(), so G19 would say nothing of a bootstrap probe." }
+      ],
+      "chosen": "Restate G19 with both cases and add a bootstrap case",
+      "why": "Named by the intake; v2 G17 no longer covers bootstrap, so a citation move alone would leave a gap. Two seeded defects (connection publishes deferred to a microtask, subscriptions connected before topologies) fail the new case.",
+      "evidence": ["Spec §3.13", "Spec §2.1 'Replay timing'", "bus-api@v2 G17, G34", "docs/auto-run/experiments/bus-testing-v0151/output.txt T4, T7"],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T18:17:42Z",
+      "artifact": "hsdd/contract/bus-testing.md",
+      "question": "'How a test uses it' (OQ-R2's isolation answer) against Spec §7.2's scope timing: v1 had a VM test activate the topologies under test before start() and a widget test attach a recorder before start(), with no word on when a page or module scope mounts.",
+      "options": [
+        { "label": "Restate both bullets for scope timing and connection at start()", "consequence": "VM test: APPLICATION topologies before start(), which connects them writers first and delivers their connections' publishes before the queued inputs; MODULE and PAGE topologies after start(), with event inputs published after activation; a subscriber's timers are virtual and its exception fails the test that listened. Widget test: start() before pumping a tree that mounts a page or module scope, as an app calls start() before its UI mounts." },
+        { "label": "Cite bus-api@v2 G42 and leave the bullets", "consequence": "The documented usage would still tell consumers to do what now throws." }
+      ],
+      "chosen": "Restate both bullets for scope timing and connection at start()",
+      "why": "The usage section is normative guidance consumers build against; leaving it would document a pattern bus-api@v2 rejects. The widget bullet states only what G42 forces; flutter-binding's helpers stay H6's.",
+      "evidence": ["Spec §7.2 'Scope timing'", "Spec §3.13", "bus-api@v2 G22, G34, G42", "ADR-003 item 7"],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T18:17:42Z",
+      "artifact": "hsdd/contract/bus-testing.md",
+      "question": "G18: state that input and stub work during bootstrap, a stub's claim checked at once (bus-api@v2 G34, G42)?",
+      "options": [
+        { "label": "Add one sentence", "consequence": "Makes explicit that scope timing does not touch the test's publishers (G42 exempts publishers of any scope); compatible, since v1's G18 cases already stub before start() and pass on both stand-ins." },
+        { "label": "Leave G18's text", "consequence": "A reader of the new scope-timing bullet might wonder whether stub before start() is still allowed." }
+      ],
+      "chosen": "Add one sentence",
+      "why": "Cheap clarification with no behavior change; no evidence needed beyond the passing v1 cases.",
+      "evidence": ["bus-api@v2 G42", "docs/auto-run/experiments/bus-testing-v0151/output.txt T4, T5"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T18:17:42Z",
+      "artifact": "hsdd/contract/bus-testing.md",
+      "question": "Classify every change against this contract's Breaking list (DEC-688): does bus-testing take v2, or stay within v1 because every behavioral change is bus-api@v2's, which already versioned it?",
+      "options": [
+        { "label": "v2: the recorder's and the probe's bootstrap contents, the TestBus's error zone and its scope timing are breaking; G4 and the citations compatible", "consequence": "bus-testing.md becomes v2 with one migration entry per change; every live citation of bus-testing@v1 elsewhere (155 citations in 24 files, listed in notes) moves to @v2 inside the intake, through the same touches that move bus-api's; consumers are all bus-api consumers already re-confirming for bus-api@v2." },
+        { "label": "Compatible within v1, as a dated amendment", "consequence": "No citation churn; but v1's suite fails 8 of 47 on a bus-api@v2 runtime, which the Compatible list's 'a new guarantee that existing fixtures still pass' excludes, TestBus.recorder records other contents in another order for a bootstrap script (the list names 'what a recorder records or in which order'), and the usage v1 documented throws." }
+      ],
+      "chosen": "v2: the recorder's and the probe's bootstrap contents, the TestBus's error zone and its scope timing are breaking; G4 and the citations compatible",
+      "why": "Replay: the v2 suite fails exactly three cases on the bus-api@v1 stand-in (the G3 error-zone case, the G14 and G19 bootstrap cases) and passes 50 of 50 on the v2 stand-in; v1's suite fails 8 of 47 on the v2 stand-in. The G14 change is literally on the Breaking list; the others fail existing fixtures, which the Compatible list does not allow. Each breaking change is the Specification's, reached through bus-api@v2 and ADR-003 as amended, so the choice was the version number, not the behavior. Signal that would have changed my mind: an orchestrator reading of DEC-688 under which a contract that incorporates another by reference (G3's last sentence) versions only for its own rules.",
+      "evidence": ["bus-testing@v1 ## Versioning (Breaking and Compatible lists)", "DEC-688", "docs/auto-run/experiments/bus-testing-v0151/output.txt T4, T5"],
+      "blast_radius": "contract",
+      "confidence": "medium",
+      "would_have_asked": true,
+      "stop_class": "breaking-amend",
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T18:17:42Z",
+      "artifact": "hsdd/contract/bus-testing.md",
+      "question": "Should v2's Breaking list name what this step had to argue from the Compatible list: what an ordering probe receives, and moving G3 to a breaking version of bus-api?",
+      "options": [
+        { "label": "Add both items", "consequence": "A later classification is literal: a breaking bus-api version reached through G3 versions bus-testing, and a probe's received sequence is part of the contract." },
+        { "label": "Keep v1's list", "consequence": "The next intake re-argues the same question from the Compatible list." }
+      ],
+      "chosen": "Add both items",
+      "why": "Removes the ambiguity this step met; changes nothing for consumers today. No evidence beyond this step's own classification.",
+      "evidence": ["DEC-688", "hsdd/contract/bus-testing.md ## Versioning"],
+      "blast_radius": "contract",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T18:17:42Z",
+      "artifact": "hsdd/contract/bus-testing.md",
+      "question": "Decide status and phase_ids of v2 under hsdd-contract's rules.",
+      "options": [
+        { "label": "draft, provisional", "consequence": "New versions start draft and only hsdd-reconcile flips phase_ids; produced_by and consumers unchanged; H12 and H23 confirm and flip." },
+        { "label": "stable, final carried over from v1", "consequence": "Skips the consumer confirmation the intake routes to H12 and H23." }
+      ],
+      "chosen": "draft, provisional",
+      "why": "Same rule and precedent as S59 (topology-dsl@v2) and S60 (bus-api@v2). Signal that would change it: an hsdd-reconcile rule letting an unchanged confirmed phase id count for a new version without a pass.",
+      "evidence": [".agents/skills/hsdd-contract (Versioning Policy)", "docs/auto-run/steps/S59.json", "docs/auto-run/steps/S60.json", "hsdd/management/2026-10-20-intake-ref-arch-v0-15-1.md H12, H23"],
+      "blast_radius": "contract",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    }
+  ],
+  "experiments": [
+    {
+      "path": "docs/auto-run/experiments/bus-testing-v0151/",
+      "question": "Which of bus-testing's changes for v0.15.1 are breaking: does v1's suite pass on a bus-api@v2 runtime, does the new suite pass on it and fail on a bus-api@v1 runtime only where it pins a change, do bus-api@v2's bindings still pass with this contract's declarations, and do the new cases catch the defects they target?",
+      "finding": "Stand-ins are ../bus-api-v2/'s, byte-identical. New suite: 50 cases, 20 guarantees, structure clean, S17's prototype 0 problems in 9 contracts, surface and behavior analyze clean, reject codes unchanged. v2 runtime 50/50; v1 runtime 47/50, failing only the G3 error-zone case (subscriber error not in the listen zone), the G14 bootstrap case (recorded ['testing.e:7', 'testing.out:0', 'testing.derived:2'] instead of ['testing.derived:2', 'testing.out:4', 'testing.e:7']) and the G19 bootstrap case ([[0],[0],[0]] before start()). v1 suite: 47/47 on v1, 39/47 on v2 (7 MODULE-before-start cases, 1 error-zone case). bus-api@v2's bindings on v2: 108/108 and 49/49. Five seeded defects each fail what they target: subscriber error to the provider zone (G3), callbacks bound to the listen zone (G3, new G4), bootstrap connection publishes deferred to a microtask (G14, G19 bootstrap), subscriptions connected before topologies (G14, G19 bootstrap), recorder skipping start()'s connection step (G14 bootstrap)."
+    }
+  ],
+  "self_check": [
+    { "gate": "Frontmatter has id, version, status, kind, owner, compatibility, produced_by, consumers; external_consumers when any exist.", "status": "pass", "note": "version v2, status draft, phase_ids provisional; produced_by, consumers and external_consumers unchanged." },
+    { "gate": "`consumers` lists phase ids that actually consume this contract.", "status": "pass", "note": "Unchanged from v1; H11, H12, H15, H16, H21 and H23 re-confirm them for v2." },
+    { "gate": "The Interface section is concrete enough to mock against.", "status": "pass", "note": "No declaration changed; the OrderingProbe.attach comment, Terms (Bootstrap) and 'How a test uses it' state v2's semantics." },
+    { "gate": "At least one guarantee/invariant is stated.", "status": "pass", "note": "G1 to G20, ids kept; G3, G4, G11, G14, G18 and G19 restated; no new id." },
+    { "gate": "A breaking change bumped the version and added a migration note.", "status": "pass", "note": "v1 to v2 with 'Migration from v1 to v2' in ## Versioning, one entry per change, in the same file per DEC-688; the v1 amendment kept as history." },
+    { "gate": "The registry was regenerated.", "status": "pass", "note": "node hsdd/scripts/gen-registry.mjs; INDEX shows bus-testing v2 draft." },
+    { "gate": "`phase_ids` is present (`provisional` until `hsdd-reconcile` finalizes it).", "status": "pass", "note": "provisional." },
+    { "gate": "Every code-level artifact both sides consume (types file, fixtures, shared package) names its canonical path and its owner in the Interface or Validation section: the owning phase for code, `hsdd-contract` for validation artifacts.", "status": "pass", "note": "Unchanged: packages/nidana_dart_runtime and nidana.runtime.1; hsdd/contract/fixture/bus-testing/ owned by hsdd-contract." },
+    { "gate": "A contract or version created by this run has its schema and its kind's fixtures written at the canonical paths.", "status": "pass", "note": "v2's fixtures are under hsdd/contract/fixture/bus-testing/; no schema, as ADR-001 item 4 has an api contract without a serialized form carry none (unchanged)." },
+    { "gate": "Open questions are cited by ID only, never defined here; prose justifying behavior as \"pending OQ-x\" is swept when the OQ resolves (hsdd-reconcile). (The skill's dash rewritten as a comma.)", "status": "pass", "note": "Only OQ-R2 is cited, by id, as before." },
+    { "gate": "A `stable` contract names a schema or a fixtures directory at the canonical paths and the artifact exists, or it carries `validation: grandfathered` (never on a contract authored after the upgrade).", "status": "n/a", "note": "v2 is draft; the fixtures directory exists and is named in ## Validation." },
+    { "gate": "No version is `retired` while a consumer or an external consumer still names it.", "status": "pass", "note": "Nothing is retired; v1 keeps no file and its live citations move inside the intake." },
+    { "gate": "A `v0` contract carries `## Observed completeness`, and the block changed in any commit that added fixtures to it.", "status": "n/a", "note": "Not a v0 contract." },
+    { "gate": "node docs/auto-run/tools/gate.mjs --skill hsdd-contract", "status": "pass", "note": "0 errors, 0 warnings." }
+  ],
+  "notes_for_orchestrator": [
+    "VERSION: bus-testing is now v2 (status draft, phase_ids provisional), breaking under its own Versioning section for four changes (TestBus as a bus-api@v2 bus with scope timing; subscriber errors and the scheduler; what a recorder attached during bootstrap records; what a probe attached during bootstrap receives), with replay evidence in docs/auto-run/experiments/bus-testing-v0151/. No declaration changed. No guarantee id added or removed. Under DEC-688 every live citation of bus-testing@v1 outside this file moves to @v2 inside the intake. Remaining citations by file (grep 'bus-testing@v1', hsdd/management and hsdd/judgement excluded): nidana.runtime.md 35, nidana.md 23, bus-api.md 16, nidana.integration.md 13, nidana.flutter.md 11, nidana.tooling.lint.md 9, ADR-003 7 (affects included), nidana.tooling.md 6, nidana.navigation.md 5, navigation-api.md 5, flutter-binding.md 5, topology-dsl.md 3, nidana-checks.md 2, ADR-001 2, topic-model.md 1, ADR-002 1, hsdd/adr/INDEX.md 3 (regenerates from ADR frontmatter), and fixture headers fixture/bus-api/behavior/bus_activation_test.dart (2), fixture/bus-api/behavior/nidana_dart_runtime_test.dart, fixture/bus-api/behavior/bus_api_conformance.dart, fixture/navigation-api/behavior/nidana_dart_navigation_test.dart, navigation_executor_conformance.dart, navigation_conformance.dart, in_memory_router_test.dart (1 each). Historical lines (dated amendments, experiment descriptions such as topology-dsl.md's write-chain replay and flutter-binding.md's amendment record) keep v1.",
+    "PHASES WHOSE REPLAY CHANGES: producer nidana.runtime.13 (bus-testing --guarantee G3,G5..G19 now selects the rewritten first G3 case, which expects a subscriber's exception in the listen zone and a callback-created timer's in the construction zone, the new G14 and G19 bootstrap cases, which need bus-api@v2's barrier, and the five cases rewritten for scope timing), nidana.runtime.14 (unrestricted: 50 cases, the new G4 case among them). Unaltered: nidana.runtime.5 to .12 (their selection G5,G6,G7,G8,G10,G11 picks no changed case). Consumers that replay this suite: nidana.integration.6, .7 and .8 (--all); nidana.integration.1 to .5 run structure only (passes, 50 cases). No other consumer phase replays bus-testing's behavior set. Consumer phases whose own TestBus or recorder tests meet the changed behavior (through bus-api@v2, now named by G3, G14, G19): nidana.integration.3 and .4 (TestBus bootstrap, deep link), nidana.navigation.6, nidana.flutter.6 and .7 (a recorder attached before start() also records start()'s connection publishes, G14), nidana.tooling.lint.1, .2 and .4 (static recognition only; unaffected). navigation-api's two suites, which run live topologies on TestBus and assert on its recorder, pass on the v2 runtime per S60 T9 (41/41, 52/52); this step changed no stand-in code.",
+    "CITATIONS WHOSE MEANING CHANGED (report, do not reword silently): nidana.runtime.md Slices table line 66 ('bus-testing@v1 G4, G14, G17': G4 now covers timers a subscriber's callbacks create; G14 covers start()'s connection deliveries) and line 72 ('G3, ... G19': G3 now routes subscriber errors to the listen zone and names bus-api@v2; G19 covers a probe attached during bootstrap), nidana.runtime.5's scope line 334 ('the bus-testing@v1 G5 to G8, G10 and G11 cases construct no TestBus': still true; G11's subscriber sentence is checked by a G3 case at .13), nidana.runtime.7's scope line 360 ('TestBus constructor now attaches recorder, so it holds every delivery (bus-testing@v1 Refinement 1, G14)': G14 now includes start()'s step-1 deliveries), OQ-R2's resolution lines 232 and 245 (isolation now has scope timing in 'How a test uses it'), for H10 and H11; nidana.integration.md line 146 ('bus-testing@v1 How a test uses it': now APPLICATION before start(), MODULE and PAGE after it, events after activation), for H20 and H21; flutter-binding.md WidgetTestBus doc comment line 269 ('bus-testing@v1 \"How a test uses it\"': the widget bullet now has start() called before pumping a tree that mounts a page or module scope), for H6; ADR-003 Consequences ('bus-testing@v1 states ... that a subscriber's errors reach the zone the test listened from rather than the scheduler's': now stated by bus-testing@v2 G3 and G11) and its 2026-10-20 amendment's 'bus-testing@v1 G11 ... still name the provider zone's handler' (historical, now resolved), for H8c; nidana.md line 379 (OQ-R2 via G14 to G16 and G18: consistent, G14 broadened). Citations that only move: bus-api.md (Boundary, delivery rule 'bus-testing@v1 G14, G17', Validation), navigation-api.md, topology-dsl.md, topic-model.md, nidana-checks.md, ADR-001, ADR-002, and the node headers.",
+    "FOR H5 (navigation-api): its fixtures construct TestBus and read its recorder; no bus-testing change alters them beyond what bus-api@v2 already did (S60 T9: 41/41 and 52/52 on the v2 runtime). Its harness comment 'names no bus-testing@v1 type' and the InMemoryRouter doc '(bus-testing@v1)' move to @v2.",
+    "FOR H6 (flutter-binding): 'How a test uses it' now says a widget test calls start() before pumping a tree that mounts a page or module scope (bus-api@v2 G42), which is what flutter-binding's 'How an app uses it' and the two G8 cases S60 flagged must follow; a recorder attached before start() records start()'s connection publishes before the queue (G14).",
+    "FOR H11 (nidana.runtime): no new guarantee id; the Delivery paragraph keeps G3 and G12 to G19 at nidana.runtime.13 and G4, G9 at .14, notes that a G3 case checks G11's subscriber sentence, and that the G14 and G19 bootstrap cases need bus-api@v2 G34 (nidana.runtime.12 in bus-api@v2's Delivery). If H11 moves the barrier after .13, .13's bus-testing restriction must drop G14 and G19 or the bootstrap cases fail there.",
+    "INSERT RULE: no guarantee that a phase of nidana.model, nidana.navigation, nidana.tooling.codegen or nidana.tooling.lint replays changed behavior through this contract: nidana.navigation's replays are navigation-api's suites (unchanged on the v2 runtime), and nidana.tooling.lint replays no bus-testing case.",
+    "TIMESTAMPS: decisions were logged with date -u when taken, in three batches (18:14:28Z, 18:17:42Z); the classification was confirmed by the replay that followed and not changed by it.",
+    "No skill stop, no run-stop candidate, no ADR proposed, no OQ minted. gate.mjs --skill hsdd-contract: 0 errors, 0 warnings. gate.mjs --final will report bus-testing as draft/provisional until a reconcile (H12 or H23) flips it."
+  ]
+}
