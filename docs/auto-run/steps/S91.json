@@ -1,0 +1,113 @@
+{
+  "step_ref": "S91",
+  "skill": "hsdd-spec",
+  "target": "nidana.integration (hsdd/spec/nidana.integration.md), touch of non-plan text for Specification v0.15.1 (handoff H20)",
+  "status": "completed",
+  "stop": null,
+  "artifacts": ["hsdd/spec/nidana.integration.md"],
+  "decisions": [
+    {
+      "at": "2026-10-20T23:38:41Z",
+      "artifact": "hsdd/spec/nidana.integration.md",
+      "question": "H6 added NidanaModule (flutter-binding@v2 G20, Refinement 8). Which Flutter module binding does the integration module-scope slice prove end to end: the route observer the example already uses, the new wrapper widget, or both?",
+      "options": [
+        { "label": "Both bindings, same scenario", "consequence": "The checkout module's lifetime (in-subtree navigation through the grace period, exit teardown, re-entry with retained state) is proven under ModuleScopeObserver and again under NidanaModule in the composed app. Costs a binding switch in the example's shell and a second run of the module tests; H21 must place it within a phase's size window." },
+        { "label": "NidanaModule only", "consequence": "The example drops ModuleScopeObserver. G10 and Refinement 3 then have no end-to-end proof, while the .6 deep-link slice and flutter-binding@v2 G16 ('with the module scopes their paths match acquired') are written around the observer." },
+        { "label": "ModuleScopeObserver only", "consequence": "No change to the example. NidanaModule, which Spec §7.3 now names as the binding that works with any router, is proven only by nidana.flutter.8's own gate against stand-in pages, never against the composed app with real MaterialPageRoute transitions." }
+      ],
+      "chosen": "Both bindings, same scenario",
+      "why": "Spec §7.3's Flutter row now offers two alternative bindings, and flutter-binding@v2 guarantees both (G10, G20). This node exists to prove the composed packages, and the two bindings differ in what an adopter sees: the wrapper releases when a popped page's exit transition ends, later than the observer (Refinement 8, N1), so the grace-period behavior in the composed app is not implied by the observer's slice. The example runs on Flutter's own Navigator with named routes, so the observer stays valid, and the wrapper reads no route name, so it runs on the same Navigator with no new dependency (ADR-002 item 3's row stays as it is). Close call against 'ModuleScopeObserver only'. The signal that would have favored it: H21 finding that the second binding cannot fit any phase's size window without a new phase.",
+      "evidence": ["Spec §7.3", "Spec Appendix A.8", "Guide Appendix B.3", "hsdd/contract/flutter-binding.md Refinement 1, Refinement 8, G10, G16, G20, Delivery", "docs/auto-run/experiments/flutter-binding-v0151/ (N1 to N6, cited by flutter-binding@v2 Refinement 8)", "hsdd/management/2026-10-20-intake-ref-arch-v0-15-1.md L7", "docs/auto-run/steps/S63.json notes (NIDANAMODULE DELIVERY)"],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T23:38:45Z",
+      "artifact": "hsdd/spec/nidana.integration.md",
+      "question": "Spec §7.2 'Scope timing' has two halves: a MODULE or PAGE activation before start() is rejected, and an APPLICATION activation after start() is allowed with a dev-mode diagnostic. Which halves does the new scope-timing slice own?",
+      "options": [
+        { "label": "Rejection half only, with the example's start-before-UI order", "consequence": "The slice proves that the example's bootstrap (start() once APPLICATION topologies, services and executor are in place, before the UI mounts) binds every page and module scope on a running bus, and that the same bindings before start() are rejected and bind nothing. The late APPLICATION diagnostic is proven only by bus-api@v2's own cases, which the unrestricted replay runs." },
+        { "label": "Both halves", "consequence": "The example gains a late-loaded APPLICATION feature, a scenario Guide Appendix A does not have, to show a dev-mode diagnostic (bus-api@v2 G22) that no other slice reads." }
+      ],
+      "chosen": "Rejection half only, with the example's start-before-UI order",
+      "why": "The H20 prompt names the rejection. The example follows Guide Appendix A, trimmed (plan decision D5), and no primary flow there loads a feature late, so the late-activation diagnostic would be a scenario added only to replay a guarantee that bus-api@v2's fixtures already pin and that nidana.integration.6 to .8 replay unrestricted. The signal that would have changed my mind: a primary flow of the reference scenario that loads an APPLICATION feature after start().",
+      "evidence": ["Spec §7.2 'Scope timing'", "Spec §3.13 last paragraph", "Spec §7.1 APPLICATION row", "hsdd/contract/bus-api.md G22, G42", "hsdd/contract/flutter-binding.md G8, G10, G20", "hsdd/management/2026-10-20-intake-ref-arch-v0-15-1.md L2, H20"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T23:39:00Z",
+      "artifact": "hsdd/spec/nidana.integration.md",
+      "question": "The record's Sources rule adds to each node's v0.15.1 entry 'the ones this record's landing adds to that node'. L1, L2 and L7 reach this node and name many passages. Which of them join this node's Sources?",
+      "options": [
+        { "label": "The passages this node's slices exercise, plus Guide §6.3", "consequence": "Spec §7.1's APPLICATION row, §7.2 'Scope timing', §7.3's Flutter row, Appendix A.8; Guide §6.3 'Name every transformer' and Appendix B.3. Leaves out L1's runtime passages (Spec §2.1 'Replay timing', §3.3, Guide §6.1, §6.5), which this node observes only through bus-api@v2 G34 and flutter-binding@v2 G5." },
+        { "label": "Every passage L1, L2 and L7 name", "consequence": "Adds the runtime's replay-timing and RxDart passages, which govern nidana.runtime's implementation, not anything this node writes; the skill's gate 'No node's Sources lists a document that does not govern it' would read them as noise for H21." },
+        { "label": "Only §7.2 'Scope timing' and §7.3's Flutter row", "consequence": "The narrowest entry; H21 would not read Guide §6.3's warning that FunctionRef labels from Function.toString() differ between compilation modes, which bears on plan decision D8 (the JIT catalog against the AOT live graph)." }
+      ],
+      "chosen": "The passages this node's slices exercise, plus Guide §6.3",
+      "why": "The scope-timing slice reads §7.2 and §7.1's APPLICATION row; the module slice reads §7.3's Flutter row, Appendix A.8 and Guide Appendix B.3 (L7's passages). Guide §6.3 'Name every transformer' joins because the example is topology code this node writes and L10 names this node's D8 as the reason v1 needs no explicit transformer names, so H21 should read it when it revisits D8. The runtime timing passages stay out: no slice asserts when a subscriber's first value arrives, only the envelopes and frames that follow from bus-api@v2 G34 and flutter-binding@v2 G5. The signal that would have changed my mind: a slice that asserts first-value timing directly.",
+      "evidence": ["hsdd/management/2026-10-20-intake-ref-arch-v0-15-1.md Sources, L1, L2, L7, L10", "Guide §6.3", "hsdd/spec/nidana.flutter.md Sources (S85 form)"],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T23:39:03Z",
+      "artifact": "hsdd/spec/nidana.integration.md",
+      "question": "The prompt names three slices to restate (bootstrap, scope timing, module scope). v0.15.1 also changes what the hydration slice relies on (Spec §7.2: hydration arrives after start() as events, folded by reducers already active) and what bootstrap connects (Spec §3.13 step 1 also connects bootstrap subscriptions). Restate those too, or leave them?",
+      "options": [
+        { "label": "Restate hydration and the bootstrap subscriptions", "consequence": "Hydration reads 'publishing a loaded value as an event after start(), a reducer topology already active' with §7.2 cited; the bootstrap slice names the service subscriptions made during bootstrap and their connection after the topologies. The Owns list then states the order the example's main already follows (start(), then hydrate(), then runApp, plan .6)." },
+        { "label": "Restate only the three named slices", "consequence": "Hydration stays true but silent on the order Spec §7.2 now makes the reason scope timing costs nothing; the bootstrap slice omits the payment service's subscription, which start() connects in its own step." }
+      ],
+      "chosen": "Restate hydration and the bootstrap subscriptions",
+      "why": "Neither restatement changes a guarantee or a phase; both make the Owns list say what v0.15.1 now says about the same slices, and the hydration order is the premise of Spec §7.2's scope-timing argument, which the new slice proves. No evidence beyond the Spec text was needed.",
+      "evidence": ["Spec §7.2 'Scope timing'", "Spec §3.13", "Spec §2.5 'The Persistence Pattern'", "hsdd/contract/bus-api.md G34", "hsdd/spec/nidana.integration.md nidana.integration.6 Scope (main.dart order)"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    }
+  ],
+  "experiments": [],
+  "self_check": [
+    { "gate": "The spec stays high-level; it is not an implementation plan.", "status": "pass", "note": "Only the header block changed: four Owns slice bullets (one new), Consumes, Sources. Overview, Decisions D1 to D9, Phase Plan, phase sections, graph and pending section are byte-identical to HEAD (checked by diff from '## Overview' on)." },
+    { "gate": "Every node has explicit consumed/produced contract ids.", "status": "pass", "note": "Consumes at current versions: topology-dsl@v2, bus-api@v2, bus-testing@v2, flutter-binding@v2, the rest v1; Produces none." },
+    { "gate": "Every node is testable in isolation (fixtures, mocks, schemas).", "status": "pass", "note": "Isolation strategy unchanged and still true: none by design, hard edges to every producer." },
+    { "gate": "Every dependency edge is typed; parallel lanes are called out.", "status": "n/a", "note": "Leaf-parent touch; edges live in the root and in the plan (H21, H22)." },
+    { "gate": "Each child is marked internal or leaf-parent.", "status": "pass", "note": "Kind: leaf-parent, unchanged." },
+    { "gate": "Mermaid DAG matches the dependency table.", "status": "n/a", "note": "The phase graph is plan text, left to H21." },
+    { "gate": "`conventions.md` exists/updated at the root.", "status": "n/a", "note": "No new convention." },
+    { "gate": "The decomposition axis at each level matches ownership stated by the human, not assumed, and no node is owned by two teams.", "status": "pass", "note": "Single team (owner's fact); no Team line needed." },
+    { "gate": "Every child node has its own `hsdd/spec/{child-id}.md` file.", "status": "n/a", "note": "No children." },
+    { "gate": "Every input source appears in the Sources of at least one node, or is marked in the root `## Sources` as informative only and not decomposed, with a reason.", "status": "pass", "note": "The three v0.15.1 files appear here; the root inventory is H22's." },
+    { "gate": "No node's Sources lists a document that does not govern it.", "status": "pass", "note": "Each v0.15.1 entry names only sections a slice or the example's code reads (decision at 23:39:00Z); v0.15.0 entries stay as the marked baseline per the record's rule." },
+    { "gate": "Field blocks are bullet lists and empty lists say \"none\".", "status": "pass", "note": "Produces: none." },
+    { "gate": "Every open question is defined once, in its owning spec, with a table row and a `### {ID}` detail subsection; child views carry `[inherits ...]`; no cited ID lacks a definition.", "status": "n/a", "note": "This node has no open questions and cites none." },
+    { "gate": "OQ prefixes used by node specs are declared in `conventions.md`.", "status": "n/a", "note": "None used." },
+    { "gate": "Under `multi-team`, every node whose team differs from its parent's carries `- **Team:**`; no node is owned by two teams.", "status": "n/a", "note": "single-team." },
+    { "gate": "Where children exchange contracts, an integration node exists or the decision not to add one is stated in the parent (one line).", "status": "n/a", "note": "This is the integration node." },
+    { "gate": "A graft kept every existing child id and touched only the new child's file, the parent's summaries and the parent's DAG.", "status": "n/a", "note": "Not a graft." },
+    { "gate": "A retired node's file is kept; its contracts' retirement went through `hsdd-reconcile`.", "status": "n/a", "note": "Not a retirement." },
+    { "gate": "Promotion: the human confirmed before `- **Adopted:** promoted` was written; `## Observed surface` kept; `v0` contracts unchanged unless redesigned.", "status": "n/a", "note": "Not a promotion." },
+    { "gate": "Step Done-when: node docs/auto-run/tools/gate.mjs --skill hsdd-spec passes and only hsdd/spec/nidana.integration.md changed under hsdd/; plan text byte-identical to HEAD.", "status": "pass", "note": "gate: 0 error(s), 0 warning(s); git status shows only hsdd/spec/nidana.integration.md under hsdd/; no em-dash, no banned phrase." }
+  ],
+  "notes_for_orchestrator": [
+    "OWNS NOW HAS A SLICE NO PHASE COVERS (for H21): the new 'scope timing' slice (start() before the UI mounts; a PAGE scope's mount or a module scope's acquire before start() rejected with a StateError naming the topology or module, binding nothing) and the module slice's second binding (NidanaModule, flutter-binding@v2 G20) land in no phase yet. D1's coverage sentence (line 48, 'Every slice the Owns list names lands in at least one phase ... module scope (.7)') is false until H21 places them; the natural homes are .7 for the NidanaModule run and .6 or .7 for scope timing.",
+    "NIDANAMODULE IN THE EXAMPLE (for H21): the example has no shell route or nested Navigator (FlutterNavigationExecutor drives the root Navigator), so Spec §7.3's 'in each of its pages' is the placement that fits: a NidanaModule('checkout', [checkout-flow]) in each checkout page, selected against ModuleScopeObserver by a configuration of the shell (plan D4 decides the file). Per flutter-binding@v2 Refinement 8 (docs/auto-run/experiments/flutter-binding-v0151/ N1, N2), a wrapper releases when a popped page's exit transition ends, not at the pop, so the grace-period pumps of .7 count from the transition's end under that binding; MaterialPageRoute keeps maintainState true, so N4's narrowing does not arise. G27 compares module declarations by topology ids and grace period, so per-page wrappers built from D8's factory share one scope. NidanaModule is delivered by nidana.flutter.8, inside nidana.flutter.7's closure (flutter-binding@v2 Delivery), so no hard edge moves (S86, S87).",
+    "PLAN LINES CITING A SUPERSEDED VERSION (for H21; line numbers after this touch, which added four header lines): D1 line 50 (flutter-binding@v1), line 54 (bus-testing@v1 G13); D2 line 58 (bus-api@v1's Delivery); D5 line 101 (bus-api@v1's TelemetryObserver); D8 line 145 (flutter-binding@v1 G7); D9 lines 150 (bus-testing@v1 How a test uses it) and 151 (flutter-binding@v1 G4); .1 line 185; .2 lines 189 and 197; .3 lines 201, 204 and 209; .4 lines 213 and 216; .5 lines 225, 228 and 233; .6 lines 237 and 240; .7 lines 249 and 252; .8 line 261; the phase graph's edge labels at lines 310, 312, 315, 318 and 319. topology-dsl@v1 11, bus-api@v1 19, bus-testing@v1 13, flutter-binding@v1 21 occurrences in plan text; none remains in non-plan text.",
+    "PLAN LINES A LANDING CONTRADICTS OR NOW UNDERSTATES (for H21): D2 line 66 '.2 to .4 run beside nidana.flutter.5 to .7' and .5's Dependencies line 233 'flutter-binding@v1's last producing phase, whose closure holds nidana.runtime.14 and nidana.navigation.6' (the flutter chain is now .4, .5 beside .6, .8, .7; .7's closure holds .8, S86/S87). D9 line 150 (bus-testing@v2 How a test uses it: APPLICATION topologies before start(), MODULE and PAGE after it, event inputs after activation; S61) and line 151 (a widget test calls start() before it pumps a tree that mounts a page or module scope and publishes a page's inputs after the page mounts; bus-testing@v2 widget bullet, flutter-binding@v2 How an app uses it; S63). .4 line 216 (L1: restate the bootstrap per bus-api@v2 G34 and the connection order: auth-core connects before payment-flow and nav-resolver in every permutation, the payment service's subscription after the topologies, the deep link after the resolver's first values; the permutation test still holds, now by construction). .5 line 228 (L2: G5's first frame, G7 and G8 reject a PageScope with a topology before start(); S63). .6 line 240 (deep-link and hydration widget tests must call start() before pumping; flutter-binding@v2 G16 requires it before any Navigator mounts; main.dart's order already matches Spec §7.2). .7 line 252 (bus-api@v1 G28, now 'which G42 allows only after start()'; flutter-binding@v1 Refinement 3, G10, now reporting an acquire before start(); the NidanaModule binding and the scope-timing slice to add). .3 line 204 (hydration on a TestBus: auth-core activated before start() is connected at start(); the restated Owns has hydration published after start()).",
+    "D5 (for H21): line 106's upstream mark on Guide Appendix A's cart hydration (DEC-586) is now supported by Spec §7.2's sentence that hydration arrives after start(), folded by reducers already active (record, 'Upstream decisions read against v0.15.1'); line 108's 'six activation orders to compare' still describes a valid test, but under bus-api@v2 G34 their equality follows from the connection order rather than from the barrier alone.",
+    "S62 CHECKED: the example's resolver is navigation-api@v1's template with a static policy and no topology of the example publishes to nav.intent or nav.resolved-intent while start() connects it, so navigation-api@v1 Refinement 8's two P4 behaviors do not reach the bootstrap slice.",
+    "FOR H22: the root's embedded nidana.integration block should mirror this header (Consumes at v2 for topology-dsl, bus-api, bus-testing and flutter-binding; the restated slices with the new scope-timing slice and the two module bindings; the Sources entries).",
+    "CONFIRMATION STATE: this touch moves only the node header; every nidana.integration phase's Consumes line still names v1 of the four superseded contracts, so bus-api@v2, bus-testing@v2, topology-dsl@v2 and flutter-binding@v2 stay unconfirmed on this consumer until H21 and the H23 drain."
+  ]
+}

@@ -284,6 +284,7 @@ orchestrator and recorded with `would_have_asked: true`.
 | S88 | 9 | hsdd-spec | H17: nidana.tooling.codegen touch (Sources, Consumes at v2, D1 checked against Guide C.1: its @Topology upstream mark ends) | done | 68799e6 |
 | S89 | 9 | hsdd-spec | H18: nidana.tooling.lint touch (Sources, Consumes at v2, contracts table, checked: no rule changes) | done | 15ad352 |
 | S90 | 9 | hsdd-spec | H19: nidana.tooling touch (Sources, Consumes at v2, embedded child blocks mirror S88 and S89, D3 checked) | done | 6f54427 |
+| S91 | 9 | hsdd-spec | H20: nidana.integration touch (Sources, Consumes at v2, Owns slices restated: bootstrap at start(), new scope-timing slice, module scope under both bindings, hydration after start()) | done | 9357988 |
 
 ## Change log
 
