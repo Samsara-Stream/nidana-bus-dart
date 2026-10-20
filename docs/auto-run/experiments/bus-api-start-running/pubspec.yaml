@@ -1,0 +1,20 @@
+# bus-api-start-running: S80 (hsdd-reconcile, H12 of the v0.15.1 intake)
+# classifies and pins the amend nidana.runtime's re-plan (S79, its D8)
+# emitted for bus-api@v2: the bus is running from the moment start() begins,
+# so the work start() runs makes activations, subscriptions and module
+# references as after start(), a start() it calls does nothing, and a
+# removeTopic it calls throws StateError (see run.sh). The stand-in packages
+# are copied from ../flutter-binding-v0151/packages/ at setup. Its own pub
+# workspace, never a member of the repository's workspace.
+name: bsr_root
+publish_to: none
+environment:
+  sdk: ^3.13.0
+workspace:
+  - packages/nidana_dart_contracts
+  - packages/nidana_contract_check
+  - packages/nidana_dart_runtime
+  - packages/nidana_dart_navigation
+  - packages/nidana_dart_runtime_flutter
+dev_dependencies:
+  lints: ^6.1.0

@@ -2021,15 +2021,56 @@ final List<ConformanceCase<BusApiHarness>> busApiConformance =
     },
   ),
   (
-    name: 'G34 start is idempotent, and after it a publish is delivered at once',
+    name: 'G34 start is idempotent, a start called from the work start runs included, and after it a publish is delivered at once; the bus is running from the moment start begins, so a callback start runs makes an activation or a subscription as after start, and a removeTopic it calls throws StateError',
     body: (BusApiHarness h) async {
       final Bus bus = h.bus();
+      final List<Object?> inStart = <Object?>[];
+      // A subscription made during bootstrap: step 2 of start connects it,
+      // and its callback runs within start.
+      bus.observe(_s).listen((int _) {
+        inStart.add(bus.lifecycle);
+        try {
+          bus.removeTopic(_z);
+        } catch (e) {
+          inStart.add(e);
+        }
+      });
+      final List<int> outs = _listen(bus, _out);
+      TopologyHandle? page;
+      Object? rejected;
+      List<int>? heard;
+      late final _Observer o;
+      // An observer called while step 3 delivers the queued publish to _e2.
+      o = _Observer(onCall: () {
+        if (o.seen.last.topic != _e2.ref) return;
+        inStart.add(bus.lifecycle);
+        try {
+          page = bus.activate(_t('page',
+              (TopologyBuilder b) => b.write(_out, b.read(_e).map(_double)), Scope.page));
+        } catch (e) {
+          rejected = e;
+        }
+        heard = _listen(bus, _e);
+        bus.start();
+      });
+      bus.addObserver(o);
+      final Publisher p = bus.publisher(_svc);
+      p.publish(_e2, 1);
+      p.publish(_e, 2);
       bus.start();
+      expect(inStart,
+          <Object?>[BusLifecycle.running, isA<StateError>(), BusLifecycle.running]);
+      expect(rejected, isNull);
+      expect(page?.isActive, isTrue);
+      expect(heard, <int>[2]);
+      expect(o.trace, <String>['bus.e-two:1', 'bus.e:2']);
+      h.flush(bus);
+      expect(outs, <int>[4]);
       bus.start();
       expect(bus.lifecycle, BusLifecycle.running);
-      final List<int> got = _listen(bus, _e);
-      bus.publisher(_svc).publish(_e, 1);
-      expect(got, <int>[1]);
+      final List<int> got = _listen(bus, _e2);
+      p.publish(_e2, 3);
+      expect(got, <int>[3]);
     },
   ),
   // ------------------------------------------------------------ G35
@@ -2451,7 +2492,7 @@ final List<ConformanceCase<BusApiHarness>> busApiConformance =
     },
   ),
   (
-    name: 'G42 acquiring a module before start throws StateError naming it and adds no reference, while declaring it works; after start the acquire activates its topologies',
+    name: 'G42 acquiring a module before start throws StateError naming it and adds no reference, while declaring it works; after start the acquire activates its topologies, an acquire from a callback start runs included',
     body: (BusApiHarness h) async {
       final Bus bus = h.bus();
       final ModuleScope m = bus.module('checkout', <Topology>[
@@ -2463,9 +2504,21 @@ final List<ConformanceCase<BusApiHarness>> busApiConformance =
               allOf(contains("'checkout'"), contains('checkout-flow')))));
       expect(<Object>[m.references, m.isActive], <Object>[0, false]);
       expect(bus.toGraph().topologies, isEmpty);
+      // A subscription made during bootstrap acquires the module when step 2
+      // of start connects it, within start (G34).
+      Object? error;
+      bus.observe(_s).listen((int _) {
+        try {
+          m.acquire();
+        } catch (e) {
+          error = e;
+        }
+      });
       bus.start();
-      m.acquire();
+      expect(error, isNull);
       expect(<Object>[m.references, m.isActive], <Object>[1, true]);
+      m.acquire();
+      expect(<Object>[m.references, m.isActive], <Object>[2, true]);
     },
   ),
 ];

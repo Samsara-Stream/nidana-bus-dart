@@ -10,6 +10,6 @@
 | `navigation-api` | v1 | api | stable | `nidana.navigation` | 16 |
 | `nidana-checks` | v1 | cli | stable | `nidana.tooling` | 4 |
 | `topic-codegen` | v1 | file | stable | `nidana.tooling` | 4 |
-| `topic-model` | v1 | shared-model | stable | `nidana.model` | 41 |
-| `topology-dsl` | v2 | api | draft | `nidana.model` | 25 |
+| `topic-model` | v1 | shared-model | stable | `nidana.model` | 43 |
+| `topology-dsl` | v2 | api | draft | `nidana.model` | 26 |
 | `topology-ir` | v1 | api | stable | `nidana.model` | 23 |

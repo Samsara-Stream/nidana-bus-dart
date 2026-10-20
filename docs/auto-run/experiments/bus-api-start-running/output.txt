@@ -1,0 +1,182 @@
+
+### setup: the stand-in packages from ../flutter-binding-v0151/packages, the before tree from git HEAD, resolve, versions
+130cb77
+pub get exit: 0
+Flutter 3.47.7 • channel stable • https://github.com/flutter/flutter.git
+Dart SDK version: 3.13.5 (stable) (Tue Sep 29 01:00:52 2026 -0700) on "macos_arm64"
+copied package bus.dart: same as ../bus-api-v2/runtime/v2/bus.dart
+copied package interpreter.dart: same as ../bus-api-v2/runtime/v2/interpreter.dart
+-- where each runtime sets running in start(): the line after the idempotency check
+v2: 654:    if (_lifecycle == BusLifecycle.running) return;
+v2: 655-    _lifecycle = BusLifecycle.running;
+owned: 658:    if (_lifecycle == BusLifecycle.running) return;
+owned: 659-    _lifecycle = BusLifecycle.running;
+
+### T1 the fixture change: case names before and after, and the lines changed
+cases before: 109
+cases after: 109
+<     name: 'G34 start is idempotent, and after it a publish is delivered at once'
+>     name: 'G34 start is idempotent, a start called from the work start runs included, and after it a publish is delivered at once; the bus is running from the moment start begins, so a callback start runs makes an activation or a subscription as after start, and a removeTopic it calls throws StateError'
+<     name: 'G42 acquiring a module before start throws StateError naming it and adds no reference, while declaring it works; after start the acquire activates its topologies'
+>     name: 'G42 acquiring a module before start throws StateError naming it and adds no reference, while declaring it works; after start the acquire activates its topologies, an acquire from a callback start runs included'
+-- lines changed per file of the fixture tree
+./behavior/bus_api_conformance.dart: 65
+-- other contracts' fixture trees that differ (expect none)
+
+### T2 structure (prototype) for bus-api, S17's prototype over the repository's contracts, analysis
+guarantees: 42; cases: 109; bindings: 2; fixture files: 15
+exit: 0
+guarantees covered: 42
+bus-api (api): 42 guarantees; covered by reject 10, behavior 38; not executable 2; in part 0; data directories none
+bus-testing (api): 20 guarantees; covered by reject 2, behavior 17; not executable 1; in part 0; data directories none
+flutter-binding (api): 20 guarantees; covered by reject 7, behavior 16; not executable 2; in part 0; data directories none
+navigation-api (api): 27 guarantees; covered by reject 5, behavior 23; not executable 2; in part 0; data directories none
+nidana-checks (cli): 18 guarantees; covered by cli 17; not executable 1; in part 2; data directories none
+topic-codegen (file): 21 guarantees; covered by schema 1, file 12, cli 5; not executable 4; in part 3; data directories rejected
+topic-model (shared-model): 27 guarantees; covered by reject 10, behavior 18; not executable 2; in part 0; data directories none
+topology-dsl (api): 30 guarantees; covered by reject 8, behavior 22; not executable 0; in part 0; data directories none
+topology-ir (api): 23 guarantees; covered by reject 3, behavior 22; not executable 0; in part 0; data directories render
+9 contracts, 0 problem(s)
+Analyzing surface...
+No issues found!
+surface exit: 0
+PASS config_is_immutable.dart [7:assignment_to_final 9:assignment_to_final 11:assignment_to_final 13:assignment_to_final]
+PASS current_value_is_state_only.dart [14:argument_type_not_assignable 16:argument_type_not_assignable 18:argument_type_not_assignable 20:argument_type_not_assignable]
+PASS diagnostics_are_closed.dart [7:invalid_use_of_type_outside_library 10:invalid_use_of_type_outside_library]
+PASS no_global_accessor.dart [8:undefined_getter 10:undefined_getter 12:undefined_method]
+PASS no_publisherless_state_publish.dart [11:argument_type_not_assignable 13:argument_type_not_assignable]
+PASS publish_value_matches_topic.dart [16:could_not_infer 18:could_not_infer 21:could_not_infer 23:could_not_infer 26:could_not_infer 29:could_not_infer 32:type_argument_not_matching_bounds]
+PASS publisher_reaches_state_through_writer.dart [15:argument_type_not_assignable 17:set_element_type_not_assignable 19:set_element_type_not_assignable 21:argument_type_not_assignable 24:argument_type_not_assignable]
+PASS runtime_types_are_closed.dart [8:invalid_use_of_type_outside_library 11:invalid_use_of_type_outside_library 14:invalid_use_of_type_outside_library 17:invalid_use_of_type_outside_library 20:invalid_use_of_type_outside_library 23:invalid_use_of_type_outside_library 26:invalid_use_of_type_outside_library 29:invalid_use_of_type_outside_library 32:invalid_use_of_type_outside_library 35:invalid_use_of_type_outside_library 39:new_with_undefined_constructor_default 41:new_with_undefined_constructor_default 43:new_with_undefined_constructor_default 45:new_with_undefined_constructor_default 47:new_with_undefined_constructor_default]
+PASS scheduler_providers_are_closed.dart [7:invalid_use_of_type_outside_library 10:invalid_use_of_type_outside_library 13:invalid_use_of_type_outside_library]
+reject exit: 0
+Analyzing behavior...
+No issues found!
+behavior exit: 0
+
+### T3 the bus-api suite before and after, on each runtime
+== runtime v2, before
+-- hsdd/contract/fixture/bus-api/behavior/nidana_dart_runtime_test.dart
+00:00 +109: All tests passed!
+exit: 0
+== runtime v2, after
+-- hsdd/contract/fixture/bus-api/behavior/nidana_dart_runtime_test.dart
+00:00 +109: All tests passed!
+exit: 0
+== runtime owned, before
+-- hsdd/contract/fixture/bus-api/behavior/nidana_dart_runtime_test.dart
+00:00 +109: All tests passed!
+exit: 0
+== runtime owned, after
+-- hsdd/contract/fixture/bus-api/behavior/nidana_dart_runtime_test.dart
+00:00 +109: All tests passed!
+exit: 0
+
+### T4 topology-dsl@v2's live suite through bus_activation_test.dart, on each runtime
+== runtime v2
+-- hsdd/contract/fixture/bus-api/behavior/bus_activation_test.dart
+00:00 +49: All tests passed!
+exit: 0
+== runtime owned
+-- hsdd/contract/fixture/bus-api/behavior/bus_activation_test.dart
+00:00 +49: All tests passed!
+exit: 0
+
+### T5 every other suite that imports nidana_dart_runtime, on each runtime, against the fixtures as they stand
+== runtime v2
+-- hsdd/contract/fixture/bus-testing/behavior/nidana_dart_runtime_test.dart
+00:00 +50: All tests passed!
+exit: 0
+-- hsdd/contract/fixture/navigation-api/behavior/nidana_dart_navigation_test.dart
+00:00 +42: All tests passed!
+exit: 0
+-- hsdd/contract/fixture/navigation-api/behavior/in_memory_router_test.dart
+00:00 +52: All tests passed!
+exit: 0
+-- hsdd/contract/fixture/flutter-binding/behavior/nidana_dart_runtime_flutter_test.dart (fvm flutter test)
+00:00 +69: All tests passed!
+exit: 0
+-- hsdd/contract/fixture/flutter-binding/behavior/flutter_navigation_executor_test.dart (fvm flutter test)
+00:00 +26: All tests passed!
+exit: 0
+== runtime owned
+-- hsdd/contract/fixture/bus-testing/behavior/nidana_dart_runtime_test.dart
+00:00 +50: All tests passed!
+exit: 0
+-- hsdd/contract/fixture/navigation-api/behavior/nidana_dart_navigation_test.dart
+00:00 +42: All tests passed!
+exit: 0
+-- hsdd/contract/fixture/navigation-api/behavior/in_memory_router_test.dart
+00:00 +52: All tests passed!
+exit: 0
+-- hsdd/contract/fixture/flutter-binding/behavior/nidana_dart_runtime_flutter_test.dart (fvm flutter test)
+00:00 +69: All tests passed!
+exit: 0
+-- hsdd/contract/fixture/flutter-binding/behavior/flutter_navigation_executor_test.dart (fvm flutter test)
+00:00 +26: All tests passed!
+exit: 0
+
+### T6 seeded defects in the owned runtime
+== seeded defect: late-running: running, connection and scope timing only once start() returns
+lines changed: 13
+-- hsdd/contract/fixture/bus-api/behavior/nidana_dart_runtime_test.dart
+FAILED: G34 start is idempotent, a start called from the work start runs included, and after it a publish is delivered at once; the bus is running from the moment start begins, so a callback start runs makes an activation or a subscription as after start, and a removeTopic it calls throws StateError
+FAILED: G42 acquiring a module before start throws StateError naming it and adds no reference, while declaring it works; after start the acquire activates its topologies, an acquire from a callback start runs included
+00:00 +107 -2: Some tests failed.
+exit: 1
+-- why: G34 start is idempotent
+  Expected: [
+    Actual: [
+     Which: at location [0] is BusLifecycle:<BusLifecycle.bootstrapping> instead of BusLifecycle:<BusLifecycle.running>
+-- why: G42 acquiring a module before start
+  Expected: null
+    Actual: StateError:<Bad state: module 'checkout' (topologies 'checkout-flow') is acquired only after start() (Spec §7.2)>
+-- the other suites under late-running: a case that fails here relies on the amendment already
+-- hsdd/contract/fixture/bus-testing/behavior/nidana_dart_runtime_test.dart
+00:00 +50: All tests passed!
+exit: 0
+-- hsdd/contract/fixture/navigation-api/behavior/nidana_dart_navigation_test.dart
+00:00 +42: All tests passed!
+exit: 0
+-- hsdd/contract/fixture/navigation-api/behavior/in_memory_router_test.dart
+00:00 +52: All tests passed!
+exit: 0
+-- hsdd/contract/fixture/flutter-binding/behavior/nidana_dart_runtime_flutter_test.dart (fvm flutter test)
+00:00 +69: All tests passed!
+exit: 0
+-- hsdd/contract/fixture/flutter-binding/behavior/flutter_navigation_executor_test.dart (fvm flutter test)
+00:00 +26: All tests passed!
+exit: 0
+-- hsdd/contract/fixture/bus-api/behavior/bus_activation_test.dart
+00:00 +49: All tests passed!
+exit: 0
+== seeded defect: step2-remove: removeTopic from a callback step 2 runs not rejected
+lines changed: 5
+-- hsdd/contract/fixture/bus-api/behavior/nidana_dart_runtime_test.dart
+FAILED: G34 start is idempotent, a start called from the work start runs included, and after it a publish is delivered at once; the bus is running from the moment start begins, so a callback start runs makes an activation or a subscription as after start, and a removeTopic it calls throws StateError
+00:00 +108 -1: Some tests failed.
+exit: 1
+-- why: G34 start is idempotent
+  Expected: [
+    Actual: [BusLifecycle:BusLifecycle.running, BusLifecycle:BusLifecycle.running]
+     Which: at location [1] is BusLifecycle:<BusLifecycle.running> which is not an instance of 'StateError'
+
+### T7 the replay schedule of nidana.runtime's plan against the fixtures as they stand
+-- the two extended cases, as ../runtime-replay-schedule-v2/schedule.dart places them
+### bus-api@v2 suite (nidana_dart_runtime_test.dart): 109 cases
+  .12  G34 start is idempotent, a start called from the work start runs included, and after it a publish is...
+  .14  G42 acquiring a module before start throws StateError naming it and adds no reference, while declari...
+  cases calling start(): 90 of 109
+    .12: G6, G9, G14, G16, G22, G23, G25, G26, G34, G41
+    .14: G5, G27, G28, G35, G36, G42
+### bus-testing@v2 suite (nidana_dart_runtime_test.dart): 50 cases
+  cases calling start(): 28 of 50
+    .14: G4, G9
+### topology-dsl@v2 live suite (bound in bus-api bus_activation_test.dart): 49 cases
+  cases calling start(): 0 of 49
+    .12: G18, G19, G20, G21, G22, G23, G24, G25, G26, G27, G28, G29
+-- the plan's gates checked against the schedule
+check: 0 failure(s)
+
+### cleanup: remove the copied packages, the fixture trees and the build output
+removed
