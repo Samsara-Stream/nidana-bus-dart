@@ -1,0 +1,111 @@
+{
+  "step_ref": "S66",
+  "skill": "hsdd-contract",
+  "target": "topology-ir@v1 (hsdd/contract/topology-ir.md, hsdd/contract/fixture/topology-ir/)",
+  "status": "completed",
+  "stop": null,
+  "artifacts": [
+    "hsdd/contract/topology-ir.md",
+    "hsdd/contract/fixture/topology-ir/surface/definitions.dart",
+    "hsdd/contract/INDEX.md (regenerated, unchanged)",
+    "docs/auto-run/steps/S66.json"
+  ],
+  "decisions": [
+    {
+      "at": "2026-10-20T19:45:13Z",
+      "artifact": "hsdd/contract/topology-ir.md",
+      "question": "Which citations of a superseded version (topology-dsl@v1, bus-api@v1; the file cites no bus-testing or flutter-binding version) in topology-ir.md and its fixture comments are live and move to v2, and which are historical and keep v1?",
+      "options": [
+        { "label": "move 16 live, keep the experiment paragraph", "consequence": "Moves the 12 topology-dsl@v1 and 3 bus-api@v1 occurrences in the summary-adjacent Boundary, Refinement 4, Delivery, Interface doc comments, State-bearing edges, A well-formed definition, From a plan, Analyses host paragraph and G2, plus the surface/definitions.dart doc comment; keeps topology-dsl@v1 in the Validation paragraph that describes what docs/auto-run/experiments/topology-ir-fixtures/ replayed." },
+        { "label": "move all 17", "consequence": "Also rewrites the experiment description, which would then claim that experiment replayed topology-dsl@v2's sets, which it never did (v2 did not exist then)." }
+      ],
+      "chosen": "move 16 live, keep the experiment paragraph",
+      "why": "The orchestrator's H7 touch rule (S64) keeps the version in an experiment's description of what a version did. Every other occurrence states what holds now (Boundary rows, Delivery, Interface comments, a guarantee citation, a fixture header comment). Each moved citation was checked against topology-dsl@v2 and bus-api@v2: the stage classes, the 18 CombinatorKind values and their table order, the Self-reference column, G10, G13 and G14, the Boundary assignment to topology-ir@v1 and nidana.model.4 landing TopologyDefinition are unchanged in topology-dsl@v2; bus-api@v2 still owns activate, the activation checks (G20, G24 over G37's graph with the candidate added), toGraph (G37), the ownership table (G1) and idempotency on topologyId (G23).",
+      "evidence": ["hsdd/contract/topology-dsl.md (Boundary, combinator table, G10, G13, G14, Delivery, Versioning migration note)", "hsdd/contract/bus-api.md (G1, G20, G23, G24, G34, G37)", "docs/auto-run/steps/S59.json notes (topology-ir.md 13 topology-dsl@v1, fixture header 1)", "docs/auto-run/steps/S60.json notes (topology-ir.md 3 bus-api@v1)"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T19:45:20Z",
+      "artifact": "hsdd/contract/topology-ir.md",
+      "question": "Refinement 4 said 'The analyses are the only implementation of the checks of Spec §3.8, §3.11 and §7.2. Activation (bus-api@v1) and the workspace scan ... call the same functions'. Spec §7.2 now also carries 'Scope timing', which bus-api@v2 G42 enforces with a StateError outside the analyses (bus-api@v2's migration note: 'not a topology-ir@v1 finding, whose family is closed'). Move the citation only and file a finding, or restate the bullet?",
+      "options": [
+        { "label": "restate the bullet to match bus-api@v2", "consequence": "Refinement 4 now reads 'the checks of Spec §3.8, §3.11 and §7.2 \"Scope compatibility\". Spec §7.2 \"Scope timing\" is not an analysis: bus-api@v2 rejects a MODULE or PAGE activation before start() itself (its G42), and the rejection is no finding of this contract.' A Boundary wording change; no declaration, guarantee, case or fixture changes. Needs a dated Versioning entry." },
+        { "label": "move the citation only, report a finding", "consequence": "Keeps the touch to version numbers, but leaves a live Boundary sentence that claims the analyses implement every check of Spec §7.2 while bus-api@v2 G42 implements one outside them; a later step would need to fix it." }
+      ],
+      "chosen": "restate the bullet to match bus-api@v2",
+      "why": "The bullet as a whole states which activation checks (bus-api's) the analyses implement, and the moved bus-api@v2 citation sits in it. Under bus-api@v2 G42 and Spec §7.2 'Scope timing' the first sentence became false. The orchestrator's touch rule restates such a sentence to the cited contract's current text, 'whatever version first made the sentence false', and this restatement changes no declaration, guarantee or fixture. Close call on remit: the false sentence is the bullet's first, while the moved citation is in its second. Signal that would have changed my mind: an orchestrator reading of the touch rule that confines restatement to the sentence holding the moved citation; then revert to the old first sentence and route it as a finding to a later hsdd-contract step.",
+      "evidence": ["Spec §7.2 \"Scope timing\" (new in v0.15.1; diff against Spec v0.15.0 §7.2)", "hsdd/contract/bus-api.md G42 and its v1-to-v2 migration note 'Scope timing'", "hsdd/management/2026-10-20-intake-ref-arch-v0-15-1.md, 'Citations of a superseded version'"],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T19:45:37Z",
+      "artifact": "hsdd/contract/topology-ir.md",
+      "question": "bus-api@v2 G23 now compares re-activations by this contract's equality plus `==` on the plan's functions, seeds, topics, dedup arguments and durations, so two declarations equal under topology-ir's equality no longer always re-activate to one handle (Guide §6.3 'Name every transformer'). Does any sentence of this contract restate how bus-api uses its equality, and does any need restating?",
+      "options": [
+        { "label": "move only, restate nothing", "consequence": "The Boundary row keeps assigning 'idempotency on topologyId (Spec §3.9)' to bus-api, now @v2, which stays true; the Equality paragraph and TopologyGraph's rule keep describing this contract's own value equality, which does not change." },
+        { "label": "add a sentence under Equality pointing at bus-api@v2 G23", "consequence": "Tells a reader that IR equality is not the re-activation test, but adds new content about another contract to a touch that only moves citations, and duplicates G23's text." }
+      ],
+      "chosen": "move only, restate nothing",
+      "why": "No sentence here restates G23. The Boundary row only assigns idempotency to bus-api; the Equality paragraph says two declarations that differ only in a scan's initial value, a closure body or same-named functions project to equal definitions, which stays true and says nothing about activation; TopologyGraph's 'equal ones count once (Spec §3.9)' is a rule of this contract's graph value (G11), and Spec §3.9 is word for word the same in v0.15.1. The meaning of the Boundary citation did change (G23 now decides re-activation by more than IR equality), so it is reported in notes, not reworded. Signal that would change it: a consumer that relies on topology-ir's equality to predict re-activation, which none of bus-api@v2, topology-dsl@v2 or this file does.",
+      "evidence": ["hsdd/contract/bus-api.md G23", "Spec §3.9 (v0.15.0 and v0.15.1 identical)", "hsdd/contract/topology-dsl.md Versioning 'Not in v2' (S65 kept the same pointer as move-only)"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T19:45:40Z",
+      "artifact": "hsdd/contract/topology-ir.md",
+      "question": "How does this touch classify against topology-ir's Versioning (Breaking list, Compatible list), what happens to version, status and phase_ids, and does it get a Versioning entry?",
+      "options": [
+        { "label": "compatible, stays v1, dated Touched entry", "consequence": "topology-ir stays v1, stable, phase_ids final, no consumer reference moves; a 'Touched within v1, 2026-10-21' bullet records the citation moves and the Refinement 4 wording, as S65 did for topology-dsl@v2 when it restated sentences." },
+        { "label": "compatible, stays v1, no entry", "consequence": "Matches S64 (topic-model, citations only), but leaves the Refinement 4 wording change with no trail in the contract." },
+        { "label": "breaking, v2", "consequence": "Would move every consumer reference to topology-ir@v2 for a change that alters no declaration, rule, canonical order, rendering rule, JSON key, format string or schema; nothing on the Breaking list applies." }
+      ],
+      "chosen": "compatible, stays v1, dated Touched entry",
+      "why": "Nothing on the Breaking list changed: no declaration, projection rule, naming rule, state-bearing rule, canonical order, analysis semantics, rendering rule, JSON key or format string; the fixture edit is one doc-comment line of surface/definitions.dart, no marker line. The entry follows S65's precedent for a touch that restated a sentence (S64 added none because it restated nothing). The entry avoids naming topology-dsl at its old version literally so the --final gate's stale-version count for this file stays at the one historical Validation mention.",
+      "evidence": ["hsdd/contract/topology-ir.md ## Versioning (Breaking and Compatible lists)", "docs/auto-run/steps/S64.json and S65.json (classification precedents)", "node docs/auto-run/tools/gate.mjs --skill hsdd-contract: 0 errors, 0 warnings"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    }
+  ],
+  "experiments": [],
+  "self_check": [
+    { "gate": "Frontmatter has id, version, status, kind, owner, compatibility, produced_by, consumers; external_consumers when any exist.", "status": "pass", "note": "Frontmatter untouched." },
+    { "gate": "`consumers` lists phase ids that actually consume this contract.", "status": "n/a", "note": "Not changed by a citation touch; phase ids are hsdd-reconcile's (H12, H16, H23)." },
+    { "gate": "The Interface section is concrete enough to mock against.", "status": "pass", "note": "Interface unchanged but for version numbers in doc comments." },
+    { "gate": "At least one guarantee/invariant is stated.", "status": "pass", "note": "G1 to G23 unchanged; G2's citation moved to topology-dsl@v2, same eighteen values in the same order." },
+    { "gate": "A breaking change bumped the version and added a migration note.", "status": "n/a", "note": "No breaking change." },
+    { "gate": "The registry was regenerated.", "status": "pass", "note": "node hsdd/scripts/gen-registry.mjs ran; hsdd/contract/INDEX.md unchanged because no frontmatter changed." },
+    { "gate": "`phase_ids` is present (`provisional` until `hsdd-reconcile` finalizes it).", "status": "pass", "note": "phase_ids: final, unchanged." },
+    { "gate": "Every code-level artifact both sides consume (types file, fixtures, shared package) names its canonical path and its owner in the Interface or Validation section: the owning phase for code, `hsdd-contract` for validation artifacts.", "status": "pass", "note": "Unchanged." },
+    { "gate": "A contract or version created by this run has its schema and its kind's fixtures written at the canonical paths.", "status": "n/a", "note": "No contract or version created." },
+    { "gate": "Open questions are cited by ID only, never defined here (the skill joins these with a dash, rewritten under the run's prose rule); prose justifying behavior as \"pending OQ-x\" is swept when the OQ resolves (hsdd-reconcile).", "status": "pass", "note": "OQ-M1 still cited by ID only." },
+    { "gate": "A `stable` contract names a schema or a fixtures directory at the canonical paths and the artifact exists, or it carries `validation: grandfathered` (never on a contract authored after the upgrade).", "status": "pass", "note": "Schema and fixture directory exist at the canonical paths." },
+    { "gate": "No version is `retired` while a consumer or an external consumer still names it.", "status": "pass", "note": "No retirement." },
+    { "gate": "A `v0` contract carries `## Observed completeness`, and the block changed in any commit that added fixtures to it.", "status": "n/a", "note": "v1 contract." },
+    { "gate": "Step done-when: no live citation in this file or its fixture comments names a superseded version; every live sentence that restates another contract's guarantee is true under that contract's current text.", "status": "pass", "note": "grep after the edit: topology-dsl@v2 x12, bus-api@v2 x5 (3 moved, 2 in the restated Refinement 4 and the Versioning entry), topology-dsl@v1 x1 (historical Validation paragraph); no bus-testing, navigation-api or flutter-binding citation in the file; the only fixture comment naming another contract's version (surface/definitions.dart) names topology-dsl@v2; schema descriptions cite topic-model@v1, current." },
+    { "gate": "node docs/auto-run/tools/gate.mjs --skill hsdd-contract", "status": "pass", "note": "0 error(s), 0 warning(s)." },
+    { "gate": "Prose rules of the run: no em-dash and no banned phrase.", "status": "pass", "note": "grep for the em-dash character and the banned phrase: 0 in both edited files." }
+  ],
+  "notes_for_orchestrator": [
+    "COUNTS: moved 16 live occurrences on 16 lines. hsdd/contract/topology-ir.md: topology-dsl@v1 -> @v2 x12 (Boundary intro sentence, Boundary row for buildDefinition and the stage classes, Delivery, CombinatorKind doc comment x2, TopicInput doc comment's G13, State-bearing edges' Self-reference column, A well-formed definition's G14, From a plan intro, From a plan rule 3, Projection's G10, G2); bus-api@v1 -> @v2 x3 (Boundary row for Bus.activate, Refinement 4, Analyses host paragraph). hsdd/contract/fixture/topology-ir/surface/definitions.dart line 103 doc comment: topology-dsl@v1 -> @v2 x1. Kept 1 historical: the Validation paragraph describing docs/auto-run/experiments/topology-ir-fixtures/ ('topology-dsl@v1's surface, reject and recording sets still passed'). These counts match S59's prediction (13 topology-dsl@v1 in topology-ir.md plus the definitions.dart header) and S60's (3 bus-api@v1).",
+    "RESTATED (compatible wording, one decision): Refinement 4 no longer says the analyses implement every check of Spec §7.2. It now limits them to Spec §7.2 'Scope compatibility' and says Spec §7.2 'Scope timing' is bus-api@v2's G42 rejection, no finding of this contract, following bus-api@v2 G42 and its migration note. If the orchestrator reads the touch rule as confining restatement to the sentence that holds the moved citation, revert that first sentence and route it to a later hsdd-contract step.",
+    "MEANING CHANGED, NOT REWORDED: the Boundary row giving bus-api 'idempotency on topologyId (Spec §3.9)', now bus-api@v2. Under v2, G23 decides re-activation by topology-ir@v1 equality plus `==` on the plan's functions, seeds, topics, dedup arguments and durations, so declarations this contract's Equality paragraph projects to equal definitions (a different scan seed, a different closure body) can now throw TopologyConflict. The row stays true (it only assigns ownership); no sentence here claims IR equality is the re-activation test.",
+    "OBSERVATION, no step needed in this intake: TopologyGraph counts two same-id definitions equal under IR equality once (G11, citing Spec §3.9, unchanged in v0.15.1). For the build-time catalog this means two modules declaring one topology id with IR-equal but `==`-unequal plans count once, although bus-api@v2 G23 would reject the second activation. Reporting duplicate topology ids is the catalog's (topology-ir 'Not here'; 'a finding for duplicate topology ids' is under Not in v1), so the gap, if it matters, belongs to topic-codegen or nidana-checks, not this contract.",
+    "VERSION: topology-ir stays v1, stable, phase_ids final; frontmatter untouched; no consumer reference moves; hsdd/contract/INDEX.md regenerated with no change. A dated 'Touched within v1, 2026-10-21' bullet was added under ## Versioning (S65 precedent, because Refinement 4 was restated). The fixture edit is a doc-comment line, no 'covers:' or 'expect-diagnostic:' marker, so no replay was needed and none was run.",
+    "Out of scope and untouched: hsdd/contract/schema/topology-ir.schema.json cites topic-model@v1 only (current). This file still cites topic-model@v1, topic-codegen@v1 and nidana-checks@v1, all current. The pre-existing modification of docs/auto-run/REPORT.md is the owner's and was present before this step."
+  ]
+}
