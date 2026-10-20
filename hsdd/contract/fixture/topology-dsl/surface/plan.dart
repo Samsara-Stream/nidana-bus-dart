@@ -1,4 +1,4 @@
-// Surface fixture for topology-dsl@v1: the plan library, used the way a live
+// Surface fixture for topology-dsl@v2: the plan library, used the way a live
 // implementation uses it. StageVisitor and SinkVisitor are implemented in
 // full, so a stage or sink class added to the Interface fails this set, and
 // every stage's members are read with the types the Interface states.

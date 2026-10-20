@@ -1,4 +1,4 @@
-// Reject fixture for topology-dsl@v1 G4: reduceInto folds into a StateTopic
+// Reject fixture for topology-dsl@v2 G4: reduceInto folds into a StateTopic
 // only (Spec §6.3, §7.2), with a reducer over that topic's value type and the
 // events' value type.
 // covers: G4

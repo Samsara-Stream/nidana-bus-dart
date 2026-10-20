@@ -1,4 +1,4 @@
-// Conformance library for topology-dsl@v1, live side (ADR-001 item 4): what a
+// Conformance library for topology-dsl@v2, live side (ADR-001 item 4): what a
 // live implementation does with a topology's plan (G18 to G29). Its cases are
 // values; a binding registers them with a test runner. It imports neither
 // package:test nor package:flutter_test, and names no bus type: a binding
@@ -15,8 +15,10 @@ import 'package:nidana_dart_contracts/nidana_dart_contracts.dart';
 /// What a live binding supplies.
 abstract interface class LiveTopologyHarness {
   /// A fresh live implementation on a clock only [LiveRun.advance] moves:
-  /// [topologies] are activated in order, then the implementation is started
-  /// (Spec §3.13). Nothing else is active on it.
+  /// [topologies] are activated in order, then the implementation is started,
+  /// which connects them (Spec §3.13). Each is APPLICATION-scoped, because a
+  /// MODULE or PAGE activation before start is rejected (Spec §7.2). Nothing
+  /// else is active on it.
   LiveRun start(List<Topology> topologies);
 
   /// Brings every run of this harness to quiescence, including work that
@@ -59,6 +61,7 @@ abstract interface class LiveRun {
 const EventTopic<int> _in = EventTopic<int>(name: 'live.in');
 const EventTopic<int> _inB = EventTopic<int>(name: 'live.in-b');
 const EventTopic<int> _inC = EventTopic<int>(name: 'live.in-c');
+const EventTopic<int> _inD = EventTopic<int>(name: 'live.in-d');
 const EventTopic<int> _out = EventTopic<int>(name: 'live.out');
 const EventTopic<int> _outB = EventTopic<int>(name: 'live.out-b');
 const EventTopic<String> _text = EventTopic<String>(name: 'live.text');
@@ -76,7 +79,12 @@ const ReplayTopic<int> _history =
 List<Object?> _payloads<T>(List<MessageEnvelope<T>> envelopes) =>
     <Object?>[for (final MessageEnvelope<T> e in envelopes) e.payload];
 
+/// A topology [LiveTopologyHarness.start] may activate before the start.
 Topology _t(String id, void Function(TopologyBuilder b) body) =>
+    topology(id, Scope.application, body);
+
+/// A topology a case activates only after the start, through [LiveRun.activate].
+Topology _m(String id, void Function(TopologyBuilder b) body) =>
     topology(id, Scope.module, body);
 
 const Duration _ms1 = Duration(milliseconds: 1);
@@ -168,7 +176,7 @@ final List<ConformanceCase<LiveTopologyHarness>> liveConformance =
   (
     name: 'G19 a replay topic read delivers the buffer at activation; an event topic read delivers later values only',
     body: (LiveTopologyHarness h) async {
-      final Topology t = _t('live-replay', (TopologyBuilder b) {
+      final Topology t = _m('live-replay', (TopologyBuilder b) {
         b.write(_out, b.read(_history));
         b.write(_outB, b.read(_in));
       });
@@ -625,9 +633,9 @@ final List<ConformanceCase<LiveTopologyHarness>> liveConformance =
   ),
   // ------------------------------------------------------------ G24
   (
-    name: 'G24 reduceInto seeds its fold with the current value and publishes nothing at activation',
+    name: 'G24 reduceInto seeds its fold with the current value when its activation connects and publishes nothing then',
     body: (LiveTopologyHarness h) async {
-      final Topology t = _t('live-reduce', (TopologyBuilder b) {
+      final Topology t = _m('live-reduce', (TopologyBuilder b) {
         b.reduceInto(_total, b.read(_in), (int s, int e) => s + e);
       });
       final LiveRun run = h.start(const <Topology>[]);
@@ -831,7 +839,7 @@ final List<ConformanceCase<LiveTopologyHarness>> liveConformance =
   (
     name: 'G25 an untraced read and the initial value of a state topic start a new flow',
     body: (LiveTopologyHarness h) async {
-      final Topology t = _t('live-lineage-root', (TopologyBuilder b) {
+      final Topology t = _m('live-lineage-root', (TopologyBuilder b) {
         b.write(_out, b.read(_untraced).map((int v) => v));
         b.write(_outB, b.read(_level).map((int v) => v));
       });
@@ -918,7 +926,7 @@ final List<ConformanceCase<LiveTopologyHarness>> liveConformance =
     },
   ),
   (
-    name: 'G26 an error that reaches a sink ends that sink for the activation, and the other sinks go on',
+    name: 'G26 an error that reaches a sink ends its write chain for the activation, and the other chains go on',
     body: (LiveTopologyHarness h) async {
       final LiveRun run = h.start(<Topology>[
         _t('live-error', (TopologyBuilder b) {
@@ -952,6 +960,199 @@ final List<ConformanceCase<LiveTopologyHarness>> liveConformance =
         await h.settle();
       }
       expect(run.current(_total), 6);
+    },
+  ),
+  (
+    name: 'G26 once an error ends a write chain no function of a stage that fed only that chain runs again, and a new activation runs the chain again',
+    body: (LiveTopologyHarness h) async {
+      int upstream = 0;
+      final Topology t = _m('live-chain-ends', (TopologyBuilder b) {
+        final TopicStream<int> x = b.read(_in);
+        b.write(
+            _out,
+            x.map((int v) {
+              upstream++;
+              return v;
+            }).map((int v) => v == 2 ? throw StateError('chain') : v));
+        b.write(_outB, x.map((int v) => v * 10));
+      });
+      final LiveRun run = h.start(const <Topology>[]);
+      run.activate(t);
+      final List<MessageEnvelope<int>> out = run.watch(_out);
+      final List<MessageEnvelope<int>> outB = run.watch(_outB);
+      for (final int v in <int>[1, 2, 3]) {
+        run.publish(_in, v);
+        await h.settle();
+      }
+      // A Dart stream goes on after an error event; the chain does not
+      // (Spec §10.2 principle 5).
+      expect(upstream, 2);
+      expect(_payloads(out), <Object?>[1]);
+      expect(_payloads(outB), <Object?>[10, 20, 30]);
+      run.deactivate(t);
+      run.activate(t);
+      run.publish(_in, 4);
+      await h.settle();
+      expect(upstream, 3);
+      expect(_payloads(out), <Object?>[1, 4]);
+    },
+  ),
+  (
+    name: 'G26 a stage shared with a live chain goes on for it after another chain it feeds has ended',
+    body: (LiveTopologyHarness h) async {
+      int shared = 0;
+      final LiveRun run = h.start(<Topology>[
+        _t('live-chain-shared', (TopologyBuilder b) {
+          final TopicStream<int> m = b.read(_in).map((int v) {
+            shared++;
+            return v;
+          });
+          b.write(_out, m.map((int v) => v == 2 ? throw StateError('chain') : v));
+          b.write(_outB, m.map((int v) => v * 10));
+        }),
+      ]);
+      final List<MessageEnvelope<int>> out = run.watch(_out);
+      final List<MessageEnvelope<int>> outB = run.watch(_outB);
+      for (final int v in <int>[1, 2, 3]) {
+        run.publish(_in, v);
+        await h.settle();
+      }
+      expect(shared, 3);
+      expect(_payloads(out), <Object?>[1]);
+      expect(_payloads(outB), <Object?>[10, 20, 30]);
+    },
+  ),
+  (
+    name: 'G26 an error raised in a stage that feeds several chains ends each chain it reaches unrecovered, and a chain whose catchError recovers it goes on',
+    body: (LiveTopologyHarness h) async {
+      final LiveRun run = h.start(<Topology>[
+        _t('live-chain-fork', (TopologyBuilder b) {
+          final TopicStream<int> m = b
+              .read(_in)
+              .map((int v) => v == 2 ? throw StateError('shared') : v);
+          b.write(_out, m);
+          b.write(_outB, m.catchError((Object e, StackTrace s) => -1));
+          b.write(_text, b.read(_inB).map((int v) => '$v'));
+        }),
+      ]);
+      final List<MessageEnvelope<int>> out = run.watch(_out);
+      final List<MessageEnvelope<int>> outB = run.watch(_outB);
+      final List<MessageEnvelope<String>> text = run.watch(_text);
+      for (final int v in <int>[1, 2, 3]) {
+        run.publish(_in, v);
+        await h.settle();
+      }
+      run.publish(_inB, 4);
+      await h.settle();
+      expect(_payloads(out), <Object?>[1]);
+      expect(_payloads(outB), <Object?>[1, -1, 3]);
+      expect(_payloads(text), <Object?>['4']);
+    },
+  ),
+  (
+    name: 'G26 ending a chain cancels its switchMap inner subscription and its timers without waiting for a cancel future, and another chain goes on',
+    body: (LiveTopologyHarness h) async {
+      final _Inner inner = _Inner();
+      int calls = 0;
+      int delayed = 0;
+      final LiveRun run = h.start(<Topology>[
+        _t('live-chain-cancel', (TopologyBuilder b) {
+          b.write(
+              _out,
+              b.merge(<TopicStream<int>>[
+                b.read(_in).switchMap((int v) {
+                  calls++;
+                  return inner.stream;
+                }),
+                b.read(_inB).delay(_ms100).map((int v) {
+                  delayed++;
+                  return v;
+                }),
+                b
+                    .read(_inC)
+                    .map((int v) => v == 0 ? throw StateError('chain') : v),
+              ]));
+          b.write(_outB, b.read(_inD).map((int v) => v));
+        }),
+      ]);
+      final List<MessageEnvelope<int>> out = run.watch(_out);
+      final List<MessageEnvelope<int>> outB = run.watch(_outB);
+      run.publish(_in, 1);
+      run.advance(Duration.zero);
+      expect(inner.listens, 1);
+      run.publish(_inB, 5);
+      run.publish(_inC, 0);
+      run.advance(Duration.zero);
+      // No real event-loop turn has passed, and the inner cancel future never
+      // completes (ADR-003 item 3).
+      expect(inner.cancels, 1);
+      run.advance(_ms100 * 2);
+      expect(delayed, 0);
+      run.publish(_in, 2);
+      run.publish(_inD, 7);
+      run.advance(Duration.zero);
+      expect(calls, 1);
+      expect(out, isEmpty);
+      expect(_payloads(outB), <Object?>[7]);
+    },
+  ),
+  (
+    name: 'G26 the error that ends a chain reaches no topic, neither as a value nor as an error signal',
+    body: (LiveTopologyHarness h) async {
+      final LiveRun run = h.start(<Topology>[
+        _t('live-chain-source', (TopologyBuilder b) {
+          b.write(_out,
+              b.read(_in).map((int v) => v == 2 ? throw StateError('chain') : v));
+        }),
+        _t('live-chain-reader', (TopologyBuilder b) {
+          b.write(_outB, b.read(_out).catchError((Object e, StackTrace s) => -1));
+        }),
+      ]);
+      final List<MessageEnvelope<int>> out = run.watch(_out);
+      final List<MessageEnvelope<int>> outB = run.watch(_outB);
+      for (final int v in <int>[1, 2, 3]) {
+        run.publish(_in, v);
+        await h.settle();
+      }
+      expect(_payloads(out), <Object?>[1]);
+      expect(_payloads(outB), <Object?>[1]);
+    },
+  ),
+  (
+    name: 'G26 a reduceInto is one write chain: a reducer that throws, or an error from its events, ends it, no stage that fed only it runs again, and its state keeps its last value',
+    body: (LiveTopologyHarness h) async {
+      int fed = 0;
+      final LiveRun run = h.start(<Topology>[
+        _t('live-reduce-chain', (TopologyBuilder b) {
+          b.reduceInto(
+              _total,
+              b.read(_in).map((int v) {
+                fed++;
+                return v;
+              }),
+              (int s, int e) => e < 0 ? throw StateError('negative') : s + e);
+          b.reduceInto(
+              _derived,
+              b.read(_inC).map((int v) => v == 0 ? throw StateError('zero') : v),
+              (int s, int e) => s + e);
+          b.write(_out, b.read(_inB));
+        }),
+      ]);
+      final List<MessageEnvelope<int>> out = run.watch(_out);
+      for (final int v in <int>[1, -1, 2]) {
+        run.publish(_in, v);
+        await h.settle();
+      }
+      for (final int v in <int>[4, 0, 5]) {
+        run.publish(_inC, v);
+        await h.settle();
+      }
+      run.publish(_inB, 3);
+      await h.settle();
+      expect(run.current(_total), 6);
+      expect(fed, 2);
+      expect(run.current(_derived), 4);
+      expect(_payloads(out), <Object?>[3]);
     },
   ),
   // ------------------------------------------------------------ G27

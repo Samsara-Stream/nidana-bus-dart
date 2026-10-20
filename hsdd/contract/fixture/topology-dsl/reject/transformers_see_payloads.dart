@@ -1,4 +1,4 @@
-// Reject fixture for topology-dsl@v1 G5: every function a combinator takes,
+// Reject fixture for topology-dsl@v2 G5: every function a combinator takes,
 // other than the raw-engine operator, is typed over payload types (Spec §2.4,
 // §3.5, §6.2). A transformer over the envelope or the lineage, or one whose
 // types do not fit the handles, does not compile.

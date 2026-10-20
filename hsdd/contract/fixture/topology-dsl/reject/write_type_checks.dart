@@ -1,4 +1,4 @@
-// Reject fixture for topology-dsl@v1 G3: a write type-checks against its topic
+// Reject fixture for topology-dsl@v2 G3: a write type-checks against its topic
 // (Spec §4.2). write(topic, stream) compiles only when the stream's value type
 // is the topic's value type or a subtype of it; inference does not widen the
 // topic's type to admit the stream.

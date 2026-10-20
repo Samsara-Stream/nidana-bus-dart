@@ -1,4 +1,4 @@
-// Reject fixture for topology-dsl@v1 G8: Topology is an immutable base class.
+// Reject fixture for topology-dsl@v2 G8: Topology is an immutable base class.
 // A topology extends it and cannot implement it, so its definition always
 // comes from its own declaration (Spec §6.5): buildDefinition() is
 // non-virtual, and a mutable field is reported.

@@ -1,4 +1,4 @@
-// Reject fixture for topology-dsl@v1 G6: time-dependent combinators take a
+// Reject fixture for topology-dsl@v2 G6: time-dependent combinators take a
 // Duration and no scheduler argument (Spec §3.6; ADR-003 item 4). Time is the
 // live implementation's provider clock, never a parameter of the declaration.
 // covers: G6

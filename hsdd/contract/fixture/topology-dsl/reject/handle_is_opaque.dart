@@ -1,4 +1,4 @@
-// Reject fixture for topology-dsl@v1 G1: the read handle is opaque (Spec §6.1).
+// Reject fixture for topology-dsl@v2 G1: the read handle is opaque (Spec §6.1).
 // It has no synchronous value accessor, so reading a current value to decide
 // wiring does not compile, and it is not a Stream, so engine operators and
 // combinators cannot be applied to it (root D6).

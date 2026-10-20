@@ -1,4 +1,4 @@
-// Surface fixture for topology-dsl@v1: the app-facing declarations of the
+// Surface fixture for topology-dsl@v2: the app-facing declarations of the
 // main library, used the way topology modules use them. Every builder method
 // and every handle method appears with the types the Interface states.
 // Passes when `fvm dart analyze --fatal-infos` reports nothing on it.

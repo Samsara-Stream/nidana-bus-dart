@@ -1,4 +1,4 @@
-// Reject fixture for topology-dsl@v1 G2: the plan declarations are exported
+// Reject fixture for topology-dsl@v2 G2: the plan declarations are exported
 // only from package:nidana_dart_contracts/topology_plan.dart. Code that
 // imports the main library alone, as a topology module does, cannot name a
 // stage or a plan, or obtain one.

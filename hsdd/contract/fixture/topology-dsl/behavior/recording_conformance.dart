@@ -1,4 +1,4 @@
-// Conformance library for topology-dsl@v1, recording side (ADR-001 item 4):
+// Conformance library for topology-dsl@v2, recording side (ADR-001 item 4):
 // what recording a declaration produces (G9 to G17 and G30). Its cases are
 // values; a binding registers them with a test runner. It imports neither
 // package:test nor package:flutter_test.

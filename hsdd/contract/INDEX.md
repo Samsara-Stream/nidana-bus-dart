@@ -11,5 +11,5 @@
 | `nidana-checks` | v1 | cli | stable | `nidana.tooling` | 4 |
 | `topic-codegen` | v1 | file | stable | `nidana.tooling` | 4 |
 | `topic-model` | v1 | shared-model | stable | `nidana.model` | 41 |
-| `topology-dsl` | v1 | api | stable | `nidana.model` | 25 |
+| `topology-dsl` | v2 | api | draft | `nidana.model` | 25 |
 | `topology-ir` | v1 | api | stable | `nidana.model` | 23 |

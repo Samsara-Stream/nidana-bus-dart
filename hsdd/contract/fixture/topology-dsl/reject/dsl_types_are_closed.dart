@@ -1,4 +1,4 @@
-// Reject fixture for topology-dsl@v1 G2: handles, builders, stages, sinks and
+// Reject fixture for topology-dsl@v2 G2: handles, builders, stages, sinks and
 // plans are made only by the DSL. No type outside the library extends or
 // implements them, and none has a public constructor.
 // covers: G2

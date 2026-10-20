@@ -1,4 +1,4 @@
-// Binding: runs the topology-dsl@v1 recording suite against the producer's
+// Binding: runs the topology-dsl@v2 recording suite against the producer's
 // own recording builder in package:nidana_dart_contracts, under `dart test`.
 //
 // The package import names the implementation, so the replay tool reports

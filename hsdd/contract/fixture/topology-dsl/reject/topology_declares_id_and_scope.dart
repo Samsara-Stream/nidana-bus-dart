@@ -1,4 +1,4 @@
-// Reject fixture for topology-dsl@v1 G7: a topology declares its identifier,
+// Reject fixture for topology-dsl@v2 G7: a topology declares its identifier,
 // its scope and its body (Spec §4.6, §6.1, §7.2). The builder form takes all
 // three; a class that leaves one out does not compile.
 // covers: G7
