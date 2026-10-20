@@ -1,0 +1,151 @@
+{
+  "step_ref": "S84",
+  "skill": "hsdd-reconcile",
+  "target": "pending governance section of hsdd/spec/nidana.navigation.md emitted by S83 (the re-plan DEC-775 inserted after H13)",
+  "status": "completed",
+  "stop": null,
+  "artifacts": [
+    "hsdd/spec/nidana.navigation.md",
+    "docs/auto-run/steps/S84.json"
+  ],
+  "decisions": [
+    {
+      "at": "2026-10-20T22:32:50Z",
+      "artifact": "hsdd/spec/nidana.navigation.md",
+      "question": "Step 3: do the four confirm entries collide with each other or with another node's entry?",
+      "options": [
+        { "label": "No collision; apply every entry", "consequence": "The four entries name four distinct contracts, one entry each, and no other node has a pending entry in this run." },
+        { "label": "Treat the navigation-api@v1 confirm on a stable, final contract as a collision", "consequence": "Would send an unchanged produced_by list to the owner as if it were an ownership dispute." }
+      ],
+      "chosen": "No collision; apply every entry",
+      "why": "Grouped by contract id: navigation-api@v1 (produced_by), bus-api@v2, bus-testing@v2 and topology-dsl@v2 (consumers). nidana.navigation's section is the only one pending; the other seven sections in hsdd/spec/ carry a reconcile stamp (runtime's dated 2026-10-21 by S80, the rest 2026-10-18), so no second node asserts anything about these contracts. Each entry also agrees with the contract body it rests on: bus-api@v2 G23 (== on plan functions, tear-offs on one receiver), G34 (running from the moment start() begins), G42 (a shell publisher of any scope works before start(); PAGE activation rejected before it) and G18 (a subscriber's error goes to the zone of its listen), and navigation-api@v1 G13's once-per-call case, which exists in the fixtures.",
+      "evidence": [
+        "hsdd/spec/*.md pending sections (seven stamped)",
+        "hsdd/contract/bus-api.md G18, G23, G34, G42",
+        "hsdd/contract/fixture/navigation-api/behavior/navigation_conformance.dart (G13 'one nav-resolver holds the same stage functions in every plan of it' case)"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T22:32:53Z",
+      "artifact": "hsdd/contract/navigation-api.md",
+      "question": "Step 4: applying the four confirms, what changes in the contracts' frontmatter?",
+      "options": [
+        { "label": "No frontmatter edit; the lists already equal the confirms", "consequence": "navigation-api.md, bus-api.md, bus-testing.md and topology-dsl.md stay byte-identical; the registry regenerates unchanged." },
+        { "label": "Rewrite the lists from the entries anyway", "consequence": "Same bytes; a no-op edit with nothing to show for it." }
+      ],
+      "chosen": "No frontmatter edit; the lists already equal the confirms",
+      "why": "navigation-api@v1 produced_by is [nidana.navigation.1 to .6], as confirmed. The nidana.navigation ids in the consumers lists are exactly those confirmed: bus-api@v2 [.1, .6], bus-testing@v2 [.6], topology-dsl@v2 [.1, .3, .6], written by the H7 citation touches and the H13 spec touch, and they match the Consumes lines of the six phases (.2, .4 and .5 consume nothing; .3 consumes topology-dsl@v2 but neither bus contract). The navigation plan cites no superseded version of the three v2 contracts (0 citations of bus-api@v1, bus-testing@v1 or topology-dsl@v1).",
+      "evidence": [
+        "hsdd/contract/{navigation-api,bus-api,bus-testing,topology-dsl}.md frontmatter",
+        "hsdd/spec/nidana.navigation.md phase Consumes lines (nidana.navigation.1 to .6)"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T22:32:55Z",
+      "artifact": "hsdd/contract/navigation-api.md",
+      "question": "The conventions say a producer's re-plan is drained like its first plan and rewrites the Delivery paragraph. Does navigation-api@v1's Delivery paragraph change?",
+      "options": [
+        { "label": "Leave it as written", "consequence": "The paragraph keeps saying nidana.navigation.3 delivers G9 to G13 with 'its stage functions built once per call', and nidana.navigation.6 G14 to G16 and G18 to G24 with both bindings unrestricted." },
+        { "label": "Rewrite it from the entry", "consequence": "The same facts in new words; consumers' citations of the paragraph would churn for nothing." }
+      ],
+      "chosen": "Leave it as written",
+      "why": "Every claim of the paragraph still holds against the re-planned gates: .2 replays G1, G4 to G8; .3 adds G9 to G13; .4 adds G17; .5 adds G25; .6 replays unrestricted. The once-per-call clause of G13 is already named in the .3 sentence (S62's touch wrote it). The entry's count claim also checks: navigation_conformance.dart has 42 named cases and navigation_executor_conformance.dart 26, registered twice by in_memory_router_test.dart, so 52. Last producing phase stays nidana.navigation.6, so no consumer edge moves.",
+      "evidence": [
+        "hsdd/contract/navigation-api.md Delivery",
+        "hsdd/spec/nidana.navigation.md gates of nidana.navigation.1 to .6",
+        "hsdd/contract/fixture/navigation-api/behavior/ (42 and 26 case names)"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T22:33:00Z",
+      "artifact": "hsdd/contract/bus-api.md",
+      "question": "bus-api@v2's Delivery paragraph names nidana.navigation only under the `contract` edge on nidana.runtime.1 and lists nidana.flutter.4 to .7 and nidana.integration under the `hard` edge on nidana.runtime.14, while the confirm says nidana.navigation.6 waits on nidana.runtime.14 for bus-api@v2's behavior. Add nidana.navigation.6 to the hard-edge parenthetical?",
+      "options": [
+        { "label": "Leave the paragraph unchanged", "consequence": "A reader of bus-api@v2 alone sees nidana.navigation only as a contract-edge consumer; nidana.navigation.6's wait on .14 is stated in bus-testing@v2's Delivery, in the navigation plan, and is satisfied by the same producer phase." },
+        { "label": "Add nidana.navigation.6 to the hard-edge parenthetical", "consequence": "The paragraph lists every hard-edge consumer node; edits producer-written text from a consumer's confirm, which the step's write set does not name." }
+      ],
+      "chosen": "Leave the paragraph unchanged",
+      "why": "The parenthetical has read this way since S31's reconcile of nidana.runtime (v1), and S33's reconcile of nidana.navigation left it; S83 did not change nidana.navigation.6's edge. The conventions have reconcile write Delivery from the producer's confirm entries, and this step may write only what an entry names. The paragraph is not false: nidana.navigation.1's edge is the contract edge, and the parenthetical reads as examples. Signal that would have changed my mind: a consumer plan reading bus-api@v2's Delivery to decide nidana.navigation.6 needs only nidana.runtime.1. Raised for the orchestrator to carry to H23 or the next drain of nidana.runtime.",
+      "evidence": [
+        "git show a313ab0:hsdd/contract/bus-api.md and 59e7c4c (same parenthetical)",
+        "hsdd/contract/bus-testing.md Delivery (hard edge names nidana.navigation)",
+        "hsdd/conventions.md Contracts (Delivery paragraph)"
+      ],
+      "blast_radius": "contract",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T22:33:00Z",
+      "artifact": "hsdd/contract/bus-api.md",
+      "question": "Steps 4 and 7: flip phase_ids or status of navigation-api@v1, bus-api@v2, bus-testing@v2 or topology-dsl@v2?",
+      "options": [
+        { "label": "Flip none", "consequence": "navigation-api@v1 stays stable, final; the three v2 contracts stay draft, phase_ids provisional, for H16 and H23." },
+        { "label": "Flip bus-api@v2 and bus-testing@v2 to final", "consequence": "Would claim consumer phases confirmed that still cite v1 and have not been re-planned or swept." }
+      ],
+      "chosen": "Flip none",
+      "why": "A contract flips only when both sides are confirmed. After this drain: bus-api@v2 has its producer (S80) and nidana.navigation confirmed, but nidana.flutter (21 citations of bus-api@v1), nidana.integration (19), nidana.tooling.lint (15) and nidana.tooling.codegen (9) are not; bus-testing@v2 likewise lacks nidana.flutter, nidana.integration and nidana.tooling.lint; topology-dsl@v2 lacks its producer nidana.model (23 citations of topology-dsl@v1 in plan text, H23) and four consumer nodes. Whether an unchanged consumer phase of a node not re-planned counts as confirmed is H23's question, not this step's. Status cannot reach stable without phase_ids final, so step 7 has nothing to flip. navigation-api@v1's sides are unchanged: producer re-confirmed here, consumers unchanged.",
+      "evidence": [
+        "grep counts of @v1 and @v2 citations in hsdd/spec/nidana.{model,flutter,integration,tooling.lint,tooling.codegen}.md",
+        "hsdd/management/2026-10-20-intake-ref-arch-v0-15-1.md H15, H16, H23"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T22:33:04Z",
+      "artifact": "hsdd/spec/nidana.navigation.md",
+      "question": "Step 11: how to stamp a section that held a 2026-10-18 stamp above S83's emission line, and with which date?",
+      "options": [
+        { "label": "One line dated 2026-10-21 replacing the old stamp, the emission line and the entries", "consequence": "Reads like every other drained section; git history keeps both emissions." },
+        { "label": "Keep the 2026-10-18 stamp and add a second one", "consequence": "Two stamp lines, nothing gained." }
+      ],
+      "chosen": "One line dated 2026-10-21 replacing the old stamp, the emission line and the entries",
+      "why": "The skill replaces the entries with one line. 2026-10-21 is the local calendar date the emission line uses and S80's stamp used (the machine runs WIB; date -u reads 2026-10-20).",
+      "evidence": [".agents/skills/hsdd-reconcile step 11", "hsdd/spec/nidana.runtime.md stamp (S80)"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    }
+  ],
+  "experiments": [],
+  "self_check": [
+    { "gate": "Every pending section drained, or explicitly deferred with a reason.", "status": "pass", "note": "nidana.navigation's section drained and stamped 2026-10-21; the other seven were already stamped." },
+    { "gate": "No contract with both sides fully planned remains `phase_ids: provisional`; none with `phase_ids: final`, no open request and an existing validation artifact remains `status: draft`; none was flipped without its artifact.", "status": "pass", "note": "bus-api@v2, bus-testing@v2 and topology-dsl@v2 lack confirmed sides (nidana.flutter, nidana.integration, nidana.tooling.lint, nidana.tooling.codegen; nidana.model as producer of topology-dsl@v2). No final+draft contract exists." },
+    { "gate": "Grandfather marks were added only to pre-existing fixtureless `stable` contracts named by the plan step (the upgrade step or one carrying it forward), none re-marked after a discharge, and removed wherever the artifact now exists.", "status": "n/a", "note": "Not invoked." },
+    { "gate": "No contract was retired while a consumer or external consumer still names it.", "status": "n/a", "note": "No retirement." },
+    { "gate": "Every collision was decided by the human, and the losing plan was updated to match.", "status": "n/a", "note": "No collision." },
+    { "gate": "Contract edits follow hsdd-contract versioning (breaking change = new version + migration note).", "status": "n/a", "note": "No contract file changed; the section carried no amend or request." },
+    { "gate": "`node hsdd/scripts/gen-registry.mjs` ran after the last contract edit.", "status": "pass", "note": "Ran after the stamp; both INDEX.md files regenerated unchanged (9 contracts, 3 ADRs). gate.mjs --skill hsdd-reconcile: 0 errors, 0 warnings." },
+    { "gate": "No artifact still cites a resolved OQ as open; sweep locations reported.", "status": "pass", "note": "No OQ resolved by this drain; OQ-N1 and OQ-N2 were already RESOLVED (2026-10-18)." }
+  ],
+  "notes_for_orchestrator": [
+    "Only hsdd/spec/nidana.navigation.md changed (the stamp). All four confirms already matched the contracts' frontmatter, so no contract file and no INDEX.md changed. No phase scope was touched.",
+    "navigation-api@v1 stays stable, phase_ids final; its Delivery paragraph stands (re-checked against the six gates and the 42 + 52 case counts).",
+    "bus-api@v2, bus-testing@v2 and topology-dsl@v2 stay draft, phase_ids provisional. Confirmed sides now: bus-api@v2 producer (S80) and nidana.navigation; bus-testing@v2 producer (S80) and nidana.navigation; topology-dsl@v2 consumers nidana.runtime (S80) and nidana.navigation. Unconfirmed: nidana.flutter (H15/H16), nidana.integration (H21 onward), nidana.tooling.lint and nidana.tooling.codegen (H23 sweep), and nidana.model as topology-dsl@v2's producer (H23).",
+    "Observation for H23 or the next drain of nidana.runtime: bus-api@v2's Delivery hard-edge parenthetical (nidana.flutter.4 to .7; nidana.integration) omits nidana.navigation.6, which waits on nidana.runtime.14 for bus-api@v2's behavior. Pre-existing since S31, not false (nidana.navigation.1's edge is the contract edge), left untouched here.",
+    "The H23 sweep now skips nidana.navigation (insert rule); its plan cites no superseded version of bus-api, bus-testing or topology-dsl."
+  ]
+}

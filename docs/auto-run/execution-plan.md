@@ -277,6 +277,7 @@ orchestrator and recorded with `would_have_asked: true`.
 | S81 | 9 | hsdd-spec | inserted: nidana.runtime touch (Development flow lanes and start() steps, pure-band exception for .16, Slices and Contracts rows for G23 and G34) | done | d70ab31 |
 | S82 | 9 | hsdd-spec | H13: nidana.navigation touch (Sources, Consumes at v2, bootstrap-order and resolver Owns bullets restated; D1 to D6 are plan-written) | done | e274d42 |
 | S83 | 9 | hsdd-phase-plan | inserted: nidana.navigation re-plan (D3 checked, D5 and D6 restated, .3 and .6 rewritten, citations to v2; no phase added) | done | e9d9138 |
+| S84 | 9 | hsdd-reconcile | inserted: nidana.navigation pending section drained (four confirms already matched; no flips) | done | c82e3a3 |
 
 ## Change log
 

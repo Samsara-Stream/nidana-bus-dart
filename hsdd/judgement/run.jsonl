@@ -82,3 +82,4 @@
 {"step_ref":"S81","skill":"hsdd-spec","target":"nidana.runtime follow-up touch (inserted, DEC-917)","started":"2026-10-20T22:03:58Z","finished":"2026-10-20T22:10:27Z","commit":"d70ab31","dispatches":1}
 {"step_ref":"S82","skill":"hsdd-spec","target":"nidana.navigation touch (H13)","started":"2026-10-20T22:10:46Z","finished":"2026-10-20T22:19:03Z","commit":"e274d42","dispatches":1}
 {"step_ref":"S83","skill":"hsdd-phase-plan","target":"nidana.navigation re-plan, append mode (inserted, DEC-775)","started":"2026-10-20T22:19:22Z","finished":"2026-10-20T22:30:04Z","commit":"e9d9138","dispatches":1}
+{"step_ref":"S84","skill":"hsdd-reconcile","target":"nidana.navigation pending section (inserted, DEC-775)","started":"2026-10-20T22:30:23Z","finished":"2026-10-20T22:34:24Z","commit":"c82e3a3","dispatches":1}
