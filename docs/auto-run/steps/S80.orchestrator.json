@@ -1,0 +1,25 @@
+{
+  "step_ref": "S80",
+  "skill": "none",
+  "target": "review of S80 (nidana.runtime reconcile)",
+  "status": "completed",
+  "decisions": [
+    {
+      "at": "2026-10-20T22:03:36Z",
+      "artifact": "hsdd/contract/bus-api.md",
+      "question": "S80 applied S79's amend of bus-api@v2 (the bus is running from the moment start() begins; a nested start() does nothing; removeTopic from the work start() runs throws StateError) as compatible within v2, marking it would_have_asked and breaking-amend because one point touches 'which operation throws what'. Does the orchestrator, deciding stops under DEC-686, accept it?",
+      "options": [
+        { "label": "Accept within v2", "consequence": "G34, G9 and G42 say what a call made during start() does; two existing cases are extended; bus-api stays v2 draft." },
+        { "label": "Revert and leave calls during start() unstated", "consequence": "The runtime plan (D8) still has to pick a behavior, and consumers that react to a step-3 deep link (navigation and flutter executors) would have no guarantee for activating a PAGE topology from that callback." }
+      ],
+      "chosen": "Accept within v2",
+      "why": "bus-api@v2 is a draft authored in this intake, so the Breaking list protects no consumer yet; the replay on a runtime seeded to the other reading passes every consumer suite, so nothing relies on either reading; and leaving it unstated would push the choice into the runtime's code. The Spec gap is recorded for upstreaming.",
+      "evidence": ["docs/auto-run/experiments/bus-api-start-running/output.txt", "docs/auto-run/steps/S80.json", "Spec §3.13"],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": true,
+      "stop_class": "breaking-amend",
+      "would_upstream": true
+    }
+  ]
+}

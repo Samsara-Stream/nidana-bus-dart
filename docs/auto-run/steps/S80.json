@@ -1,0 +1,206 @@
+{
+  "step_ref": "S80",
+  "skill": "hsdd-reconcile",
+  "target": "pending governance section of hsdd/spec/nidana.runtime.md emitted by S79 (H11), handoff H12",
+  "status": "completed",
+  "stop": null,
+  "artifacts": [
+    "hsdd/contract/bus-api.md",
+    "hsdd/contract/fixture/bus-api/behavior/bus_api_conformance.dart",
+    "hsdd/contract/topology-dsl.md",
+    "hsdd/contract/topic-model.md",
+    "hsdd/contract/INDEX.md",
+    "hsdd/spec/nidana.runtime.md",
+    "docs/auto-run/experiments/bus-api-start-running/",
+    "docs/auto-run/steps/S80.json"
+  ],
+  "decisions": [
+    {
+      "at": "2026-10-20T21:54:21Z",
+      "artifact": "hsdd/spec/nidana.runtime.md",
+      "question": "Step 3: do the five entries collide with each other or with another node's entry?",
+      "options": [
+        { "label": "No collision; apply every entry", "consequence": "One pending section in the tree (the other six are stamped 2026-10-18); its entries name four distinct contracts and no other node claims the same artifact, phase or assumption." },
+        { "label": "Treat the topic-model@v1 consumer confirm as a collision with its stable, final status", "consequence": "Would send a frontmatter addition of two consumer phase ids to the owner as if it were an interface dispute." }
+      ],
+      "chosen": "No collision; apply every entry",
+      "why": "Grouped by contract id: bus-api@v2 (confirm produced_by, one amend), bus-testing@v2 (confirm, unchanged), topology-dsl@v2 (confirm consumers), topic-model@v1 (confirm consumers). Every other spec's pending section is already drained, so no second node asserts anything about these contracts in this run. The amend states behavior no other node's entry assumes otherwise; its compatibility is a separate decision below.",
+      "evidence": ["hsdd/spec/*.md pending sections (six stamped 2026-10-18)", "hsdd/spec/nidana.runtime.md pending section as S79 left it (git HEAD 130cb77)"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T21:55:33Z",
+      "artifact": "hsdd/contract/bus-api.md",
+      "question": "Classify S79's amend of bus-api@v2 (the bus is running from the moment start() begins, so the work start() runs makes activations, subscriptions and module references as after start(), a nested start() does nothing, and a removeTopic it calls throws StateError) against bus-api@v2's Breaking list: compatible within v2, or breaking and to the human?",
+      "options": [
+        { "label": "Compatible: apply within v2", "consequence": "G34, G9 and G42 state it; a Versioning entry records it; no version bump. Rests on the contract's 'a new guarantee that existing fixtures still pass'." },
+        { "label": "Breaking: report a skill stop for the orchestrator (DEC-686)", "consequence": "One more orchestrator decision and, if upheld, a v3 of a contract no package implements, with every consumer citation moving again inside this intake." }
+      ],
+      "chosen": "Compatible: apply within v2",
+      "why": "G34 said a bus is bootstrapping 'until start()' and that start() 'ends bootstrapping in three steps', which leaves a call made during the steps unstated; G42's 'before start()' inherits the same ambiguity. The one call where the earlier text implied an answer is a removeTopic from a bootstrap subscription's callback in step 2, which runs within a connection, not a delivery, so G9's 'during a delivery' did not cover it; the amend makes it throw. That edge sits on the Breaking list's 'which operation throws what', which is why I mark would_have_asked. It breaks no consumer: only bus-api's own suite and flutter-binding@v2's adapter suite call removeTopic, both outside start(), and no consumer spec mentions it. Replay settles the rest: both stand-in runtimes already set running before step 1 and pass every suite that imports nidana_dart_runtime; and on a runtime seeded to stay bootstrapping until start() returns, every suite except bus-api's extended cases still passes, so no consumer fixture relies on either reading. No package implements v2 and no phase has shipped. bus-api@v2 is draft, so the in-version precedent (DEC-186, DEC-244) applies; DEC-688 governs stable contracts. Signal that would have changed my mind: a consumer fixture or plan that calls removeTopic or activates a MODULE/PAGE topology from a callback during start() and expects the other behavior.",
+      "evidence": [
+        "bus-api@v2 G9, G34, G42 and Versioning (Breaking and Compatible lists)",
+        "Spec §3.13 (silent on calls made during start())",
+        "docs/auto-run/experiments/bus-api-start-running/output.txt (T3, T5, T6 late-running)",
+        "grep of hsdd/ for removeTopic: bus-api.md, its fixtures, flutter-binding conformance (outside start()), nidana.runtime.md only",
+        "DEC-686, DEC-688"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": true,
+      "stop_class": "breaking-amend",
+      "would_upstream": true
+    },
+    {
+      "at": "2026-10-20T21:55:33Z",
+      "artifact": "hsdd/contract/fixture/bus-api/behavior/bus_api_conformance.dart",
+      "question": "Should the fixtures pin the amend, and if so with new cases or by extending existing ones?",
+      "options": [
+        { "label": "No case", "consequence": "The guarantee is executable but unpinned: a runtime that flips running after step 3 passes every suite (the late-running defect does) and breaks a consumer whose executor pushes a page, or whose widget acquires a module, on the deep link step 3 delivers." },
+        { "label": "Two new cases (G34, G42)", "consequence": "Suite grows to 111; nidana.runtime's plan text ('bus-api@v2's 109 cases' in the Phase Plan intro and in nidana.runtime.14's scope, '90 of bus-api@v2's 109 cases' in D8) goes stale, and this step may rewrite no phase scope." },
+        { "label": "Extend the existing G34 idempotency case and G42 acquire case", "consequence": "Suite stays at 109 and every count the plan and the Validation section cite stays true; two case names change; each extended case still lands where its guarantee already joins (.12, .14)." }
+      ],
+      "chosen": "Extend the existing G34 idempotency case and G42 acquire case",
+      "why": "A consumer relies on the behavior, so a case should pin it (the late-running defect passes every other suite). Extending keeps the 109-case count that nidana.runtime's plan states in phase scope I may not rewrite. The nested start() is idempotency, which the G34 case already covered, and the acquire belongs with G42's acquire case. The replay schedule places the extended G34 case at .12 and the G42 case at .14, where those guarantees already join, so no gate changes. Both seeded defects fail exactly the extended cases. Signal that would have changed my mind: a reviewer who wants one case per behavior, at the cost of the stale counts.",
+      "evidence": ["docs/auto-run/experiments/bus-api-start-running/output.txt (T1, T6, T7)", "docs/auto-run/experiments/runtime-replay-schedule-v2/schedule.dart"],
+      "blast_radius": "contract",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T21:58:08Z",
+      "artifact": "hsdd/contract/bus-api.md",
+      "question": "The amend says a publish made by the work start() runs 'is reentrant (G14)'. State it that way in G34?",
+      "options": [
+        { "label": "State it as reentrant", "consequence": "Reads as 'delivered in a provider-zone microtask', which is wrong for an observer's publish during a step-1 delivery: the stand-ins drain it within step 1 as part of that connection's batch." },
+        { "label": "Defer to G14", "consequence": "'a publish it makes is delivered as G14 states for a publish made during start()': restates nothing, so it cannot contradict G14 or the step-1 rule." }
+      ],
+      "chosen": "Defer to G14",
+      "why": "S79 cited G14 as 'already stated', so the amend meant no new rule for publishes. In both stand-ins, _settleNow drains _deferred inside step 1, so 'reentrant' would describe step 1 wrongly. No evidence beyond the stand-in code.",
+      "evidence": ["docs/auto-run/experiments/runtime-topic-storage/runtime/owned/bus.dart (start(), _settleNow)", "bus-api@v2 G14, G34 step 1"],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T21:58:08Z",
+      "artifact": "hsdd/contract/bus-api.md",
+      "question": "How does the confirm of bus-api@v2 produced_by [.1, .5, .6, .7, .8, .11, .12, .13, .14, .15] change the Delivery paragraph?",
+      "options": [
+        { "label": "Replace only the .6 sentence", "consequence": "Names .15 for the observed streams; a reader seeing '.15 ... replay from .8 on' may misread the order, and why G34 sits at .12 stays implicit." },
+        { "label": "Replace the .6 sentence, say .15 runs between .7 and .8, and name the phases of start()'s three steps", "consequence": "Two sentences longer; states what S79's entry gave: step 3 at .7, step 2 at .15, step 1 at .12 (D8)." }
+      ],
+      "chosen": "Replace the .6 sentence, say .15 runs between .7 and .8, and name the phases of start()'s three steps",
+      "why": "Consumer plans read Delivery and never read the producer's plan (conventions, Contracts). Phase numbers past .14 record append order, not execution order. The per-guarantee list stays as it was: S79 re-derived it against the 109 cases and the schedule check still passes after the case extensions. Last producing phase stays .14, so no consumer edge moves.",
+      "evidence": ["hsdd/spec/nidana.runtime.md D8, D10", "docs/auto-run/experiments/runtime-replay-schedule-v2/output-check.txt", "docs/auto-run/experiments/bus-api-start-running/output.txt T7"],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T21:58:08Z",
+      "artifact": "hsdd/contract/bus-testing.md",
+      "question": "Apply the bus-testing@v2 confirm (produced_by unchanged): does its Delivery paragraph need to name nidana.runtime.15, on whose forwarding subscription G11's subscriber sentence and G4's timers rest?",
+      "options": [
+        { "label": "No change", "consequence": "produced_by, the per-guarantee deliveries and every sentence of the paragraph remain true; .15 is a producing phase of bus-api@v2 only (its Produces line), as .6 is." },
+        { "label": "Add a sentence naming .15", "consequence": "Names a phase outside produced_by in a paragraph that lists producing phases; consumers of bus-testing wait on .1 or .14 either way." }
+      ],
+      "chosen": "No change",
+      "why": "The entry says unchanged ids and deliveries. The paragraph's claims hold: G11's subscriber sentence replays from .13, and bus-api@v2's Delivery still places G34 before .13. The dependency on .15 lives in the producer's plan, which already orders .15 before .8 and therefore before .13.",
+      "evidence": ["hsdd/contract/bus-testing.md Delivery", "hsdd/spec/nidana.runtime.md nidana.runtime.15 (Produces: [bus-api@v2])"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T21:58:52Z",
+      "artifact": "hsdd/contract/topic-model.md",
+      "question": "Apply the topic-model@v1 consumer confirm (adds nidana.runtime.15 and .16) to a stable contract with phase_ids final?",
+      "options": [
+        { "label": "Apply; keep stable and final", "consequence": "Two consumer ids added to frontmatter; no interface, guarantee or fixture change; the registry count goes from 41 to 43." },
+        { "label": "Reopen phase_ids to provisional", "consequence": "Signals that the consumer side is unsettled when it was just confirmed by its own plan." }
+      ],
+      "chosen": "Apply; keep stable and final",
+      "why": "A confirm from the consumer's own re-plan is the consumer side confirming itself; the producer side (nidana.model.3, .8) is unchanged. Adding consumer phases of an existing consumer node changes no interface. Both phases' Consumes lines name topic-model@v1.",
+      "evidence": ["hsdd/spec/nidana.runtime.md nidana.runtime.15 and .16 Consumes lines"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T22:01:54Z",
+      "artifact": "hsdd/contract/bus-api.md",
+      "question": "Steps 4 and 7: flip phase_ids or status of bus-api@v2, bus-testing@v2 or topology-dsl@v2?",
+      "options": [
+        { "label": "Flip none", "consequence": "All three stay draft, phase_ids provisional; H16 and H23 revisit them." },
+        { "label": "Flip bus-api@v2 and bus-testing@v2 to final", "consequence": "Would claim consumer phases confirmed that still cite v1 and have not been re-planned or swept." }
+      ],
+      "chosen": "Flip none",
+      "why": "A contract flips only when both sides are confirmed. nidana.runtime's producer side is now confirmed for bus-api@v2 and bus-testing@v2, but their consumers in nidana.navigation, nidana.flutter, nidana.integration, nidana.tooling.lint and nidana.tooling.codegen still cite bus-api@v1, bus-testing@v1 and topology-dsl@v1 (9 to 21 citations per spec). Those consumers are re-planned or swept at H13 to H23. topology-dsl@v2's producer, nidana.model, still cites topology-dsl@v1 in plan text (H23). Status cannot reach stable without phase_ids final, so step 7 has nothing to flip. topic-model@v1 stays stable/final.",
+      "evidence": ["grep of hsdd/spec/nidana.{navigation,flutter,integration,tooling.lint,tooling.codegen,model}.md for @v1/@v2 citations", "hsdd/management/2026-10-20-intake-ref-arch-v0-15-1.md H13 to H23"],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T21:59:15Z",
+      "artifact": "hsdd/spec/nidana.runtime.md",
+      "question": "Step 11: how to stamp a section that already held a 2026-10-18 stamp above S79's emission line?",
+      "options": [
+        { "label": "One line replacing the old stamp, the emission line and the entries", "consequence": "The section reads like every other drained section; git history keeps both emissions." },
+        { "label": "Keep the 2026-10-18 stamp and add the new one below", "consequence": "Two stamp lines; nothing gained, since history is in git." }
+      ],
+      "chosen": "One line replacing the old stamp, the emission line and the entries",
+      "why": "The skill says to replace the entries with one line. Dated 2026-10-21, the local calendar date the emission and the contract's Versioning entries use (the machine runs WIB; date -u still reads 2026-10-20).",
+      "evidence": [".agents/skills/hsdd-reconcile step 11"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    }
+  ],
+  "experiments": [
+    {
+      "path": "docs/auto-run/experiments/bus-api-start-running/",
+      "question": "Is the amend (bus running from the moment start() begins; calls from the work start() runs count as after start(); nested start() a no-op; removeTopic from that work throws) compatible with every fixture that imports nidana_dart_runtime? Do the extended G34 and G42 cases pin it? Does nidana.runtime's replay schedule still hold?",
+      "finding": "Both stand-ins (bus-api-v2 v2, runtime-topic-storage owned) set running before step 1 and pass bus-api 109/109 before and after the extension, plus live 49/49, bus-testing 50/50, navigation 42/42 and 52/52, flutter-binding 69/69 and 26/26. Seeded 'late-running' (bootstrapping until start() returns) fails only the two extended cases, and every other suite still passes on it, so no consumer fixture relies on either reading. Seeded 'step2-remove' fails only the G34 case. Structure 42 guarantees / 109 cases; S17 prototype 0 problems; surface, reject, behavior clean. schedule.dart places the G34 case at .12 and the G42 case at .14; plan gates check 0 failures."
+    }
+  ],
+  "self_check": [
+    { "gate": "Every pending section drained, or explicitly deferred with a reason.", "status": "pass", "note": "nidana.runtime's section drained and stamped 2026-10-21; the other six were already stamped." },
+    { "gate": "No contract with both sides fully planned remains phase_ids: provisional; none with phase_ids: final, no open request and an existing validation artifact remains status: draft; none was flipped without its artifact.", "status": "pass", "note": "bus-api@v2, bus-testing@v2 and topology-dsl@v2 do not have both sides confirmed (consumers still cite v1; producer nidana.model still cites topology-dsl@v1), so they stay provisional/draft. No final+draft contract exists." },
+    { "gate": "Grandfather marks were added only to pre-existing fixtureless stable contracts named by the plan step (the upgrade step or one carrying it forward), none re-marked after a discharge, and removed wherever the artifact now exists.", "status": "n/a", "note": "Not invoked." },
+    { "gate": "No contract was retired while a consumer or external consumer still names it.", "status": "n/a", "note": "No retirement." },
+    { "gate": "Every collision was decided by the human, and the losing plan was updated to match.", "status": "n/a", "note": "No collision." },
+    { "gate": "Contract edits follow hsdd-contract versioning (breaking change = new version + migration note).", "status": "pass", "note": "Amend classified compatible with replay evidence and recorded as a dated Versioning entry plus a Validation paragraph; no version change." },
+    { "gate": "node hsdd/scripts/gen-registry.mjs ran after the last contract edit.", "status": "pass", "note": "Ran after the last bus-api.md edit; INDEX shows topic-model 43 and topology-dsl 26 consumers. gate.mjs --skill hsdd-reconcile: 0 errors, 0 warnings." },
+    { "gate": "No artifact still cites a resolved OQ as open; sweep locations reported.", "status": "pass", "note": "No OQ resolved by this drain; OQ-R1 to OQ-R3 were already RESOLVED." }
+  ],
+  "notes_for_orchestrator": [
+    "AMEND APPLIED AS COMPATIBLE (would_have_asked: true, stop_class breaking-amend, would_upstream: true): bus-api@v2 G34 now says the bus is bootstrapping until start() is called and running from the moment start() begins its steps; the work start() runs (a subscriber's or observer's callback a step calls) makes activations, observed subscriptions and module first references as after start() (G22, G17, G28, G42), a nested start() does nothing, its publishes are delivered as G14 states for a publish made during start(), and a removeTopic it calls throws StateError. G9 adds 'or from the work start() runs (G34)' to its StateError; G42 adds 'from the work start() runs on (G34)'. The one textual Breaking-list edge is removeTopic from a bootstrap subscription's step-2 callback (a connection, not a delivery); no consumer fixture or plan calls it. Upstream point: Spec §3.13 is silent on calls made during start().",
+    "FIXTURES: two existing cases extended, not added; bus-api stays at 109 cases. Renamed: 'G34 start is idempotent, a start called from the work start runs included, and after it a publish is delivered at once; the bus is running from the moment start begins, so a callback start runs makes an activation or a subscription as after start, and a removeTopic it calls throws StateError' and 'G42 acquiring a module before start throws StateError naming it and adds no reference, while declaring it works; after start the acquire activates its topologies, an acquire from a callback start runs included'. No gate list changes (schedule --check: 0 failures).",
+    "DELIVERY: bus-api@v2's Delivery paragraph now says .6 lands the registry and the cells and .15 (which runs between .7 and .8) the observed streams, replaying from .8 on; and that start() lands by step: step 3 at .7, step 2 at .15, step 1 at .12, which is why G34 replays from .12 (D8). produced_by gains nidana.runtime.15. bus-testing@v2 unchanged.",
+    "CONSUMER CONFIRMS: topology-dsl@v2 consumers gain nidana.runtime.16; topic-model@v1 consumers gain nidana.runtime.15 and .16 (stays stable/final).",
+    "NO FLIPS: bus-api@v2, bus-testing@v2 and topology-dsl@v2 stay draft, phase_ids provisional. Consumers in navigation, flutter, integration and both tooling nodes still cite v1, and nidana.model's plan text still cites topology-dsl@v1. Leave the flips to H16 and H23.",
+    "STALE AFTER THIS DRAIN (not edited; plan-written text): nidana.runtime D8's second bullet ends 'A consumer could rely on this, and bus-api@v2 does not state it, so the plan emits it as an amend (Governance updates)'. bus-api@v2 G34 states it now. This is plan-written decision text, so it belongs to hsdd-phase-plan (or the inserted hsdd-spec touch if the orchestrator treats it as decision text). Also, the S79-noted non-plan staleness (Development flow lanes, pure-band sentence, Slices pipeline row) is untouched and still waits for the inserted hsdd-spec touch.",
+    "Consumer-side note for H13 to H23: navigation and flutter executors that react to the bootstrap deep link (step 3) may now rely on G34's running-bus rule to activate PAGE topologies or acquire modules from that callback. No consumer fixture exercises it yet (the late-running seeded defect passes every consumer suite).",
+    "Experiment runs from its own directory: ./run.sh > output.txt 2>&1 (copies ../flutter-binding-v0151/packages at setup, removes at cleanup; pubspec.lock and .dart_tool are gitignored)."
+  ]
+}
