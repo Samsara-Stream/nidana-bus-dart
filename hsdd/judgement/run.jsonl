@@ -68,3 +68,4 @@
 {"step_ref":"S67","skill":"hsdd-contract","target":"bus-api@v2 citation touch and G9 clarification (H7d)","started":"2026-10-20T19:48:05Z","finished":"2026-10-20T19:58:12Z","commit":"56980bc","dispatches":1}
 {"step_ref":"S68","skill":"hsdd-contract","target":"topology-dsl@v2 TopicRemoved lineage (inserted after H7d)","started":"2026-10-20T19:58:29Z","finished":"2026-10-20T20:01:53Z","commit":"5126926","dispatches":1}
 {"step_ref":"S69","skill":"hsdd-contract","target":"bus-testing@v2 citation touch (H7e)","started":"2026-10-20T20:02:10Z","finished":"2026-10-20T20:05:50Z","commit":"48e292b","dispatches":1}
+{"step_ref":"S70","skill":"hsdd-contract","target":"navigation-api@v1 citation touch (H7f)","started":"2026-10-20T20:06:07Z","finished":"2026-10-20T20:11:45Z","commit":"b31627b","dispatches":1}

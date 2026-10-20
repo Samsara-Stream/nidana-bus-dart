@@ -1,0 +1,144 @@
+{
+  "step_ref": "S70",
+  "skill": "hsdd-contract",
+  "target": "navigation-api@v1 (hsdd/contract/navigation-api.md and hsdd/contract/fixture/navigation-api/)",
+  "status": "completed",
+  "stop": null,
+  "artifacts": [
+    "hsdd/contract/navigation-api.md",
+    "hsdd/contract/fixture/navigation-api/behavior/navigation_executor_conformance.dart",
+    "hsdd/contract/INDEX.md (regenerated, unchanged)",
+    "docs/auto-run/steps/S70.json"
+  ],
+  "decisions": [
+    {
+      "at": "2026-10-20T20:09:24Z",
+      "artifact": "hsdd/contract/navigation-api.md",
+      "question": "Which citations of a superseded version in navigation-api.md are live and move to the current version, and which are historical and keep theirs? The file names flutter-binding@v1 13 times (S63's count) and, since S62, bus-api@v1 20 times, bus-testing@v1 twice and topology-dsl@v1 once.",
+      "options": [
+        { "label": "move the six live flutter-binding citations, keep the historical ones", "consequence": "The Boundary row, Refinement 6, the closing sentence of 'How an app uses it' and the Validation bullet on the Flutter binding of the executor suite (three citations, G12 among them) name flutter-binding@v2. The undated touch-within-v1 entry (three flutter-binding@v1), the two Validation paragraphs that report the navigation-api-touch and navigation-api-v0151 replays (three flutter-binding@v1), and every bus-api@v1, bus-testing@v1 and topology-dsl@v1 occurrence (Versioning entries and experiment reports, as S62 classified them) keep their version." },
+        { "label": "move every flutter-binding@v1 occurrence", "consequence": "The --final gate's stale count for this file drops, but the touch-within-v1 entry and the experiment reports would claim replays of flutter-binding@v2's binding that ran against v1 (navigation-api-touch, navigation-api-v0151 ran before S63), which is false." },
+        { "label": "move only the Interface citations", "consequence": "Leaves the Validation bullet that states where the Flutter binding lives, and its G12 citation, pointing at a version that keeps no file." }
+      ],
+      "chosen": "move the six live flutter-binding citations, keep the historical ones",
+      "why": "The orchestrator's H7 rule (recorded at S64) moves a Boundary line, a guarantee citation and any sentence that states what holds now, and keeps a dated amendment entry, a migration note and an experiment's description of what a version did. Each of the six moved citations states what holds now; each kept one records a past touch or a measured replay. The bus-api@v1, bus-testing@v1 and topology-dsl@v1 occurrences were re-read line by line: all sit in the Versioning entries of the touch within v1, the D5 amendment and the v0.15.1 touch (which compare v1 and v2 stand-ins), or in the Validation experiment paragraphs, as S62 left them.",
+      "evidence": ["hsdd/management/2026-10-20-intake-ref-arch-v0-15-1.md (Citations of a superseded version)", "docs/auto-run/steps/S63.json (notes_for_orchestrator 1)", "docs/auto-run/steps/S62.json (notes_for_orchestrator 0)"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T20:09:39Z",
+      "artifact": "hsdd/contract/navigation-api.md",
+      "question": "The Validation paragraph on docs/auto-run/experiments/navigation-api-fixtures/ ends its Flutter result with '(standin_bindings/flutter_navigation_standin_test.dart, which flutter-binding@v1's binding hsdd/contract/fixture/flutter-binding/behavior/flutter_navigation_executor_test.dart replaces)'. Is that pointer live or part of the experiment's historical description?",
+      "options": [
+        { "label": "move the pointer to flutter-binding@v2", "consequence": "The clause names the contract whose binding now replaces the stand-in, at the same path; the rest of the paragraph (results, bus-api@v1 and bus-testing@v1 statements) keeps its versions." },
+        { "label": "keep v1 with the experiment paragraph", "consequence": "Matches the paragraph-level classification S62, S67 and S69 applied to experiment paragraphs, and leaves one more stale-version warning in this file at --final; a reader following the pointer finds a superseded version that keeps no file." }
+      ],
+      "chosen": "move the pointer to flutter-binding@v2",
+      "why": "The clause is not a report of what the experiment ran: navigation-api-fixtures ran before flutter-binding existed, and the pointer was added by the touch within v1 to name the real binding that takes the stand-in's place. That relation holds now, under flutter-binding@v2, from the same file (flutter-binding.md Validation, the executor binding bullet). Close call on classification: an orchestrator reading that treats every Validation experiment paragraph as historical in whole, as the bus-api and bus-testing touches did for replay reports, would have made me keep it.",
+      "evidence": ["hsdd/contract/flutter-binding.md (## Validation, executor binding bullet)", "docs/auto-run/steps/S67.json", "docs/auto-run/steps/S69.json"],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T20:09:42Z",
+      "artifact": "hsdd/contract/fixture/navigation-api/behavior/navigation_executor_conformance.dart",
+      "question": "The executor suite's header comment ends '(a production-provider bus and a Flutter router, bound by flutter-binding@v1)'. Move it?",
+      "options": [
+        { "label": "move to flutter-binding@v2", "consequence": "A comment line changes; no case, harness member or import changes." },
+        { "label": "keep v1", "consequence": "The fixture header names a superseded version, against the intake record's rule that fixture header comments are live." }
+      ],
+      "chosen": "move to flutter-binding@v2",
+      "why": "A fixture header comment is live under the intake record and the S64 rule, and flutter-binding@v2's Validation still binds this suite to FlutterNavigationExecutor under testWidgets on a production-provider bus. No other comment under hsdd/contract/fixture/navigation-api/ names a superseded version (grep).",
+      "evidence": ["hsdd/contract/flutter-binding.md (## Validation, executor binding bullet)", "docs/auto-run/steps/S63.json (notes_for_orchestrator 1)"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T20:09:47Z",
+      "artifact": "hsdd/contract/navigation-api.md",
+      "question": "Does any sentence holding a moved citation restate flutter-binding in words that flutter-binding@v2 makes false?",
+      "options": [
+        { "label": "move only, restate nothing", "consequence": "Seven version tokens change; no sentence is reworded." },
+        { "label": "restate the Validation bullet to mirror flutter-binding@v2's wording", "consequence": "A wording change with no truth gain: the bullet already says what flutter-binding@v2's Validation says about the mount order and scope timing." }
+      ],
+      "chosen": "move only, restate nothing",
+      "why": "flutter-binding@v2 G12 (Hosting) and G14 (Flutter executor) are word for word those of v1 (compared against a313ab0:hsdd/contract/flutter-binding.md). Its Validation still binds this suite from flutter_navigation_executor_test.dart, has executor construct the FlutterNavigationExecutor and then pump a WidgetsApp 'as an app's bootstrap constructs it before anything mounts (G12)', and states what this file's bullet says since S62: the WidgetsApp mounts during bootstrap, it mounts no page or module scope, scope timing rejects nothing, the mount order is flutter-binding's. Its Boundary keeps FlutterNavigationRouter, FlutterNavigationExecutor, ModuleScopeObserver and PageScope; NidanaModule falls under this file's 'module and page scope binding'. So no citation changed meaning.",
+      "evidence": ["hsdd/contract/flutter-binding.md (Boundary, G12, G14, G16, ## Validation)", "git show a313ab0:hsdd/contract/flutter-binding.md (G12, G14, executor binding bullet)"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T20:09:51Z",
+      "artifact": "hsdd/contract/navigation-api.md",
+      "question": "The Validation bullet on the Flutter binding says 'The cases call start() after executor returns', but the case 'G19 in dev mode an executor constructed after start() is reported as LateExecutorConstruction, and works' calls start() first (navigation_executor_conformance.dart, the second G19 case); flutter-binding@v2 says 'Most cases'. Restate it in this touch?",
+      "options": [
+        { "label": "leave it, report a finding", "consequence": "The touch stays a citation move; one imprecise sentence about this contract's own suite remains until a content step tightens it." },
+        { "label": "restate as 'Most cases'", "consequence": "One word of Validation prose changes, outside the touch's remit of moving citations and fixing sentences the new version made false." }
+      ],
+      "chosen": "leave it, report a finding",
+      "why": "The sentence describes this contract's own executor suite, not another contract's guarantee, and flutter-binding@v2 did not make it false: the imprecision dates from the v0.15.1 content touch (S62). The touch rule restates a sentence only when the new version makes it false. Nothing depends on the word: the late-construction case mounts its WidgetsApp after start(), which Spec §7.2 allows. Close call: an orchestrator instruction that a citation touch also tightens pre-existing imprecision in a sentence holding a moved citation would have made me restate it.",
+      "evidence": ["hsdd/contract/fixture/navigation-api/behavior/navigation_executor_conformance.dart (G19 cases)", "hsdd/contract/flutter-binding.md (## Validation, executor binding bullet: 'Most cases ask for the executor before start()')"],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T20:10:02Z",
+      "artifact": "hsdd/contract/navigation-api.md",
+      "question": "How does this touch classify against navigation-api's Versioning, what happens to version, status and phase_ids, and does it get a Versioning entry?",
+      "options": [
+        { "label": "compatible, stays v1, dated Touched entry", "consequence": "v1, stable, phase_ids final; consumers' references to navigation-api@v1 stay; one Versioning line records what moved and why no meaning changed." },
+        { "label": "compatible, stays v1, no entry", "consequence": "Minimal diff; the classification lives only in this report and git history." },
+        { "label": "breaking, v2", "consequence": "Every consumer reference would move for a change that reaches nothing on the Breaking list." }
+      ],
+      "chosen": "compatible, stays v1, dated Touched entry",
+      "why": "Nothing on the Breaking list is reached: no declaration, guarantee, case, stack semantics, topic or fixture behavior changed, and the fixture edit is one comment line. The entry follows the precedent of S66 and S69, which recorded a citation touch in the contract's own Versioning where a later reader looks; it names flutter-binding at v2 only, so the --final stale count for this file does not grow. The registry regenerated unchanged, since no frontmatter changed.",
+      "evidence": ["hsdd/contract/navigation-api.md (## Versioning, Breaking and Compatible lists)", "docs/auto-run/steps/S66.json", "docs/auto-run/steps/S69.json"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    }
+  ],
+  "experiments": [],
+  "self_check": [
+    { "gate": "Frontmatter has id, version, status, kind, owner, compatibility, produced_by, consumers; external_consumers when any exist.", "status": "pass", "note": "Frontmatter unchanged." },
+    { "gate": "`consumers` lists phase ids that actually consume this contract.", "status": "pass", "note": "Unchanged by this touch; H15 and H16 may re-plan nidana.flutter phase ids, which is hsdd-reconcile's to apply." },
+    { "gate": "The Interface section is concrete enough to mock against.", "status": "pass", "note": "Unchanged." },
+    { "gate": "At least one guarantee/invariant is stated.", "status": "pass", "note": "G1 to G27 unchanged." },
+    { "gate": "A breaking change bumped the version and added a migration note.", "status": "n/a", "note": "No breaking change; classified compatible." },
+    { "gate": "The registry was regenerated.", "status": "pass", "note": "node hsdd/scripts/gen-registry.mjs: contract 9, adr 3; INDEX.md unchanged." },
+    { "gate": "`phase_ids` is present (`provisional` until `hsdd-reconcile` finalizes it).", "status": "pass", "note": "phase_ids: final, unchanged." },
+    { "gate": "Every code-level artifact both sides consume (types file, fixtures, shared package) names its canonical path and its owner in the Interface or Validation section: the owning phase for code, `hsdd-contract` for validation artifacts.", "status": "pass", "note": "Unchanged." },
+    { "gate": "A contract or version created by this run has its schema and its kind's fixtures written at the canonical paths.", "status": "n/a", "note": "No contract or version created." },
+    { "gate": "Open questions are cited by ID only, never defined here (the skill joins these with a dash, rewritten under the run's prose rule); prose justifying behavior as \"pending OQ-x\" is swept when the OQ resolves (hsdd-reconcile).", "status": "pass", "note": "No OQ text touched." },
+    { "gate": "A `stable` contract names a schema or a fixtures directory at the canonical paths and the artifact exists, or it carries `validation: grandfathered` (never on a contract authored after the upgrade).", "status": "pass", "note": "hsdd/contract/fixture/navigation-api/ exists." },
+    { "gate": "No version is `retired` while a consumer or an external consumer still names it.", "status": "pass", "note": "No retirement." },
+    { "gate": "A `v0` contract carries `## Observed completeness`, and the block changed in any commit that added fixtures to it.", "status": "n/a", "note": "v1 contract." },
+    { "gate": "node docs/auto-run/tools/gate.mjs --skill hsdd-contract", "status": "pass", "note": "gate: 0 error(s), 0 warning(s), 7 changed file(s)." }
+  ],
+  "notes_for_orchestrator": [
+    "COUNTS: moved 8 live citations of flutter-binding@v1 to @v2. In hsdd/contract/navigation-api.md, 7 on 6 lines (line numbers before this step): the Boundary row (26), Refinement 6 (39), the closing sentence of 'How an app uses it' (521), the Validation bullet on the Flutter binding of the executor suite (578, three: 'declared by', 'G12', 'the order of the mount'), and the pointer in the navigation-api-fixtures Validation paragraph to the binding that replaces the stand-in (584, a close call recorded as its own decision). In fixtures, 1: the header of behavior/navigation_executor_conformance.dart (line 9). Kept 29 historical occurrences: flutter-binding@v1 6 (the touch-within-v1 entry 3; the navigation-api-touch replay paragraph 2; the navigation-api-v0151 replay paragraph 1), bus-api@v1 20, bus-testing@v1 2, topology-dsl@v1 1, all in Versioning entries or experiment replay reports as S62 left them. This matches S63's count of 13 flutter-binding@v1 in this file plus 1 fixture header. No other superseded version remains live in this file or under hsdd/contract/fixture/navigation-api/.",
+    "MEANING: no moved citation changed meaning. flutter-binding@v2 G12 and G14 are word for word v1's, and its Validation binds this executor suite from the same file with the WidgetsApp pumped after the executor, during bootstrap in most cases, with no page or module scope mounted, which is what this file's Validation bullet already said.",
+    "VERSION: navigation-api stays v1, stable, phase_ids final; a dated 'Touched within v1, 2026-10-21' entry under ## Versioning records the move and its classification (compatible). No consumer reference to navigation-api moves; hsdd/contract/INDEX.md and hsdd/adr/INDEX.md regenerated unchanged.",
+    "FINDING (no step required, optional tightening): the Validation bullet on the Flutter binding says 'The cases call start() after executor returns'; the case 'G19 in dev mode an executor constructed after start() ...' calls start() first. flutter-binding@v2's Validation says 'Most cases'. Not a citation meaning change and not made false by a version change (it dates from S62's content touch); a future hsdd-contract touch of navigation-api could change 'The cases' to 'Most cases' as a compatible wording fix. No fixture is affected.",
+    "INSERT RULE: this touch changes no guarantee, case or fixture behavior, so no nidana.navigation, nidana.flutter or nidana.integration phase's replay changes through it.",
+    "--final gate: this file will still warn on the 29 historical occurrences (flutter-binding@v1 x6, bus-api@v1 x20, bus-testing@v1 x2, topology-dsl@v1 x1); each sits in a Versioning entry or an experiment replay report."
+  ]
+}
