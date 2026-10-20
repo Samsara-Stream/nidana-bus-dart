@@ -1,0 +1,101 @@
+{
+  "step_ref": "S74",
+  "skill": "hsdd-adr",
+  "target": "ADR-001 (hsdd/adr/001-executable-contract-validation.md)",
+  "status": "completed",
+  "stop": null,
+  "artifacts": [
+    "hsdd/adr/001-executable-contract-validation.md",
+    "hsdd/adr/INDEX.md"
+  ],
+  "decisions": [
+    {
+      "at": "2026-10-20T20:30:09Z",
+      "artifact": "hsdd/adr/001-executable-contract-validation.md",
+      "question": "Is the Context sentence that lists each contract's kind ('topic-model@v1 is shared-model; topology-dsl@v1, ... flutter-binding@v1 are api; ...') a live citation or historical text?",
+      "options": [
+        { "label": "live, move to v2", "consequence": "The sentence names the contracts as they are now; topology-dsl, bus-api, bus-testing and flutter-binding read v2. True, because no kind changed at v2." },
+        { "label": "historical, keep v1", "consequence": "Reads as the setting at decision time; leaves four stale-version warnings in a sentence written in the present tense that describes the tree's contracts." }
+      ],
+      "chosen": "live, move to v2",
+      "why": "The sentence states what holds in the tree now ('Most contracts in this tree are Dart library surfaces'), not what an earlier step did, so the orchestrator's S64 rule makes it live. Every kind is unchanged at v2 (topology-dsl, bus-api, bus-testing and flutter-binding frontmatter all read kind: api). The signal that would have changed my mind: a kind that changed with the new version, which would have needed a wording change rather than a move.",
+      "evidence": ["hsdd/contract/topology-dsl.md frontmatter", "hsdd/contract/bus-api.md frontmatter", "hsdd/contract/bus-testing.md frontmatter", "hsdd/contract/flutter-binding.md frontmatter", "hsdd/management/2026-10-20-intake-ref-arch-v0-15-1.md 'Citations of a superseded version'"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T20:30:12Z",
+      "artifact": "hsdd/adr/001-executable-contract-validation.md",
+      "question": "Is the Context's third fact from planning ('the bare bus-api@v1 ids of nidana.runtime.11's gate select topology-dsl@v1's live-suite cases G18 to G21, G24 and G29 ... (same experiment, E3)') live or historical?",
+      "options": [
+        { "label": "historical, keep v1", "consequence": "The sentence keeps describing the gate as it was planned against v1 and what empty-guarantee-selection E3 showed on it; two stale-version warnings stay in a Context bullet whose paragraph opens 'Planning the producing nodes settled three more facts'." },
+        { "label": "live, move to v2", "consequence": "Asserts that nidana.runtime.11's gate holds bare bus-api@v2 ids colliding with topology-dsl@v2's live suite, a claim about plan text that H11 is about to re-plan, and about an experiment that ran on the v1 ids." }
+      ],
+      "chosen": "historical, keep v1",
+      "why": "The bullet reports a finding of an earlier step (nidana.runtime's planning) and an experiment (E3), which the S64 rule keeps at the version it describes. The paragraph frames it in the past ('Planning the producing nodes settled'). The fact it motivates, a binding's restriction keyed by the slug whose suite it imports, still holds at v2: bus-api@v2 keeps G18 to G29's ids and topology-dsl@v2's live suite keeps G18 to G29 (its Delivery paragraph), and nidana.runtime.11's gate, not yet re-planned, still lists G18 to G21, G24 and G29. Close call: had the orchestrator's final gate treated every stale reference as an error rather than a warning, or had H11 already re-planned nidana.runtime.11 with the same ids against v2, I would have moved it.",
+      "evidence": ["docs/auto-run/experiments/empty-guarantee-selection/output.txt (E3)", "hsdd/spec/nidana.runtime.md nidana.runtime.11 gate", "hsdd/contract/topology-dsl.md Delivery", "docs/auto-run/steps/S64.orchestrator.json (H7 and H8 touch rule, as restated in this step's prompt)"],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T20:30:27Z",
+      "artifact": "hsdd/adr/001-executable-contract-validation.md",
+      "question": "Do the moved Decision and Consequences sentences that restate contract text (item 4's binding example, item 9's restriction example, item 10's TopologyDefinition example, item 11's nidana.model.5 example, the Consequences bullets on cross-contract bindings and restricted bindings) need restating under the v2 text?",
+      "options": [
+        { "label": "move the version only", "consequence": "Each sentence keeps its words with v2 in place of v1; correct only if every restated fact holds in the v2 contract." },
+        { "label": "restate the sentences", "consequence": "Rewords Decision text injected into phase contexts, with no fact that changed to justify it." }
+      ],
+      "chosen": "move the version only",
+      "why": "Each restated fact was checked against the v2 text and holds: bus-api@v2 line 18 and its Validation declare `Bus.activate` interpreting a `TopologyPlan` and `bus_activation_test.dart` binding topology-dsl@v2's live suite (`live_conformance.dart`); topology-dsl@v2's Delivery has nidana.model.4 land every declaration with topology-ir@v1's `TopologyDefinition` and a consumer's edge wait on nidana.model.5; G18 to G29 replay through bus-api@v2's binding from nidana.runtime.12; flutter-binding@v2's `flutter_navigation_executor_test.dart` binds navigation-api@v1's executor suite to `FlutterNavigationExecutor`. So no sentence needed a wording change and no decision text changed.",
+      "evidence": ["hsdd/contract/bus-api.md (line 18, Delivery, Validation binding bullet)", "hsdd/contract/topology-dsl.md (Delivery)", "hsdd/contract/flutter-binding.md (Delivery, Validation binding bullet)", "hsdd/contract/fixture/bus-api/behavior/bus_activation_test.dart header"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T20:30:27Z",
+      "artifact": "hsdd/adr/001-executable-contract-validation.md",
+      "question": "Which date heads the new `## Amendments` entry?",
+      "options": [
+        { "label": "2026-10-21", "consequence": "Matches the H7 touches of the same intake (topology-dsl, bus-api, bus-testing, navigation-api, topology-ir, topic-codegen, nidana-checks all read 'Touched ..., 2026-10-21') and the run's local date." },
+        { "label": "2026-10-20", "consequence": "The UTC date at the moment of the touch; would read as earlier than the contract touches it follows." }
+      ],
+      "chosen": "2026-10-21",
+      "why": "Consistency with the dated entries the same intake's H7 touches wrote, so the tree's history reads in order. No other evidence.",
+      "evidence": ["hsdd/contract/topology-ir.md Versioning (H7c entry)", "hsdd/contract/topology-dsl.md Versioning (H7b entry)"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    }
+  ],
+  "experiments": [],
+  "self_check": [
+    { "gate": "Frontmatter has `id`, `status`, `affects`, `date`.", "status": "pass", "note": "status accepted and date 2026-10-17 unchanged; affects now names topology-dsl@v2, bus-api@v2, bus-testing@v2, flutter-binding@v2." },
+    { "gate": "The decision is genuinely cross-cutting; a node-local one stayed a `D{n}`.", "status": "pass", "note": "Unchanged decision; governs all nine nodes and nine contracts." },
+    { "gate": "`## Decision` and `## Consequences` are self-contained (no reliance on Context).", "status": "pass", "note": "Only version tokens changed in Decision and Consequences." },
+    { "gate": "Every id in `affects` carries a matching `Governed by: [ADR-NNN]`.", "status": "pass", "note": "node docs/auto-run/tools/gate.mjs --skill hsdd-adr: 0 errors, 0 warnings. Reverse direction checked: every node and contract header carrying Governed by ADR-001 is in affects; phases also carry it, and affects lists no phase, as before." },
+    { "gate": "A superseding ADR set both `supersedes` and the old ADR's `superseded_by`.", "status": "n/a", "note": "Amended in place, not superseded." },
+    { "gate": "No invented decision was written as `accepted`; an unknown decision is `proposed` with a TODO.", "status": "pass", "note": "No decision changed." },
+    { "gate": "The registry was regenerated.", "status": "pass", "note": "node hsdd/scripts/gen-registry.mjs: hsdd/adr/INDEX.md ADR-001 row updated; hsdd/contract/INDEX.md unchanged." },
+    { "gate": "Open questions are cited by ID only; an ADR that resolves one names the ID in its Decision, and the owning spec's OQ row is updated to point at this ADR (RESOLVED (date)).", "status": "pass", "note": "OQ8 citation unchanged; no OQ touched." }
+  ],
+  "notes_for_orchestrator": [
+    "COUNTS (superseded versions only): topology-dsl@v1 11 = 8 moved (affects, Context kinds sentence, item 4, item 9, item 10, item 11, Consequences cross-contract binding bullet, Consequences restricted-binding bullet) + 3 kept (Context E3 bullet; amendment entries of 2026-10-17 and the second 2026-10-18). bus-api@v1 6 = 4 moved (affects, Context kinds, item 4, Consequences binding bullet) + 2 kept (Context E3 bullet; 2026-10-17 amendment). bus-testing@v1 2 = 2 moved (affects, Context kinds). flutter-binding@v1 3 = 3 moved (affects, Context kinds, Consequences binding bullet). Total 17 moved, 5 kept as historical. Citations of the five contracts still at v1 (topic-model, topology-ir, navigation-api, topic-codegen, nidana-checks) are current and untouched.",
+    "RESTATED SENTENCES: none. Every moved sentence that restates contract text holds under the v2 text (decision at 2026-10-20T20:30:27Z lists the checks). No decision item's substance changed; no finding needs another step.",
+    "gate.mjs --final now reports for ADR-001 only the historical references: 2 to bus-api@v1, 3 to topology-dsl@v1 (Context E3 bullet and the dated amendment entries). The new amendment entry avoids naming a superseded version so it adds no warning.",
+    "GOVERNED BY: consistent both ways, no contract or spec edited. Every node and contract in affects carries Governed by ADR-001 in its header; no node or contract header carries it without being in affects. flutter-binding@v2's NidanaModule adds no contract, so affects gains nothing.",
+    "Spec and Guide citations in ADR-001 (Spec §2.5, §3, §3.7, §6.1; Guide §10.1) checked against v0.15.1: same section numbers, statements still hold (§2.5's 'most recently delivered' change does not touch the 'event topic has no current value' point; §6.1 still says read() has no synchronous value accessor).",
+    "The Context E3 bullet names nidana.runtime.11's gate, which H11 re-plans; it stays true as history whatever H11 does, and the rule it motivates (item 9's slug-keyed restriction) still holds at v2.",
+    "Next in the family: H8b (ADR-002, gate --final shows 6 stale references) and H8c (ADR-003, 26)."
+  ]
+}
