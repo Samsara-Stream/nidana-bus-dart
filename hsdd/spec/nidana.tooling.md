@@ -11,12 +11,14 @@
   - the v1 checks (root D1): topic name uniqueness across registries (Spec §4.3); the single-writer workspace scan over topology `write(...)` calls and publisher `writes` claims, with unresolvable write sets reported as warnings (Spec §3.11 layer 2); inter-topology cycles and intra-topology self-reference (Spec §3.8); scope compatibility over the aggregated IR (Spec §7.2); raw-string topic use (Spec §4.4); a global bus accessor (Spec §3.1, Guide C.5); the sensitive flag on known-sensitive types, as a warning (Spec §9.2, Guide C.1); explicit type arguments on a topic sink, which root D1 lists since its refresh of 2026-10-18 (Spec §4.2; nidana-checks@v1 Refinement 4)
   - the delivery of those checks: per-library rules in the analysis server plugin `nidana_dart_lint` on the Dart 3.10 plugin API, and the workspace scan, which runs every check over more than one library or over the IR, as a command entry of `nidana_dart_codegen` (ADR-002 items 7 and 8)
 - **Does not own:** the analyses' algorithms, which are pure functions in nidana.model that tooling runs over what it scans; runtime enforcement of the same rules (nidana.runtime); the checks root D1 defers to v2
-- **Consumes:** [topic-model@v1, topology-dsl@v1, topology-ir@v1, bus-api@v1, bus-testing@v1, navigation-api@v1, flutter-binding@v1]
+- **Consumes:** [topic-model@v1, topology-dsl@v2, topology-ir@v1, bus-api@v2, bus-testing@v2, navigation-api@v1, flutter-binding@v2]
 - **Produces:** [topic-codegen@v1, nidana-checks@v1]
 - **Governed by:** [ADR-001, ADR-002]
 - **Sources:**
-  - `ref/nidana-docs/arch/nidana-bus-ref-arch-spec-v0_15_0.md` §3.1, §3.8, §3.11, §4.2 to §4.6, §6.3, §6.4, §6.5, §7.2, §7.6, §9.2
-  - `ref/nidana-docs/arch/nidana-bus-ref-arch-guide-v0_15_0.md` §5.1, §5.2, Appendix C.1 to C.5
+  - `ref/nidana-docs/arch/nidana-bus-ref-arch-spec-v0_15_0.md` §3.1, §3.8, §3.11, §4.2 to §4.6, §6.3, §6.4, §6.5, §7.2, §7.6, §9.2 (baseline, superseded by v0.15.1 on 2026-10-20; read only to see what changed)
+  - `ref/nidana-docs/arch/nidana-bus-ref-arch-spec-v0_15_1.md` §3.1, §3.8, §3.11, §4.2 to §4.6, §6.3, §6.4, §6.5, §7.2, §7.6, §9.2
+  - `ref/nidana-docs/arch/nidana-bus-ref-arch-guide-v0_15_0.md` §5.1, §5.2, Appendix C.1 to C.5 (baseline, superseded by v0.15.1 on 2026-10-20; read only to see what changed)
+  - `ref/nidana-docs/arch/nidana-bus-ref-arch-guide-v0_15_1.md` §5.1, §5.2, Appendix C.1 to C.5 with C.1 "Platforms without runtime reflection" (the explicit list nidana.tooling.codegen D1 chose)
 - **Decomposes into:** nidana.tooling.codegen, nidana.tooling.lint
 - **Isolation strategy:** the two children share no code and exchange no contract (D1), so each builds alone against the contracts it consumes; analyzer-based checks run over source fixtures and never execute a bus, recognizing nidana API by package and element name; the codegen is tested against golden `input/` and `expected/` trees (topic-codegen@v1 fixtures); catalog and graph checks run over fixture topologies through the model's recorder; each child replays its share of nidana-checks@v1 (D2)
 
@@ -45,10 +47,14 @@ The root marked this node internal because it spans three mechanisms with differ
 - **Purpose:** everything `nidana_dart_codegen` does: the topics document and the registry library through the builder and `generate`, the topic catalog and the graph page, the topology catalog `catalog` with the registration mechanism it loads, and the workspace scan with the claim recognizer `catalog` shares
 - **Owns:** package `nidana_dart_codegen` (ADR-002 items 3 and 8): its `build.yaml`, `lib/builder.dart` and the executables `generate`, `catalog` and `scan`; every artifact of topic-codegen@v1; the registration library form and the runners that load it (nidana.tooling.codegen D1); the claim recognizer and the topic declarations it finds (nidana.tooling.codegen D2); the workspace scan's report; nidana-checks@v1's scan host (G3 for the scan, G9 to G18)
 - **Does not own:** the plugin rules (nidana.tooling.lint); the analyses, renderers, decoder and recorder it calls (nidana.model); the topologies and claims an app declares
-- **Consumes:** [topic-model@v1, topology-dsl@v1, topology-ir@v1, bus-api@v1, navigation-api@v1, flutter-binding@v1]
+- **Consumes:** [topic-model@v1, topology-dsl@v2, topology-ir@v1, bus-api@v2, navigation-api@v1, flutter-binding@v2]
 - **Produces:** [topic-codegen@v1, nidana-checks@v1]
 - **Governed by:** [ADR-001, ADR-002]
-- **Sources:** Spec §3.8, §3.11, §4.3 to §4.6, §6.5, §7.2, §9.2; Guide §5.2, Appendix C.1 to C.5
+- **Sources:**
+  - `ref/nidana-docs/arch/nidana-bus-ref-arch-spec-v0_15_0.md` §3.8, §3.11, §4.3 to §4.6, §6.5, §7.2, §9.2 (baseline, superseded by v0.15.1 on 2026-10-20; read only to see what changed)
+  - `ref/nidana-docs/arch/nidana-bus-ref-arch-spec-v0_15_1.md` §3.8, §3.11, §4.3 to §4.6, §6.5, §7.2, §9.2
+  - `ref/nidana-docs/arch/nidana-bus-ref-arch-guide-v0_15_0.md` §5.2, Appendix C.1 to C.5 (baseline, superseded by v0.15.1 on 2026-10-20; read only to see what changed)
+  - `ref/nidana-docs/arch/nidana-bus-ref-arch-guide-v0_15_1.md` §5.2, Appendix C.1 to C.5 with C.1 "Platforms without runtime reflection" (the explicit list nidana.tooling.codegen D1 chose)
 - **Decomposes into:** phases (see hsdd-phase-plan)
 - **Isolation strategy:** pure slices tested by direct calls over topic-codegen@v1's documents; topic-codegen@v1's file replay and recorded invocations and nidana-checks@v1's `scan-*` invocations; the recognizer over fixture packages; `catalog` over fixture packages with registration libraries, its document decoded and schema-checked and its claims compared with the scan's; nothing runs a bus
 
@@ -58,10 +64,14 @@ The root marked this node internal because it spans three mechanisms with differ
 - **Purpose:** the per-library v1 checks as rules of the analysis server plugin `nidana_dart_lint`, reported under `dart analyze` and in the IDE
 - **Owns:** package `nidana_dart_lint` (ADR-002 items 3 and 7): `lib/main.dart` with its top-level `plugin`; the rules `raw_string_topic`, `global_bus_accessor`, `explicit_topic_type_arguments` and `unflagged_sensitive_topic`, with their codes, severities and messages; the plugin's own recognition of nidana API by package and element name; the root analysis options' `plugins:` section (ADR-002 item 7); nidana-checks@v1's plugin host (G1 to G8, G3 for the plugin)
 - **Does not own:** every check over more than one library or over the IR (nidana.tooling.codegen); the declarations it recognizes (nidana.model, nidana.runtime)
-- **Consumes:** [topic-model@v1, topology-dsl@v1, bus-api@v1, bus-testing@v1]
+- **Consumes:** [topic-model@v1, topology-dsl@v2, bus-api@v2, bus-testing@v2]
 - **Produces:** [nidana-checks@v1]
 - **Governed by:** [ADR-001, ADR-002]
-- **Sources:** Spec §3.1, §4.2, §4.4, §9.2; Guide §5.1, §5.2, Appendix C.1, C.2, C.5
+- **Sources:**
+  - `ref/nidana-docs/arch/nidana-bus-ref-arch-spec-v0_15_0.md` §3.1, §4.2, §4.4, §9.2 (baseline, superseded by v0.15.1 on 2026-10-20; read only to see what changed)
+  - `ref/nidana-docs/arch/nidana-bus-ref-arch-spec-v0_15_1.md` §3.1, §4.2, §4.4, §9.2
+  - `ref/nidana-docs/arch/nidana-bus-ref-arch-guide-v0_15_0.md` §5.1, §5.2, Appendix C.1, C.2, C.5 (baseline, superseded by v0.15.1 on 2026-10-20; read only to see what changed)
+  - `ref/nidana-docs/arch/nidana-bus-ref-arch-guide-v0_15_1.md` §5.1, §5.2, Appendix C.1, C.2, C.5
 - **Decomposes into:** phases (see hsdd-phase-plan)
 - **Isolation strategy:** each rule unit-tested over in-memory sources whose stand-in libraries carry the package names recognition matches, so the tests need no nidana package; nidana-checks@v1's eight `analyze-*` recorded invocations, which resolve the real declarations through the workspace; nothing runs a bus
 
@@ -78,12 +88,12 @@ flowchart LR
     lint["nidana.tooling.lint<br/>(leaf-parent)"]
     integration["nidana.integration"]
 
-    model -- "topic-model@v1 (shared-model)<br/>topology-dsl@v1 (contract)<br/>topology-ir@v1 (contract)" --> codegen
-    runtime -- "bus-api@v1 (contract)" --> codegen
+    model -- "topic-model@v1 (shared-model)<br/>topology-dsl@v2 (contract)<br/>topology-ir@v1 (contract)" --> codegen
+    runtime -- "bus-api@v2 (contract)" --> codegen
     navigation -- "navigation-api@v1 (contract)" --> codegen
-    flutter -- "flutter-binding@v1 (contract)" --> codegen
-    model -- "topic-model@v1 (contract)<br/>topology-dsl@v1 (contract)" --> lint
-    runtime -- "bus-api@v1 (contract)<br/>bus-testing@v1 (contract)" --> lint
+    flutter -- "flutter-binding@v2 (contract)" --> codegen
+    model -- "topic-model@v1 (contract)<br/>topology-dsl@v2 (contract)" --> lint
+    runtime -- "bus-api@v2 (contract)<br/>bus-testing@v2 (contract)" --> lint
     codegen -- "topic-codegen@v1 (hard)<br/>nidana-checks@v1 (hard)" --> integration
     lint -- "nidana-checks@v1 (hard)" --> integration
 
@@ -99,15 +109,15 @@ flowchart LR
 | From | To | Contract | Type | Why this type |
 |------|----|----------|------|---------------|
 | nidana.model | nidana.tooling.codegen | topic-model@v1 | shared-model | generated registries declare topic-model values; the scan's declarations carry `TopicRef`s |
-| nidana.model | nidana.tooling.codegen | topology-dsl@v1 | contract | `catalog` calls `buildDefinition()` of every registered topology |
+| nidana.model | nidana.tooling.codegen | topology-dsl@v2 | contract | `catalog` calls `buildDefinition()` of every registered topology |
 | nidana.model | nidana.tooling.codegen | topology-ir@v1 | contract | `generate` decodes and renders the graph, `catalog` renders it, the scan runs the analyses over it |
-| nidana.runtime | nidana.tooling.codegen | bus-api@v1 | contract | the recognizer matches `Bus.publisher` claim sites by package and name; nothing runs a bus |
+| nidana.runtime | nidana.tooling.codegen | bus-api@v2 | contract | the recognizer matches `Bus.publisher` claim sites by package and name; nothing runs a bus |
 | nidana.navigation | nidana.tooling.codegen | navigation-api@v1 | contract | the recognizer matches `NavigationExecutor` claim sites; the scan cases import the package (D3) |
-| nidana.flutter | nidana.tooling.codegen | flutter-binding@v1 | contract | the recognizer matches `PageScope` and `FlutterNavigationExecutor` claim sites; the scan cases import the package (D3) |
+| nidana.flutter | nidana.tooling.codegen | flutter-binding@v2 | contract | the recognizer matches `PageScope` and `FlutterNavigationExecutor` claim sites; the scan cases import the package (D3) |
 | nidana.model | nidana.tooling.lint | topic-model@v1 | contract | rules match topic creations and their `sensitive` argument by name; the plugin imports no nidana package |
-| nidana.model | nidana.tooling.lint | topology-dsl@v1 | contract | `explicit_topic_type_arguments` matches `TopologyBuilder.write` and `reduceInto` |
-| nidana.runtime | nidana.tooling.lint | bus-api@v1 | contract | `global_bus_accessor` and `explicit_topic_type_arguments` match `Bus` and `Publisher` |
-| nidana.runtime | nidana.tooling.lint | bus-testing@v1 | contract | the `analyze-*` invocations hold a `TestBus` accessor and test code, which resolve `testing.dart` (D3) |
+| nidana.model | nidana.tooling.lint | topology-dsl@v2 | contract | `explicit_topic_type_arguments` matches `TopologyBuilder.write` and `reduceInto` |
+| nidana.runtime | nidana.tooling.lint | bus-api@v2 | contract | `global_bus_accessor` and `explicit_topic_type_arguments` match `Bus` and `Publisher` |
+| nidana.runtime | nidana.tooling.lint | bus-testing@v2 | contract | the `analyze-*` invocations hold a `TestBus` accessor and test code, which resolve `testing.dart` (D3) |
 | nidana.tooling.codegen | nidana.integration | topic-codegen@v1, nidana-checks@v1 | hard | the example app runs the real builder, `catalog` and `scan` (root DAG) |
 | nidana.tooling.lint | nidana.integration | nidana-checks@v1 | hard | the example app is analyzed with the real plugin (root DAG) |
 
@@ -167,16 +177,18 @@ nidana-checks@v1 Refinement 1 assigns every check to one host, and every recorde
 
 ### D3: Contracts consumed by name
 
-The root lists bus-api@v1 as consumed by this node although nothing here runs a bus, because the checks recognize its declarations in source (root DAG: "the checks recognize `bus.publisher(...)` claims in source"). The same holds for three more contracts, which this node's Consumes now names:
+The root lists bus-api@v2 as consumed by this node although nothing here runs a bus, because the checks recognize its declarations in source (root DAG: "the checks recognize `bus.publisher(...)` claims in source"). The same holds for three more contracts, which this node's Consumes now names:
 
-- **bus-testing@v1** (nidana.tooling.lint): `Bus` matches every subclass, `TestBus` included (nidana-checks@v1 Recognition), and the `analyze-global-bus-accessor` and `analyze-clean` cases import `package:nidana_dart_runtime/testing.dart`.
-- **navigation-api@v1** and **flutter-binding@v1** (nidana.tooling.codegen): `NavigationExecutor`, `PageScope` and `FlutterNavigationExecutor` are claim sites (nidana-checks@v1 Claim sites), and the `scan-clean`, `scan-writer-conflict`, `scan-scope-violation` and `scan-unresolved-claim` cases import `nidana_dart_runtime_flutter`, the first two also `nidana_dart_navigation`.
+- **bus-testing@v2** (nidana.tooling.lint): `Bus` matches every subclass, `TestBus` included (nidana-checks@v1 Recognition), and the `analyze-global-bus-accessor` and `analyze-clean` cases import `package:nidana_dart_runtime/testing.dart`.
+- **navigation-api@v1** and **flutter-binding@v2** (nidana.tooling.codegen): `NavigationExecutor`, `PageScope` and `FlutterNavigationExecutor` are claim sites (nidana-checks@v1 Claim sites), and the `scan-clean`, `scan-writer-conflict`, `scan-scope-violation` and `scan-unresolved-claim` cases import `nidana_dart_runtime_flutter`, the first two also `nidana_dart_navigation`.
 
-Each edge is `contract`: the consumer needs the producer's declarations resolvable in the workspace, never its behavior, so it waits only on the phase the contract's Delivery paragraph names for a consumer's edge, which here is the producer's declaration phase: nidana.runtime.1 for bus-testing@v1, nidana.navigation.1 for navigation-api@v1 and nidana.flutter.1 for flutter-binding@v1 (root D10). Within each child only the phases that resolve those packages wait. In nidana.tooling.codegen that is nidana.tooling.codegen.8, whose claim-site tests import them and read the scan cases' packages in place, and nidana.tooling.codegen.9 and .11 through it (nidana.tooling.codegen D5 point 3). In nidana.tooling.lint it is nidana.tooling.lint.4, which replays the `analyze-*` cases, and no earlier phase (nidana.tooling.lint D5). The root DAG, edge table, contract matrix and this node's embedded Consumes line in `hsdd/spec/nidana.md` took these edges at the root refresh of 2026-10-18.
+Each edge is `contract`: the consumer needs the producer's declarations resolvable in the workspace, never its behavior, so it waits only on the phase the contract's Delivery paragraph names for a consumer's edge, which here is the producer's declaration phase: nidana.runtime.1 for bus-testing@v2, nidana.navigation.1 for navigation-api@v1 and nidana.flutter.1 for flutter-binding@v2 (root D10). Within each child only the phases that resolve those packages wait. In nidana.tooling.codegen that is nidana.tooling.codegen.8, whose claim-site tests import them and read the scan cases' packages in place, and nidana.tooling.codegen.9 and .11 through it (nidana.tooling.codegen D5 point 3). In nidana.tooling.lint it is nidana.tooling.lint.4, which replays the `analyze-*` cases, and no earlier phase (nidana.tooling.lint D5). The root DAG, edge table, contract matrix and this node's embedded Consumes line in `hsdd/spec/nidana.md` took these edges at the root refresh of 2026-10-18.
 
 Alternative considered: treating recognition by name as no consumption, so the edges stay off the DAG. Then nothing would schedule the claim-site phase and the scan's replays after nidana.flutter.1, which itself waits on nidana.runtime.1 and nidana.navigation.1 (root Development flow item 3), and a claim-site or scan phase planned on nidana.model's phases alone would fail its gate on those cases.
 
 **Corrected 2026-10-18.** As first written, this decision had each edge wait for "the producer's first phase", had only nidana.tooling.codegen's replays wait, said the root would take the edges at its refresh, and said nidana.flutter's first phase waits for nidana.runtime to ship. The reconciled plans and the root restated each: the phase a consumer's edge waits on is the one the Delivery paragraph names, here each producer's first phase; in nidana.tooling.codegen the claim-site phase waits, because its fixtures import the real packages, and in nidana.tooling.lint only nidana.tooling.lint.4 waits; the root took the edges on 2026-10-18; and nidana.flutter.1 waits on nidana.runtime.1 and nidana.navigation.1, not on the runtime's last phase. The decision and its edges did not change.
+
+**Checked 2026-10-21 for Specification v0.15.1** (`hsdd/management/2026-10-20-intake-ref-arch-v0-15-1.md`). The decision and its edges hold. That intake gave four contracts this node consumes a new version: the three this decision names beside navigation-api, and topology-dsl. As first written, the opening sentence, the bullets and the paragraph after them cited bus-api, bus-testing and flutter-binding at v1; they now cite v2, as do this node's Consumes, its DAG and its edge table, which also cite topology-dsl@v2. What the new versions change happens at run time: the startup barrier, scope timing, write chains, where a subscriber's error goes, and re-activation. No check here decides any of it, and nothing here runs a bus. The declarations the children recognize did not change (nidana-checks@v1 Versioning, its touch of 2026-10-21), and flutter-binding@v2's new widget `NidanaModule` takes no `writes`, so it is no claim site (nidana-checks@v1 G11) and the cases' imports above stand. The phase each edge waits on did not change either: bus-testing@v2's and flutter-binding@v2's Delivery paragraphs name nidana.runtime.1 and nidana.flutter.1 for a consumer's `contract` edge, navigation-api@v1's names nidana.navigation.1, and nidana.flutter.1 still waits on nidana.runtime.1 and nidana.navigation.1. The intake's one landing within this subtree, Guide Appendix C.1 "Platforms without runtime reflection" (L9), describes the registration nidana.tooling.codegen D1 chose and changes no edge here.
 
 ## Carried into the children's phase plans
 
