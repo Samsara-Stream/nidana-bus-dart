@@ -1,0 +1,13 @@
+$ fvm dart run --packages=../navigation-api-v0151/.dart_tool/package_config.json probe.dart   (run 2026-10-20T22:27:56Z, Dart SDK version: 3.13.5 (stable) (Tue Sep 29 01:00:52 2026 -0700) on "macos_arm64")
+step 2 (first value): lifecycle before start(): BusLifecycle.bootstrapping
+step 2 (first value): executor constructed: true; lifecycle seen in the callback: BusLifecycle.running
+step 2 (first value): diagnostics: [LateExecutorConstruction(origin: executor:during-start)]
+step 2 (first value): router stack after a resolved intent: [p/home:null, p/detail:2]
+step 2 (first value): nav.current-route: p/detail
+step 2 (first value): recorded topics in order: [nav.current-route, nav.resolved-intent, nav.current-route, nav.history]
+step 3 (queue): lifecycle before start(): BusLifecycle.bootstrapping
+step 3 (queue): executor constructed: true; lifecycle seen in the callback: BusLifecycle.running
+step 3 (queue): diagnostics: [LateExecutorConstruction(origin: executor:during-start)]
+step 3 (queue): router stack after a resolved intent: [p/home:null, p/detail:2]
+step 3 (queue): nav.current-route: p/detail
+step 3 (queue): recorded topics in order: [probe.trigger, nav.current-route, nav.resolved-intent, nav.current-route, nav.history]
