@@ -266,6 +266,7 @@ orchestrator and recorded with `would_have_asked: true`.
 | S70 | 9 | hsdd-contract | H7f: navigation-api@v1 citation touch (8 moved, 29 historical kept) | done | b31627b |
 | S71 | 9 | hsdd-contract | H7g: flutter-binding@v2 citation touch (nothing live to move; empty artifact commit) | done | 5fcb772 |
 | S72 | 9 | hsdd-contract | H7h: topic-codegen@v1 citation touch (1 moved) | done | 2b86f5d |
+| S73 | 9 | hsdd-contract | H7i: nidana-checks@v1 citation touch (15 moved; NidanaModule is no claim site) | done | 96e4d36 |
 
 ## Change log
 
