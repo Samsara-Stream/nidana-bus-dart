@@ -1,0 +1,157 @@
+### fvm dart --version
+Dart SDK version: 3.13.5 (stable) (Tue Sep 29 01:00:52 2026 -0700) on "macos_arm64"
+
+### bin/main.dart (C1 to C14)
+== today
+  C1 right after listen: [], provider microtasks queued 1
+  C1 after triggerActions, no await: [0 in P zoneValue=null clock=virtual]
+  C2 after add(1) from the test zone: [0 in P zoneValue=null clock=virtual, 1 in P zoneValue=null clock=virtual]
+  C3 throwing subscriber X, then Y: [X got 0, S<-X threw on 0, Y got 0, triggerActions returned, X got 1, S<-X threw on 1, Y got 1, add(1) returned, X got 2, S<-X threw on 2, Y got 2]
+  C4 unhandled error event, and an onError that throws: [S<-error event, S<-onError threw]
+  C5 onDone that throws (sync broadcast controller closed): [S<-onDone threw, second onDone ran, close returned]
+  C6 handler set after listen: [S<-later onData threw on 0, S<-later onData threw on 3]
+  C7 Timer created in a callback: [virtual timers pending 1, timer fired in P, after advanceTimeBy(100ms), after 150ms real]
+  C8 chained debounceTime(300ms): virtual timers pending after add 1; after advanceTimeBy(300ms) [7 in U]; after 350ms real [7 in U]
+  C9 chained map, final callback throws: [mapped listener got 0 in U, mapped listener got 40 in U, U<-mapped listener threw on 40]
+  C10 listener in U' (no handler of its own) nested in U: [S<-U' listener threw in P]
+  C11 listener in the provider zone itself: [S<-P listener threw in P]
+  C12 Stream.cast<int> over an off-type value: [cast got 0, cast+onError got 0, U<-_TypeError, onError got _TypeError, cast got 9, cast+onError got 9]
+== forward
+  C1 right after listen: [], provider microtasks queued 1
+  C1 after triggerActions, no await: [0 in P zoneValue=null clock=virtual]
+  C2 after add(1) from the test zone: [0 in P zoneValue=null clock=virtual, 1 in P zoneValue=null clock=virtual]
+  C3 throwing subscriber X, then Y: [X got 0, U<-X threw on 0, Y got 0, triggerActions returned, X got 1, U<-X threw on 1, Y got 1, add(1) returned, X got 2, U<-X threw on 2, Y got 2]
+  C4 unhandled error event, and an onError that throws: [U<-error event, U<-onError threw]
+  C5 onDone that throws (sync broadcast controller closed): [U<-onDone threw, second onDone ran, close returned]
+  C6 handler set after listen: [U<-later onData threw on 0, U<-later onData threw on 3]
+  C7 Timer created in a callback: [virtual timers pending 1, timer fired in P, after advanceTimeBy(100ms), after 150ms real]
+  C8 chained debounceTime(300ms): virtual timers pending after add 1; after advanceTimeBy(300ms) [7 in U]; after 350ms real [7 in U]
+  C9 chained map, final callback throws: [mapped listener got 0 in U, mapped listener got 40 in U, U<-mapped listener threw on 40]
+  C10 listener in U' (no handler of its own) nested in U: [U<-U' listener threw in P]
+  C11 listener in the provider zone itself: [S<-P listener threw in P]
+  C12 Stream.cast<int> over an off-type value: [cast got 0, cast+onError got 0, U<-_TypeError, onError got _TypeError, cast got 9, cast+onError got 9]
+== bind
+  C1 right after listen: [], provider microtasks queued 1
+  C1 after triggerActions, no await: [0 in U zoneValue=U clock=wall]
+  C2 after add(1) from the test zone: [0 in U zoneValue=U clock=wall, 1 in U zoneValue=U clock=wall]
+  C3 throwing subscriber X, then Y: [X got 0, U<-X threw on 0, Y got 0, triggerActions returned, X got 1, U<-X threw on 1, Y got 1, add(1) returned, X got 2, U<-X threw on 2, Y got 2]
+  C4 unhandled error event, and an onError that throws: [U<-error event, U<-onError threw]
+  C5 onDone that throws (sync broadcast controller closed): [U<-onDone threw, second onDone ran, close returned]
+  C6 handler set after listen: [U<-later onData threw on 0, U<-later onData threw on 3]
+  C7 Timer created in a callback: [virtual timers pending 0, after advanceTimeBy(100ms), timer fired in U, after 150ms real]
+  C8 chained debounceTime(300ms): virtual timers pending after add 0; after advanceTimeBy(300ms) []; after 350ms real [7 in U]
+  C9 chained map, final callback throws: [mapped listener got 0 in U, mapped listener got 40 in U, U<-mapped listener threw on 40]
+  C10 listener in U' (no handler of its own) nested in U: [U<-U' listener threw in U']
+  C11 listener in the provider zone itself: [S<-P listener threw in P]
+  C12 Stream.cast<int> over an off-type value: [cast got 0, cast+onError got 0, U<-_TypeError, onError got _TypeError, cast got 9, cast+onError got 9]
+== C13 root zone of an isolate, no guarded zone
+  C13 today: [Y got 0, Y got 1, add(1) returned, Y got 2, isolate uncaught error: Bad state: root listener threw]
+  C13 forward: [Y got 0, Y got 1, add(1) returned, Y got 2, isolate uncaught error: Bad state: root listener threw]
+  C13 bind: [Y got 0, Y got 1, add(1) returned, Y got 2, isolate uncaught error: Bad state: root listener threw]
+== C14 cost
+  C14 today: 2000000 deliveries to one listener in the test zone, best of 5: 69ms
+  C14 forward: 2000000 deliveries to one listener in the test zone, best of 5: 82ms
+  C14 bind: 2000000 deliveries to one listener in the test zone, best of 5: 83ms
+exit: 0
+
+### test/listen_zone_test.dart (T1 to T5 per strategy; some fail by design)
+00:00 +0: loading test/listen_zone_test.dart
+00:00 +0: today (setUpAll)
+00:00 +0: today T1 first and live values arrive through scheduler operations, without await
+00:00 +1: today T2 a throwing subscriber fails the test that listened
+00:00 +1 -1: today T2 a throwing subscriber fails the test that listened
+00:00 +1 -1: today (setUpAll) [E]
+  Bad state: T2 subscriber threw (Strategy.today)
+  test/listen_zone_test.dart 42:23                        main.<fn>.<fn>.<fn>
+  dart:async                                              _MultiStreamController.addSync
+  package:rxdart/src/utils/forwarding_stream.dart 135:35  _MultiControllerSink.add
+  package:rxdart/src/transformers/start_with.dart 12:31   _StartWithStreamSink.onData
+  dart:async                                              _BroadcastStreamController.add
+  package:rxdart/src/subjects/subject.dart 151:17         Subject._add
+  package:rxdart/src/subjects/subject.dart 141:5          Subject.add
+  test/listen_zone_test.dart 46:17                        main.<fn>.<fn>
+  
+  This test failed after it had already completed.
+  Make sure to use a matching library which informs the test runner
+  of pending async work.
+  test/listen_zone_test.dart 42:23                        main.<fn>.<fn>.<fn>
+  dart:async                                              _MultiStreamController.addSync
+  package:rxdart/src/utils/forwarding_stream.dart 135:35  _MultiControllerSink.add
+  package:rxdart/src/transformers/start_with.dart 12:31   _StartWithStreamSink.onData
+  dart:async                                              _BroadcastStreamController.add
+  package:rxdart/src/subjects/subject.dart 151:17         Subject._add
+  package:rxdart/src/subjects/subject.dart 141:5          Subject.add
+  test/listen_zone_test.dart 46:17                        main.<fn>.<fn>
+  
+00:00 +2 -1: today T3 debounceTime chained onto the observed stream follows virtual time
+00:00 +3 -1: today T4 a Timer a subscriber callback creates follows virtual time
+00:00 +4 -1: today T5 next test after T2..T4, passes trivially
+00:00 +5 -1: today (tearDownAll)
+00:00 +5 -1: forward (setUpAll)
+00:00 +5 -1: forward T1 first and live values arrive through scheduler operations, without await
+00:00 +6 -1: forward T2 a throwing subscriber fails the test that listened
+00:00 +6 -2: forward T2 a throwing subscriber fails the test that listened [E]
+  Bad state: T2 subscriber threw (Strategy.forward)
+  test/listen_zone_test.dart 42:23                        main.<fn>.<fn>.<fn>
+  package:subscriber_error_zone/observe.dart 82:65        _ForwardingSubscription.onData.<fn>.<fn>
+  package:subscriber_error_zone/observe.dart 74:8         _ForwardingSubscription._guard
+  package:subscriber_error_zone/observe.dart 82:42        _ForwardingSubscription.onData.<fn>
+  dart:async                                              _MultiStreamController.addSync
+  package:rxdart/src/utils/forwarding_stream.dart 135:35  _MultiControllerSink.add
+  package:rxdart/src/transformers/start_with.dart 12:31   _StartWithStreamSink.onData
+  dart:async                                              _BroadcastStreamController.add
+  package:rxdart/src/subjects/subject.dart 151:17         Subject._add
+  package:rxdart/src/subjects/subject.dart 141:5          Subject.add
+  test/listen_zone_test.dart 46:17                        main.<fn>.<fn>
+  
+00:00 +6 -2: forward T3 debounceTime chained onto the observed stream follows virtual time
+00:00 +7 -2: forward T4 a Timer a subscriber callback creates follows virtual time
+00:00 +8 -2: forward T5 next test after T2..T4, passes trivially
+00:00 +9 -2: forward (tearDownAll)
+00:00 +9 -2: bind (setUpAll)
+00:00 +9 -2: bind T1 first and live values arrive through scheduler operations, without await
+00:00 +10 -2: bind T2 a throwing subscriber fails the test that listened
+00:00 +10 -3: bind T2 a throwing subscriber fails the test that listened [E]
+  Bad state: T2 subscriber threw (Strategy.bind)
+  test/listen_zone_test.dart 42:23                        main.<fn>.<fn>.<fn>
+  dart:async                                              _CustomZone.runUnaryGuarded
+  package:subscriber_error_zone/observe.dart 116:38       _BoundSubscription.onData.<fn>
+  dart:async                                              _MultiStreamController.addSync
+  package:rxdart/src/utils/forwarding_stream.dart 135:35  _MultiControllerSink.add
+  package:rxdart/src/transformers/start_with.dart 12:31   _StartWithStreamSink.onData
+  dart:async                                              _BroadcastStreamController.add
+  package:rxdart/src/subjects/subject.dart 151:17         Subject._add
+  package:rxdart/src/subjects/subject.dart 141:5          Subject.add
+  test/listen_zone_test.dart 46:17                        main.<fn>.<fn>
+  
+00:00 +10 -3: bind T3 debounceTime chained onto the observed stream follows virtual time
+00:00 +10 -4: bind T3 debounceTime chained onto the observed stream follows virtual time [E]
+  Expected: [7]
+    Actual: []
+     Which: at location [0] is [] which shorter than expected
+  
+  package:matcher                  expect
+  test/listen_zone_test.dart 59:9  main.<fn>.<fn>
+  
+00:00 +10 -4: bind T4 a Timer a subscriber callback creates follows virtual time
+00:00 +10 -5: bind T4 a Timer a subscriber callback creates follows virtual time [E]
+  Expected: true
+    Actual: <false>
+  
+  package:matcher                  expect
+  test/listen_zone_test.dart 73:9  main.<fn>.<fn>
+  
+00:00 +10 -5: bind T5 next test after T2..T4, passes trivially
+00:00 +11 -5: bind (tearDownAll)
+00:00 +11 -5: Some tests failed.
+
+Failing tests:
+  test/listen_zone_test.dart: bind T2 a throwing subscriber fails the test that listened
+  test/listen_zone_test.dart: bind T3 debounceTime chained onto the observed stream follows virtual time
+  test/listen_zone_test.dart: bind T4 a Timer a subscriber callback creates follows virtual time
+  test/listen_zone_test.dart: forward T2 a throwing subscriber fails the test that listened
+  test/listen_zone_test.dart: today (setUpAll)
+
+Consider enabling the flag chain-stack-traces to receive more detailed exceptions.
+For example, 'dart test --chain-stack-traces'.
+exit: 1

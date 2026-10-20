@@ -1,0 +1,9 @@
+name: subscriber_error_zone
+publish_to: none
+environment:
+  sdk: ^3.13.0
+dependencies:
+  rxdart: ^0.28.0
+  clock: ^1.1.2
+dev_dependencies:
+  test: ^1.25.0
