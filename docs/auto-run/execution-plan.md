@@ -268,6 +268,7 @@ orchestrator and recorded with `would_have_asked: true`.
 | S72 | 9 | hsdd-contract | H7h: topic-codegen@v1 citation touch (1 moved) | done | 2b86f5d |
 | S73 | 9 | hsdd-contract | H7i: nidana-checks@v1 citation touch (15 moved; NidanaModule is no claim site) | done | 96e4d36 |
 | S74 | 9 | hsdd-adr | H8a: ADR-001 citation touch (17 moved, 5 historical kept) | done | 4c49471 |
+| S75 | 9 | hsdd-adr | H8b: ADR-002 citation touch (5 moved; runtime-split signal not met under v0.15.1) | done | c35c540 |
 
 ## Change log
 

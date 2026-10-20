@@ -73,3 +73,4 @@
 {"step_ref":"S72","skill":"hsdd-contract","target":"topic-codegen@v1 citation touch (H7h)","started":"2026-10-20T20:15:32Z","finished":"2026-10-20T20:20:16Z","commit":"2b86f5d","dispatches":1}
 {"step_ref":"S73","skill":"hsdd-contract","target":"nidana-checks@v1 citation touch (H7i)","started":"2026-10-20T20:20:34Z","finished":"2026-10-20T20:26:36Z","commit":"96e4d36","dispatches":1}
 {"step_ref":"S74","skill":"hsdd-adr","target":"ADR-001 citation touch (H8a)","started":"2026-10-20T20:26:53Z","finished":"2026-10-20T20:32:01Z","commit":"4c49471","dispatches":1}
+{"step_ref":"S75","skill":"hsdd-adr","target":"ADR-002 citation touch (H8b)","started":"2026-10-20T20:32:19Z","finished":"2026-10-20T20:37:13Z","commit":"c35c540","dispatches":1}
