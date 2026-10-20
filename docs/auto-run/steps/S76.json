@@ -1,0 +1,136 @@
+{
+  "step_ref": "S76",
+  "skill": "hsdd-adr",
+  "target": "ADR-003 (hsdd/adr/003-time-source-virtual-scheduler.md)",
+  "status": "completed",
+  "stop": null,
+  "artifacts": [
+    "hsdd/adr/003-time-source-virtual-scheduler.md",
+    "hsdd/adr/INDEX.md"
+  ],
+  "decisions": [
+    {
+      "at": "2026-10-20T20:41:01Z",
+      "artifact": "hsdd/adr/003-time-source-virtual-scheduler.md",
+      "question": "Which live citations of a superseded version move to v2 with their sentence unchanged: `affects`, item 4's combinator list (topology-dsl), item 5's default start instant and default action bound (bus-testing), item 6's settle operation (bus-testing), item 8's clock accessor (bus-api), and the Consequences' widget-test helpers (flutter-binding)?",
+      "options": [
+        { "label": "move the version only", "consequence": "Each sentence keeps its words and cites v2; correct only if the v2 text still states what the sentence says." },
+        { "label": "restate each sentence", "consequence": "Rewords Decision items that phase contexts inject, with no fact changed to justify it." },
+        { "label": "keep v1", "consequence": "Live sentences keep citing superseded versions, against the intake's rule and DEC-688; the stale-version warnings stay." }
+      ],
+      "chosen": "move the version only",
+      "why": "Each sentence states what holds now, so the S64 rule makes it live, and each holds under the v2 text: topology-dsl@v2's combinator table and G23 still name debounce, throttle, delay, sample, buffer and timeout, and switchMap still takes a timed retry (G22); bus-testing@v2 G5 and the declaration name `defaultInitialTime` (2000-01-01T00:00:00.000Z), G10 and the declaration name `maxActions` (default 100000), and G12 states the settle operation as item 6 describes it; bus-api@v2 declares `Clock get clock` as the provider clock, read-only, and G5 states it; flutter-binding@v2 G17 makes `wrap(child)` an owning BusProvider and G4 shuts the bus down at its dispose. The signal that would have changed my mind: a v2 guarantee that drops a combinator, a default, the settle bound or the owning provider.",
+      "evidence": ["hsdd/contract/topology-dsl.md combinator table, G22, G23", "hsdd/contract/bus-testing.md declarations, G5, G10, G12", "hsdd/contract/bus-api.md `Bus.clock`, G5", "hsdd/contract/flutter-binding.md G4, G17", "hsdd/management/2026-10-20-intake-ref-arch-v0-15-1.md 'Citations of a superseded version'"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T20:41:11Z",
+      "artifact": "hsdd/adr/003-time-source-virtual-scheduler.md",
+      "question": "Item 6's first-delivery sentence (as S58 amended it) says a topology or subscription made during bootstrap 'receives its first values within `start()` or in provider-zone work that `start()` schedules', citing bus-api G17 only. bus-api@v2 G34 now states the bootstrap timing exactly. Restate it, move the citation only, or leave it?",
+      "options": [
+        { "label": "restate to G34's timing", "consequence": "The sentence says first values arrive within `start()`, which connects the topologies in the connection order (each connection's deliveries before the next), then the subscriptions in listen order, then delivers the queue, citing G34 beside G17; item 6's rule that scheduler operations alone deliver what a TestBus schedules is untouched." },
+        { "label": "move G17 only, keep the disjunction", "consequence": "True but stale: the 'or in provider-zone work' disjunct was written while bus-api had not decided the timing, and v2 G34 excludes it; a phase context would inject a looser bound than the contract binds." },
+        { "label": "leave it and report a finding", "consequence": "No text change beyond the version; the next reader of item 6 checks G34 by hand." }
+      ],
+      "chosen": "restate to G34's timing",
+      "why": "The S64 rule restates a moved citation's sentence when the current contract makes its words stale, and the step brief reported this sentence for H8c. bus-api@v2 G34 steps (1) and (2) deliver every bootstrap activation's connection and every bootstrap subscription's first values before `start()` returns, so the second disjunct no longer describes anything the contract allows; G17 keeps the after-`start()` microtask. No rule of item 6 changes: `start()` is a bus operation, so its synchronous deliveries are among what a test drives without `await`. The signal that would have changed my mind: a G34 that let a connection's deliveries run from a microtask after `start()` returns, as v1 amendment (a) had it for `activate`.",
+      "evidence": ["hsdd/contract/bus-api.md G17, G34, 'The connection', 'The connection order'", "docs/auto-run/steps/S60.json notes_for_orchestrator[3]", "Spec §3.13", "Spec §2.1"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T20:41:15Z",
+      "artifact": "hsdd/adr/003-time-source-virtual-scheduler.md",
+      "question": "The Consequences sentence on bus-api says it 'also states whether a conversion at a subscription's own type argument counts as part of the subscriber's callback'. bus-api@v2 G41 now decides it. Restate the sentence to G41's answer, or move the version only?",
+      "options": [
+        { "label": "restate to G41's answer", "consequence": "The bullet says what G41 states: a subscription that cannot convert a value receives a `TypeError` error event, to its `onError` or, without one, the listen zone's handler as item 2 has it; a topology read raises it at the read stage, a pipeline error that a `catchError` recovers and that otherwise ends every write chain it reaches; neither goes to the provider zone's handler. The guarantee ids (G5, G17, G18, G29, G34, G36, G41) are named." },
+        { "label": "move the version only", "consequence": "Leaves a deferral ('states whether') to a question v2 has answered, in a section phase contexts inject." }
+      ],
+      "chosen": "restate to G41's answer",
+      "why": "S60 reported this sentence for H8c as one whose meaning changed. G41 answers it in a way item 2 already covers: the failed conversion is an error event on that subscription (as Dart's `Stream.cast` delivers one, subscriber-error-zone C12), and item 2 sends an error event left without `onError` to the listen zone; a topology read is not a subscriber, so its conversion error falls under topology-dsl@v2's write-chain rule, which item 2's last sentence leaves outside the subscriber rule. Item 2's substance is unchanged. Naming the guarantee ids lets a reader check each clause; they were checked one by one against bus-api.md. The signal that would have changed my mind: a G41 that sent either conversion error to the provider zone's handler, which item 2 would then contradict.",
+      "evidence": ["hsdd/contract/bus-api.md G5, G17, G18, G29, G34, G36, G41, Versioning 'Subscriber errors and conversions'", "docs/auto-run/steps/S58.json notes_for_orchestrator[4]", "docs/auto-run/steps/S60.json notes_for_orchestrator[3]", "docs/auto-run/experiments/subscriber-error-zone/ C12", "Spec §10.2"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T20:41:35Z",
+      "artifact": "hsdd/adr/003-time-source-virtual-scheduler.md",
+      "question": "The Consequences sentence on bus-testing says it states 'that a subscriber's errors reach the zone the test listened from rather than the scheduler's', which at S58 no bus-testing guarantee stated. Move the version only, or also name the guarantees that now state it?",
+      "options": [
+        { "label": "move and name the guarantees", "consequence": "The sentence cites bus-testing@v2 and names G5 to G10 and G12 for the scheduler clauses and G3 and G11 for the subscriber-error clause, so the forward reference S58 wrote now points at the text that fulfils it." },
+        { "label": "move the version only", "consequence": "True at v2, but the reader cannot tell the clause went from a forward reference to a stated guarantee." }
+      ],
+      "chosen": "move and name the guarantees",
+      "why": "S61 reported the clause for H8c: bus-testing@v2 G3 (what a subscriber's callbacks throw goes to the zone it listened in) and G11 (such an exception never reaches the scheduler) now state it. The scheduler clauses map to G5 (start instant), G6 to G9 (operations, quiescence), G10 (bounds) and G12 (settle). It is a wording change matched to the bus-api sentence beside it in the same bullet. Close call: moving the version alone was also true; the signal that would have changed my mind is a step rule against adding guarantee ids to an ADR.",
+      "evidence": ["hsdd/contract/bus-testing.md G3, G5 to G12", "docs/auto-run/steps/S61.json notes_for_orchestrator[2]"],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T20:41:44Z",
+      "artifact": "hsdd/adr/003-time-source-virtual-scheduler.md",
+      "question": "The 2026-10-20 amendment entry ends 'Until their own handoffs restate them, bus-api@v1 G5, G18 and G41, bus-testing@v1 G11 and flutter-binding@v1 G5 still name the provider zone's handler.' S63 reported that flutter-binding@v2 G5 now says nothing reaches an uncaught-error handler. Is the sentence live or historical, and what happens to it?",
+      "options": [
+        { "label": "keep as historical, record in the new entry", "consequence": "The dated entry keeps v1 and its words; the new entry says those guarantees have since been restated (bus-api@v2 G5, G18, G41; bus-testing@v2 G3, G11; flutter-binding@v2 G5). Five v1 references stay as historical warnings." },
+        { "label": "edit the dated entry", "consequence": "Rewrites history in an amendment entry, against the S64 rule that a dated entry keeps the version it describes." }
+      ],
+      "chosen": "keep as historical, record in the new entry",
+      "why": "The sentence sits in the dated S58 amendment entry and describes the state at S58, so under the S64 rule it is historical and keeps v1. No live sentence of ADR-003 says a flutter-binding guarantee names the provider zone's handler; the live Consequences sentence that 'a widget's subscription reports to the zone the widget subscribed from' concerns what a callback throws and stays true under flutter-binding@v2 G5, whose state widget only marks itself for rebuild and handles its error events. No other evidence needed.",
+      "evidence": ["hsdd/contract/flutter-binding.md G5, Versioning 'Subscriber errors'", "docs/auto-run/steps/S63.json notes_for_orchestrator[4]", "hsdd/management/2026-10-20-intake-ref-arch-v0-15-1.md 'Citations of a superseded version'"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T20:41:58Z",
+      "artifact": "hsdd/adr/003-time-source-virtual-scheduler.md",
+      "question": "Where does the touch record its moves and checks, and which date heads the new `## Amendments` entry?",
+      "options": [
+        { "label": "one amendment entry dated 2026-10-21", "consequence": "Context unchanged; one entry lists the affects change, the moved citations, the three restated sentences, what stays historical and what was checked, dated like the H8a and H8b touches (S74, S75)." },
+        { "label": "entry dated 2026-10-20 by the UTC clock", "consequence": "Would read as earlier than the ADR-001 and ADR-002 touches it follows in the same intake." }
+      ],
+      "chosen": "one amendment entry dated 2026-10-21",
+      "why": "The step asks for one dated entry describing the touch, and Context is not injected, so a Context change would add nothing binding. The local date is 2026-10-21 and S74 and S75 used it, so the tree's history reads in order. The entry names no superseded version token, so it adds no stale-version warning. No other evidence.",
+      "evidence": ["hsdd/adr/001-executable-contract-validation.md Amendments (2026-10-21 entry)", "hsdd/adr/002-package-workspace-layout.md Amendments (2026-10-21 entry)", "docs/auto-run/steps/S75.json"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    }
+  ],
+  "experiments": [],
+  "self_check": [
+    { "gate": "Frontmatter has `id`, `status`, `affects`, `date`.", "status": "pass", "note": "status accepted and date 2026-10-17 unchanged; affects now names topology-dsl@v2, bus-api@v2, bus-testing@v2, navigation-api@v1, flutter-binding@v2 and the five nodes." },
+    { "gate": "The decision is genuinely cross-cutting; a node-local one stayed a `D{n}`.", "status": "pass", "note": "Unchanged decision; governs five nodes and five contracts." },
+    { "gate": "`## Decision` and `## Consequences` are self-contained (no reliance on Context).", "status": "pass", "note": "Item 6's restated sentence and the restated Consequences bullet cite contracts and Spec sections, not the Context." },
+    { "gate": "Every id in `affects` carries a matching `Governed by: [ADR-NNN]`.", "status": "pass", "note": "node docs/auto-run/tools/gate.mjs --skill hsdd-adr: 0 errors, 0 warnings. Reverse direction checked by grep: the node headers carrying ADR-003 are exactly nidana.model, nidana.runtime, nidana.navigation, nidana.flutter, nidana.integration, and the contract headers exactly topology-dsl, bus-api, bus-testing, navigation-api, flutter-binding. Phases carry it too and affects lists no phase, as before." },
+    { "gate": "A superseding ADR set both `supersedes` and the old ADR's `superseded_by`.", "status": "n/a", "note": "Amended in place, not superseded." },
+    { "gate": "No invented decision was written as `accepted`; an unknown decision is `proposed` with a TODO.", "status": "pass", "note": "No decision changed; three sentences reworded to match the contracts they cite." },
+    { "gate": "The registry was regenerated.", "status": "pass", "note": "node hsdd/scripts/gen-registry.mjs: hsdd/adr/INDEX.md ADR-003 row updated; hsdd/contract/INDEX.md unchanged." },
+    { "gate": "Open questions are cited by ID only; an ADR that resolves one names the ID in its Decision, and the owning spec's OQ row is updated to point at this ADR (RESOLVED (date)).", "status": "pass", "note": "OQ7, OQ2, OQ-R1 and OQ-M3 citations unchanged; no OQ touched." }
+  ],
+  "notes_for_orchestrator": [
+    "COUNTS (superseded versions only, gate count 26 = 13 moved + 13 kept). Moved (13): affects (topology-dsl, bus-api, bus-testing, flutter-binding), item 4 (topology-dsl), item 5 (bus-testing twice: start instant, action bound), item 6 (bus-api G17, bus-testing settle), item 8 (bus-api clock), Consequences (bus-api, bus-testing, flutter-binding). Kept as historical (13): 8 in the 2026-10-17 links amendment (topology-dsl 3, bus-api 3, bus-testing 1, flutter-binding 1) and 5 in the 2026-10-20 S58 amendment (bus-api 2, bus-testing 2, flutter-binding 1). One citation added: bus-api@v2 G34 in item 6. gate.mjs --final now reports for ADR-003 only those 13 historical references (topology-dsl 3, bus-api 5, bus-testing 3, flutter-binding 2).",
+    "RESTATED SENTENCES (3, one decision each): item 6's first-delivery sentence (now G34's exact bootstrap timing, beside G17); the Consequences sentence on bus-api (G41's answer for an off-type value at a subscription and at a topology read, with guarantee ids); the Consequences sentence on bus-testing (names G3 and G11 for the subscriber-error clause). No decision item's substance changed: item 2's zone rule, item 5 and item 6's rule that scheduler operations alone deliver what a TestBus schedules stand as S58 amended them, and each holds under the v2 text.",
+    "FINDINGS: none that needs another step. No other artifact under hsdd/ quotes the restated wording ('provider-zone work that start() schedules', 'conversion at a subscription's own type argument'). The S58 entry's last sentence (bus-api G5, G18, G41, bus-testing G11, flutter-binding G5 still name the provider zone's handler) is historical; the new entry records that their handoffs restated them.",
+    "GOVERNED BY: consistent both ways, no contract or spec edited. topology-dsl@v2's write chains and flutter-binding@v2's NidanaModule add no contract that this decision constrains; topic-model, topology-ir, topic-codegen and nidana-checks stay out of affects for the 2026-10-17 entry's reasons.",
+    "FOR H22 (root touch): nidana.md's ADR-003 paragraph (around line 352) may mention that item 6 now cites bus-api@v2 G34 for bootstrap first delivery; nothing in it is contradicted by this touch.",
+    "The H8 family is complete with this step. Remaining live citations of superseded versions sit in node specs (H9 onward)."
+  ]
+}
