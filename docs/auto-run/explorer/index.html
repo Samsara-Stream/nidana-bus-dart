@@ -1,0 +1,917 @@
+<title>Nidana Planning Run</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js"></script>
+<style>
+/* Layout: a run plotted top-down. Header and breadcrumb, one layer at a time in the main column,
+   evidence opens in a drawer on the right (full screen on a phone). */
+:root {
+  --paper: #f4f6f5; --panel: #ffffff; --sunk: #eaeeec; --ink: #18211f; --muted: #5a6763; --rule: #d3dad7;
+  --accent: #0e6a70; --accent-ink: #ffffff;
+  --ln-orch: #3d4fb8; --ln-sub: #0b7a6c; --ln-skill: #a8620b; --ln-ws: #5b6670; --ln-git: #a33a59;
+  --sk-spec: #0b7a6c; --sk-adr: #a8620b; --sk-contract: #3d4fb8; --sk-plan: #4d7a1f; --sk-reconcile: #a33a59; --sk-none: #5b6670;
+  --b-node: #7b8784; --b-contract: #2f63b5; --b-tree: #b5770b; --b-up: #b8352f;
+  --add: #dff3e4; --add-ink: #1d6b34; --del: #fbe3e1; --del-ink: #9b2c24;
+  --f-display: "Archivo", "Helvetica Neue", Arial, sans-serif;
+  --f-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --r: 6px;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --paper: #111716; --panel: #182120; --sunk: #0d1312; --ink: #e2e9e6; --muted: #93a29d; --rule: #2a3532;
+  --accent: #4fb3b8; --accent-ink: #0b1414;
+  --ln-orch: #8d9bf0; --ln-sub: #47c2ae; --ln-skill: #e3a447; --ln-ws: #9aa6b0; --ln-git: #e57b99;
+  --sk-spec: #47c2ae; --sk-adr: #e3a447; --sk-contract: #8d9bf0; --sk-plan: #9ccc5f; --sk-reconcile: #e57b99; --sk-none: #9aa6b0;
+  --b-node: #8f9b98; --b-contract: #78a6f0; --b-tree: #e6ac45; --b-up: #f07a72;
+  --add: #15301e; --add-ink: #8fdca4; --del: #3a1a18; --del-ink: #f2a39b;
+  color-scheme: dark;
+} }
+:root[data-theme="dark"] {
+  --paper: #111716; --panel: #182120; --sunk: #0d1312; --ink: #e2e9e6; --muted: #93a29d; --rule: #2a3532;
+  --accent: #4fb3b8; --accent-ink: #0b1414;
+  --ln-orch: #8d9bf0; --ln-sub: #47c2ae; --ln-skill: #e3a447; --ln-ws: #9aa6b0; --ln-git: #e57b99;
+  --sk-spec: #47c2ae; --sk-adr: #e3a447; --sk-contract: #8d9bf0; --sk-plan: #9ccc5f; --sk-reconcile: #e57b99; --sk-none: #9aa6b0;
+  --b-node: #8f9b98; --b-contract: #78a6f0; --b-tree: #e6ac45; --b-up: #f07a72;
+  --add: #15301e; --add-ink: #8fdca4; --del: #3a1a18; --del-ink: #f2a39b;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { background: var(--paper); color: var(--ink); font: 15px/1.55 var(--f-body); }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 30; background: var(--panel); }
+a { color: var(--accent); }
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.mono, code { font-family: var(--f-mono); font-size: .86em; }
+h1, h2, h3 { font-family: var(--f-display); text-wrap: balance; letter-spacing: -.01em; margin: 0; }
+h2 { font-size: 1.35rem; font-weight: 600; }
+h3 { font-size: 1.02rem; font-weight: 600; }
+.wrap { max-width: 1180px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+
+/* header */
+.top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; background: var(--panel); border-bottom: 1px solid var(--rule); }
+.top .wrap { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 18px; padding-block: 10px; }
+.brand { display: flex; flex-direction: column; min-width: 0; margin-right: auto; }
+.brand h1 { font-size: 1.15rem; font-weight: 700; }
+.brand span { color: var(--muted); font-size: .8rem; }
+.tabs { display: flex; gap: 2px; background: var(--sunk); padding: 3px; border-radius: 8px; }
+.tabs button { border: 0; background: transparent; padding: 5px 12px; border-radius: 6px; cursor: pointer; font-weight: 500; color: var(--muted); }
+.tabs button[aria-selected="true"] { background: var(--panel); color: var(--ink); box-shadow: 0 1px 2px rgb(0 0 0 / .12); }
+.crumbs { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; font-size: .85rem; color: var(--muted); padding-block: 12px 4px; }
+.crumbs button { border: 0; background: none; padding: 2px 4px; cursor: pointer; color: var(--accent); border-radius: 4px; }
+.crumbs .sep { opacity: .5; }
+main { padding-block: 8px 64px; }
+section.block { margin-top: 26px; }
+section.block > header { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; margin-bottom: 10px; }
+section.block > header p { margin: 0; color: var(--muted); font-size: .9rem; max-width: 70ch; }
+.lede { max-width: 72ch; color: var(--ink); margin: 6px 0 0; }
+.muted { color: var(--muted); }
+.small { font-size: .84rem; }
+
+/* facts line */
+.facts { display: flex; flex-wrap: wrap; gap: 6px 22px; margin-top: 14px; padding: 12px 14px; background: var(--panel); border: 1px solid var(--rule); border-radius: var(--r); }
+.facts div { display: flex; flex-direction: column; min-width: 0; }
+.facts b { font-family: var(--f-display); font-size: 1.25rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+.facts span { color: var(--muted); font-size: .76rem; letter-spacing: .03em; text-transform: uppercase; }
+
+/* actor diagram */
+.scroll-x { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.actors { background: var(--panel); border: 1px solid var(--rule); border-radius: var(--r); padding: 10px; }
+.actors svg { display: block; width: 100%; min-width: 760px; height: auto; }
+.actors .box { cursor: pointer; }
+.actors .box rect { fill: var(--panel); stroke: var(--rule); stroke-width: 1.2; }
+.actors .box:hover rect, .actors .box:focus rect { stroke: var(--accent); stroke-width: 2; }
+.actors .box .t { font: 600 14px var(--f-display); fill: var(--ink); }
+.actors .box .s { font: 11.5px var(--f-body); fill: var(--muted); }
+.actors .box .band { stroke: none; }
+.actors .edge { fill: none; stroke: var(--muted); stroke-width: 1.4; }
+.actors .edge.dash { stroke-dasharray: 4 4; }
+.actors .el { font: 11px var(--f-body); fill: var(--muted); }
+.actors marker path { fill: var(--muted); }
+.protocol { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 8px 18px; margin: 12px 0 0; padding: 0; list-style: none; counter-reset: p; }
+.protocol li { counter-increment: p; padding-left: 30px; position: relative; font-size: .9rem; }
+.protocol li::before { content: counter(p); position: absolute; left: 0; top: 1px; width: 21px; height: 21px; border-radius: 50%; background: var(--sunk); color: var(--muted); font: 600 .75rem/21px var(--f-mono); text-align: center; }
+
+/* stage spine */
+.spine { position: relative; display: flex; flex-direction: column; gap: 10px; padding-left: 26px; }
+.spine::before { content: ""; position: absolute; left: 9px; top: 8px; bottom: 8px; width: 2px; background: var(--rule); }
+.spine .node { position: relative; }
+.spine .node::before { content: ""; position: absolute; left: -22px; top: 15px; width: 10px; height: 10px; border-radius: 50%; background: var(--panel); border: 2px solid var(--accent); }
+.spine .node.end::before { background: var(--accent); }
+.card { background: var(--panel); border: 1px solid var(--rule); border-radius: var(--r); padding: 12px 14px; min-width: 0; }
+.card.click { cursor: pointer; text-align: left; width: 100%; display: block; }
+.card.click:hover { border-color: var(--accent); }
+.stagehead { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }
+.stagehead .num { font: 500 .78rem var(--f-mono); color: var(--muted); letter-spacing: .04em; }
+.stagehead .meta { margin-left: auto; color: var(--muted); font-size: .82rem; font-variant-numeric: tabular-nums; }
+.card p { margin: 6px 0 0; font-size: .9rem; color: var(--muted); max-width: 90ch; }
+.chips { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 9px; }
+.chip { display: inline-flex; align-items: center; gap: 5px; border: 1px solid var(--rule); background: var(--paper); border-radius: 999px; padding: 1px 9px; font: 500 .76rem var(--f-mono); color: var(--ink); cursor: pointer; white-space: nowrap; }
+.chip:hover { border-color: var(--accent); }
+.chip i { width: 8px; height: 8px; border-radius: 50%; background: var(--c, var(--muted)); flex: none; }
+.chip.flag { border-color: transparent; background: var(--sunk); cursor: default; }
+.tag { display: inline-flex; align-items: center; gap: 4px; border-radius: 4px; padding: 0 6px; font: 500 .72rem/1.6 var(--f-mono); background: var(--sunk); color: var(--muted); white-space: nowrap; }
+.tag.c { color: var(--c); background: color-mix(in srgb, var(--c) 13%, transparent); }
+
+/* timeline strip */
+.timeline { background: var(--panel); border: 1px solid var(--rule); border-radius: var(--r); padding: 10px 12px 6px; }
+.timeline svg { display: block; width: 100%; min-width: 760px; height: auto; }
+.timeline rect.step { cursor: pointer; }
+.timeline rect.step:hover { stroke: var(--ink); stroke-width: 1; }
+.timeline text { font: 10.5px var(--f-mono); fill: var(--muted); }
+.legend { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: .8rem; color: var(--muted); margin-top: 6px; }
+.legend span { display: inline-flex; align-items: center; gap: 5px; }
+.legend i { width: 10px; height: 10px; border-radius: 2px; background: var(--c); }
+
+/* step flow (stage view) */
+.flow { display: flex; flex-direction: column; gap: 0; }
+.flow .arrow { height: 18px; margin-left: 28px; border-left: 2px solid var(--rule); }
+.stepcard { display: grid; grid-template-columns: 64px minmax(0, 1fr) auto; gap: 4px 14px; align-items: start; }
+.stepcard .ref { font: 600 1.05rem var(--f-mono); }
+.stepcard .ref small { display: block; font: 500 .7rem var(--f-mono); color: var(--muted); margin-top: 2px; }
+.stepcard .tgt { font-weight: 500; }
+.stepcard .side { text-align: right; color: var(--muted); font-size: .8rem; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.blastbar { display: flex; height: 6px; border-radius: 3px; overflow: hidden; margin-top: 8px; background: var(--sunk); max-width: 260px; }
+.blastbar i { display: block; height: 100%; background: var(--c); }
+.learned { margin-top: 8px; font-size: .84rem; color: var(--muted); border-left: 2px solid var(--rule); padding-left: 10px; }
+@media (max-width: 640px) { .stepcard { grid-template-columns: 52px minmax(0, 1fr); } .stepcard .side { grid-column: 2; text-align: left; } }
+
+/* step header */
+.stephead { display: flex; flex-wrap: wrap; gap: 8px 18px; align-items: baseline; }
+.stephead h2 { font-size: 1.5rem; }
+.kv { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px 18px; margin-top: 12px; }
+.kv div { min-width: 0; }
+.kv span { display: block; color: var(--muted); font-size: .72rem; text-transform: uppercase; letter-spacing: .04em; }
+.kv b { font-weight: 500; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+
+/* sequence diagram */
+.seqtools { display: flex; flex-wrap: wrap; gap: 6px 16px; align-items: center; margin: 10px 0 8px; font-size: .86rem; color: var(--muted); }
+.seqtools label { display: inline-flex; gap: 6px; align-items: center; cursor: pointer; }
+.seq { background: var(--panel); border: 1px solid var(--rule); border-radius: var(--r); max-height: 78vh; overflow: auto; }
+.seq .inner { min-width: 760px; }
+.seq .lanes, .seq .row { display: grid; grid-template-columns: 52px repeat(5, minmax(0, 1fr)); }
+.seq .lanes { position: sticky; top: 0; background: var(--panel); border-bottom: 1px solid var(--rule); z-index: 3; }
+.seq .lanes div { padding: 8px 4px; text-align: center; font: 600 .78rem var(--f-display); letter-spacing: .02em; color: var(--c); }
+.seq .lanes div small { display: block; font: 400 .7rem var(--f-body); color: var(--muted); }
+.seq .row { position: relative; min-height: 30px; align-items: center; }
+.seq .row .tm { grid-row: 1; grid-column: 1; font: .7rem var(--f-mono); color: var(--muted); padding-left: 8px; font-variant-numeric: tabular-nums; }
+.seq .row .ln { grid-row: 1; align-self: stretch; position: relative; }
+.seq .row .ln::before { content: ""; position: absolute; left: 50%; top: 0; bottom: 0; border-left: 1px dashed var(--rule); }
+.seq .msg { grid-row: 1; position: relative; z-index: 1; display: flex; justify-content: center; align-items: center; min-width: 0; cursor: pointer; padding: 3px 0; border: 0; background: none; text-align: center; }
+.seq .msg .line { position: absolute; left: calc(100% / (2 * var(--k))); right: calc(100% / (2 * var(--k))); top: 50%; border-top: 1.6px solid var(--c); }
+.seq .msg .line::after { content: ""; position: absolute; right: -2px; top: -5.3px; border-left: 8px solid var(--c); border-top: 4.5px solid transparent; border-bottom: 4.5px solid transparent; }
+.seq .msg.rev .line::after { right: auto; left: -2px; border-left: 0; border-right: 8px solid var(--c); }
+.seq .msg .lbl { position: relative; background: var(--panel); padding: 0 7px; font-size: .8rem; line-height: 1.35; max-width: 92%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ink); }
+.seq .msg:hover .lbl { color: var(--accent); }
+.seq .self { grid-row: 1; z-index: 1; display: flex; align-items: center; min-width: 0; cursor: pointer; border: 0; background: none; padding: 3px 6px 3px 0; text-align: left; margin-left: calc(50% / var(--k1, 1) - 5px); }
+.seq .self .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--c); flex: none; margin-right: 7px; box-shadow: 0 0 0 3px var(--panel); }
+.seq .self .lbl { font-size: .8rem; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; background: var(--panel); padding-right: 6px; }
+.seq .self.dec .dot { border-radius: 2px; transform: rotate(45deg); width: 9px; height: 9px; }
+.seq .self.dec .lbl { font-weight: 500; }
+.seq .self.note .lbl { font-style: italic; color: var(--muted); white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.seq .self:hover .lbl { color: var(--accent); }
+.seq .band { grid-column: 1 / -1; padding: 6px 10px; background: var(--sunk); font: 600 .74rem var(--f-display); letter-spacing: .05em; text-transform: uppercase; color: var(--muted); border-block: 1px solid var(--rule); }
+.seq .wide { grid-column: 2 / -1; grid-row: 1; z-index: 1; margin: 4px 8px; padding: 3px 10px; border-radius: 4px; background: color-mix(in srgb, var(--b-tree) 16%, transparent); font-size: .8rem; text-align: center; }
+.seq .err { color: var(--b-up); }
+
+/* lists and tables */
+.list { display: flex; flex-direction: column; border: 1px solid var(--rule); border-radius: var(--r); background: var(--panel); overflow: hidden; }
+.list > button, .list > div.item { display: grid; grid-template-columns: 82px minmax(0, 1fr); gap: 2px 12px; text-align: left; padding: 9px 12px; border: 0; border-top: 1px solid var(--rule); background: none; cursor: pointer; }
+.list > :first-child { border-top: 0; }
+.list > button:hover { background: var(--sunk); }
+.list .id { font: 500 .8rem var(--f-mono); color: var(--accent); padding-top: 1px; }
+.list .q { min-width: 0; }
+.list .q .ch { color: var(--muted); font-size: .85rem; margin-top: 2px; }
+.list .q .tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+.files { display: flex; flex-direction: column; gap: 4px; }
+.fileline { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: center; padding: 6px 10px; border: 1px solid var(--rule); border-radius: var(--r); background: var(--panel); font-size: .86rem; }
+.fileline .p { font-family: var(--f-mono); font-size: .8rem; min-width: 0; overflow-wrap: anywhere; margin-right: auto; }
+.fileline .n { font: .75rem var(--f-mono); font-variant-numeric: tabular-nums; }
+.fileline .n .a { color: var(--add-ink); } .fileline .n .d { color: var(--del-ink); }
+.linkbtn { border: 1px solid var(--rule); background: var(--paper); border-radius: 4px; padding: 1px 8px; font-size: .78rem; cursor: pointer; }
+.linkbtn:hover { border-color: var(--accent); color: var(--accent); }
+.subtabs { display: flex; flex-wrap: wrap; gap: 4px; border-bottom: 1px solid var(--rule); margin-top: 24px; }
+.subtabs button { border: 0; background: none; padding: 7px 12px; cursor: pointer; color: var(--muted); border-bottom: 2px solid transparent; margin-bottom: -1px; font-weight: 500; }
+.subtabs button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent); }
+.panel { padding-top: 14px; }
+table.t { border-collapse: collapse; width: 100%; font-size: .85rem; }
+table.t th, table.t td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+table.t th { font-weight: 600; color: var(--muted); font-size: .76rem; text-transform: uppercase; letter-spacing: .03em; }
+
+/* filters */
+.filters { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; margin: 14px 0; }
+.filters input[type="search"] { flex: 1 1 240px; min-width: 0; padding: 7px 10px; border: 1px solid var(--rule); border-radius: var(--r); background: var(--panel); color: var(--ink); font: inherit; }
+.filters select { padding: 6px 8px; border: 1px solid var(--rule); border-radius: var(--r); background: var(--panel); color: var(--ink); font: inherit; font-size: .88rem; }
+.filters label { display: inline-flex; gap: 5px; align-items: center; font-size: .86rem; color: var(--muted); cursor: pointer; }
+
+/* tree */
+.tree { display: flex; flex-direction: column; gap: 6px; }
+.tree .tn { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 12px; align-items: center; margin-left: calc(var(--d) * 26px); position: relative; }
+.tree .tn::before { content: ""; position: absolute; left: -16px; top: -6px; width: 12px; height: 24px; border-left: 1.5px solid var(--rule); border-bottom: 1.5px solid var(--rule); border-bottom-left-radius: 4px; display: var(--branch, block); }
+.tree .tn .nm { font: 600 .92rem var(--f-mono); }
+.tree .tn .nm small { font: 400 .78rem var(--f-body); color: var(--muted); margin-left: 8px; }
+.tree .tn .ph { font: .78rem var(--f-mono); color: var(--muted); font-variant-numeric: tabular-nums; }
+
+/* drawer */
+.scrim { position: fixed; inset: 0; background: rgb(0 0 0 / .28); z-index: 40; }
+.drawer { position: fixed; top: 0; right: 0; bottom: 0; width: min(760px, 100%); background: var(--panel); z-index: 41; display: flex; flex-direction: column; box-shadow: -8px 0 30px rgb(0 0 0 / .18); border-left: 1px solid var(--rule); padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); padding-right: env(safe-area-inset-right, 0px); }
+.drawer > header { display: flex; align-items: center; gap: 8px; padding: 12px 16px; border-bottom: 1px solid var(--rule); }
+.drawer > header h3 { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.drawer > header button { border: 1px solid var(--rule); background: var(--paper); border-radius: 6px; padding: 3px 10px; cursor: pointer; }
+.drawer .body { overflow: auto; padding: 14px 18px 40px; flex: 1; min-width: 0; }
+.drawer .body h4 { font: 600 .74rem var(--f-display); text-transform: uppercase; letter-spacing: .05em; color: var(--muted); margin: 18px 0 6px; }
+.opt { border: 1px solid var(--rule); border-radius: var(--r); padding: 8px 10px; margin-top: 6px; font-size: .9rem; }
+.opt.chosen { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 8%, transparent); }
+.opt b { display: block; }
+.opt .cq { color: var(--muted); font-size: .86rem; }
+.banner { border-radius: var(--r); padding: 8px 12px; font-size: .86rem; background: color-mix(in srgb, var(--b-tree) 15%, transparent); margin-top: 10px; }
+pre.code, pre.diff { font: .76rem/1.5 var(--f-mono); background: var(--sunk); border-radius: var(--r); padding: 10px 12px; overflow: auto; white-space: pre; max-height: 70vh; margin: 6px 0; }
+pre.wrapit { white-space: pre-wrap; overflow-wrap: anywhere; }
+pre.diff .a { background: var(--add); color: var(--add-ink); display: block; }
+pre.diff .d { background: var(--del); color: var(--del-ink); display: block; }
+pre.diff .h { color: var(--accent); display: block; }
+.md { font-size: .9rem; line-height: 1.6; overflow-wrap: anywhere; }
+.md h1 { font-size: 1.3rem; margin: 18px 0 8px; } .md h2 { font-size: 1.12rem; margin: 18px 0 6px; } .md h3, .md h4 { font-size: .98rem; margin: 14px 0 6px; }
+.md pre { font: .76rem/1.5 var(--f-mono); background: var(--sunk); padding: 10px; border-radius: var(--r); overflow: auto; }
+.md code { background: var(--sunk); padding: 0 3px; border-radius: 3px; }
+.md pre code { background: none; padding: 0; }
+.md table { border-collapse: collapse; display: block; overflow-x: auto; font-size: .82rem; }
+.md th, .md td { border: 1px solid var(--rule); padding: 4px 7px; text-align: left; vertical-align: top; }
+.md blockquote { margin: 8px 0; padding-left: 12px; border-left: 3px solid var(--rule); color: var(--muted); }
+.md .hit { background: color-mix(in srgb, var(--b-tree) 30%, transparent); border-radius: 3px; }
+.ev-link { color: var(--accent); cursor: pointer; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 2px; }
+.loading { padding: 40px 0; color: var(--muted); }
+.notice { padding: 14px; border: 1px solid var(--rule); border-radius: var(--r); background: var(--panel); margin-top: 20px; }
+@media (prefers-reduced-motion: no-preference) { .drawer { animation: slide .18s ease-out; } @keyframes slide { from { transform: translateX(24px); opacity: .6; } } }
+</style>
+
+<div class="top"><div class="wrap">
+  <div class="brand"><h1>Nidana Planning Run</h1><span id="sub">loading the run record</span></div>
+  <div class="tabs" role="tablist">
+    <button role="tab" id="tab-process" aria-selected="true" data-tab="process">Process</button>
+    <button role="tab" id="tab-artifacts" aria-selected="false" data-tab="artifacts">Artifacts</button>
+    <button role="tab" id="tab-decisions" aria-selected="false" data-tab="decisions">Decisions</button>
+  </div>
+</div></div>
+<div class="wrap">
+  <nav class="crumbs" id="crumbs" aria-label="Breadcrumb"></nav>
+  <main id="view"><div class="loading">Loading the run record...</div></main>
+</div>
+<div class="scrim" id="scrim" hidden></div>
+<aside class="drawer" id="drawer" hidden aria-modal="true" role="dialog" aria-labelledby="dr-title">
+  <header><button id="dr-back" title="Back" hidden>Back</button><h3 id="dr-title"></h3><button id="dr-close">Close</button></header>
+  <div class="body" id="dr-body"></div>
+</aside>
+
+<script>
+"use strict";
+const S = { core: null, full: null, files: {}, exps: null, steps: {}, tab: "process", view: { kind: "run" },
+  narr: false, compress: true, dstack: [], decFilter: { q: "", b: "", c: "", st: "", w: false, u: false, o: false } };
+const $ = (s, el = document) => el.querySelector(s);
+const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const short = (s, n) => { s = String(s ?? ""); return s.length > n ? s.slice(0, n - 1) + "…" : s; };
+const SKILLS = { "hsdd-spec": "--sk-spec", "hsdd-adr": "--sk-adr", "hsdd-contract": "--sk-contract", "hsdd-phase-plan": "--sk-plan", "hsdd-reconcile": "--sk-reconcile", none: "--sk-none" };
+const BLAST = { "node-local": "--b-node", contract: "--b-contract", tree: "--b-tree", upstream: "--b-up" };
+const skillVar = (s) => `var(${SKILLS[s] || "--sk-none"})`;
+const blastVar = (b) => `var(${BLAST[b] || "--b-node"})`;
+const LANES = [["orch", "Orchestrator", "main session", "--ln-orch"], ["sub", "Step subagent", "fresh context", "--ln-sub"],
+  ["skill", "HSDD skill", "instructions", "--ln-skill"], ["ws", "Workspace", "files, fvm, gate", "--ln-ws"], ["git", "Git and ledger", "commits, jsonl", "--ln-git"]];
+const LI = Object.fromEntries(LANES.map((l, i) => [l[0], i]));
+
+async function getJSON(p) { const r = await fetch(p); if (!r.ok) throw new Error(p + " returned " + r.status); return r.json(); }
+async function full() { if (!S.full) { const a = await getJSON("data/decisions.json"); S.full = Object.fromEntries(a.map((d) => [d.id, d])); } return S.full; }
+async function stepData(ref) { if (!S.steps[ref]) S.steps[ref] = await getJSON(`data/steps/${ref}.json`); return S.steps[ref]; }
+function bundleOf(p) { if (p.startsWith("ref/") || p.startsWith(".agents/")) return "files-ref.json"; if (p.startsWith("hsdd/") && !p.endsWith(".md")) return "files-fixture.json"; return "files-gov.json"; }
+async function fileText(p) { const b = bundleOf(p); if (!S.files[b]) S.files[b] = await getJSON("data/" + b); return S.files[b][p]; }
+async function exps() { if (!S.exps) S.exps = await getJSON("data/experiments.json"); return S.exps; }
+
+const tms = (t) => (t ? Date.parse(t) : NaN);
+function dur(a, b) { const m = Math.round((tms(b) - tms(a)) / 60000); if (!isFinite(m)) return ""; return m < 60 ? `${m} min` : `${Math.floor(m / 60)} h ${String(m % 60).padStart(2, "0")} min`; }
+const hhmm = (t) => (t ? t.slice(11, 16) : "");
+const day = (t) => { if (!t) return ""; const d = new Date(t); return d.toLocaleDateString("en-GB", { day: "numeric", month: "short", timeZone: "UTC" }) + " " + hhmm(t) + " UTC"; };
+const num = (n) => (n >= 1e6 ? (n / 1e6).toFixed(n >= 1e7 ? 0 : 1) + "M" : n >= 1e3 ? Math.round(n / 1e3) + "k" : String(n));
+const stepBy = (ref) => S.core.steps.find((s) => s.ref === ref);
+const decsOf = (ref) => S.core.decisions.filter((d) => d.s === ref);
+
+/* ---------- linkify evidence and prose ---------- */
+const CONTRACTS = () => Object.keys(S.core.history).filter((p) => /^hsdd\/contract\/[^/]+\.md$/.test(p) && !p.endsWith("INDEX.md")).map((p) => p.slice("hsdd/contract/".length, -3));
+let LINK_RX = null;
+function linkify(text) {
+  let s = esc(text);
+  const slugs = CONTRACTS().join("|");
+  const rx = LINK_RX || (LINK_RX = new RegExp([
+    "(docs/auto-run/experiments/[\\w.@+-]+(?:/[\\w./@+-]*)?)",
+    "((?:hsdd|docs/auto-run)/[\\w./-]+\\.(?:md|json|dart|yaml|mjs))",
+    "\\b(DEC-\\d{3})\\b",
+    "\\b(ADR-00\\d)\\b",
+    slugs ? `\\b((?:${slugs})@v1)\\b` : "(?!x)x",
+    "\\b((?:Spec|Guide|Rationale) (?:§\\s?[\\d.]+[a-z]?|Appendix [A-Z](?:\\.\\d+)*))",
+    "\\b(S\\d\\d)\\b",
+  ].join("|"), "g"));
+  rx.lastIndex = 0;
+  return s.replace(rx, (m, exp, path, dec, adr, con, ref, step) => {
+    if (exp) return `<span class="ev-link" data-exp="${esc(exp)}">${m}</span>`;
+    if (path) return `<span class="ev-link" data-file="${esc(path)}">${m}</span>`;
+    if (dec) return `<span class="ev-link" data-dec="${dec}">${m}</span>`;
+    if (adr) { const p = Object.keys(S.core.history).find((f) => f.startsWith("hsdd/adr/" + adr.slice(4))); return p ? `<span class="ev-link" data-file="${p}">${m}</span>` : m; }
+    if (con) return `<span class="ev-link" data-file="hsdd/contract/${con.slice(0, -3)}.md">${m}</span>`;
+    if (ref) return `<span class="ev-link" data-ref="${esc(ref)}">${m}</span>`;
+    if (step && stepBy(step)) return `<span class="ev-link" data-step="${step}">${m}</span>`;
+    return m;
+  });
+}
+document.addEventListener("click", async (e) => {
+  const x = e.target.closest("[data-diff],[data-step-prompt],[data-report]");
+  if (x) {
+    e.preventDefault();
+    const ref = x.dataset.dref || x.dataset.stepPrompt;
+    const b = await stepData(ref);
+    if (x.dataset.diff) openDiff(ref, b, x.dataset.diff);
+    else if (x.dataset.stepPrompt) openDrawer(`${ref} step prompt`, `<div class="md">${md(b.prompt || "")}</div>`);
+    else openDrawer(x.dataset.report, `<pre class="code">${esc(JSON.stringify(b.reports[x.dataset.report], null, 2))}</pre>`);
+    return;
+  }
+  const t = e.target.closest("[data-exp],[data-file],[data-dec],[data-ref],[data-step],[data-stage]");
+  if (!t || t.closest(".tabs")) return;
+  if (t.dataset.dec) { e.preventDefault(); openDecision(t.dataset.dec); }
+  else if (t.dataset.file) { e.preventDefault(); openFile(t.dataset.file, t.dataset.anchor); }
+  else if (t.dataset.exp) { e.preventDefault(); openExperiment(t.dataset.exp); }
+  else if (t.dataset.ref) { e.preventDefault(); openRef(t.dataset.ref); }
+  else if (t.dataset.step) { e.preventDefault(); closeDrawer(); go({ kind: "step", ref: t.dataset.step }, "process"); }
+  else if (t.dataset.stage) { e.preventDefault(); closeDrawer(); go({ kind: "stage", id: +t.dataset.stage }, "process"); }
+});
+
+document.addEventListener("keydown", (e) => {
+  const t = e.target;
+  if ((e.key === "Enter" || e.key === " ") && t.getAttribute && t.getAttribute("role") === "button" && t.tagName !== "BUTTON" && t.tagName !== "g") { e.preventDefault(); t.click(); }
+});
+
+/* ---------- navigation ---------- */
+function go(view, tab) {
+  if (tab) S.tab = tab;
+  S.view = view || S.view;
+  for (const b of document.querySelectorAll(".tabs button")) b.setAttribute("aria-selected", String(b.dataset.tab === S.tab));
+  const token = S.tab !== "process" ? S.tab : S.view.kind === "step" ? S.view.ref : S.view.kind === "stage" ? "stage" + S.view.id : "";
+  try { history.replaceState(null, "", token ? "#" + token : location.pathname + location.search); } catch (_) {}
+  render();
+  window.scrollTo({ top: 0 });
+}
+for (const b of document.querySelectorAll(".tabs button")) b.addEventListener("click", () => go(b.dataset.tab === "process" ? S.view : null, b.dataset.tab));
+function crumbs() {
+  const c = $("#crumbs"); const parts = [];
+  if (S.tab === "process") {
+    parts.push(["The run", { kind: "run" }]);
+    if (S.view.kind === "stage" || S.view.kind === "step") {
+      const id = S.view.kind === "stage" ? S.view.id : stepBy(S.view.ref).stage;
+      parts.push([`Stage ${id}: ${S.core.stages[id].title}`, { kind: "stage", id }]);
+    }
+    if (S.view.kind === "step") parts.push([S.view.ref, S.view]);
+  } else parts.push([S.tab === "artifacts" ? "Artifacts" : "Decisions", null]);
+  c.innerHTML = "";
+  parts.forEach(([label, v], i) => {
+    if (i) c.insertAdjacentHTML("beforeend", '<span class="sep">/</span>');
+    const b = document.createElement("button"); b.textContent = label;
+    if (v && i < parts.length - 1) b.onclick = () => go(v); else { b.disabled = true; b.style.color = "var(--ink)"; b.style.cursor = "default"; }
+    c.append(b);
+  });
+}
+function render() {
+  crumbs();
+  const v = $("#view");
+  if (S.tab === "artifacts") return viewArtifacts(v);
+  if (S.tab === "decisions") return viewDecisions(v);
+  if (S.view.kind === "stage") return viewStage(v, S.view.id);
+  if (S.view.kind === "step") return viewStep(v, S.view.ref);
+  return viewRun(v);
+}
+
+/* ---------- layer 0: the run ---------- */
+function viewRun(v) {
+  const c = S.core, r = c.run, st = c.steps;
+  const subs = st.filter((s) => s.sub).length;
+  const exps = new Set(st.flatMap((s) => s.experiments)).size;
+  const byOrch = c.decisions.filter((d) => d.by === "orchestrator").length;
+  v.innerHTML = `
+  <h2>The run, top down</h2>
+  <p class="lede">An orchestrator session took the owner's kickoff prompt and planned the repository from nothing to reconciled phase plans. It never ran an HSDD skill itself: every step was one skill run by a fresh subagent, then gated, committed, and recorded in the decision ledger. Start with the actors, pick a stage, then a step. Every decision, file and experiment opens on the right.</p>
+  <div class="facts">
+    <div><b>${st.length}</b><span>steps</span></div>
+    <div><b>${subs}</b><span>subagent runs</span></div>
+    <div><b>${c.decisions.length}</b><span>decisions (${byOrch} by orchestrator)</span></div>
+    <div><b>${exps}</b><span>experiments</span></div>
+    <div><b>${dur(r.start, r.end)}</b><span>wall clock</span></div>
+    <div><b>0</b><span>stops (${Object.keys(c.run_stop_candidates).length} candidates judged)</span></div>
+    <div><b>${num((r.usage.sub_output_tokens || 0) + (r.usage.orch_output_tokens || 0))}</b><span>output tokens</span></div>
+  </div>
+  <section class="block"><header><h3>Who does what</h3><p>Click a box for what it is and the files behind it.</p></header>
+    <div class="actors scroll-x">${actorSVG()}</div>
+    <ol class="protocol">
+      <li>The orchestrator writes the step prompt: the shared preamble plus the step's own section.</li>
+      <li>A fresh subagent invokes exactly one HSDD skill on one node, contract or ADR.</li>
+      <li>It reads sources, runs experiments through fvm, decides, writes artifacts and a step report.</li>
+      <li>A skill stop or a run-stop condition ends its turn and goes back to the orchestrator.</li>
+      <li>The orchestrator runs gate.mjs and reads the artifacts against the skill's quality gates.</li>
+      <li>Commit one: <code>hsdd: Snn</code> with the artifacts and experiments.</li>
+      <li>Decisions go to the ledger with that sha; commit two: <code>judgement: Snn</code>.</li>
+    </ol>
+  </section>
+  <section class="block"><header><h3>Stages</h3><p>The sequence of the run. Open a stage for its step flow, or jump straight to a step.</p></header>
+    <div class="spine">
+      <div class="node"><div class="card"><div class="stagehead"><span class="num">START</span><h3>Owner kickoff</h3><span class="meta">${day(r.start)}</span></div>
+        <p>The owner pastes the approved design (<span class="ev-link" data-file="docs/auto-run/KICKOFF.md">KICKOFF.md</span>) and sets a <code>/goal</code> condition that keeps the session going until the report or a stop exists.</p></div></div>
+      ${c.stages.map(stageCard).join("")}
+      <div class="node end"><div class="card"><div class="stagehead"><span class="num">END</span><h3>Owner review</h3><span class="meta">${day(r.end)}</span></div>
+        <p>No stop held. The owner reads <span class="ev-link" data-file="docs/auto-run/REPORT.md">REPORT.md</span> and records one review line per decision in <code>hsdd/judgement/decision-reviews.jsonl</code>.</p></div></div>
+    </div>
+  </section>
+  <section class="block"><header><h3>Wall clock</h3><p>Each bar is one step, coloured by skill. The dashed line is the context summary the orchestrator resumed from.</p></header>
+    <div class="timeline scroll-x">${timelineSVG()}</div>
+    <div class="legend">${Object.entries(SKILLS).map(([k, t]) => `<span><i style="--c:var(${t})"></i>${k === "none" ? "orchestrator only" : k}</span>`).join("")}</div>
+  </section>`;
+  for (const g of v.querySelectorAll(".actors .box")) {
+    g.addEventListener("click", () => openActor(g.dataset.actor));
+    g.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openActor(g.dataset.actor); } });
+  }
+  for (const el of v.querySelectorAll("[data-go-stage]")) el.addEventListener("click", (e) => { if (e.target.closest("[data-step],.ev-link")) return; go({ kind: "stage", id: +el.dataset.goStage }); });
+  for (const el of v.querySelectorAll("rect.step")) el.addEventListener("click", () => go({ kind: "step", ref: el.dataset.ref }));
+}
+function stageCard(sg) {
+  const steps = sg.steps.map(stepBy).filter(Boolean);
+  const nd = steps.reduce((a, s) => a + s.decisions.length, 0);
+  const skills = [...new Set(steps.map((s) => s.skill))];
+  const start = steps[0].start, end = steps[steps.length - 1].end;
+  return `<div class="node"><div class="card click" data-go-stage="${sg.id}" role="button" tabindex="0">
+    <div class="stagehead"><span class="num">STAGE ${sg.id}</span><h3>${esc(sg.title)}</h3>
+      <span class="meta">${steps.length} step${steps.length > 1 ? "s" : ""} &middot; ${nd} decisions &middot; ${dur(start, end)}</span></div>
+    <p>${linkify(sg.summary)}</p>
+    <div class="chips">${steps.map((s) => `<span class="chip" data-step="${s.ref}" title="${esc(s.skill + ": " + s.target)}"><i style="--c:${skillVar(s.skill)}"></i>${s.ref}${s.inserted ? " ↵" : ""}</span>`).join("")}</div>
+    <div class="chips" style="margin-top:6px">${skills.map((k) => `<span class="tag c" style="--c:${skillVar(k)}">${k === "none" ? "orchestrator" : k}</span>`).join("")}</div>
+  </div></div>`;
+}
+function actorSVG() {
+  const box = (id, x, y, w, h, t, s, color) => `<g class="box" data-actor="${id}" tabindex="0" role="button" aria-label="${esc(t)}">
+    <rect x="${x}" y="${y}" width="${w}" height="${h}" rx="7"/><rect class="band" x="${x}" y="${y}" width="5" height="${h}" rx="2" style="fill:var(${color})"/>
+    <text class="t" x="${x + 16}" y="${y + 24}">${esc(t)}</text>${s.map((l, i) => `<text class="s" x="${x + 16}" y="${y + 42 + i * 15}">${esc(l)}</text>`).join("")}</g>`;
+  const e = (d, label, lx, ly, dash) => `<path class="edge${dash ? " dash" : ""}" d="${d}" marker-end="url(#ah)"/>${label ? `<text class="el" x="${lx}" y="${ly}">${esc(label)}</text>` : ""}`;
+  return `<svg viewBox="0 0 1010 390" role="img" aria-label="Actors of the run and what flows between them">
+  <defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z"/></marker></defs>
+  ${box("owner", 44, 20, 170, 78, "Owner", ["kickoff prompt", "/goal condition"], "--ln-git")}
+  ${box("orch", 292, 20, 210, 78, "Orchestrator", ["main session, 22 h", "sequences, judges, commits"], "--ln-orch")}
+  ${box("sub", 582, 20, 190, 78, "Step subagent × 52", ["fresh context per step", "one skill, one target"], "--ln-sub")}
+  ${box("skill", 836, 20, 160, 78, "HSDD skill", ["spec, adr, contract,", "phase-plan, reconcile"], "--ln-skill")}
+  ${box("plan", 44, 160, 170, 64, "Execution plan", ["stages, step log, changes"], "--ln-orch")}
+  ${box("gate", 292, 160, 210, 64, "Gate", ["gate.mjs, gen-registry.mjs"], "--ln-ws")}
+  ${box("exp", 582, 160, 190, 64, "Experiments", ["throwaway programs via fvm"], "--ln-ws")}
+  ${box("hsdd", 836, 160, 160, 64, "hsdd/ artifacts", ["specs, ADRs, contracts"], "--ln-skill")}
+  ${box("review", 44, 300, 170, 64, "REPORT.md", ["one-sitting review"], "--ln-git")}
+  ${box("ledger", 292, 300, 210, 64, "Git and ledger", ["2 commits, decisions.jsonl"], "--ln-git")}
+  ${box("report", 582, 300, 190, 64, "Step report", ["steps/Snn.json: decisions"], "--ln-sub")}
+  ${e("M214,52 L288,52", "prompt + goal", 218, 44)}
+  ${e("M502,44 L578,44", "dispatch", 516, 36)}
+  ${e("M582,80 L506,80", "hand-back", 512, 96)}
+  ${e("M772,52 L832,52", "invoke", 782, 44)}
+  ${e("M916,98 L916,156", "writes", 922, 132)}
+  ${e("M677,98 L677,156", "runs", 683, 132)}
+  ${e("M590,98 C548,150 548,270 578,318", "writes", 506, 214)}
+  ${e("M292,92 C250,120 170,118 129,156", "updates", 232, 132)}
+  ${e("M397,98 L397,156", "checks", 403, 132)}
+  ${e("M397,224 L397,296", "then commits twice", 403, 262)}
+  ${e("M582,332 L506,332", "decisions", 512, 324)}
+  ${e("M292,332 L218,332", "builds", 226, 324)}
+  ${e("M60,300 C20,250 20,150 60,102", "", 0, 0, true)}<text class="el" transform="rotate(-90 14 200)" x="14" y="200" text-anchor="middle">reviews</text>
+  </svg>`;
+}
+function timelineSVG() {
+  const c = S.core, t0 = tms(c.run.start), t1 = tms(c.run.end), W = 1000, X = (t) => 10 + ((tms(t) - t0) / (t1 - t0)) * (W - 20);
+  let s = `<svg viewBox="0 0 ${W} 96" role="img" aria-label="Steps on the wall clock">`;
+  const hours = []; for (let h = Math.ceil(t0 / 36e5) * 36e5; h <= t1; h += 36e5 * 2) hours.push(h);
+  for (const h of hours) { const x = 10 + ((h - t0) / (t1 - t0)) * (W - 20); s += `<line x1="${x}" x2="${x}" y1="14" y2="58" stroke="var(--rule)"/><text x="${x}" y="10" text-anchor="middle">${new Date(h).toISOString().slice(11, 16)}</text>`; }
+  for (const st of c.steps) {
+    if (!st.start || !st.end) continue;
+    const x = X(st.start), w = Math.max(1.5, X(st.end) - x);
+    s += `<rect class="step" data-ref="${st.ref}" x="${x}" y="18" width="${w}" height="36" rx="2" style="fill:${skillVar(st.skill)}"><title>${st.ref} ${esc(st.skill)}: ${esc(st.target)} (${dur(st.start, st.end)})</title></rect>`;
+  }
+  for (const sg of c.stages) { const first = stepBy(sg.steps[0]); if (!first?.start) continue; const x = X(first.start); s += `<line x1="${x}" x2="${x}" y1="58" y2="70" stroke="var(--muted)"/><text x="${x + 2}" y="82">${sg.id}</text>`; }
+  for (const k of c.run.compactions) { const x = X(k); s += `<line x1="${x}" x2="${x}" y1="12" y2="60" stroke="var(--ink)" stroke-dasharray="3 3"/>`; }
+  s += `<text x="10" y="94">stage</text></svg>`;
+  return s;
+}
+const ACTORS = {
+  owner: ["Owner", "Wrote the approved design as a kickoff prompt, pasted it into a fresh session, and set a /goal condition. The condition is a disjunction: the report exists and every planning check holds, or a STOP.md names an open question. Nothing else came from the owner during the run.", ["docs/auto-run/KICKOFF.md"]],
+  orch: ["Orchestrator", "The main Claude Code session. It wrote the execution plan, prepared every step prompt, dispatched subagents, slept with ScheduleWakeup while they worked, judged run-stop candidates, ran the gate, made the two commits per step and appended the ledger. It ran no HSDD skill in its own context. Its context was summarized once during the run and it resumed from the plan, the ledger and git log.", ["docs/auto-run/execution-plan.md", "docs/auto-run/timestamp-corrections.md"]],
+  sub: ["Step subagent", "A fresh general-purpose agent per step. Its prompt is the step preamble (blindness, owner facts, decision policy, report format) plus the step's own section. It invokes one HSDD skill, never commits, never writes the ledger, and returns a skill stop or a run-stop candidate instead of answering it.", ["docs/auto-run/step-preamble.md", "docs/auto-run/decision.schema.json"]],
+  skill: ["HSDD skill", "The vendored HSDD v0.10 skills. The subagent loads one with the Skill tool and follows it: hsdd-spec (root, mid-level, touch), hsdd-adr, hsdd-contract, hsdd-phase-plan, hsdd-reconcile.", [".agents/skills/hsdd-spec/SKILL.md", ".agents/skills/hsdd-adr/SKILL.md", ".agents/skills/hsdd-contract/SKILL.md", ".agents/skills/hsdd-phase-plan/SKILL.md", ".agents/skills/hsdd-reconcile/SKILL.md"]],
+  plan: ["Execution plan", "Written and committed before any skill ran. It is the record of the path, not a promise: the step log grew as steps ran and the change log says what moved and why, including the six inserted steps.", ["docs/auto-run/execution-plan.md"]],
+  gate: ["Gate", "gate.mjs checks a step's changed files against the skill's write set, that the registry regenerates clean, that every cited ADR, contract, OQ and phase id resolves, and at the end that every plan, contract and pending section is final.", ["docs/auto-run/tools/gate.mjs"]],
+  exp: ["Experiments", "When a decision rested on a runtime fact (stream replay, zones, analyzer plugins, pub resolution), the subagent wrote a throwaway program under docs/auto-run/experiments/, ran it through fvm, and cited the captured output as evidence.", []],
+  report: ["Step report", "Every subagent ends by writing docs/auto-run/steps/Snn.json: status, artifacts, every decision in the ledger's shape, experiments, a self-check against the skill's quality gates, and notes for the orchestrator. The orchestrator's own decisions go in Snn.orchestrator.json or Snn.plan.json.", ["docs/auto-run/decision.schema.json"]],
+  hsdd: ["hsdd/ artifacts", "What the planning produced: node specs with phase plans, ADRs, contracts with fixtures, conventions, registries. Only the owning HSDD skill writes them.", ["hsdd/spec/nidana.md", "hsdd/conventions.md", "hsdd/contract/INDEX.md", "hsdd/adr/INDEX.md"]],
+  ledger: ["Git and ledger", "Two commits per step: hsdd: Snn with the artifacts, then judgement: Snn with the step's decisions (each carrying the first commit's sha) and one run-log line. ledger.mjs validates every line.", ["docs/auto-run/tools/ledger.mjs"]],
+  review: ["REPORT.md", "Generated at the end from the ledger and step reports: the tree, the decisions to look at first, every decision by blast radius, experiments, assumptions, proposed upstream wording, known residue.", ["docs/auto-run/REPORT.md"]],
+};
+function openActor(id) {
+  const [t, d, files] = ACTORS[id];
+  openDrawer(t, `<p>${linkify(d)}</p>${files.length ? `<h4>Files</h4><div class="files">${files.map((f) => `<div class="fileline"><span class="p">${esc(f)}</span><button class="linkbtn" data-file="${esc(f)}">open</button></div>`).join("")}</div>` : ""}
+  ${id === "sub" ? `<h4>Preamble every subagent received</h4><div class="md">${md(S.core.preamble)}</div>` : ""}`);
+}
+
+/* ---------- layer 1: a stage ---------- */
+function viewStage(v, id) {
+  const sg = S.core.stages[id];
+  const steps = sg.steps.map(stepBy).filter(Boolean);
+  const touched = [...new Set(steps.flatMap((s) => s.touched))];
+  v.innerHTML = `<div class="stagehead"><span class="num">STAGE ${id}</span><h2>${esc(sg.title)}</h2></div>
+    <p class="lede">${linkify(sg.summary)}</p>
+    <div class="kv"><div><span>Steps</span><b>${steps.length}</b></div><div><span>Decisions</span><b>${steps.reduce((a, s) => a + s.decisions.length, 0)}</b></div>
+    <div><span>Elapsed</span><b>${dur(steps[0].start, steps[steps.length - 1].end)}</b></div><div><span>Experiments</span><b>${new Set(steps.flatMap((s) => s.experiments)).size}</b></div></div>
+    <section class="block"><header><h3>Step flow</h3><p>In the order they ran. Each card opens the step's sequence diagram.</p></header>
+      <div class="flow">${steps.map((s, i) => (i ? '<div class="arrow"></div>' : "") + stepCard(s)).join("")}</div></section>
+    ${touched.length ? `<section class="block"><header><h3>Artifacts this stage touched</h3></header><div class="chips">${touched.map((t) => `<span class="chip" data-file="${fileOfNode(t)}">${esc(t)}</span>`).join("")}</div></section>` : ""}
+    <div class="chips" style="margin-top:22px">${id > 0 ? `<button class="linkbtn" data-stage="${id - 1}">Previous stage</button>` : ""}${id < S.core.stages.length - 1 ? `<button class="linkbtn" data-stage="${id + 1}">Next stage</button>` : ""}</div>`;
+  for (const el of v.querySelectorAll(".stepcard")) el.addEventListener("click", (e) => { if (e.target.closest(".ev-link")) return; go({ kind: "step", ref: el.dataset.ref }); });
+}
+function fileOfNode(t) { const p = Object.keys(S.core.history).find((f) => f.endsWith("/" + t + ".md") && /^hsdd\/(spec|adr|contract)\//.test(f)); return p || ""; }
+function stepCard(s) {
+  const ds = decsOf(s.ref), tot = ds.length || 1;
+  const counts = ["node-local", "contract", "tree", "upstream"].map((b) => [b, ds.filter((d) => d.b === b).length]);
+  const cands = ds.filter((d) => S.core.run_stop_candidates[d.id]);
+  const asked = ds.filter((d) => d.w).length;
+  return `<div class="card click stepcard" data-ref="${s.ref}" role="button" tabindex="0">
+    <div class="ref">${s.ref}<small>${s.sub ? "subagent" : "orchestrator"}</small></div>
+    <div style="min-width:0"><div><span class="tag c" style="--c:${skillVar(s.skill)}">${s.skill === "none" ? "orchestrator" : s.skill}</span> <span class="tgt">${esc(s.target)}</span></div>
+      <div class="chips">${s.inserted ? `<span class="chip flag" title="${esc(s.inserted)}">inserted step</span>` : ""}${cands.map((d) => `<span class="chip flag">run-stop candidate ${d.id}</span>`).join("")}${asked ? `<span class="chip flag">${asked} would have asked</span>` : ""}${s.experiments.length ? `<span class="chip flag">${s.experiments.length} experiment${s.experiments.length > 1 ? "s" : ""}</span>` : ""}</div>
+      ${ds.length ? `<div class="blastbar" title="${counts.map(([b, n]) => `${b} ${n}`).join(", ")}">${counts.map(([b, n]) => n ? `<i style="--c:${blastVar(b)};width:${(n / tot) * 100}%"></i>` : "").join("")}</div>` : ""}
+      ${s.inserted ? `<div class="learned">Inserted because ${linkify(s.inserted.charAt(0).toLowerCase() + s.inserted.slice(1))}</div>` : ""}
+    </div>
+    <div class="side">${ds.length} decisions<br>${dur(s.start, s.end)}<br>${s.commits.artifact ? `<span class="mono">${s.commits.artifact.sha}</span>` : ""}</div>
+  </div>`;
+}
+
+/* ---------- layer 2: a step ---------- */
+async function viewStep(v, ref) {
+  const s = stepBy(ref);
+  v.innerHTML = `<div class="loading">Loading ${ref}...</div>`;
+  let b, F;
+  try { [b, F] = await Promise.all([stepData(ref), full()]); } catch (err) { v.innerHTML = `<div class="notice">Could not load ${ref}: ${esc(err.message)}</div>`; return; }
+  if (S.view.ref !== ref || S.tab !== "process") return;
+  const byOf = Object.fromEntries(S.core.decisions.map((d) => [d.id, d.by]));
+  const ds = s.decisions.map((id) => ({ ...F[id], by: byOf[id] }));
+  const idx = S.core.steps.indexOf(s);
+  const prev = S.core.steps[idx - 1], next = S.core.steps[idx + 1];
+  const u = s.sub?.usage || {};
+  v.innerHTML = `<div class="stephead"><h2>${ref}</h2><span class="tag c" style="--c:${skillVar(s.skill)}">${s.skill === "none" ? "orchestrator" : s.skill}</span><span>${esc(s.target)}</span></div>
+    ${s.inserted ? `<div class="banner">Inserted step: ${linkify(s.inserted)}</div>` : ""}
+    <div class="kv">
+      <div><span>Elapsed</span><b>${dur(s.start, s.end)}</b></div>
+      <div><span>Subagent active</span><b>${s.sub ? dur(s.sub.start, s.sub.end) : "none"}</b></div>
+      <div><span>Decisions</span><b>${ds.length} (${ds.filter((d) => d.by === "orchestrator").length} orchestrator)</b></div>
+      <div><span>Artifact commit</span><b class="mono">${s.commits.artifact ? esc(s.commits.artifact.sha) : "none"}</b></div>
+      <div><span>Judgement commit</span><b class="mono">${s.commits.judgement ? esc(s.commits.judgement.sha) : "none"}</b></div>
+      <div><span>Subagent tokens</span><b>${s.sub ? `${num(u.output_tokens || 0)} out, ${num(u.cache_read_input_tokens || 0)} cached in` : "none"}</b></div>
+    </div>
+    <section class="block"><header><h3>Sequence</h3><p>Who did what, in time order (UTC). Click any row for its detail.</p></header>
+      <div class="seqtools"><label><input type="checkbox" id="opt-compress" ${S.compress ? "checked" : ""}> merge repeated actions</label><label><input type="checkbox" id="opt-narr" ${S.narr ? "checked" : ""}> show narration</label>
+      ${ref === "S00" ? "<span>S00 and S01 were committed within a minute; the orchestrator's work for both shows here.</span>" : ""}</div>
+      <div class="seq scroll-x"><div class="inner" id="seq"></div></div>
+    </section>
+    <div class="subtabs" role="tablist" id="stabs">
+      ${["Decisions", "Artifacts", "Prompt", "Report", "Learned"].map((t, i) => `<button role="tab" aria-selected="${i === 0}" data-p="${t}">${t}</button>`).join("")}
+    </div>
+    <div class="panel" id="spanel"></div>
+    <div class="chips" style="margin-top:24px">${prev ? `<button class="linkbtn" data-step="${prev.ref}">Previous: ${prev.ref}</button>` : ""}${next ? `<button class="linkbtn" data-step="${next.ref}">Next: ${next.ref}</button>` : ""}</div>`;
+  const drawSeq = () => renderSeq($("#seq"), s, b, ds);
+  $("#opt-compress").onchange = (e) => { S.compress = e.target.checked; drawSeq(); };
+  $("#opt-narr").onchange = (e) => { S.narr = e.target.checked; drawSeq(); };
+  drawSeq();
+  const panels = {
+    Decisions: () => ds.length ? decList(ds) : `<p class="muted">No decision was recorded in this step.</p>`,
+    Artifacts: () => artifactsPanel(s, b),
+    Prompt: () => b.prompt ? `<p class="muted small">The step's own section. ${b.prompt_has_preamble ? `It followed the shared <span class="ev-link" data-file="docs/auto-run/step-preamble.md">step preamble</span>, pasted verbatim.` : ""}</p><div class="md">${md(b.prompt)}</div>` : `<p class="muted">The orchestrator ran this step itself; no subagent prompt.</p>`,
+    Report: () => reportPanel(b),
+    Learned: () => s.learned.length ? s.learned.map((t) => `<p class="learned" style="font-size:.9rem">${linkify(t)}</p>`).join("") + (b.final ? `<h3 style="margin-top:18px">Subagent's closing message</h3><pre class="code wrapit">${esc(b.final)}</pre>` : "") : (b.final ? `<h3>Subagent's closing message</h3><pre class="code wrapit">${esc(b.final)}</pre>` : `<p class="muted">No change-log entry names this step.</p>`),
+  };
+  const show = (p) => { for (const x of document.querySelectorAll("#stabs button")) x.setAttribute("aria-selected", String(x.dataset.p === p)); $("#spanel").innerHTML = panels[p](); };
+  for (const x of document.querySelectorAll("#stabs button")) x.onclick = () => show(x.dataset.p);
+  show("Decisions");
+}
+function decList(ds) {
+  return `<div class="list">${ds.map((d) => `<button data-dec="${d.id}"><span class="id">${d.id}</span><span class="q">${esc(short(d.question, 260))}
+    <div class="ch">Chosen: ${esc(short(d.chosen, 200))}</div><div class="tags">${decTags(d)}</div></span></button>`).join("")}</div>`;
+}
+function decTags(d) {
+  const b = d.blast_radius || d.b, c = d.confidence || d.c, w = d.would_have_asked ?? d.w, u = d.would_upstream ?? d.u, step = d.step_ref || d.s;
+  return `<span class="tag">${step}</span><span class="tag c" style="--c:${blastVar(b)}">${b}</span><span class="tag">${c}</span>${w ? `<span class="tag">would have asked${d.stop_class || d.sc ? ": " + (d.stop_class || d.sc) : ""}</span>` : ""}${u ? '<span class="tag">upstream</span>' : ""}${d.by === "orchestrator" ? '<span class="tag">orchestrator</span>' : ""}${S.core.run_stop_candidates[d.id] ? '<span class="tag c" style="--c:var(--b-up)">run-stop candidate</span>' : ""}`;
+}
+function artifactsPanel(s, b) {
+  const files = s.files.filter((f) => !f.p.startsWith("docs/auto-run/steps/"));
+  const diffs = new Set((b.diff || []).map((d) => d.p));
+  return `${files.length ? `<div class="files">${files.map((f) => `<div class="fileline"><span class="p">${esc(f.p)}</span><span class="n">${f.s === "A" ? "new " : ""}<span class="a">+${f.a ?? "?"}</span> <span class="d">-${f.d ?? "?"}</span></span>
+      ${diffs.has(f.p) ? `<button class="linkbtn" data-diff="${esc(f.p)}" data-dref="${s.ref}">what changed</button>` : ""}<button class="linkbtn" data-file="${esc(f.p)}">final version</button></div>`).join("")}</div>` : `<p class="muted">No hsdd/ artifact in this step's commit.</p>`}
+    ${s.experiments.length ? `<h3 style="margin-top:18px">Experiments added</h3><div class="chips">${s.experiments.map((x) => `<span class="chip" data-exp="docs/auto-run/experiments/${esc(x)}">${esc(x)}</span>`).join("")}</div>` : ""}
+    ${b.judgement_files?.length ? `<h3 style="margin-top:18px">Judgement commit</h3><div class="files">${b.judgement_files.map((f) => `<div class="fileline"><span class="p">${esc(f.p)}</span><span class="n"><span class="a">+${f.a ?? "?"}</span> <span class="d">-${f.d ?? "?"}</span></span>${f.p.endsWith(".json") && b.reports[f.p.split("/").pop()] ? `<button class="linkbtn" data-report="${esc(f.p.split("/").pop())}" data-dref="${s.ref}">read</button>` : ""}</div>`).join("")}</div>` : ""}`;
+}
+function reportPanel(b) {
+  const names = Object.keys(b.reports || {});
+  if (!names.length) return `<p class="muted">No report file for this step.</p>`;
+  return names.map((n) => {
+    const r = b.reports[n], decs = Array.isArray(r) ? r : r.decisions || [];
+    return `<h3>${esc(n)}</h3>
+    ${!Array.isArray(r) ? `<p><span class="tag">${esc(r.status || "")}</span> ${esc(r.skill || "")} on ${esc(r.target || "")}</p>` : ""}
+    ${r.stop ? `<div class="banner"><b>Stop:</b> ${esc(r.stop.question)}</div>` : ""}
+    <p class="small muted">${decs.length} decisions recorded in this file.</p>
+    ${r.self_check?.length ? `<h4 style="font:600 .74rem var(--f-display);text-transform:uppercase;letter-spacing:.05em;color:var(--muted)">Self-check against the skill's quality gates</h4><div class="scroll-x"><table class="t"><tr><th>Gate</th><th>Status</th><th>Note</th></tr>${r.self_check.map((g) => `<tr><td>${esc(g.gate)}</td><td><span class="tag">${esc(g.status)}</span></td><td>${linkify(g.note || "")}</td></tr>`).join("")}</table></div>` : ""}
+    ${r.notes_for_orchestrator?.length ? `<h4 style="font:600 .74rem var(--f-display);text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-top:14px">Notes for the orchestrator</h4><ul class="small">${r.notes_for_orchestrator.map((x) => `<li>${linkify(typeof x === "string" ? x : JSON.stringify(x))}</li>`).join("")}</ul>` : ""}
+    <details><summary class="small muted" style="cursor:pointer">Raw JSON</summary><pre class="code">${esc(JSON.stringify(r, null, 2))}</pre></details>`;
+  }).join("<hr style='border:0;border-top:1px solid var(--rule);margin:20px 0'>");
+}
+
+/* ---------- sequence diagram ---------- */
+function rowSpec(e) {
+  const o = (f, to, label, extra = {}) => ({ f, to, label, ...extra });
+  const key = e.who + ":" + e.k;
+  switch (key) {
+    case "orch:dispatch": return o("orch", "sub", "dispatches: " + e.l, { g: "dispatch", desc: "A fresh general-purpose subagent starts with the shared step preamble (blindness, owner facts, decision policy, report format) and this step's own section." });
+    case "orch:prompt": return o("orch", "orch", "writes the step prompt", { g: "prompt" });
+    case "orch:plan": return o("orch", "orch", "updates the execution plan", { g: "plan" });
+    case "orch:wait": return o("orch", "orch", "waits for the subagent", { g: "wait" });
+    case "orch:wake": return o("orch", "orch", "wakes and checks", { g: "wait" });
+    case "orch:review": return o("orch", "ws", "reviews the report and artifacts", { g: "review" });
+    case "orch:git-read": return o("orch", "git", "inspects git state", { g: "gitread" });
+    case "orch:gate": return o("orch", "ws", "runs the gate", { g: "gate", desc: "gate.mjs checks the changed files against the skill's write set, regenerates the registries, and resolves every cited id." });
+    case "orch:registry": return o("orch", "ws", "regenerates the registries", { g: "gate" });
+    case "orch:judge": return o("orch", "orch", e.l, { g: "judge" });
+    case "orch:commit": return o("orch", "git", "commits " + e.l, { g: "commit:" + e.l });
+    case "orch:ledger": return o("orch", "git", "appends to the ledger", { g: "ledger", desc: "ledger.mjs gives each decision the next DEC id and the artifact commit's sha, appends the run-log line, and validates every line against the schema." });
+    case "orch:tooling": case "orch:report": case "orch:write": return o("orch", "ws", e.l, { g: "write" });
+    case "orch:note": return o("orch", "orch", e.l, { note: true });
+    case "orch:compact": return { wide: "Context summarized. The orchestrator resumes from the execution plan, the ledger tail and git log." };
+    case "sub:skill": return o("sub", "skill", "invokes " + e.l, { g: "skill", desc: "The Skill tool loads the HSDD skill's SKILL.md into the subagent's context with the arguments the step prompt gave.", then: o("skill", "sub", "loads its instructions", { g: "skillret", desc: "From here the subagent follows the skill's steps and quality gates. Reads, experiments and writes below are the skill being carried out." }) });
+    case "sub:read-method": return o("sub", "skill", "reads the skill's references", { g: "rm" });
+    case "sub:read-source": return o("sub", "ws", "reads the reference architecture", { g: "rs" });
+    case "sub:read": return o("sub", "ws", "reads", { g: "read" });
+    case "sub:search": return o("sub", "ws", "searches", { g: "search" });
+    case "sub:inspect": return o("sub", "ws", "inspects files", { g: "inspect" });
+    case "sub:git-read": return o("sub", "git", "reads git history", { g: "gitread" });
+    case "sub:experiment": { const n = (e.l.match(/^(?:docs\/auto-run\/experiments\/)?([\w.@+-]+)/) || [])[1] || "experiment"; return o("sub", "ws", "experiment " + n, { g: "exp:" + n, exp: n }); }
+    case "sub:toolchain": return o("sub", "ws", "runs fvm", { g: "fvm" });
+    case "sub:write": return o("sub", "ws", "writes " + e.l.split("/").pop(), { g: "w:" + e.l, file: e.l });
+    case "sub:edit": return o("sub", "ws", "edits " + e.l.split("/").pop(), { g: "w:" + e.l, file: e.l });
+    case "sub:gate": return o("sub", "ws", "runs the gate itself", { g: "gate" });
+    case "sub:registry": return o("sub", "ws", "regenerates the registries", { g: "gate" });
+    case "sub:report": return o("sub", "ws", "writes its step report", { g: "report" });
+    case "sub:handback": return o("sub", "orch", "hands back", { g: "handback", desc: "The subagent ends its turn. Its report is docs/auto-run/steps/Snn.json; the orchestrator reads it, runs the gate and commits." });
+    case "sub:decision": return o("sub", "sub", e.l, { dec: e.dec });
+    case "orch:decision": return o("orch", "orch", e.l, { dec: e.dec });
+    case "sub:note": return o("sub", "sub", e.l, { note: true });
+    case "sub:clock": case "orch:clock": return null;
+    default: return o(e.who, "ws", e.l || e.k, { g: "other" });
+  }
+}
+function seqItems(s, b, ds) {
+  const items = [...b.orch.map((e) => ({ ...e, who: "orch" })), ...b.sub.map((e) => ({ ...e, who: "sub" }))];
+  for (const d of ds.filter((d) => d.by === "subagent")) items.push({ t: d.at, who: "sub", k: "decision", l: `decides ${d.id}: ${d.question}`, dec: d.id });
+  items.sort((a, c) => (a.t || "").localeCompare(c.t || ""));
+  const od = ds.filter((d) => d.by === "orchestrator");
+  if (od.length) {
+    const subEnd = s.sub?.end || "";
+    let at = items.findIndex((e) => e.who === "orch" && e.k === "judge" && (e.t || "") >= subEnd);
+    if (at < 0) at = items.findIndex((e) => e.who === "orch" && e.k === "commit" && (e.t || "") >= subEnd);
+    if (at < 0) at = items.length;
+    const t = items[at]?.t || subEnd;
+    items.splice(at, 0, ...od.map((d) => ({ t, who: "orch", k: "decision", l: `decides ${d.id}: ${d.question}`, dec: d.id })));
+  }
+  return items;
+}
+function renderSeq(el, s, b, ds) {
+  const dispatchT = b.orch.find((e) => e.k === "dispatch")?.t;
+  const subEnd = s.sub?.end;
+  let rows = [];
+  for (const e of seqItems(s, b, ds)) {
+    const r = rowSpec(e); if (!r) continue;
+    if (r.note && !S.narr) continue;
+    const band = !dispatchT ? 0 : (e.t || "") < dispatchT ? 0 : subEnd && (e.t || "") <= subEnd ? 1 : 2;
+    rows.push({ ...r, t: e.t, band, ev: [e] });
+    if (r.then) rows.push({ ...r.then, t: e.t, band, ev: [] });
+  }
+  if (S.compress) {
+    const out = [];
+    for (const r of rows) {
+      const p = out[out.length - 1];
+      if (p && r.g && p.g === r.g && p.f === r.f && p.to === r.to && p.band === r.band && !r.dec && !r.wide) { p.ev.push(...r.ev); p.n = (p.n || 1) + 1; continue; }
+      out.push({ ...r, ev: [...r.ev] });
+    }
+    rows = out;
+  }
+  const bandName = [s.sub ? "Before dispatch: the orchestrator prepares" : "The orchestrator works alone", `The subagent runs ${s.skill} on ${s.target}`, "After hand-back: gate, commits, ledger"];
+  let html = `<div class="lanes"><div></div>${LANES.map(([, t, sm, c]) => `<div style="--c:var(${c})">${t}<small>${sm}</small></div>`).join("")}</div>`;
+  let lastBand = -1;
+  rows.forEach((r, i) => {
+    if (r.band !== lastBand) { html += `<div class="row"><div class="band">${esc(bandName[r.band])}</div></div>`; lastBand = r.band; }
+    const lanes = LANES.map((_, j) => `<div class="ln" style="grid-column:${j + 2}"></div>`).join("");
+    const tm = `<div class="tm">${hhmm(r.t)}</div>`;
+    let body;
+    if (r.wide) body = `<div class="wide">${esc(r.wide)}</div>`;
+    else if (r.f === r.to) {
+      const li = LI[r.f], color = r.dec ? "--ln-" + r.f : LANES[li][3];
+      const cls = r.dec ? "self dec" : r.note ? "self note" : "self";
+      const k1 = LANES.length - li;
+      body = `<button class="${cls}" data-row="${i}" style="grid-column:${li + 2} / -1;--c:var(${color});--k1:${k1}"><span class="dot"></span><span class="lbl">${esc(short(r.label, 220))}${r.n > 1 ? ` (×${r.n})` : ""}</span></button>`;
+    } else {
+      const a = LI[r.f], z = LI[r.to], lo = Math.min(a, z), hi = Math.max(a, z), k = hi - lo + 1;
+      const err = r.ev.some((e) => e.err);
+      body = `<button class="msg${a > z ? " rev" : ""}" data-row="${i}" style="grid-column:${lo + 2} / ${hi + 3};--k:${k};--c:var(${LANES[a][3]})"><span class="line"></span><span class="lbl${err ? " err" : ""}">${esc(r.label)}${r.n > 1 ? ` ×${r.n}` : ""}${err ? " (an error came back)" : ""}</span></button>`;
+    }
+    html += `<div class="row">${tm}${lanes}${body}</div>`;
+  });
+  el.innerHTML = html;
+  for (const x of el.querySelectorAll("[data-row]")) x.onclick = () => openRow(rows[+x.dataset.row], s);
+}
+function openRow(r, s) {
+  if (r.dec) return openDecision(r.dec);
+  const evs = r.ev.length ? r.ev : [];
+  const first = evs[0] || {};
+  let extra = "";
+  if (r.exp) extra += `<p><button class="linkbtn" data-exp="docs/auto-run/experiments/${esc(r.exp)}">open the experiment</button></p>`;
+  if (r.file && Object.prototype.hasOwnProperty.call(S.core.history, r.file)) extra += `<p><button class="linkbtn" data-file="${esc(r.file)}">open the final version</button></p>`;
+  if (first.k === "dispatch") extra += `<p><button class="linkbtn" data-step-prompt="${s.ref}">read the step prompt</button></p>`;
+  if (r.desc) extra = `<p>${linkify(r.desc.replace("Snn", s.ref))}</p>` + extra;
+  const lines = evs.map((e) => `<div class="opt"><b class="mono" style="font-weight:500">${hhmm(e.t)} ${esc(e.k)}${e.err ? ' <span class="err" style="color:var(--b-up)">error returned</span>' : ""}</b><div class="cq">${linkify(e.l || "")}</div>${e.d ? `<pre class="code wrapit">${esc(e.d)}</pre>` : ""}</div>`).join("");
+  const who = r.f === r.to ? LANES[LI[r.f]][1] : `${LANES[LI[r.f]][1]} to ${LANES[LI[r.to]][1]}`;
+  openDrawer(r.label.length > 70 ? r.label.slice(0, 68) + "…" : r.label, `<p class="muted small">${who}${evs.length ? `, ${evs.length} action${evs.length === 1 ? "" : "s"}, ${hhmm(evs[0].t)} to ${hhmm(evs[evs.length - 1].t)} UTC` : ""}.</p>${extra}${lines}`);
+}
+
+/* ---------- drawer ---------- */
+function openDrawer(title, html, push = true) {
+  const d = $("#drawer");
+  if (push && !d.hidden) S.dstack.push([$("#dr-title").textContent, $("#dr-body").innerHTML]);
+  if (!push || d.hidden) { if (d.hidden) S.dstack = []; }
+  $("#dr-title").textContent = title;
+  $("#dr-body").innerHTML = html;
+  $("#dr-body").scrollTop = 0;
+  $("#dr-back").hidden = !S.dstack.length;
+  d.hidden = false; $("#scrim").hidden = false;
+  $("#dr-close").focus({ preventScroll: true });
+}
+function closeDrawer() { $("#drawer").hidden = true; $("#scrim").hidden = true; S.dstack = []; }
+$("#dr-close").onclick = closeDrawer;
+$("#scrim").onclick = closeDrawer;
+$("#dr-back").onclick = () => { const p = S.dstack.pop(); if (!p) return; $("#dr-title").textContent = p[0]; $("#dr-body").innerHTML = p[1]; $("#dr-back").hidden = !S.dstack.length; };
+document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("#drawer").hidden) closeDrawer(); });
+
+async function openDecision(id) {
+  openDrawer(id, `<div class="loading">Loading ${id}...</div>`);
+  const d = (await full())[id];
+  if (!d) { $("#dr-body").innerHTML = `<p>No decision ${esc(id)} in the ledger.</p>`; return; }
+  const cand = S.core.run_stop_candidates[id];
+  const by = S.core.decisions.find((x) => x.id === id)?.by;
+  $("#dr-body").innerHTML = `
+    <div class="chips" style="margin-top:0">${decTags({ ...d, by })}</div>
+    ${cand ? `<div class="banner">A subagent reported this as a run-stop candidate in ${cand}. The orchestrator judged that the stop condition did not hold and recorded why below.</div>` : ""}
+    <h4>Question</h4><p>${linkify(d.question)}</p>
+    <h4>Options</h4>${d.options.map((o) => `<div class="opt${o.label === d.chosen ? " chosen" : ""}"><b>${o.label === d.chosen ? "Chosen: " : ""}${esc(o.label)}</b><div class="cq">${linkify(o.consequence || "")}</div></div>`).join("")}
+    <h4>Why</h4><p>${linkify(d.why)}</p>
+    <h4>Evidence</h4>${d.evidence?.length ? `<ul>${d.evidence.map((x) => `<li>${linkify(typeof x === "string" ? x : JSON.stringify(x))}</li>`).join("")}</ul>` : '<p class="muted">None recorded.</p>'}
+    <h4>Record</h4><table class="t">
+      <tr><th>Step</th><td><span class="ev-link" data-step="${d.step_ref}">${d.step_ref}</span> (${esc(d.step)}), taken by the ${by}</td></tr>
+      <tr><th>Artifact</th><td>${d.artifact ? linkify(d.artifact) : "none"}</td></tr>
+      <tr><th>At</th><td class="mono">${esc(d.at)}</td></tr>
+      <tr><th>Commit</th><td class="mono">${esc(d.commit)}</td></tr>
+    </table>`;
+}
+function md(text) {
+  if (!window.marked) return `<pre class="code wrapit">${esc(text)}</pre>`;
+  try { return window.marked.parse(String(text || "")); } catch (_) { return `<pre class="code wrapit">${esc(text)}</pre>`; }
+}
+function slug(s) { return s.toLowerCase().replace(/[^\w\s-]/g, "").trim().replace(/\s+/g, "-"); }
+async function openFile(p, anchor) {
+  openDrawer(p.split("/").pop(), `<div class="loading">Loading ${esc(p)}...</div>`);
+  let text;
+  try { text = await fileText(p); } catch (err) { $("#dr-body").innerHTML = `<p>Could not load: ${esc(err.message)}</p>`; return; }
+  const hist = S.core.history[p] || [];
+  const histHtml = hist.length ? `<h4>History in this run</h4><div class="files">${hist.map((h) => `<div class="fileline"><span class="p">${h.step ? `<span class="ev-link" data-step="${h.step}">${h.step}</span> ` : ""}${esc(h.kind)} <span class="mono">${esc(h.sha)}</span></span><span class="n">${h.s === "A" ? "new " : ""}<span class="a">+${h.a ?? "?"}</span> <span class="d">-${h.d ?? "?"}</span></span>${h.step && h.kind !== "judgement" ? `<button class="linkbtn" data-diff="${esc(p)}" data-dref="${h.step}">what changed</button>` : ""}</div>`).join("")}</div>` : "";
+  if (text == null) { $("#dr-body").innerHTML = `<p class="muted">This file's content is not in the explorer's bundle (binary, or outside the bundled folders).</p>${histHtml}`; return; }
+  const isMd = p.endsWith(".md");
+  $("#dr-body").innerHTML = `<p class="muted small mono">${esc(p)}</p>${histHtml}<h4>Final version (HEAD)</h4>${isMd ? `<div class="md" id="mdv">${md(text)}</div>` : `<pre class="code">${esc(text)}</pre>`}`;
+  if (isMd) {
+    for (const h of document.querySelectorAll("#mdv h1,#mdv h2,#mdv h3,#mdv h4")) h.id = "h-" + slug(h.textContent);
+    for (const a of document.querySelectorAll("#mdv a[href]")) {
+      const href = a.getAttribute("href");
+      if (/^https?:/.test(href)) { a.target = "_blank"; a.rel = "noopener"; continue; }
+      const base = p.split("/").slice(0, -1);
+      const target = href.split("#")[0];
+      if (!target) continue;
+      const parts = [...base]; for (const seg of target.split("/")) { if (seg === "..") parts.pop(); else if (seg !== ".") parts.push(seg); }
+      const resolved = parts.join("/");
+      a.addEventListener("click", (e) => { e.preventDefault(); openFile(resolved); });
+    }
+    if (anchor) scrollToSection(anchor);
+  }
+}
+function scrollToSection(sec) {
+  const heads = [...document.querySelectorAll("#mdv h1,#mdv h2,#mdv h3,#mdv h4")];
+  const want = sec.replace(/^§\s?/, "");
+  const h = heads.find((x) => { const t = x.textContent.trim(); return t.startsWith(want + " ") || t.startsWith(want + ".") || t.startsWith(want + ":") || t === want || t.includes("Appendix " + want) || t.startsWith("Appendix " + want); });
+  if (h) { h.classList.add("hit"); setTimeout(() => h.scrollIntoView({ block: "start" }), 30); }
+}
+function openRef(ref) {
+  const m = ref.match(/^(Spec|Guide|Rationale) (?:§\s?([\d.]+[a-z]?)|Appendix ([A-Z](?:\.\d+)*))/);
+  if (!m) return;
+  const file = { Spec: "spec", Guide: "guide", Rationale: "rationale" }[m[1]];
+  const sec = (m[2] || m[3]).replace(/\.$/, "");
+  openFile(`ref/nidana-docs/arch/nidana-bus-ref-arch-${file}-v0_15_0.md`, m[2] ? sec : sec);
+}
+function openDiff(ref, b, path) {
+  const d = (b.diff || []).find((x) => x.p === path);
+  if (!d) return openDrawer(`${ref}: ${path.split("/").pop()}`, `<p class="muted">This step's commit has no diff for ${esc(path)} in the bundle.</p>`);
+  const lines = d.patch.split("\n").map((l) => {
+    const c = l.startsWith("+++") || l.startsWith("---") ? "h" : l.startsWith("@@") ? "h" : l.startsWith("+") ? "a" : l.startsWith("-") ? "d" : "";
+    return c ? `<span class="${c}">${esc(l) || " "}</span>` : esc(l);
+  }).join("\n");
+  openDrawer(`${ref}: ${path.split("/").pop()}`, `<p class="muted small">What <span class="ev-link" data-step="${ref}">${ref}</span> changed in <span class="ev-link" data-file="${esc(path)}">${esc(path)}</span>.</p><pre class="diff">${lines}</pre>`);
+}
+async function openExperiment(path) {
+  const name = (path.match(/experiments\/([\w.@+-]+)/) || [])[1];
+  openDrawer(name || path, `<div class="loading">Loading the experiment...</div>`);
+  const all = await exps(); const x = all[name];
+  if (!x) { $("#dr-body").innerHTML = `<p class="muted">No tracked experiment named ${esc(name)}.</p>`; return; }
+  const wanted = path.split("/").slice(4).join("/");
+  $("#dr-body").innerHTML = `<p class="muted small mono">docs/auto-run/experiments/${esc(name)}/</p>
+    <div class="chips">${x.steps.map((s) => `<span class="chip" data-step="${s}">${s}</span>`).join("")}${x.decisions.map((d) => `<span class="chip" data-dec="${d}">${d}</span>`).join("")}</div>
+    ${x.files.map((f) => { const rp = f.p.split("/").slice(4).join("/"); const open = wanted ? rp === wanted || f.p.endsWith("/" + wanted) : /(README\.md|output\.txt)$/.test(f.p); return `<details ${open ? "open" : ""}><summary class="mono small" style="cursor:pointer;padding:6px 0">${esc(rp)} <span class="muted">${f.size} bytes</span></summary>${f.c != null ? (f.p.endsWith(".md") ? `<div class="md">${md(f.c)}</div>` : `<pre class="code">${esc(f.c)}</pre>`) : '<p class="muted small">Not bundled (lock file or over budget).</p>'}</details>`; }).join("")}`;
+}
+
+/* ---------- artifacts tab ---------- */
+function viewArtifacts(v) {
+  const c = S.core, tree = c.tree, files = Object.keys(c.history);
+  const byId = Object.fromEntries(tree.map((n) => [n.id, n]));
+  const depth = (n) => (n.parent ? depth(byId[n.parent] || { parent: null }) + 1 : 0);
+  const order = []; const walk = (id) => { order.push(byId[id]); tree.filter((n) => n.parent === id).sort((a, b) => a.id.localeCompare(b.id)).forEach((n) => walk(n.id)); };
+  tree.filter((n) => !n.parent || !byId[n.parent]).forEach((n) => walk(n.id));
+  const group = (rx) => files.filter((p) => rx.test(p)).sort();
+  const fl = (ps) => `<div class="files">${ps.map((p) => { const h = c.history[p]; const steps = [...new Set(h.map((x) => x.step).filter(Boolean))]; return `<div class="fileline"><span class="p">${esc(p)}</span><span class="n muted">${steps.length} step${steps.length === 1 ? "" : "s"}</span><button class="linkbtn" data-file="${esc(p)}">open</button></div>`; }).join("")}</div>`;
+  const totalPhases = tree.reduce((a, n) => a + n.phases.length, 0);
+  v.innerHTML = `<h2>What the run produced</h2>
+    <p class="lede">The tree, its governance, and the run's own records. Each file opens at its final version with the steps that changed it; "what changed" shows that step's diff.</p>
+    <section class="block"><header><h3>The tree</h3><p>${tree.length} nodes, ${tree.filter((n) => n.kind === "leaf-parent").length} leaf-parents, ${totalPhases} phases.</p></header>
+      <div class="tree">${order.map((n) => `<div class="tn card click" style="--d:${depth(n)};${depth(n) ? "" : "--branch:none"}" data-node="${n.id}" role="button" tabindex="0">
+        <div><span class="nm">${esc(n.id)}<small>${esc(n.kind)}</small></span>${n.contracts.length ? `<div class="chips" style="margin-top:5px">${n.contracts.map((k) => `<span class="tag">${esc(k)}</span>`).join("")}</div>` : ""}</div>
+        <span class="ph">${n.phases.length ? n.phases.length + " phases" : ""}</span></div>`).join("")}</div></section>
+    <section class="block"><header><h3>ADRs</h3></header>${fl(group(/^hsdd\/adr\/.+\.md$/))}</section>
+    <section class="block"><header><h3>Contracts</h3></header>${fl(group(/^hsdd\/contract\/[^/]+\.md$/))}</section>
+    <section class="block"><header><h3>Conventions and node specs</h3></header>${fl(group(/^hsdd\/(conventions\.md|spec\/.+\.md)$/))}</section>
+    <section class="block"><header><h3>The run's own records</h3><p>Kickoff design, step preamble, execution plan, tools and the report.</p></header>${fl(group(/^docs\/auto-run\/[^/]+\.(md|json)$|^docs\/auto-run\/tools\//))}</section>`;
+  for (const el of v.querySelectorAll("[data-node]")) el.addEventListener("click", () => openNode(byId[el.dataset.node]));
+}
+function openNode(n) {
+  const hist = S.core.history[n.file] || [];
+  const steps = [...new Set(hist.map((h) => h.step).filter(Boolean))];
+  openDrawer(n.id, `<div class="chips" style="margin-top:0"><span class="tag">${esc(n.kind)}</span>${n.contracts.map((k) => `<span class="tag">${esc(k)}</span>`).join("")}</div>
+    ${n.phases.length ? `<h4>Phases</h4><table class="t">${n.phases.map((p) => `<tr><td class="mono">${esc(p.id)}</td><td>${esc(p.title)}</td></tr>`).join("")}</table>` : ""}
+    <h4>Steps that changed it</h4><div class="chips">${steps.map((s) => `<span class="chip" data-step="${s}">${s}</span>`).join("")}</div>
+    <h4>Spec</h4><p><button class="linkbtn" data-file="${esc(n.file)}">open ${esc(n.file)}</button></p>
+    <h4>Decisions about this node</h4>${decList(S.core.decisions.filter((d) => d.a === n.file).map((d) => ({ id: d.id, question: d.q, chosen: d.ch, b: d.b, c: d.c, w: d.w, u: d.u, s: d.s, sc: d.sc, by: d.by })))}`);
+}
+
+/* ---------- decisions tab ---------- */
+function viewDecisions(v) {
+  const f = S.decFilter, types = [...new Set(S.core.decisions.map((d) => d.st))];
+  v.innerHTML = `<h2>Every decision</h2>
+    <p class="lede">The ledger, filterable. A decision opens with its options, reason, evidence and the step that took it.</p>
+    <div class="filters">
+      <input type="search" id="f-q" placeholder="Search questions and choices" value="${esc(f.q)}" aria-label="Search decisions">
+      <select id="f-b" aria-label="Blast radius"><option value="">any blast radius</option>${["node-local", "contract", "tree", "upstream"].map((x) => `<option ${f.b === x ? "selected" : ""}>${x}</option>`).join("")}</select>
+      <select id="f-c" aria-label="Confidence"><option value="">any confidence</option>${["high", "medium", "low"].map((x) => `<option ${f.c === x ? "selected" : ""}>${x}</option>`).join("")}</select>
+      <select id="f-st" aria-label="Step type"><option value="">any step type</option>${types.map((x) => `<option ${f.st === x ? "selected" : ""}>${x}</option>`).join("")}</select>
+      <label><input type="checkbox" id="f-w" ${f.w ? "checked" : ""}> would have asked</label>
+      <label><input type="checkbox" id="f-u" ${f.u ? "checked" : ""}> upstream</label>
+      <label><input type="checkbox" id="f-o" ${f.o ? "checked" : ""}> by orchestrator</label>
+    </div>
+    <p class="small muted" id="f-n"></p><div id="f-list"></div>`;
+  const apply = () => {
+    f.q = $("#f-q").value; f.b = $("#f-b").value; f.c = $("#f-c").value; f.st = $("#f-st").value; f.w = $("#f-w").checked; f.u = $("#f-u").checked; f.o = $("#f-o").checked;
+    const q = f.q.toLowerCase();
+    const list = S.core.decisions.filter((d) => (!q || (d.id + " " + d.q + " " + d.ch).toLowerCase().includes(q)) && (!f.b || d.b === f.b) && (!f.c || d.c === f.c) && (!f.st || d.st === f.st) && (!f.w || d.w) && (!f.u || d.u) && (!f.o || d.by === "orchestrator"));
+    $("#f-n").textContent = `${list.length} of ${S.core.decisions.length} decisions`;
+    const shown = list.slice(0, 300);
+    $("#f-list").innerHTML = decList(shown.map((d) => ({ id: d.id, question: d.q, chosen: d.ch, b: d.b, c: d.c, w: d.w, u: d.u, s: d.s, sc: d.sc, by: d.by }))) + (list.length > 300 ? `<p class="small muted">Showing the first 300. Narrow the filter to see the rest.</p>` : "");
+  };
+  for (const id of ["f-q", "f-b", "f-c", "f-st", "f-w", "f-u", "f-o"]) $("#" + id).addEventListener(id === "f-q" ? "input" : "change", apply);
+  apply();
+}
+
+/* ---------- boot ---------- */
+(async function boot() {
+  try { S.core = await getJSON("data/core.json"); }
+  catch (err) { $("#view").innerHTML = `<div class="notice"><b>The run record did not load.</b><p>${esc(err.message)}. Opened from disk, the page cannot fetch its data folder. Serve the folder instead, for example <code>python3 -m http.server</code> in it, then open <code>local.html</code>.</p></div>`; $("#sub").textContent = "data not loaded"; return; }
+  const r = S.core.run;
+  $("#sub").textContent = `${r.branch} at ${r.head} · ${day(r.start)} to ${day(r.end)}`;
+  const h = (location.hash || "").slice(1);
+  if (/^S\d\d$/.test(h) && stepBy(h)) go({ kind: "step", ref: h }, "process");
+  else if (/^stage\d$/.test(h)) go({ kind: "stage", id: +h.slice(5) }, "process");
+  else if (h === "artifacts" || h === "decisions") go(null, h);
+  else if (/^DEC-\d{3}$/.test(h)) { go({ kind: "run" }, "process"); openDecision(h); }
+  else go({ kind: "run" }, "process");
+})();
+</script>

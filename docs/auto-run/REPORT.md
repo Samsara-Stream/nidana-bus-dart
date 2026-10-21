@@ -370,7 +370,7 @@ consequences, the reason, the evidence) is the line with that id in `hsdd/judgem
 - **DEC-113** (S06, high). kind and compatibility of topic-model@v1 Chosen: shared-model, versioned.
 - **DEC-115** (S06, high). Write hsdd/contract/fixture/analysis_options.yaml as the first contract step? Chosen: write it exactly as ADR-001 item 2 states.
 - **DEC-116** (S06, high). Does topic-model@v1 carry a JSON Schema? Chosen: no schema.
-- **DEC-118** (S07, high). Which signature makes writing a handle of the wrong value type to a topic a compile error (Spec §4.2), given that Dart generics are covariant and inference solves a type argument two arguments ... Chosen: write<T, S extends T>(Topic<T>, TopicStream<S>).
+- **DEC-118** (S07, high). Which signature makes writing a handle of the wrong value type to a topic a compile error (Spec §4.2), given that Dart generics are covariant and inference solves a type argument two arguments ... Chosen: `write<T, S extends T>(Topic<T>, TopicStream<S>)`.
 - **DEC-119** (S07, high). How do the recording and the live implementations of the DSL relate: two implementations of a builder interface, or one recording builder whose plan a live implementation interprets? Chosen: one recording builder, plan interpreted live.
 - **DEC-120** (S07, high). OQ-M2: How does live activation obtain the transformers a pure-data IR names? Chosen: one plan, IR projected from it.
 - **DEC-121** (S07, medium). OQ-M1, DSL side: does every combinator take an explicit transformer name? Chosen: no name parameter; the plan keeps the function.
