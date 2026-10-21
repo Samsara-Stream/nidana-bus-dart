@@ -92,3 +92,4 @@
 {"step_ref":"S91","skill":"hsdd-spec","target":"nidana.integration touch (H20)","started":"2026-10-20T23:33:29Z","finished":"2026-10-20T23:41:40Z","commit":"9357988","dispatches":1}
 {"step_ref":"S92","skill":"hsdd-phase-plan","target":"nidana.integration re-plan, append mode (H21)","started":"2026-10-20T23:42:00Z","finished":"2026-10-20T23:59:55Z","commit":"bc1cef4","dispatches":1}
 {"step_ref":"S93","skill":"hsdd-spec","target":"root nidana touch (H22)","started":"2026-10-21T00:00:16Z","finished":"2026-10-21T00:16:56Z","commit":"4a7b9d3","dispatches":1}
+{"step_ref":"S94","skill":"hsdd-reconcile","target":"final reconcile (H23)","started":"2026-10-21T00:17:18Z","finished":"2026-10-21T00:27:09Z","commit":"8dd9561","dispatches":1}

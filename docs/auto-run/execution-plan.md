@@ -287,6 +287,7 @@ orchestrator and recorded with `would_have_asked: true`.
 | S91 | 9 | hsdd-spec | H20: nidana.integration touch (Sources, Consumes at v2, Owns slices restated: bootstrap at start(), new scope-timing slice, module scope under both bindings, hydration after start()) | done | 9357988 |
 | S92 | 9 | hsdd-phase-plan | H21: nidana.integration re-plan (append mode; .3 to .7 rewritten, scope_timing_test and both module bindings in .7; D1, D2, D9 restated, D10 new; no phase added) | done | bc1cef4 |
 | S93 | 9 | hsdd-spec | H22: root touch (Purpose and hard constraint on v0.15.1, Sources inventory, D1, D4, D8, D9, D10 restated, embedded blocks, DAG, edge table, matrix, critical path 23 phases; conventions.md) | done | 4a7b9d3 |
+| S94 | 9 | hsdd-reconcile | H23: final reconcile (integration drained; model, codegen, lint plan text swept; runtime D8 clause; bus-api@v2 Delivery adds navigation.6; four v2 contracts flipped to stable and final; gate --final 0 errors) | done | 8dd9561 |
 
 ## Change log
 
