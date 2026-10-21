@@ -286,6 +286,7 @@ orchestrator and recorded with `would_have_asked: true`.
 | S90 | 9 | hsdd-spec | H19: nidana.tooling touch (Sources, Consumes at v2, embedded child blocks mirror S88 and S89, D3 checked) | done | 6f54427 |
 | S91 | 9 | hsdd-spec | H20: nidana.integration touch (Sources, Consumes at v2, Owns slices restated: bootstrap at start(), new scope-timing slice, module scope under both bindings, hydration after start()) | done | 9357988 |
 | S92 | 9 | hsdd-phase-plan | H21: nidana.integration re-plan (append mode; .3 to .7 rewritten, scope_timing_test and both module bindings in .7; D1, D2, D9 restated, D10 new; no phase added) | done | bc1cef4 |
+| S93 | 9 | hsdd-spec | H22: root touch (Purpose and hard constraint on v0.15.1, Sources inventory, D1, D4, D8, D9, D10 restated, embedded blocks, DAG, edge table, matrix, critical path 23 phases; conventions.md) | done | 4a7b9d3 |
 
 ## Change log
 
