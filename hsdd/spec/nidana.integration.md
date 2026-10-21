@@ -375,20 +375,4 @@ Bands by color: types (indigo), pure (violet), effects (blue), composition (gree
 
 ## Governance updates (pending reconcile)
 
-> Reconciled 2026-10-18 by hsdd-reconcile. Drained entries are in git history.
-
-> Emitted by hsdd-phase-plan on 2026-10-21, per hsdd/management/2026-10-20-intake-ref-arch-v0-15-1.md (handoff H21). Drained by hsdd-reconcile; do not apply by hand.
-
-- confirm `bus-api@v2` consumers: [nidana.integration.3, nidana.integration.4, nidana.integration.5, nidana.integration.6, nidana.integration.7, nidana.integration.8]
-  - each waits on nidana.runtime.14, the last producing phase the Delivery paragraph names; .4 relies on G34's connection order, .5 to .7 on G42's scope timing, and the tests on G18 for the zone a subscriber's error reaches (D9)
-- confirm `bus-testing@v2` consumers: [nidana.integration.3, nidana.integration.4, nidana.integration.5, nidana.integration.6, nidana.integration.7, nidana.integration.8]
-  - the VM tests follow "How a test uses it" for a bus-api@v2 bus, `APPLICATION` topologies before `start()` and `MODULE` and `PAGE` ones after it (D9)
-- confirm `topology-dsl@v2` consumers: [nidana.integration.2, nidana.integration.3, nidana.integration.4, nidana.integration.5, nidana.integration.6, nidana.integration.7, nidana.integration.8]
-  - .2 waits on nidana.model.11; no plan line relies on a v1 rule that v2 changed (D8 Checked)
-- confirm `flutter-binding@v2` consumers: [nidana.integration.5, nidana.integration.6, nidana.integration.7, nidana.integration.8]
-  - .5 waits on nidana.flutter.7, whose closure holds nidana.flutter.8; .6 and .7 use both module bindings, `ModuleScopeObserver` (G10) and `NidanaModule` (G20) (D10)
-- confirm `navigation-api@v1` consumers: [nidana.integration.1, nidana.integration.2, nidana.integration.4, nidana.integration.5, nidana.integration.6, nidana.integration.7, nidana.integration.8]
-- confirm `topic-model@v1` consumers: [nidana.integration.1, nidana.integration.2, nidana.integration.3, nidana.integration.4, nidana.integration.5, nidana.integration.6, nidana.integration.7, nidana.integration.8]
-- confirm `topology-ir@v1` consumers: [nidana.integration.2, nidana.integration.3, nidana.integration.4, nidana.integration.5, nidana.integration.6, nidana.integration.7, nidana.integration.8]
-- confirm `topic-codegen@v1` consumers: [nidana.integration.1, nidana.integration.6, nidana.integration.7, nidana.integration.8]
-- confirm `nidana-checks@v1` consumers: [nidana.integration.1, nidana.integration.6, nidana.integration.7, nidana.integration.8]
+> Reconciled 2026-10-21 by hsdd-reconcile. Drained entries are in git history.

@@ -125,7 +125,7 @@ Alternative considered: an `amend` giving `analyze-human` the Covers G1, G2 and 
 
 The tests use `analyzer_testing`'s `AnalysisRuleTest` under plain `package:test`, its `setUp` and `tearDown` called from `package:test`'s hooks, so the dev dependencies stay `analyzer_testing` and `test` (ADR-002 item 3), with no `test_reflective_loader`. Stand-in packages are registered with `newPackage` before `AnalysisRuleTest.setUp`, which writes the package configuration. A decision is tested by resolving an in-memory library with `resolveFile` and calling the decision on the nodes found; a rule by `assertDiagnostics`, with offset, length and messages; and a library under the test package's `test/` is skipped through `RuleContext.isInTestDirectory`, in memory too (`docs/auto-run/experiments/plugin-rule-tests/`, Q1 to Q3).
 
-The stand-ins are the declarations the rules recognize, written in the shape the consumed contracts' Interfaces give them: the three topic classes with their constructors and their `name` and `sensitive` parameters, under `lib/src/` of `nidana_dart_contracts` (topic-model@v1); `Bus` with `publish` and `publisher`, `Publisher.publish`, and `TestBus extends Bus`, declared under `lib/src/` of `nidana_dart_runtime`, `TestBus` exported by `testing.dart` (bus-api@v1, bus-testing@v1); `Topology` and `TopologyBuilder` with `write` and `reduceInto` (topology-dsl@v1); each beside a declaration of the same name in another package. They carry no behavior and nothing runs them. ADR-001 item 11 binds a stand-in of a contract's behavior to that contract's conformance suite; the plugin runs nothing of these contracts, so it has no suite to bind, and the real declarations reach the plugin through the `analyze-*` replay at nidana.tooling.lint.4 (D5).
+The stand-ins are the declarations the rules recognize, written in the shape the consumed contracts' Interfaces give them: the three topic classes with their constructors and their `name` and `sensitive` parameters, under `lib/src/` of `nidana_dart_contracts` (topic-model@v1); `Bus` with `publish` and `publisher`, `Publisher.publish`, and `TestBus extends Bus`, declared under `lib/src/` of `nidana_dart_runtime`, `TestBus` exported by `testing.dart` (bus-api@v2, bus-testing@v2); `Topology` and `TopologyBuilder` with `write` and `reduceInto` (topology-dsl@v2); each beside a declaration of the same name in another package. They carry no behavior and nothing runs them. ADR-001 item 11 binds a stand-in of a contract's behavior to that contract's conformance suite; the plugin runs nothing of these contracts, so it has no suite to bind, and the real declarations reach the plugin through the `analyze-*` replay at nidana.tooling.lint.4 (D5).
 
 `packages/nidana_dart_lint/test/package_properties_test.dart`, written by nidana.tooling.lint.1 and run by every later gate, checks ADR-002 items 3 and 7 and nidana-checks@v1's Packages line: the dependencies are exactly `analysis_server_plugin` and `analyzer`, each pinned exactly to the version ADR-002 item 4's table lists, `0.3.18` and `13.3.0` (item 7); the dev dependencies are exactly `analyzer_testing` and `test`; no library under `lib/` imports a nidana package. It finds the workspace root as the nearest ancestor of the working directory that holds `hsdd/contract/` (nidana.model D6's rule).
 
@@ -135,7 +135,7 @@ Alternative considered: `test_reflective_loader`, which `analysis_server_plugin`
 
 ### D5: Only the replaying phase waits on the producers
 
-nidana.tooling.lint.1 to nidana.tooling.lint.3 recognize the consumed contracts' declarations by name, test over D4's stand-ins and replay no `analyze-*` case (D3), so none of them waits on a producer's phase. nidana.tooling.lint.4 replays the cases, whose `files/` import `nidana_dart_contracts`, `nidana_dart_runtime` and `package:nidana_dart_runtime/testing.dart`, so it waits on nidana.model.5 (topic-model@v1 Delivery: a consumer of topology-dsl@v1 as well waits on nidana.model.5, and the cases use `Topology` and `TopologyBuilder`) and on nidana.runtime.1 (bus-api@v1 and bus-testing@v1 Delivery). No `analyze-*` case imports `nidana_dart_navigation` or `nidana_dart_runtime_flutter`, so no phase waits on nidana.navigation or nidana.flutter.
+nidana.tooling.lint.1 to nidana.tooling.lint.3 recognize the consumed contracts' declarations by name, test over D4's stand-ins and replay no `analyze-*` case (D3), so none of them waits on a producer's phase. nidana.tooling.lint.4 replays the cases, whose `files/` import `nidana_dart_contracts`, `nidana_dart_runtime` and `package:nidana_dart_runtime/testing.dart`, so it waits on nidana.model.5 (topic-model@v1 Delivery: a consumer of topology-dsl@v2 as well waits on nidana.model.5, and the cases use `Topology` and `TopologyBuilder`) and on nidana.runtime.1 (bus-api@v2 and bus-testing@v2 Delivery). No `analyze-*` case imports `nidana_dart_navigation` or `nidana_dart_runtime_flutter`, so no phase waits on nidana.navigation or nidana.flutter.
 
 The Development flow above states the same per phase: the node-level start condition it first stated, on nidana.model's and nidana.runtime's first phases, holds for nidana.tooling.lint.4 alone, on the phases the Delivery paragraphs name. Root D10's reason, that Dart compiles only against real declarations, applies to the recorded invocations and not to the plugin, which imports no nidana package (ADR-002 item 7).
 
@@ -196,8 +196,8 @@ flowchart TD
     P3 --> P4
     M1 -. "structure set" .-> P1
     M7 -. "cli set" .-> P1
-    M5 -. "topic-model@v1, topology-dsl@v1" .-> P4
-    R1 -. "bus-api@v1, bus-testing@v1" .-> P4
+    M5 -. "topic-model@v1, topology-dsl@v2" .-> P4
+    R1 -. "bus-api@v2, bus-testing@v2" .-> P4
 
     style P1 fill:#e0e7ff,stroke:#4f46e5,color:#1e293b
     style P2 fill:#dbeafe,stroke:#2563eb,color:#1e293b
@@ -211,7 +211,7 @@ flowchart TD
 
 ### nidana.tooling.lint.1: Plugin skeleton
 
-- **Consumes:** [topic-model@v1, bus-api@v1, bus-testing@v1]
+- **Consumes:** [topic-model@v1, bus-api@v2, bus-testing@v2]
 - **Produces:** [nidana-checks@v1]
 - **Governed by:** [ADR-001, ADR-002]
 - **Scope:**
@@ -230,12 +230,12 @@ flowchart TD
 
 ### nidana.tooling.lint.2: Raw-string and accessor decisions
 
-- **Consumes:** [topic-model@v1, bus-api@v1, bus-testing@v1]
+- **Consumes:** [topic-model@v1, bus-api@v2, bus-testing@v2]
 - **Produces:** [nidana-checks@v1]
 - **Governed by:** [ADR-001, ADR-002]
 - **Scope:**
   - The decision of `raw_string_topic` (Spec §4.2, §4.4), a pure function of an instance creation to its findings (D2): a topic creation whose `name` argument is a string literal and which is not the whole initializer of a static field, found at the literal, `{0}` being the literal as written, quotes included (G4). A static field is any field declared `static`, in a class, mixin, enum, extension or extension type, whether `const`, `final`, `late` or none of these, as G4 states (nidana-checks@v1 Versioning, amendment (c)). A name that is not a string literal, a `TopicRef` construction, and a creation of a same-named class of another package give no finding.
-  - The decision of `global_bus_accessor` (Spec §3.1, Guide C.5), a pure function of a top-level variable, field, function or method declaration to its findings: each top-level variable, static field, top-level getter or static getter whose type, declared or inferred, is `Bus` of `nidana_dart_runtime` or a subclass, nullable or not, `late` or not, found at its name, `{0}` being the name (G5; bus-api@v1 For static analysis). An instance field or getter, a local variable, a parameter, a function that returns a new bus, and a `Bus` of another package give none.
+  - The decision of `global_bus_accessor` (Spec §3.1, Guide C.5), a pure function of a top-level variable, field, function or method declaration to its findings: each top-level variable, static field, top-level getter or static getter whose type, declared or inferred, is `Bus` of `nidana_dart_runtime` or a subclass, nullable or not, `late` or not, found at its name, `{0}` being the name (G5; bus-api@v2 For static analysis). An instance field or getter, a local variable, a parameter, a function that returns a new bus, and a `Bus` of another package give none.
   - Each decision and its tests in files of its own (D2). The tests resolve in-memory libraries over nidana.tooling.lint.1's stand-ins and call the decisions (D4); they cover every reported and accepted form of the `analyze-raw-string-topic` and `analyze-global-bus-accessor` cases, with the recorded sites and arguments, and the `test/` files of `analyze-clean` that use these forms.
   - Reports nothing: the visitors are nidana.tooling.lint.4's, and G4 and G5 replay from there (D3).
 - **Size estimate:** ~4 files (~380 lines), <= 6 plan tasks
@@ -246,7 +246,7 @@ flowchart TD
 
 ### nidana.tooling.lint.3: Type-argument and sensitivity decisions
 
-- **Consumes:** [topic-model@v1, topology-dsl@v1, bus-api@v1]
+- **Consumes:** [topic-model@v1, topology-dsl@v2, bus-api@v2]
 - **Produces:** [nidana-checks@v1]
 - **Governed by:** [ADR-001, ADR-002]
 - **Scope:**
@@ -262,7 +262,7 @@ flowchart TD
 
 ### nidana.tooling.lint.4: Reporting and the plugin's whole share
 
-- **Consumes:** [topic-model@v1, topology-dsl@v1, bus-api@v1, bus-testing@v1]
+- **Consumes:** [topic-model@v1, topology-dsl@v2, bus-api@v2, bus-testing@v2]
 - **Produces:** [nidana-checks@v1]
 - **Governed by:** [ADR-001, ADR-002]
 - **Scope:**
@@ -276,7 +276,7 @@ flowchart TD
 - **Verification:** the eight `analyze-*` cases pass, `analyze-human` word for word with every correction message, `analyze-configuration` with its disabled, lowered, raised and suppressed codes, and `analyze-clean` with the violations in its `test/` unreported; the root analyze with `--fatal-infos` stays clean over every member with the rules reporting; an IDE opened on `analyze-human`'s `files/` shows the same four diagnostics.
 - **Review tier:** full-review
 - **Collides with:** [nidana.tooling.lint.1]. Both edit `packages/nidana_dart_lint/lib/src/rules.dart`.
-- **Dependencies:** nidana.tooling.lint.2 and nidana.tooling.lint.3, whose decisions the visitors call; nidana.model.5 and nidana.runtime.1, which land the declarations of topic-model@v1, topology-dsl@v1, bus-api@v1 and bus-testing@v1 that the `analyze-*` cases resolve (D5).
+- **Dependencies:** nidana.tooling.lint.2 and nidana.tooling.lint.3, whose decisions the visitors call; nidana.model.5 and nidana.runtime.1, which land the declarations of topic-model@v1, topology-dsl@v2, bus-api@v2 and bus-testing@v2 that the `analyze-*` cases resolve (D5).
 
 ## Governance updates (pending reconcile)
 

@@ -254,12 +254,12 @@ flowchart TD
     M13 -. "topology-ir@v1 decoder" .-> P5
     M14 -. "topology-ir@v1 MermaidRenderer" .-> P5
     M11 -. "topology-ir@v1 ShellClaim" .-> P8
-    R1 -. "bus-api@v1" .-> P8
+    R1 -. "bus-api@v2" .-> P8
     N1 -. "navigation-api@v1" .-> P8
-    F1 -. "flutter-binding@v1" .-> P8
+    F1 -. "flutter-binding@v2" .-> P8
     M12 -. "topology-ir@v1 analyses" .-> P9
     M13 -. "topology-ir@v1 decoder" .-> P9
-    M11 -. "topology-dsl@v1 buildDefinition()" .-> P10
+    M11 -. "topology-dsl@v2 buildDefinition()" .-> P10
     M13 -. "topology-ir@v1 JsonRenderer" .-> P10
 
     style P1 fill:#e0e7ff,stroke:#4f46e5,color:#1e293b
@@ -372,19 +372,19 @@ Purple: pure phases; blue: effect phases; green: the composing phase; amber: oth
 
 ### nidana.tooling.codegen.8: Recognizer: claim sites
 
-- **Consumes:** [topic-model@v1, topology-ir@v1, bus-api@v1, navigation-api@v1, flutter-binding@v1]
+- **Consumes:** [topic-model@v1, topology-ir@v1, bus-api@v2, navigation-api@v1, flutter-binding@v2]
 - **Produces:** [nidana-checks@v1]
 - **Governed by:** [ADR-001, ADR-002]
-- **Scope:** extends `lib/src/recognizer.dart` with nidana-checks@v1's four claim sites: an invocation of `publisher` on `Bus` of `nidana_dart_runtime` or a subclass (bus-api@v1 For static analysis), creations of `PageScope` and `FlutterNavigationExecutor` of `nidana_dart_runtime_flutter`, and creations of `NavigationExecutor` of `nidana_dart_navigation`. For each: the write-set rule (a set literal whose every element names a top-level variable or static field initialized by a `StateTopic` creation with a string-literal name without interpolation, in any library the package resolves), the scope rule, the source rule with its defaults (`application`; `navigation`; `flutter-navigation`) and the stand-in that names the site when a source does not resolve; a site with no write set or an empty set literal claims nothing; an unresolved write set, else an unresolved scope, is an unresolved finding at the site; each resolved claim is a `ShellClaim` with its site. Tests by D5: temporary fixture packages that import the real `nidana_dart_runtime`, `nidana_dart_navigation` and `nidana_dart_runtime_flutter` and cover every form the contract lists as resolving or not, and the scan cases' packages in place, whose claims and unresolved sites are those their recorded stdouts imply.
+- **Scope:** extends `lib/src/recognizer.dart` with nidana-checks@v1's four claim sites: an invocation of `publisher` on `Bus` of `nidana_dart_runtime` or a subclass (bus-api@v2 For static analysis), creations of `PageScope` and `FlutterNavigationExecutor` of `nidana_dart_runtime_flutter`, and creations of `NavigationExecutor` of `nidana_dart_navigation`. For each: the write-set rule (a set literal whose every element names a top-level variable or static field initialized by a `StateTopic` creation with a string-literal name without interpolation, in any library the package resolves), the scope rule, the source rule with its defaults (`application`; `navigation`; `flutter-navigation`) and the stand-in that names the site when a source does not resolve; a site with no write set or an empty set literal claims nothing; an unresolved write set, else an unresolved scope, is an unresolved finding at the site; each resolved claim is a `ShellClaim` with its site. Tests by D5: temporary fixture packages that import the real `nidana_dart_runtime`, `nidana_dart_navigation` and `nidana_dart_runtime_flutter` and cover every form the contract lists as resolving or not, and the scan cases' packages in place, whose claims and unresolved sites are those their recorded stdouts imply.
 - **Size estimate:** ~4 files (~400 lines), <= 7 plan tasks
 - **Gate:** node default plus contract replay for nidana-checks: `fvm dart run nidana_contract_check nidana-checks --set structure`
 - **Verification:** for `scan-unresolved-claim`'s package the recognizer reports the seven sites that case's stdout shows, each as a write set or a scope that does not resolve; for `scan-writer-conflict`'s, the two stand-in sources.
 - **Review tier:** full-review
-- **Dependencies:** nidana.tooling.codegen.7 (the recognizer it extends); nidana.model.11 (`ShellClaim`'s constructor orders its writes, topology-ir@v1 Delivery); nidana.runtime.1, nidana.navigation.1 and nidana.flutter.1, which land the declarations the fixtures import (bus-api@v1, navigation-api@v1 and flutter-binding@v1 Delivery; D5 point 3).
+- **Dependencies:** nidana.tooling.codegen.7 (the recognizer it extends); nidana.model.11 (`ShellClaim`'s constructor orders its writes, topology-ir@v1 Delivery); nidana.runtime.1, nidana.navigation.1 and nidana.flutter.1, which land the declarations the fixtures import (bus-api@v2, navigation-api@v1 and flutter-binding@v2 Delivery; D5 point 3).
 
 ### nidana.tooling.codegen.9: Workspace scan
 
-- **Consumes:** [topic-model@v1, topology-ir@v1, bus-api@v1, navigation-api@v1, flutter-binding@v1]
+- **Consumes:** [topic-model@v1, topology-ir@v1, bus-api@v2, navigation-api@v1, flutter-binding@v2]
 - **Produces:** [nidana-checks@v1]
 - **Governed by:** [ADR-001, ADR-002]
 - **Scope:** `lib/src/scan/`: the analysis graph (the graph document's topologies, none without `--graph`, never its claims; every resolved claim) and, as a pure function of the findings of `analyzeTopologyGraph` over it, of `findTopicNameCollisions` over the declarations, of the claims' sites and of the unresolved findings, the report nidana-checks@v1's Output states: error lines first (the collisions by name, then the graph's findings in that function's order) with the table's codes and messages; writers and owners rendered `topology:{id}`, `{source} at {site}`, or the stand-in source alone, claims with equal sources matched to their sites in site order; then the warning lines by site path, line and column; each field's `\`, `|` and line-break escapes; exit 1 with an error line, else 0. `bin/scan.dart`, the shell: exit 2 for a `<package>` that holds no `pubspec.yaml` and for a graph that cannot be read, is not JSON or does not decode, printing nothing on stdout; otherwise the report on stdout; no file written. Tests: each message form with its singular and list cases, the order and the escapes; runs over every `scan-*` case's `files/`, with that directory as the working directory the scan is given, reproduce its stdout and exit code; a scan writes no file (G9); two runs over one tree under different environment variables and times print the same report (G17).
@@ -396,7 +396,7 @@ Purple: pure phases; blue: effect phases; green: the composing phase; amber: oth
 
 ### nidana.tooling.codegen.10: Catalog loading and runners
 
-- **Consumes:** [topic-model@v1, topology-dsl@v1, topology-ir@v1]
+- **Consumes:** [topic-model@v1, topology-dsl@v2, topology-ir@v1]
 - **Produces:** [topic-codegen@v1]
 - **Governed by:** [ADR-001, ADR-002]
 - **Scope:** `lib/src/catalog/`, D1 points 1, 3 and 4 with D4: per package, whether `tool/nidana_catalog.dart` exists, and whether its transitive imports reach `dart:ui`, read through nidana.tooling.codegen.7's analysis context; the entry point's text, a pure function (it imports the registration library by relative path, records `buildDefinition()` of every value `catalogTopologies()` returns, and writes `const JsonRenderer().render(TopologyGraph(topologies: definitions))` to the path its `OUT` define names); the runner, a sealed choice between `dart run -DOUT=...` with the `dart` running `catalog` and `flutter test --no-pub --dart-define=OUT=...` with the `flutter` of that SDK, located as ADR-001 item 9 locates it, each command line a pure function; the run from the package root with the entry at `{package}/.dart_tool/nidana_dart_codegen/catalog_entry.dart`, removed afterwards; the reading of the outcome (exit 0 under `dart run`, 0 or 79 under the tester, and a document written) and of the document with `decodeTopologyGraph`; a sealed load result: the definitions, none for a package without the file, or a failure carrying its cause. Tests: the entry text, the command lines and the outcome table as pure cases; temporary packages resolved alone (D4 point 3) for a pure registration under `dart run`, a registration reaching `dart:ui` under the Flutter tester, a Flutter package without `flutter_test` (refused, a failure), a registration that does not compile, one without `catalogTopologies`, one that throws, and a package without the file (no runner, nothing written). Fixture topologies name public transformers (the note on function references above).
@@ -404,11 +404,11 @@ Purple: pure phases; blue: effect phases; green: the composing phase; amber: oth
 - **Gate:** node default plus contract replay for topic-codegen: `fvm dart run nidana_contract_check topic-codegen --guarantee G1` (this lane's closure replays nothing more: G20 has no case, and of G21's two `catalog` cases `catalog-not-a-package` needs the package check of nidana.tooling.codegen.11, so both run in that phase's unrestricted replay)
 - **Verification:** a registration reaching `dart:ui` records, under the Flutter tester, the definitions a pure registration of the same topologies records under `dart run` (`catalog-loading` T4), and a throwing registration leaves no entry point behind.
 - **Review tier:** full-review
-- **Dependencies:** nidana.tooling.codegen.7 (the analysis context, for the `dart:ui` closure); nidana.model.11 (`buildDefinition()` and `TopologyGraph`, topology-dsl@v1 and topology-ir@v1 Delivery) and nidana.model.13 (`JsonRenderer` and `decodeTopologyGraph`).
+- **Dependencies:** nidana.tooling.codegen.7 (the analysis context, for the `dart:ui` closure); nidana.model.11 (`buildDefinition()` and `TopologyGraph`, topology-dsl@v2 and topology-ir@v1 Delivery) and nidana.model.13 (`JsonRenderer` and `decodeTopologyGraph`).
 
 ### nidana.tooling.codegen.11: The catalog command
 
-- **Consumes:** [topic-model@v1, topology-dsl@v1, topology-ir@v1, bus-api@v1, navigation-api@v1, flutter-binding@v1]
+- **Consumes:** [topic-model@v1, topology-dsl@v2, topology-ir@v1, bus-api@v2, navigation-api@v1, flutter-binding@v2]
 - **Produces:** [topic-codegen@v1, nidana-checks@v1]
 - **Governed by:** [ADR-001, ADR-002]
 - **Scope:** `bin/catalog.dart` and the rest of `lib/src/catalog/`, the imperative shell: exit 2 for a `<package>` that does not exist or holds no `pubspec.yaml` and for an `<output>` that is a file or cannot be written; for each package, nidana.tooling.codegen.10's load and the recognizer's claims (nidana.tooling.codegen.8); exit 1, each cause on stderr and nothing written, for a load failure and for two unequal definitions sharing a `topologyId` (`TopologyGraph`'s `ArgumentError`, topology-ir@v1 G11); otherwise `<output>/topology-graph.json` as `const JsonRenderer().render(TopologyGraph(topologies: definitions, claims: claims))` and one warning on stderr per unresolved claim site, exit 0 (topic-codegen@v1 G20, G21). Tests: the document over two temporary packages (D4 point 3) decodes, validates against `hsdd/contract/schema/topology-ir.schema.json` through `package:json_schema` (D3), and holds the expected definitions and claims; two packages registering unequal topologies with one id exit 1 and write nothing; each usage error exits 2 and writes nothing; and nidana-checks@v1 G18: for each `scan-*` case with packages, `catalog` run with that case's `files/` as its working directory writes a document whose claims are the claims the recognizer resolves there, and warns about exactly the sites the scan, run there, reports `unresolved_claim`. The gate replays topic-codegen@v1 unrestricted, its last producing phase, and nidana-checks@v1 over this node's whole share.

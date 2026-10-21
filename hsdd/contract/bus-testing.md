@@ -1,14 +1,14 @@
 ---
 id: bus-testing
 version: v2
-status: draft
+status: stable
 kind: api
 owner: nidana.runtime
 compatibility: versioned
 produced_by: [nidana.runtime.1, nidana.runtime.5, nidana.runtime.7, nidana.runtime.13, nidana.runtime.14]
 consumers: [nidana.navigation.6, nidana.flutter.1, nidana.flutter.6, nidana.flutter.7, nidana.tooling.lint.1, nidana.tooling.lint.2, nidana.tooling.lint.4, nidana.integration.3, nidana.integration.4, nidana.integration.5, nidana.integration.6, nidana.integration.7, nidana.integration.8]
 external_consumers: [app topology and service tests, app widget tests]
-phase_ids: provisional
+phase_ids: final
 ---
 
 # Contract: bus-testing
