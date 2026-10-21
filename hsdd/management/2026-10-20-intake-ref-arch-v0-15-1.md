@@ -171,8 +171,14 @@ In order. Each is one skill invocation on one ADR, one contract or one node, dis
 
 ## Produced
 
-none
+Appended by hand for the bumps and ADRs, as the record format allows. The phases each node's re-plan rewrote or appended name this record in their Scope; hsdd-checkpoint appends them here as they ship, and closes the record.
+
+- **Contracts bumped:** topology-dsl@v2 (write chains, S59), bus-api@v2 (startup barrier, scope timing, subscriber errors and off-type values, re-activation, S60), bus-testing@v2 (bootstrap recorders and probes, subscriber errors, scope timing, S61), flutter-binding@v2 (`NidanaModule`, scope timing, bootstrap first values, re-activation, S63). Each carries a migration note in `## Versioning`; all four are `stable`, `phase_ids: final` since S94.
+- **Contracts touched within their version:** navigation-api@v1 (S62, S70), topic-model@v1 (S64), topology-ir@v1 (S66), topic-codegen@v1 (S72), nidana-checks@v1 (S73).
+- **ADRs amended in place:** ADR-003 (S58: subscriber errors to the listen zone, first delivery under the barrier; S76: citations), ADR-001 (S74: citations), ADR-002 (S75: citations; the runtime-split signal is not met).
+- **Nodes touched:** all nine. Re-planned in append mode: nidana.runtime (S79: phases .15 and .16 appended), nidana.navigation (S83, inserted under the insert rule), nidana.flutter (S86: phase .8 appended), nidana.integration (S92). Plan text swept: nidana.model, nidana.tooling.codegen, nidana.tooling.lint (S94).
 
 ## Change log
 
 - 2026-10-20: created, routed cross-node
+- 2026-10-21: handoffs H1 to H23 ran as steps S58 to S94, with S68, S81, S83 and S84 inserted by the orchestrator (DEC-822, DEC-917, DEC-775); H7g (S71) changed nothing. Produced filled for the bumps and ADRs; the record stays open until its phases ship.

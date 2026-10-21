@@ -288,6 +288,7 @@ orchestrator and recorded with `would_have_asked: true`.
 | S92 | 9 | hsdd-phase-plan | H21: nidana.integration re-plan (append mode; .3 to .7 rewritten, scope_timing_test and both module bindings in .7; D1, D2, D9 restated, D10 new; no phase added) | done | bc1cef4 |
 | S93 | 9 | hsdd-spec | H22: root touch (Purpose and hard constraint on v0.15.1, Sources inventory, D1, D4, D8, D9, D10 restated, embedded blocks, DAG, edge table, matrix, critical path 23 phases; conventions.md) | done | 4a7b9d3 |
 | S94 | 9 | hsdd-reconcile | H23: final reconcile (integration drained; model, codegen, lint plan text swept; runtime D8 clause; bus-api@v2 Delivery adds navigation.6; four v2 contracts flipped to stable and final; gate --final 0 errors) | done | 8dd9561 |
+| S95 | 9 | none (orchestrator) | intake record Produced; REPORT-v0_15_1.md | done | this report's commit |
 
 ## Change log
 
@@ -487,3 +488,8 @@ orchestrator and recorded with `would_have_asked: true`.
   stage functions built once per call, for bus-api@v2 G23) changes what nidana.navigation.3 implements
   and .3 and .6 replay, so the intake's insert rule applies: an hsdd-phase-plan step on nidana.navigation
   and its reconcile follow H13, and H23 skips that node (DEC in S62.orchestrator.json).
+- 2026-10-21 (UTC), S94 and S95: the final reconcile confirmed the nodes not re-planned (DEC-1064, affirmed
+  by DEC-1070) and flipped topology-dsl@v2, bus-api@v2, bus-testing@v2 and flutter-binding@v2 to stable and
+  final; `gate.mjs --final` reports 0 errors and 44 historical warnings. S95 filled the intake record's
+  Produced ledger and wrote `docs/auto-run/REPORT-v0_15_1.md`. Stage 9 ends here; the record stays open
+  until its phases ship.
