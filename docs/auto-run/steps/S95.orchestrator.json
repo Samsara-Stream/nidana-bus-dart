@@ -1,0 +1,24 @@
+{
+  "step_ref": "S95",
+  "skill": "none",
+  "target": "intake record Produced and REPORT-v0_15_1.md",
+  "status": "completed",
+  "decisions": [
+    {
+      "at": "2026-10-21T00:28:59Z",
+      "artifact": "hsdd/management/2026-10-20-intake-ref-arch-v0-15-1.md",
+      "question": "The intake record's Produced ledger is empty. HSDD has hsdd-checkpoint append the phases whose Scope cites the record, and lets grafts and bumps be appended by hand. What does the orchestrator write, and does the record close?",
+      "options": [
+        { "label": "Append the bumps, touched contracts, ADRs and nodes by hand; leave phases to the checkpoint; keep the record open", "consequence": "The ledger shows the unit of work now; closure follows HSDD's rule (every listed phase has a verification doc), which no phase meets yet." },
+        { "label": "Also list every rewritten and appended phase now", "consequence": "A fuller ledger today, but it pre-empts the checkpoint's job and would list phases the record cannot close on until they ship." }
+      ],
+      "chosen": "Append the bumps, touched contracts, ADRs and nodes by hand; leave phases to the checkpoint; keep the record open",
+      "why": "The record format says hsdd-checkpoint appends phases from Scope citations and that grafts and bumps may be appended by hand; the rewritten and appended phases already name the record in their Scope, so the checkpoint will find them.",
+      "evidence": [".agents/skills/hsdd-intake/SKILL.md (The intake record)", "~/git/hsdd/spec/hsdd-spec-v0_10.md §11.5"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "would_upstream": false
+    }
+  ]
+}
