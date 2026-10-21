@@ -90,3 +90,4 @@
 {"step_ref":"S89","skill":"hsdd-spec","target":"nidana.tooling.lint touch (H18)","started":"2026-10-20T23:17:40Z","finished":"2026-10-20T23:25:34Z","commit":"15ad352","dispatches":1}
 {"step_ref":"S90","skill":"hsdd-spec","target":"nidana.tooling touch (H19)","started":"2026-10-20T23:25:55Z","finished":"2026-10-20T23:33:08Z","commit":"6f54427","dispatches":1}
 {"step_ref":"S91","skill":"hsdd-spec","target":"nidana.integration touch (H20)","started":"2026-10-20T23:33:29Z","finished":"2026-10-20T23:41:40Z","commit":"9357988","dispatches":1}
+{"step_ref":"S92","skill":"hsdd-phase-plan","target":"nidana.integration re-plan, append mode (H21)","started":"2026-10-20T23:42:00Z","finished":"2026-10-20T23:59:55Z","commit":"bc1cef4","dispatches":1}

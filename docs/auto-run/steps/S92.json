@@ -1,0 +1,487 @@
+{
+  "step_ref": "S92",
+  "skill": "hsdd-phase-plan",
+  "target": "nidana.integration (hsdd/spec/nidana.integration.md): Phase Plan, plan-written decisions D1 to D9, pending section; append mode, handoff H21 of hsdd/management/2026-10-20-intake-ref-arch-v0-15-1.md",
+  "status": "completed",
+  "stop": null,
+  "artifacts": [
+    "hsdd/spec/nidana.integration.md",
+    "docs/auto-run/steps/S92.json"
+  ],
+  "decisions": [
+    {
+      "at": "2026-10-20T23:51:07Z",
+      "artifact": "hsdd/spec/nidana.integration.md",
+      "question": "Which phases are rewritten in place and name the intake record in their Scope, and which only move citations to the current contract versions?",
+      "options": [
+        {
+          "label": "Rewrite .3 to .7; move citations only in .1, .2 and .8",
+          "consequence": "Five phases name the record, so hsdd-checkpoint lists exactly the phases whose work changed under Produced; .1, .2 and .8 change only Consumes, Dependencies or nothing but a version, as the house rule at S83 and S86 read it."
+        },
+        {
+          "label": "Name the record in every phase whose text moved",
+          "consequence": "Eight phases name the record, including three whose deliverable is unchanged, so the record's Produced list would claim work the intake did not cause."
+        }
+      ],
+      "chosen": "Rewrite .3 to .7; move citations only in .1, .2 and .8",
+      "why": "L1 reaches .3 (hydration after start(), auth-core connected at start()) and .4 (the connection order of the bootstrap); L2 reaches .5, .6 and .7 (start() before the pump, the rejection); L7 reaches .5, .6 and .7 (the wrapper binding). .1's and .2's deliverables and .8's checks hold unchanged under the v2 contracts: .8 already mounts the payment page after bootstrapApp and start(). Same reading as S83 and S86 (citation moves are not rewrites).",
+      "evidence": [
+        "hsdd/management/2026-10-20-intake-ref-arch-v0-15-1.md L1, L2, L7, H21",
+        "docs/auto-run/steps/S86.json (decision on .2 and .3)",
+        "docs/auto-run/steps/S91.json notes"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T23:51:10Z",
+      "artifact": "hsdd/spec/nidana.integration.md",
+      "question": "Where does the code of the NidanaModule binding land, given that the shell (.6) constructs the executor's route builder and the module observer, the pages and the route builder are .5's files, and .7 is tests only?",
+      "options": [
+        {
+          "label": "Page wrapper parameter in .5, binding switch and wrapper in .6, both bindings run in .7",
+          "consequence": "No phase edits another's file (D4 holds); .5 grows by a parameter and a small test (about 410 lines), .6 by an enum, a switch and the wrapper (about 410 lines), .7 stays tests only."
+        },
+        {
+          "label": "Everything in .7",
+          "consequence": "The wrapper and switch would be written by .7 into .5's route builder and .6's shell, making .7 collide with both and breaking D4's no-shared-file layout."
+        },
+        {
+          "label": ".5 owns the wrapper placement and a binding enum in the route builder",
+          "consequence": ".5 would decide the module's pages and grow to about 440 lines, and .6 would still need the switch for the observer."
+        },
+        {
+          "label": "NidanaModule inside each checkout page's own build",
+          "consequence": "The pages would hold the module under either binding, so the observer run would also count the wrappers' references; .5's page tests would need a started bus with a module."
+        }
+      ],
+      "chosen": "Page wrapper parameter in .5, binding switch and wrapper in .6, both bindings run in .7",
+      "why": "The route builder (.5) owns the entry-to-page mapping and the shell (.6) owns composition choices, so a hook in one and the switch in the other keeps each decision where its file is and keeps D4's rule that no two phases edit one file. Close call against .5 owning the placement; the signal that would have changed my mind: .6 already at its window, which it is not (about 380 lines before).",
+      "evidence": [
+        "hsdd/contract/flutter-binding.md Refinement 8, G20, Not here, Delivery",
+        "Spec §7.3 Flutter row",
+        "hsdd/spec/nidana.integration.md D4",
+        "docs/auto-run/steps/S91.json notes (NIDANAMODULE IN THE EXAMPLE)"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T23:51:10Z",
+      "artifact": "hsdd/spec/nidana.integration.md",
+      "question": "Where does the example place NidanaModule: around a shell route that hosts the checkout subtree, or in each checkout page?",
+      "options": [
+        {
+          "label": "In each checkout page, through the route builder",
+          "consequence": "Works with the example's single root Navigator driven by FlutterNavigationExecutor; three wrappers declare one scope (bus-api@v2 G27, flutter-binding@v2 G20); release follows each page's exit transition."
+        },
+        {
+          "label": "Around a shell route over a nested Navigator",
+          "consequence": "Needs a nested Navigator for the checkout subtree, which FlutterNavigationExecutor does not drive (one executor per coordination domain, over the root Navigator; flutter-binding@v2 Not here)."
+        }
+      ],
+      "chosen": "In each checkout page, through the route builder",
+      "why": "Spec §7.3 names both placements; the example has no shell route, and flutter-binding@v2 puts an executor per nested Navigator out of v2, so the per-page placement is the only one the example's navigation supports.",
+      "evidence": [
+        "Spec §7.3 Flutter row",
+        "hsdd/contract/flutter-binding.md Refinement 8, Not here, G20",
+        "docs/auto-run/experiments/flutter-binding-v0151/ (N1 to N5)"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T23:51:10Z",
+      "artifact": "hsdd/spec/nidana.integration.md",
+      "question": "How does the example select between the two module bindings?",
+      "options": [
+        {
+          "label": "A ModuleBinding enum argument on bootstrapApp, observer by default",
+          "consequence": "One shell, one example app; main runs the observer; tests run either; a closed ADT the switch matches exhaustively."
+        },
+        {
+          "label": "Both bindings at once",
+          "consequence": "Wrappers and observer share one scope and add references, so the module's lifetime would be the union of both and neither binding's own lifetime would be tested."
+        },
+        {
+          "label": "Two shells",
+          "consequence": "Duplicates the bootstrap composition for one difference."
+        }
+      ],
+      "chosen": "A ModuleBinding enum argument on bootstrapApp, observer by default",
+      "why": "The owner's preference for ADTs and composition; the slice needs each binding's lifetime on its own, which only an exclusive choice gives. No evidence beyond the contracts was needed.",
+      "evidence": [
+        "hsdd/contract/flutter-binding.md G10, G20 (shared scope when both declare one module)"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T23:53:24Z",
+      "artifact": "hsdd/spec/nidana.integration.md",
+      "question": "Which phase owns the new scope-timing slice (start() before the UI; a MODULE or PAGE binding before start() rejected with a StateError and binding nothing)?",
+      "options": [
+        {
+          "label": ".7 for the rejections, .6 for main's order",
+          "consequence": "The slice sits with the module and page scopes it rejects; .7 grows to about 380 lines and 8 tasks; .6's main already follows the order."
+        },
+        {
+          "label": "All in .6",
+          "consequence": ".6 would come to about 490 lines, past the review window."
+        },
+        {
+          "label": "A new appended phase",
+          "consequence": "About 130 lines of tests, below the sizing floor and a merge candidate with .7 (same tier, same contracts, serial)."
+        },
+        {
+          "label": "Page rejection in .5, module rejection in .7",
+          "consequence": ".5 is a spot-check phase of thin widgets already at about 410 lines; the slice would be split across two phases and two tiers."
+        }
+      ],
+      "chosen": ".7 for the rejections, .6 for main's order",
+      "why": "The record allows appending only for work no existing phase owns as now specified; .7 owns module and page scope end to end, and it has room in its window. The order half is already .6's main (bootstrapApp, start(), hydrate(), runApp).",
+      "evidence": [
+        "Spec §7.2 'Scope timing'",
+        "hsdd/contract/bus-api.md G42",
+        "hsdd/management/2026-10-20-intake-ref-arch-v0-15-1.md rules for phase-plan handoffs",
+        "hsdd-phase-plan sizing floor"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T23:53:24Z",
+      "artifact": "hsdd/spec/nidana.integration.md",
+      "question": "Under the observer binding the example never shows a checkout route to the observer before start() (its Navigator mounts after start(), and until then the router's stack holds home alone). How does .7 exercise the module scope's rejection before start() under that binding?",
+      "options": [
+        {
+          "label": "Acquire the scope the shell's observer declared, before start()",
+          "consequence": "Exercises the call the observer makes at didPush through the example's own declared scope; deterministic; the observer's reporting path stays with flutter-binding@v2's G10 case, which the unrestricted replay runs."
+        },
+        {
+          "label": "Mount a Navigator with a checkout initial route before start()",
+          "consequence": "Needs a test-only executor with another initial route, so it would test the adapter's G10 rather than the example's composition."
+        },
+        {
+          "label": "Exercise only the wrapper and the page",
+          "consequence": "Leaves the observer binding's half of the slice unproven in the example."
+        }
+      ],
+      "chosen": "Acquire the scope the shell's observer declared, before start()",
+      "why": "The Owns slice names 'a module scope's acquire'; the direct acquire is exactly that, on the example's scope. The signal that would have changed my mind: an example flow that mounts the Navigator before start(), which Spec §7.2 tells the app not to do.",
+      "evidence": [
+        "hsdd/contract/flutter-binding.md G10 (the G10 case at fixture line 1183)",
+        "hsdd/contract/bus-api.md G28, G42",
+        "Spec §7.2"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T23:53:24Z",
+      "artifact": "hsdd/spec/nidana.integration.md",
+      "question": "Under the wrapper binding the release comes at the end of the popped page's exit transition, later than the observer's. Does the example raise its module grace period to cover MaterialPageRoute's transition, or keep the default?",
+      "options": [
+        {
+          "label": "Keep the default grace period, count from the release",
+          "consequence": "Both bindings use bus-api@v2's default (100 ms); .7's pumps count from the pop under the observer and from the transition's end under the wrapper, which is the difference the slice should show."
+        },
+        {
+          "label": "Raise the grace period to cover the transition",
+          "consequence": "Hides the timing difference between the bindings and departs from the default the contract states."
+        }
+      ],
+      "chosen": "Keep the default grace period, count from the release",
+      "why": "flutter-binding@v2 Refinement 3 already says the grace period covers the exit transition for the observer and that a module with a longer transition raises it; the example has no transition-dependent state in the checkout topologies, so the default is safe and the test pins each binding's own release point.",
+      "evidence": [
+        "hsdd/contract/flutter-binding.md Refinements 3 and 8",
+        "docs/auto-run/experiments/flutter-binding-v0151/ N1, N3"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T23:53:24Z",
+      "artifact": "hsdd/spec/nidana.integration.md",
+      "question": "Does .4's bootstrap test check that a service's subscription made during bootstrap is connected by start(), which the restated Owns bootstrap slice names?",
+      "options": [
+        {
+          "label": "Yes: the payment service receives what a payment request after start() causes",
+          "consequence": "About 10 lines; the restated slice's 'service subscriptions ... connected at start() after the topologies' has a test in the VM lane."
+        },
+        {
+          "label": "No: the executor's subscription already shows it",
+          "consequence": "The executor is not a service; the slice's service half would rest on .3's and .6's tests only by accident."
+        }
+      ],
+      "chosen": "Yes: the payment service receives what a payment request after start() causes",
+      "why": "Cheap and direct. The request is published after start() on purpose: a request queued before start() behind a LoggedIn would see the pre-login auth.state, because auth-core's publish during step 3 is reentrant (bus-api@v2 G14, G34), which would test reentrancy rather than the connection.",
+      "evidence": [
+        "hsdd/contract/bus-api.md G14, G34",
+        "hsdd/spec/nidana.integration.md Owns (bootstrap slice)"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T23:54:54Z",
+      "artifact": "hsdd/spec/nidana.integration.md",
+      "question": "Is the module-binding and scope-timing placement recorded as a new plan decision, or folded into D1, D4 and D5?",
+      "options": [
+        {
+          "label": "New D10, with D1 restated and D4 and D5 checked to point to it",
+          "consequence": "One place states the binding choice, the file split, the release-timing difference and the alternatives; D1's coverage sentence names it."
+        },
+        {
+          "label": "Fold into D1, D4 and D5",
+          "consequence": "The reasoning would be spread over three decisions written for other questions."
+        }
+      ],
+      "chosen": "New D10, with D1 restated and D4 and D5 checked to point to it",
+      "why": "Same shape as S86's D12 for the producer side. No evidence needed.",
+      "evidence": [
+        "docs/auto-run/steps/S86.json (D12 precedent)"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T23:54:54Z",
+      "artifact": "hsdd/spec/nidana.integration.md",
+      "question": "Which plan-written decisions D1 to D9 are restated and which are only checked?",
+      "options": [
+        {
+          "label": "Restated D1, D2, D9; checked D3 to D8",
+          "consequence": "D1's coverage sentence was false, D2's schedule named nidana.flutter.5 to .7 and an incomplete closure, D9 had tests mount before start(); the others hold, with citations moved and a dated Checked paragraph quoting the first text."
+        },
+        {
+          "label": "Restate every decision",
+          "consequence": "Rewrites six decisions whose content still holds, obscuring what the intake changed."
+        }
+      ],
+      "chosen": "Restated D1, D2, D9; checked D3 to D8",
+      "why": "Each restatement corresponds to a contradicted or understated line S91 listed; every remaining v1 citation is inside a Restated or Checked paragraph quoting the first text (house rule).",
+      "evidence": [
+        "docs/auto-run/steps/S91.json notes",
+        "hsdd/contract/bus-testing.md How a test uses it",
+        "hsdd/contract/flutter-binding.md Delivery, How an app uses it"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T23:54:54Z",
+      "artifact": "hsdd/spec/nidana.integration.md",
+      "question": "Where does the cold-start deep link under the wrapper binding get checked (flutter-binding@v2 G16 states the module clause for the observer only)?",
+      "options": [
+        {
+          "label": "In .7's module scenario, per binding",
+          "consequence": ".6 stays at about 410 lines with its deep-link test under the default binding; .7 checks the module acquired by the first frame under each binding."
+        },
+        {
+          "label": "In .6's deep-link test, run under both bindings",
+          "consequence": ".6 grows past 420 lines for a check that belongs to the module slice."
+        }
+      ],
+      "chosen": "In .7's module scenario, per binding",
+      "why": "Keeps .6 within the window and puts every binding-dependent module check in the phase that runs both bindings.",
+      "evidence": [
+        "hsdd/contract/flutter-binding.md G16, G20"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-20T23:54:54Z",
+      "artifact": "hsdd/spec/nidana.integration.md",
+      "question": "D5's upstream mark on Guide Appendix A's cart hydration (MODULE-owned state hydrated by an event at startup): keep, drop, or restate under v0.15.1?",
+      "options": [
+        {
+          "label": "Keep it; record that Spec §7.2 now supports it",
+          "consequence": "The mark stays would_upstream on the Guide, which v0.15.1 did not change; Spec §7.2's hydration-after-start() sentence and the MODULE rejection before start() make the reading stronger."
+        },
+        {
+          "label": "Drop it",
+          "consequence": "The Guide's Appendix A still hydrates the cart on cart.events at startup, so the defect stands."
+        }
+      ],
+      "chosen": "Keep it; record that Spec §7.2 now supports it",
+      "why": "The mark is the one DEC-586 recorded, carried over, not a new upstream finding; the record's 'Upstream decisions read against v0.15.1' reads it the same way, and nothing in ref/ changed Guide Appendix A.",
+      "evidence": [
+        "Spec §7.2 'Scope timing'",
+        "Guide Appendix A",
+        "hsdd/management/2026-10-20-intake-ref-arch-v0-15-1.md 'Upstream decisions read against v0.15.1'"
+      ],
+      "blast_radius": "upstream",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": true
+    },
+    {
+      "at": "2026-10-20T23:56:04Z",
+      "artifact": "hsdd/spec/nidana.integration.md",
+      "question": "What does the pending section emit for this node, which produces no contract?",
+      "options": [
+        {
+          "label": "A confirm per consumed contract, listing this node's consumer phases; no amend, no note, no request",
+          "consequence": "H23 can count nidana.integration's side of all nine contracts confirmed, the four v2 ones included; every id is already in the contracts' consumers lists."
+        },
+        {
+          "label": "Confirms for the four v2 contracts only",
+          "consequence": "The five v1 contracts, which stay stable and final, would not show this node's re-planned consumer phases confirmed."
+        }
+      ],
+      "chosen": "A confirm per consumed contract, listing this node's consumer phases; no amend, no note, no request",
+      "why": "The step asks for confirms of every consumed contract; amend applies only to contracts a node owns, and this plan settled no consumed-contract gap.",
+      "evidence": [
+        "hsdd-phase-plan Governance Freeze template",
+        "hsdd/contract/*.md consumers frontmatter"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    }
+  ],
+  "experiments": [],
+  "self_check": [
+    {
+      "gate": "Phase 1 defines all shared types and contract-bounded interfaces.",
+      "status": "pass",
+      "note": "Unchanged: .1 lands the domain types, registry and routes; the node produces no contract."
+    },
+    {
+      "gate": "Phases 2..N-1 are maximally independent (parallelizable where possible).",
+      "status": "pass",
+      "note": "Lanes unchanged: VM lane .3, .4 and Flutter lane .5 after .2; .7 and .8 side by side after .6."
+    },
+    {
+      "gate": "Each phase has <= 8 OpenSpec tasks (split if more).",
+      "status": "pass",
+      "note": ".4 <=7, .5 <=8, .6 <=8, .7 <=8; others unchanged."
+    },
+    {
+      "gate": "Adjacent same-tier phases were checked against the sizing floor; every merge candidate kept separate names its reason (tier boundary, parallel lane, isolated risk).",
+      "status": "pass",
+      "note": "D1: no merge candidates (.6 and .7 fail condition iii and together come to about 790 lines). D10: no appended phase, the new work joins .7."
+    },
+    {
+      "gate": "Contract ids are defined before the phase that implements them.",
+      "status": "n/a",
+      "note": "This node produces no contract."
+    },
+    {
+      "gate": "Phase N is testable against contract fixtures even if Phase N-1 is not implemented.",
+      "status": "pass",
+      "note": "Unchanged; every consuming phase waits on the producers' last producing phases (D2) and replays fixtures, never mocks."
+    },
+    {
+      "gate": "No phase couples to another phase's internals.",
+      "status": "pass",
+      "note": ".6 uses .5's public appRouteBuilder(wrapPage:) and .4's bootstrapBus; .7 uses .6's public bootstrapApp and ModuleBinding."
+    },
+    {
+      "gate": "Each phase has a concrete gate, a verification description, and a review tier.",
+      "status": "pass",
+      "note": "Gates unchanged; .4 to .7 Verification lines restated."
+    },
+    {
+      "gate": "The phase dependency graph is included as a Mermaid flowchart and matches the Dependencies fields.",
+      "status": "pass",
+      "note": "No edge changed; edge labels moved to v2 and F7's label names nidana.flutter.8 in its closure; P7's label names scope timing."
+    },
+    {
+      "gate": "Summary table opens the section and matches the phase sections.",
+      "status": "pass",
+      "note": "Sizes .4 ~360, .5 ~410, .6 ~410, .7 ~380 and task counts equal in table and sections."
+    },
+    {
+      "gate": "Field blocks are bullet lists; empty lists say \"none\".",
+      "status": "pass",
+      "note": "Produces: none on every phase."
+    },
+    {
+      "gate": "Every contingent phase names the OQ id it waits on; no contingency without a minted OQ.",
+      "status": "n/a",
+      "note": "No contingent phase."
+    },
+    {
+      "gate": "The plan names the ordering policy it followed, matching the conventions line (or `interfaces-first` when absent, `fp-progression` when only the pre-v0.10 `FP ordering:` bullet is present).",
+      "status": "pass",
+      "note": "fp-progression, line after the summary table."
+    },
+    {
+      "gate": "Every producing phase's Gate includes the contract replay for each contract it produces.",
+      "status": "n/a",
+      "note": "No producing phase."
+    },
+    {
+      "gate": "In append mode: no existing id changed, no shipped phase edited, numbering continued from the highest existing id.",
+      "status": "pass",
+      "note": "No hsdd/verify/, so nothing shipped; ids .1 to .8 kept; no phase removed or appended; no dependency edge changed."
+    },
+    {
+      "gate": "Governance freeze: never edit hsdd/contract/, hsdd/adr/, hsdd/conventions.md or any INDEX.md.",
+      "status": "pass",
+      "note": "git status shows only hsdd/spec/nidana.integration.md under hsdd/."
+    },
+    {
+      "gate": "Sibling isolation: do not read other nodes' phase plans.",
+      "status": "pass",
+      "note": "Producer phase ids come from the contracts' Delivery paragraphs; read only contracts, ADR-001/003 items, the record, Spec/Guide v0.15.1, S91/S86/S83 step reports and the root spec's Development flow line (non-plan text)."
+    },
+    {
+      "gate": "Step Done-when: every S91 slice owned by a phase; D1 to D9 restated or checked; no live superseded citation; ids kept; table, sections and graph agree; gates select existing cases; pending carries confirms; node docs/auto-run/tools/gate.mjs --skill hsdd-phase-plan --node nidana.integration passes.",
+      "status": "pass",
+      "note": "Gate: 0 errors, 0 warnings. Remaining v1 citations of the four superseded contracts sit only in Restated/Checked paragraphs quoting the first text (D1, D2, D5, D8, D9). Header (lines 1 to 36) byte-identical to HEAD. No em-dash, no banned phrase."
+    }
+  ],
+  "notes_for_orchestrator": [
+    "WHAT CHANGED (plan text only, from '## Decisions' on; lines 1 to 36 byte-identical to S91's): D1, D2 and D9 restated with dated 'Restated 2026-10-21' paragraphs; D3 to D8 checked with dated 'Checked 2026-10-21' paragraphs; new D10 'Both module bindings, selected in the shell'. Phases .3 (hydration after start(), auth-core connected at start(); L1), .4 (start()'s connection order, the bootstrap subscriptions, a payment service subscription check; L1), .5 (start() before every page pump, inputs after mount, appRouteBuilder({wrapPage}); L2, L7), .6 (ModuleBinding enum and switch in bootstrapApp, the NidanaModule wrapper around the three checkout pages, main's order named as Spec §7.2's; L1, L2, L7) and .7 (module scenario under both bindings, the wrapper's grace counted from the exit transition's end, cold-start deep link per binding, new test/e2e/scope_timing_test.dart; L2, L7) rewritten in place, each naming the record in its Scope. .1, .2 and .8: citation moves only (Consumes/Dependencies at v2), no record named.",
+    "COVERAGE: scope timing in .6 (main's order) and .7 (rejections: payment page mount, wrapper mount, acquire of the observer's scope, each binding nothing; recovery after start()); NidanaModule binding in .5 (hook), .6 (switch), .7 (end to end). D1's coverage sentence now true.",
+    "SIZES: .4 ~360/<=7, .5 ~410/<=8, .6 ~410/<=8, .7 ~380/<=8 (was ~250/<=6). .5 and .6 sit slightly above the ~400-line PE, as .1 and .2 already did (~420). No phase appended; no dependency edge changed; producer phase ids unchanged (nidana.flutter.7 still the hard edge for .5, its closure holds nidana.flutter.8 per flutter-binding@v2 Delivery).",
+    "GATES: no gate has a --guarantee list; .1 to .5 run --all --set structure; .6 to .8 --all, which now replays bus-api@v2 109 + topology-dsl@v2 live 49, bus-testing@v2 50, flutter-binding@v2 69 + executor 26, navigation-api@v1 42 and 52 (D3 Checked).",
+    "STALE-VERSION WARNINGS FOR H23 --final: the plan quotes superseded versions only inside dated Restated/Checked paragraphs: D1 (flutter-binding@v1, bus-testing@v1), D2 (bus-api@v1), D5 (bus-api@v1), D8 (flutter-binding@v1), D9 (bus-testing@v1, flutter-binding@v1). Historical text per the record's citation rule.",
+    "PENDING SECTION (for H23): a new emission line under the 2026-10-18 stamp with nine confirm entries, consumers for bus-api@v2 [.3 to .8], bus-testing@v2 [.3 to .8], topology-dsl@v2 [.2 to .8], flutter-binding@v2 [.5 to .8], navigation-api@v1 [.1, .2, .4 to .8], topic-model@v1 [.1 to .8], topology-ir@v1 [.2 to .8], topic-codegen@v1 [.1, .6 to .8], nidana-checks@v1 [.1, .6 to .8]. Every id already sits in the contracts' consumers frontmatter. No amend (the node owns no contract), no request, no note.",
+    "FOR H22 (root touch): the root's embedded nidana.integration block and Development flow item 4 stand (nidana.integration.5 follows nidana.flutter.7); the phase count is unchanged; the module slice now runs under both Flutter bindings (D10), which the root's primary flows may mention.",
+    "OBSERVATION, no action taken: under bus-api@v2 G14 and G34 a topology's publish caused by a queued envelope during start() step 3 is reentrant and is delivered from a microtask after start() returns, so a later queued envelope is delivered before it (for example a payment request queued behind a LoggedIn sees the pre-login auth.state). The example's flows avoid it (hydration and logins come after start()); .4's service-subscription check publishes its request after start() for that reason. It is what the contract states; flagged only because an adopter queuing dependent events before start() may not expect it.",
+    "No skill stop, no run-stop candidate, no ADR proposed, no OQ minted, no experiment run: every runtime fact cited comes from docs/auto-run/experiments/flutter-binding-v0151/ (N1, N3, N4) and the flutter-binding@v2 fixture cases G8, G10 and G20 that pin the pre-start rejections with takeException.",
+    "TIMESTAMPS: decision 'at' values are date -u (2026-10-20T23:5xZ); artifact dates use 2026-10-21 per the house convention for this intake.",
+    "DISCLOSURE (isolation): besides the contracts and the record, I read the step reports S91, S86 and S83 (their decision questions and notes) for the house conventions of this intake's re-plans, and S79/S83 orchestrator reviews. I did not open any sibling phase plan. Every producer phase id and guarantee in the plan comes from the contracts' Delivery paragraphs and guarantees; the flutter chain in D2 is flutter-binding@v2's Delivery and bus-api@v2's Delivery."
+  ]
+}
