@@ -61,7 +61,7 @@ Replaces the template's "OpenSpec init" section.
 ## Naming
 - Node id: dotted slug path from root (`nidana.runtime`)
 - Phase id: `{leaf-parent}.{n}` (`nidana.model.1`)
-- Contract: `{slug}@v{n}` (`bus-api@v1`)
+- Contract: `{slug}@v{n}` (`bus-api@v2`)
 - ADR: `ADR-{nnn}`; node-local decision: `D{n}`
 - User story / acceptance: `US-{n}` / `AC-{n}.{y}`
 - Open question: root `OQ{n}`; node `OQ-{prefix}{n}`; child view of a parent
@@ -133,7 +133,7 @@ contract's first producing phase then unblocks every `contract` and
 Development flow, an ADR or a contract says "the producer's first phase",
 read the phase the contract's Delivery paragraph names for a consumer's edge
 (Contracts, below): its first producing phase, or a later type-level phase
-when contracts share one library, as topology-dsl@v1's consumers wait on
+when contracts share one library, as topology-dsl@v2's consumers wait on
 nidana.model.5. `hsdd-phase-plan` reads this line; sizing, tiers, gates and
 the summary table do not depend on it.
 
