@@ -10,6 +10,10 @@ subagents/*.jsonl (one transcript per step subagent), and its .jsonl sibling is
 the orchestrator's transcript. <out-dir> receives index.html, local.html and
 data/. Serve <out-dir> over HTTP to view it locally (the page fetches data/).
 
+The run has segments: stretches of unattended work, each opened by one owner
+message in the same session. Orchestrator events between segments (the owner's
+other work in that session) belong to no step and are left out.
+
 Only the RUN block below is specific to this run.
 """
 import collections
@@ -34,6 +38,18 @@ RUN = {
     "name": "nidana-bus-dart automatic HSDD planning run",
     "branch": "auto/v1-planning",
     "base": "main",
+    # opened_at: the owner message that started the segment. preamble_at: a commit holding the step preamble
+    # that segment's prompts carried. ref_version: the Specification version its citations point to.
+    "segments": [
+        {"id": "plan", "title": "Planning run on v0.15.0", "first": "S00", "last": "S54",
+         "opened_at": "2026-10-17T11:53:19Z", "preamble_at": "6297e3a", "ref_version": "0_15_0",
+         "opened": ["Owner kickoff", "The owner pastes the approved design (docs/auto-run/KICKOFF.md) into a fresh session and sets a /goal condition that keeps it going until the report or a stop exists."],
+         "closed": ["Owner review", "No stop held. The owner reads docs/auto-run/REPORT.md and records one review line per decision in hsdd/judgement/decision-reviews.jsonl."]},
+        {"id": "intake", "title": "The v0.15.1 intake", "first": "S55", "last": "S95",
+         "opened_at": "2026-10-20T16:04:09Z", "preamble_at": "HEAD", "ref_version": "0_15_1",
+         "opened": ["Owner update", "The owner moves ref/nidana-docs to the v0.15.1 documents and asks, in the same session, for every decision and artifact to be brought in line through hsdd-intake, without being asked anything."],
+         "closed": ["Owner review", "No stop was written. The owner reads docs/auto-run/REPORT-v0_15_1.md, which lists the 14 would-have-asked decisions first."]},
+    ],
     "stages": [
         {"id": 0, "title": "Settle the inputs", "steps": ["S00"],
          "summary": "The orchestrator reads the repository, the three v0.15.0 reference documents and the HSDD skills, writes the step preamble every subagent receives, and records how it reads its own stop rules (DEC-001 to DEC-004)."},
@@ -53,6 +69,17 @@ RUN = {
          "summary": "Text the stage-6 steps found stale goes through its owning skill: one ADR, three contracts, six node specs, then one hsdd-reconcile sweep of every phase scope and gate (DEC-603 to DEC-606)."},
         {"id": 8, "title": "Report", "steps": ["S54"],
          "summary": "The orchestrator generates REPORT.md from the ledger and the step reports, commits it, and stops the loop."},
+        # Stage 9 is one stage in the execution plan; the explorer shows its five parts as 9a to 9e.
+        {"id": 9, "label": "9a", "title": "Intake inputs, plan and routing record", "steps": ["S55", "S56", "S57"],
+         "summary": "The orchestrator makes v0.15.1 normative (DEC-685), decides that what used to stop the run is decided and recorded instead (DEC-686), and that a breaking change to a stable contract takes the next version (DEC-688). The gate learns hsdd-intake and guards the owner's uncommitted files by hash. hsdd-intake then writes the routing record: class cross-node, 23 handoffs."},
+        {"id": 10, "label": "9b", "title": "ADR-003 and the five contracts v0.15.1 changes", "steps": ["S%02d" % i for i in range(58, 64)],
+         "summary": "Handoffs H1 to H6, producer-first. ADR-003 sends a subscriber's unhandled errors to the zone it listened from. topology-dsl, bus-api, bus-testing and flutter-binding take v2 for the new startup barrier, scope timing, write chains and re-activation; navigation-api stays v1."},
+        {"id": 11, "label": "9c", "title": "Citation touches on contracts and ADRs", "steps": ["S%02d" % i for i in range(64, 77)],
+         "summary": "Handoffs H7a to H8c move every live citation to v0.15.1 and the current contract versions, keep dated history at its version, and restate sentences that had become false. S65 was resumed once to restate one more sentence; S68 was inserted for TopicRemoved's lineage."},
+        {"id": 12, "label": "9d", "title": "Node specs and re-plans, producer-first", "steps": ["S%02d" % i for i in range(77, 94)],
+         "summary": "Handoffs H9 to H22: each node spec takes its touch, and nidana.runtime, nidana.navigation, nidana.flutter and nidana.integration are re-planned in append mode (unshipped phases rewritten in place, ids kept) with a reconcile after each. nidana.runtime gains .15 and .16, nidana.flutter gains .8."},
+        {"id": 13, "label": "9e", "title": "Final reconcile and report", "steps": ["S94", "S95"],
+         "summary": "H23 sweeps the nodes not re-planned, flips the four v2 contracts to stable and final, and runs gate.mjs --final (0 errors). The orchestrator fills the intake record's Produced section and writes REPORT-v0_15_1.md."},
     ],
     "inserted": {
         "S10": "S09 (bus-api@v1) needed a sealed MultiWriterTopic in topic-model@v1.",
@@ -61,13 +88,20 @@ RUN = {
         "S38": "ADR-002's rule for constraint lower bounds produced constraints that stop resolving once a Flutter member joins.",
         "S46": "topic-codegen@v1 compared the registry after build_runner had rewritten it, so the check could never fail.",
         "S52": "nidana.tooling.codegen's Development flow still started the node on nidana.model's first phase.",
+        "S68": "S67 made bus-api@v2 G9's TopicRemoved carry no lineage, and topology-dsl@v2's Errors and lineage did not list it among the errors that carry none.",
+        "S81": "The nidana.runtime re-plan (S79) left the spec's Development flow, Slices and Contracts rows behind the new start() steps.",
+        "S83": "navigation-api@v1 G13 (S62) changed what nidana.navigation.3 implements, so the intake's insert rule re-plans that node.",
+        "S84": "Every re-plan is followed by a reconcile of the pending section it emits (S83).",
+    },
+    "resumed": {
+        "S65": "S65 reported a sentence that bus-api@v2 G9 makes false (a read stage receives no error from its topic) as outside a citation touch. The orchestrator resumed the same subagent to restate it (DEC-813).",
     },
     "run_stop_candidates": {"DEC-186": "S09", "DEC-193": "S10", "DEC-362": "S22", "DEC-373": "S23", "DEC-430": "S28", "DEC-471": "S31"},
     "contracts_by_node": {
-        "nidana.model": ["topic-model@v1", "topology-dsl@v1", "topology-ir@v1"],
-        "nidana.runtime": ["bus-api@v1", "bus-testing@v1"],
+        "nidana.model": ["topic-model@v1", "topology-dsl@v2", "topology-ir@v1"],
+        "nidana.runtime": ["bus-api@v2", "bus-testing@v2"],
         "nidana.navigation": ["navigation-api@v1"],
-        "nidana.flutter": ["flutter-binding@v1"],
+        "nidana.flutter": ["flutter-binding@v2"],
         "nidana.tooling.codegen": ["topic-codegen@v1", "nidana-checks@v1 (scan share)"],
         "nidana.tooling.lint": ["nidana-checks@v1 (plugin share)"],
         "nidana.integration": [],
@@ -260,11 +294,21 @@ def classify_orch(name, inp):
         return "write", "writes " + p, p
     if name == "Read":
         return "review", "reads " + rel(inp.get("file_path", "")), None
+    if name == "SendMessage":
+        return "resume", "resumes the subagent with a finding", short(inp.get("message", ""), 1500)
     if name == "Bash":
         cmd = inp.get("command", "")
         desc = inp.get("description", "")
         label = desc or short(cmd.split("\n")[0], 140)
         detail = short(cmd, 1500)
+        if re.search(r"cat > \S*commit_step\.sh", cmd):
+            return "tooling", "writes the commit script commit_step.sh", detail
+        if re.search(r"commit_step\.sh\s+S\d\d", cmd):
+            return "commit", "hsdd and judgement (commit_step.sh: gate, ledger, plan row)", detail
+        if re.search(r"scratchpad/S\d\d-step\.md", cmd) and "cat >" in cmd:
+            return "prompt", "writes the step prompt", detail
+        if re.search(r"date -u[^\n]*\bS\d\d\.started", cmd):
+            return "clock", "stamps the step's start", detail
         m = re.search(r"git commit[^\n]*?-m\s+[\"']([^\"'\n]+)", cmd) or re.search(r"git commit[^\n]*?-F", cmd)
         if m:
             msg = m.group(1) if m.groups() else "commit"
@@ -335,8 +379,9 @@ def subagents():
 
 
 def orchestrator():
-    """Main-session events: (ts, kind, label, detail), plus prompts per step and compactions."""
-    events, prompts, compactions, usage_by_ts = [], {}, [], []
+    """Main-session events: (ts, kind, label, detail), plus prompts per step, resume messages per agent
+    id and compactions."""
+    events, prompts, resumes, compactions, usage_by_ts = [], {}, {}, [], []
     seen = {}
     for e in entries(MAIN_TX):
         if e.get("isSidechain"):
@@ -367,7 +412,9 @@ def orchestrator():
                         m = re.match(r"(S\d\d)", inp.get("description", ""))
                         if m:
                             prompts[m.group(1)] = inp.get("prompt", "")
-    return events, prompts, compactions, usage_by_ts
+                    if b["name"] == "SendMessage" and isinstance(inp.get("message"), str):
+                        resumes.setdefault(inp.get("to", ""), []).append({"t": ts, "message": inp["message"]})
+    return events, prompts, resumes, compactions, usage_by_ts
 
 
 # ------------------------------------------------------------- content ----
@@ -462,7 +509,7 @@ def changelog():
     res = []
     for it in items:
         text = " ".join(l.strip() for l in it.strip().splitlines())
-        m = re.search(r"after (S\d\d)|, (S\d\d):", text)
+        m = re.search(r"after (S\d\d)|, (S\d\d)(?: and S\d\d)?:", text)
         res.append({"step": (m.group(1) or m.group(2)) if m else None, "text": text})
     return res
 
@@ -474,12 +521,24 @@ def main():
     decisions = [json.loads(l) for l in open(os.path.join(ROOT, "hsdd/judgement/decisions.jsonl"))]
     runlog = [json.loads(l) for l in open(os.path.join(ROOT, "hsdd/judgement/run.jsonl"))]
     subs = subagents()
-    oevents, prompts, compactions, ousage = orchestrator()
-    preamble = read("docs/auto-run/step-preamble.md")
+    oevents, prompts, resumes, compactions, ousage = orchestrator()
+    segs = RUN["segments"]
+    preambles = {g["id"]: read("docs/auto-run/step-preamble.md") if g["preamble_at"] == "HEAD"
+                 else git("show", f"{g['preamble_at']}:docs/auto-run/step-preamble.md") for g in segs}
 
     stage_of = {s: st["id"] for st in RUN["stages"] for s in st["steps"]}
     art_commit = {c["step"]: c for c in clist if c["step"] and c["kind"] in ("hsdd", "auto-run")}
     jud_commit = {c["step"]: c for c in clist if c["step"] and c["kind"] == "judgement"}
+    order = [r["step_ref"] for r in runlog]
+    seg_of = {}
+    for gi, g in enumerate(segs):
+        for s in order[order.index(g["first"]):order.index(g["last"]) + 1]:
+            seg_of[s] = gi
+    # A segment runs from the owner message that opened it to its last judgement commit.
+    windows = [(utc(g["opened_at"]), jud_commit[g["last"]]["at"]) for g in segs]
+
+    def in_run(t):
+        return bool(t) and any(a <= t <= b for a, b in windows)
 
     # Orchestrator decisions: every decision of a step whose questions appear in an orchestrator file.
     orch_q = set()
@@ -490,13 +549,13 @@ def main():
     for d in decisions:
         d["by"] = "orchestrator" if (d["question"] in orch_q or d["step"] in ("setup", "plan")) else "subagent"
 
-    # Orchestrator events by step: an event belongs to the first step whose judgement commit is at or after it.
-    order = [r["step_ref"] for r in runlog]
+    # Orchestrator events by step: an event inside a segment belongs to the first step whose judgement
+    # commit is at or after it.
     bounds = [(s, jud_commit[s]["at"]) for s in order if s in jud_commit]
-    end_of_run = bounds[-1][1]
+    end_of_run = windows[-1][1]
     oby = collections.defaultdict(list)
     for ev in oevents:
-        if not ev["t"] or ev["t"] > end_of_run:
+        if not in_run(ev["t"]):
             continue
         for s, b in bounds:
             if ev["t"] <= b:
@@ -504,7 +563,7 @@ def main():
                 break
     ou_by = collections.defaultdict(dict)
     for ts, u in ousage:
-        if ts > end_of_run:
+        if not in_run(ts):
             continue
         for s, b in bounds:
             if ts <= b:
@@ -531,7 +590,7 @@ def main():
                           for f in (ac["files"] if ac else []) if f["p"].startswith(("hsdd/spec/", "hsdd/adr/", "hsdd/contract/")) and f["p"].endswith(".md") and "INDEX" not in f["p"]})
         exps = sorted({m.group(1) for f in (ac["files"] if ac else []) for m in [EXP_RE.match(f["p"])] if m})
         steps.append({
-            "ref": s, "stage": stage_of.get(s), "skill": r["skill"], "target": r["target"],
+            "ref": s, "stage": stage_of.get(s), "seg": seg_of.get(s), "skill": r["skill"], "target": r["target"],
             "dispatches": r.get("dispatches", 0), "recorded": {"started": r["started"], "finished": r["finished"]},
             "start": start, "end": end,
             "sub": None if not sub else {"start": sub["start"], "end": sub["end"], "counts": sub["counts"], "usage": sub["usage"], "agent": sub["agent"]},
@@ -543,22 +602,27 @@ def main():
             "touched": [t.split("|")[0] for t in touched],
             "decisions": dec_by_step.get(s, []),
             "inserted": RUN["inserted"].get(s),
+            "resumed": RUN["resumed"].get(s),
             "learned": [c["text"] for c in clog if c["step"] == s],
         })
 
     for st in steps:
         s = st["ref"]
-        bundle = {"ref": s, "orch": oby.get(s, []), "sub": subs.get(s, {}).get("events", []),
-                  "final": subs.get(s, {}).get("final", ""), "prompt": None, "prompt_has_preamble": False,
-                  "reports": {}, "diff": [], "judgement_files": []}
+        sub = subs.get(s, {})
+        bundle = {"ref": s, "orch": oby.get(s, []), "sub": sub.get("events", []),
+                  "final": sub.get("final", ""), "prompt": None, "prompt_has_preamble": False,
+                  "resumes": [], "reports": {}, "diff": [], "judgement_files": []}
         p = prompts.get(s)
+        pre = preambles[segs[st["seg"]]["id"]].strip()
         if p:
-            if preamble.strip() and preamble.strip()[:200] in p:
+            if pre and pre in p:
                 bundle["prompt_has_preamble"] = True
-                i = p.find("# Your step")
-                bundle["prompt"] = p[i:] if i >= 0 else p.replace(preamble, "").strip()
+                bundle["prompt"] = re.sub(r"^-{3,}\s*", "", p.replace(pre, "", 1).strip())
             else:
-                bundle["prompt"] = p
+                m = re.search(r"(?m)^#+ Your step", p)
+                bundle["prompt"] = p[m.start():] if m else p
+        aid = sub.get("agent", "")
+        bundle["resumes"] = resumes.get(aid[len("agent-"):] if aid.startswith("agent-") else aid, [])
         for rp in sorted(glob.glob(os.path.join(ROOT, f"docs/auto-run/steps/{s}*.json"))):
             bundle["reports"][os.path.basename(rp)] = json.load(open(rp))
         if st["commits"]["artifact"]:
@@ -583,12 +647,20 @@ def main():
         for k, v in u.items():
             total_usage["orch_" + k] = total_usage.get("orch_" + k, 0) + v
 
+    seg_out = []
+    for gi, g in enumerate(segs):
+        ss = [st for st in steps if st["seg"] == gi]
+        seg_out.append({"id": g["id"], "title": g["title"], "first": g["first"], "last": g["last"],
+                        "start": ss[0]["start"], "end": windows[gi][1], "opened_at": utc(g["opened_at"]),
+                        "ref_version": g["ref_version"], "opened": g["opened"], "closed": g["closed"]})
+    stages = [{**sg, "label": sg.get("label", str(sg["id"])), "seg": seg_of[sg["steps"][0]]} for sg in RUN["stages"]]
+
     core = {
         "run": {"name": RUN["name"], "branch": RUN["branch"], "base": RUN["base"],
                 "head": git("rev-parse", "--short", "HEAD").strip(),
-                "start": steps[0]["start"], "end": end_of_run, "compactions": [c for c in compactions if c <= end_of_run],
-                "usage": total_usage},
-        "stages": RUN["stages"],
+                "start": steps[0]["start"], "end": end_of_run, "compactions": [c for c in compactions if in_run(c)],
+                "segments": seg_out, "usage": total_usage},
+        "stages": stages,
         "steps": steps,
         "decisions": [{"id": d["id"], "s": d["step_ref"], "st": d["step"], "b": d["blast_radius"], "c": d["confidence"],
                        "w": d["would_have_asked"], "u": d.get("would_upstream", False), "sc": d.get("stop_class"),
@@ -598,7 +670,7 @@ def main():
         "tree": tree(),
         "history": history,
         "changelog": clog,
-        "preamble": preamble,
+        "preambles": preambles,
     }
     sizes = {"core.json": dump("core.json", core), "decisions.json": dump("decisions.json", decisions)}
 
@@ -606,7 +678,7 @@ def main():
     run_docs = [p for p in git("ls-files", "docs/auto-run").splitlines() if not p.startswith(("docs/auto-run/experiments/", "docs/auto-run/steps/", "docs/auto-run/explorer/"))]
     sizes["files-gov.json"] = dump("files-gov.json", file_bundle([p for p in gov if p.endswith(".md")] + run_docs))
     sizes["files-fixture.json"] = dump("files-fixture.json", file_bundle([p for p in gov if not p.endswith(".md")]))
-    refs = sorted(glob.glob(os.path.join(ROOT, "ref/nidana-docs/arch/*-v0_15_0.md")))
+    refs = sorted(p for g in segs for p in glob.glob(os.path.join(ROOT, f"ref/nidana-docs/arch/*-v{g['ref_version']}.md")))
     skills = sorted(glob.glob(os.path.join(ROOT, ".agents/skills/hsdd-*/**/*.md"), recursive=True))
     sizes["files-ref.json"] = dump("files-ref.json", file_bundle([rel(p) for p in refs + skills]))
     sizes["experiments.json"] = dump("experiments.json", experiments(clist, decisions))

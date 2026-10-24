@@ -11,7 +11,7 @@
   --paper: #f4f6f5; --panel: #ffffff; --sunk: #eaeeec; --ink: #18211f; --muted: #5a6763; --rule: #d3dad7;
   --accent: #0e6a70; --accent-ink: #ffffff;
   --ln-orch: #3d4fb8; --ln-sub: #0b7a6c; --ln-skill: #a8620b; --ln-ws: #5b6670; --ln-git: #a33a59;
-  --sk-spec: #0b7a6c; --sk-adr: #a8620b; --sk-contract: #3d4fb8; --sk-plan: #4d7a1f; --sk-reconcile: #a33a59; --sk-none: #5b6670;
+  --sk-spec: #0b7a6c; --sk-adr: #a8620b; --sk-contract: #3d4fb8; --sk-plan: #4d7a1f; --sk-reconcile: #a33a59; --sk-intake: #7b3fa6; --sk-none: #5b6670;
   --b-node: #7b8784; --b-contract: #2f63b5; --b-tree: #b5770b; --b-up: #b8352f;
   --add: #dff3e4; --add-ink: #1d6b34; --del: #fbe3e1; --del-ink: #9b2c24;
   --f-display: "Archivo", "Helvetica Neue", Arial, sans-serif;
@@ -23,7 +23,7 @@
   --paper: #111716; --panel: #182120; --sunk: #0d1312; --ink: #e2e9e6; --muted: #93a29d; --rule: #2a3532;
   --accent: #4fb3b8; --accent-ink: #0b1414;
   --ln-orch: #8d9bf0; --ln-sub: #47c2ae; --ln-skill: #e3a447; --ln-ws: #9aa6b0; --ln-git: #e57b99;
-  --sk-spec: #47c2ae; --sk-adr: #e3a447; --sk-contract: #8d9bf0; --sk-plan: #9ccc5f; --sk-reconcile: #e57b99; --sk-none: #9aa6b0;
+  --sk-spec: #47c2ae; --sk-adr: #e3a447; --sk-contract: #8d9bf0; --sk-plan: #9ccc5f; --sk-reconcile: #e57b99; --sk-intake: #c39ae8; --sk-none: #9aa6b0;
   --b-node: #8f9b98; --b-contract: #78a6f0; --b-tree: #e6ac45; --b-up: #f07a72;
   --add: #15301e; --add-ink: #8fdca4; --del: #3a1a18; --del-ink: #f2a39b;
   color-scheme: dark;
@@ -32,7 +32,7 @@
   --paper: #111716; --panel: #182120; --sunk: #0d1312; --ink: #e2e9e6; --muted: #93a29d; --rule: #2a3532;
   --accent: #4fb3b8; --accent-ink: #0b1414;
   --ln-orch: #8d9bf0; --ln-sub: #47c2ae; --ln-skill: #e3a447; --ln-ws: #9aa6b0; --ln-git: #e57b99;
-  --sk-spec: #47c2ae; --sk-adr: #e3a447; --sk-contract: #8d9bf0; --sk-plan: #9ccc5f; --sk-reconcile: #e57b99; --sk-none: #9aa6b0;
+  --sk-spec: #47c2ae; --sk-adr: #e3a447; --sk-contract: #8d9bf0; --sk-plan: #9ccc5f; --sk-reconcile: #e57b99; --sk-intake: #c39ae8; --sk-none: #9aa6b0;
   --b-node: #8f9b98; --b-contract: #78a6f0; --b-tree: #e6ac45; --b-up: #f07a72;
   --add: #15301e; --add-ink: #8fdca4; --del: #3a1a18; --del-ink: #f2a39b;
   color-scheme: dark;
@@ -272,7 +272,7 @@ const S = { core: null, full: null, files: {}, exps: null, steps: {}, tab: "proc
 const $ = (s, el = document) => el.querySelector(s);
 const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 const short = (s, n) => { s = String(s ?? ""); return s.length > n ? s.slice(0, n - 1) + "…" : s; };
-const SKILLS = { "hsdd-spec": "--sk-spec", "hsdd-adr": "--sk-adr", "hsdd-contract": "--sk-contract", "hsdd-phase-plan": "--sk-plan", "hsdd-reconcile": "--sk-reconcile", none: "--sk-none" };
+const SKILLS = { "hsdd-spec": "--sk-spec", "hsdd-adr": "--sk-adr", "hsdd-contract": "--sk-contract", "hsdd-phase-plan": "--sk-plan", "hsdd-reconcile": "--sk-reconcile", "hsdd-intake": "--sk-intake", none: "--sk-none" };
 const BLAST = { "node-local": "--b-node", contract: "--b-contract", tree: "--b-tree", upstream: "--b-up" };
 const skillVar = (s) => `var(${SKILLS[s] || "--sk-none"})`;
 const blastVar = (b) => `var(${BLAST[b] || "--b-node"})`;
@@ -292,7 +292,10 @@ function dur(a, b) { const m = Math.round((tms(b) - tms(a)) / 60000); if (!isFin
 const hhmm = (t) => (t ? t.slice(11, 16) : "");
 const day = (t) => { if (!t) return ""; const d = new Date(t); return d.toLocaleDateString("en-GB", { day: "numeric", month: "short", timeZone: "UTC" }) + " " + hhmm(t) + " UTC"; };
 const num = (n) => (n >= 1e6 ? (n / 1e6).toFixed(n >= 1e7 ? 0 : 1) + "M" : n >= 1e3 ? Math.round(n / 1e3) + "k" : String(n));
+const durMs = (ms) => dur(new Date(0).toISOString(), new Date(ms).toISOString());
+const activeMs = () => S.core.run.segments.reduce((a, g) => a + tms(g.end) - tms(g.start), 0);
 const stepBy = (ref) => S.core.steps.find((s) => s.ref === ref);
+const segOf = (ref) => S.core.run.segments[stepBy(ref)?.seg ?? S.core.run.segments.length - 1];
 const decsOf = (ref) => S.core.decisions.filter((d) => d.s === ref);
 
 /* ---------- linkify evidence and prose ---------- */
@@ -304,9 +307,9 @@ function linkify(text) {
   const rx = LINK_RX || (LINK_RX = new RegExp([
     "(docs/auto-run/experiments/[\\w.@+-]+(?:/[\\w./@+-]*)?)",
     "((?:hsdd|docs/auto-run)/[\\w./-]+\\.(?:md|json|dart|yaml|mjs))",
-    "\\b(DEC-\\d{3})\\b",
+    "\\b(DEC-\\d{3,4})\\b",
     "\\b(ADR-00\\d)\\b",
-    slugs ? `\\b((?:${slugs})@v1)\\b` : "(?!x)x",
+    slugs ? `\\b((?:${slugs})@v\\d+)\\b` : "(?!x)x",
     "\\b((?:Spec|Guide|Rationale) (?:§\\s?[\\d.]+[a-z]?|Appendix [A-Z](?:\\.\\d+)*))",
     "\\b(S\\d\\d)\\b",
   ].join("|"), "g"));
@@ -316,13 +319,15 @@ function linkify(text) {
     if (path) return `<span class="ev-link" data-file="${esc(path)}">${m}</span>`;
     if (dec) return `<span class="ev-link" data-dec="${dec}">${m}</span>`;
     if (adr) { const p = Object.keys(S.core.history).find((f) => f.startsWith("hsdd/adr/" + adr.slice(4))); return p ? `<span class="ev-link" data-file="${p}">${m}</span>` : m; }
-    if (con) return `<span class="ev-link" data-file="hsdd/contract/${con.slice(0, -3)}.md">${m}</span>`;
+    if (con) return `<span class="ev-link" data-file="hsdd/contract/${con.replace(/@v\d+$/, "")}.md">${m}</span>`;
     if (ref) return `<span class="ev-link" data-ref="${esc(ref)}">${m}</span>`;
     if (step && stepBy(step)) return `<span class="ev-link" data-step="${step}">${m}</span>`;
     return m;
   });
 }
 document.addEventListener("click", async (e) => {
+  const pa = e.target.closest("[data-preamble]");
+  if (pa) { e.preventDefault(); openPreamble(+pa.dataset.preamble); return; }
   const x = e.target.closest("[data-diff],[data-step-prompt],[data-report]");
   if (x) {
     e.preventDefault();
@@ -338,7 +343,7 @@ document.addEventListener("click", async (e) => {
   if (t.dataset.dec) { e.preventDefault(); openDecision(t.dataset.dec); }
   else if (t.dataset.file) { e.preventDefault(); openFile(t.dataset.file, t.dataset.anchor); }
   else if (t.dataset.exp) { e.preventDefault(); openExperiment(t.dataset.exp); }
-  else if (t.dataset.ref) { e.preventDefault(); openRef(t.dataset.ref); }
+  else if (t.dataset.ref) { e.preventDefault(); openRef(t.dataset.ref, t.dataset.ver); }
   else if (t.dataset.step) { e.preventDefault(); closeDrawer(); go({ kind: "step", ref: t.dataset.step }, "process"); }
   else if (t.dataset.stage) { e.preventDefault(); closeDrawer(); go({ kind: "stage", id: +t.dataset.stage }, "process"); }
 });
@@ -353,7 +358,7 @@ function go(view, tab) {
   if (tab) S.tab = tab;
   S.view = view || S.view;
   for (const b of document.querySelectorAll(".tabs button")) b.setAttribute("aria-selected", String(b.dataset.tab === S.tab));
-  const token = S.tab !== "process" ? S.tab : S.view.kind === "step" ? S.view.ref : S.view.kind === "stage" ? "stage" + S.view.id : "";
+  const token = S.tab !== "process" ? S.tab : S.view.kind === "step" ? S.view.ref : S.view.kind === "stage" ? "stage" + S.core.stages[S.view.id].label : "";
   try { history.replaceState(null, "", token ? "#" + token : location.pathname + location.search); } catch (_) {}
   render();
   window.scrollTo({ top: 0 });
@@ -365,7 +370,7 @@ function crumbs() {
     parts.push(["The run", { kind: "run" }]);
     if (S.view.kind === "stage" || S.view.kind === "step") {
       const id = S.view.kind === "stage" ? S.view.id : stepBy(S.view.ref).stage;
-      parts.push([`Stage ${id}: ${S.core.stages[id].title}`, { kind: "stage", id }]);
+      parts.push([`Stage ${S.core.stages[id].label}: ${S.core.stages[id].title}`, { kind: "stage", id }]);
     }
     if (S.view.kind === "step") parts.push([S.view.ref, S.view]);
   } else parts.push([S.tab === "artifacts" ? "Artifacts" : "Decisions", null]);
@@ -378,6 +383,7 @@ function crumbs() {
   });
 }
 function render() {
+  S.refVer = null;
   crumbs();
   const v = $("#view");
   if (S.tab === "artifacts") return viewArtifacts(v);
@@ -389,20 +395,23 @@ function render() {
 
 /* ---------- layer 0: the run ---------- */
 function viewRun(v) {
-  const c = S.core, r = c.run, st = c.steps;
+  const c = S.core, r = c.run, st = c.steps, segs = r.segments;
   const subs = st.filter((s) => s.sub).length;
   const exps = new Set(st.flatMap((s) => s.experiments)).size;
   const byOrch = c.decisions.filter((d) => d.by === "orchestrator").length;
+  const asked = c.decisions.filter((d) => d.w).length;
+  const idle = segs.slice(1).map((g, i) => Math.round((tms(g.start) - tms(segs[i].end)) / 36e5));
   v.innerHTML = `
   <h2>The run, top down</h2>
-  <p class="lede">An orchestrator session took the owner's kickoff prompt and planned the repository from nothing to reconciled phase plans. It never ran an HSDD skill itself: every step was one skill run by a fresh subagent, then gated, committed, and recorded in the decision ledger. Start with the actors, pick a stage, then a step. Every decision, file and experiment opens on the right.</p>
+  <p class="lede">An orchestrator session took the owner's kickoff prompt and planned the repository from nothing to reconciled phase plans. Two days later the owner moved the reference architecture to v0.15.1, and the same session routed that change through hsdd-intake and re-planned what it touched. The orchestrator never ran an HSDD skill itself: every step was one skill run by a fresh subagent, then gated, committed, and recorded in the decision ledger. Start with the actors, pick a stage, then a step. Every decision, file and experiment opens on the right.</p>
   <div class="facts">
     <div><b>${st.length}</b><span>steps</span></div>
     <div><b>${subs}</b><span>subagent runs</span></div>
     <div><b>${c.decisions.length}</b><span>decisions (${byOrch} by orchestrator)</span></div>
     <div><b>${exps}</b><span>experiments</span></div>
-    <div><b>${dur(r.start, r.end)}</b><span>wall clock</span></div>
+    <div><b>${durMs(activeMs())}</b><span>wall clock, ${segs.length} segments</span></div>
     <div><b>0</b><span>stops (${Object.keys(c.run_stop_candidates).length} candidates judged)</span></div>
+    <div><b>${asked}</b><span>would have asked</span></div>
     <div><b>${num((r.usage.sub_output_tokens || 0) + (r.usage.orch_output_tokens || 0))}</b><span>output tokens</span></div>
   </div>
   <section class="block"><header><h3>Who does what</h3><p>Click a box for what it is and the files behind it.</p></header>
@@ -415,18 +424,15 @@ function viewRun(v) {
       <li>The orchestrator runs gate.mjs and reads the artifacts against the skill's quality gates.</li>
       <li>Commit one: <code>hsdd: Snn</code> with the artifacts and experiments.</li>
       <li>Decisions go to the ledger with that sha; commit two: <code>judgement: Snn</code>.</li>
+      <li>From S55 the orchestrator decides what used to stop the run and records it as would have asked (${linkify("DEC-686")}).</li>
     </ol>
   </section>
-  <section class="block"><header><h3>Stages</h3><p>The sequence of the run. Open a stage for its step flow, or jump straight to a step.</p></header>
+  <section class="block"><header><h3>Stages</h3><p>The sequence of the run, in ${segs.length} segments, each opened by an owner message. Open a stage for its step flow, or jump straight to a step.</p></header>
     <div class="spine">
-      <div class="node"><div class="card"><div class="stagehead"><span class="num">START</span><h3>Owner kickoff</h3><span class="meta">${day(r.start)}</span></div>
-        <p>The owner pastes the approved design (<span class="ev-link" data-file="docs/auto-run/KICKOFF.md">KICKOFF.md</span>) and sets a <code>/goal</code> condition that keeps the session going until the report or a stop exists.</p></div></div>
-      ${c.stages.map(stageCard).join("")}
-      <div class="node end"><div class="card"><div class="stagehead"><span class="num">END</span><h3>Owner review</h3><span class="meta">${day(r.end)}</span></div>
-        <p>No stop held. The owner reads <span class="ev-link" data-file="docs/auto-run/REPORT.md">REPORT.md</span> and records one review line per decision in <code>hsdd/judgement/decision-reviews.jsonl</code>.</p></div></div>
+      ${segs.map((g, gi) => segCard(g, gi, true) + c.stages.filter((sg) => sg.seg === gi).map(stageCard).join("") + segCard(g, gi, false)).join("")}
     </div>
   </section>
-  <section class="block"><header><h3>Wall clock</h3><p>Each bar is one step, coloured by skill. The dashed line is the context summary the orchestrator resumed from.</p></header>
+  <section class="block"><header><h3>Wall clock</h3><p>Each bar is one step, coloured by skill. The dashed line is the context summary the orchestrator resumed from. The break between segments hides ${idle.map((h) => h + " idle hours").join(", ")}.</p></header>
     <div class="timeline scroll-x">${timelineSVG()}</div>
     <div class="legend">${Object.entries(SKILLS).map(([k, t]) => `<span><i style="--c:var(${t})"></i>${k === "none" ? "orchestrator only" : k}</span>`).join("")}</div>
   </section>`;
@@ -437,16 +443,24 @@ function viewRun(v) {
   for (const el of v.querySelectorAll("[data-go-stage]")) el.addEventListener("click", (e) => { if (e.target.closest("[data-step],.ev-link")) return; go({ kind: "stage", id: +el.dataset.goStage }); });
   for (const el of v.querySelectorAll("rect.step")) el.addEventListener("click", () => go({ kind: "step", ref: el.dataset.ref }));
 }
+function segCard(g, gi, opening) {
+  const last = gi === S.core.run.segments.length - 1;
+  const [title, text] = opening ? g.opened : g.closed;
+  const tag = opening ? (gi ? "RESUME" : "START") : (last ? "END" : "PAUSE");
+  return `<div class="node${!opening && last ? " end" : ""}"><div class="card"><div class="stagehead"><span class="num">${tag}</span><h3>${esc(title)}</h3>
+    <span class="meta">${opening ? esc(g.title) + " &middot; " + day(g.opened_at) : day(g.end)}</span></div>
+    <p>${linkify(text)}</p></div></div>`;
+}
 function stageCard(sg) {
   const steps = sg.steps.map(stepBy).filter(Boolean);
   const nd = steps.reduce((a, s) => a + s.decisions.length, 0);
   const skills = [...new Set(steps.map((s) => s.skill))];
   const start = steps[0].start, end = steps[steps.length - 1].end;
   return `<div class="node"><div class="card click" data-go-stage="${sg.id}" role="button" tabindex="0">
-    <div class="stagehead"><span class="num">STAGE ${sg.id}</span><h3>${esc(sg.title)}</h3>
+    <div class="stagehead"><span class="num">STAGE ${esc(sg.label)}</span><h3>${esc(sg.title)}</h3>
       <span class="meta">${steps.length} step${steps.length > 1 ? "s" : ""} &middot; ${nd} decisions &middot; ${dur(start, end)}</span></div>
     <p>${linkify(sg.summary)}</p>
-    <div class="chips">${steps.map((s) => `<span class="chip" data-step="${s.ref}" title="${esc(s.skill + ": " + s.target)}"><i style="--c:${skillVar(s.skill)}"></i>${s.ref}${s.inserted ? " ↵" : ""}</span>`).join("")}</div>
+    <div class="chips">${steps.map((s) => `<span class="chip" data-step="${s.ref}" title="${esc(s.skill + ": " + s.target)}"><i style="--c:${skillVar(s.skill)}"></i>${s.ref}${s.inserted ? " ↵" : ""}${s.resumed ? " ↻" : ""}</span>`).join("")}</div>
     <div class="chips" style="margin-top:6px">${skills.map((k) => `<span class="tag c" style="--c:${skillVar(k)}">${k === "none" ? "orchestrator" : k}</span>`).join("")}</div>
   </div></div>`;
 }
@@ -455,17 +469,18 @@ function actorSVG() {
     <rect x="${x}" y="${y}" width="${w}" height="${h}" rx="7"/><rect class="band" x="${x}" y="${y}" width="5" height="${h}" rx="2" style="fill:var(${color})"/>
     <text class="t" x="${x + 16}" y="${y + 24}">${esc(t)}</text>${s.map((l, i) => `<text class="s" x="${x + 16}" y="${y + 42 + i * 15}">${esc(l)}</text>`).join("")}</g>`;
   const e = (d, label, lx, ly, dash) => `<path class="edge${dash ? " dash" : ""}" d="${d}" marker-end="url(#ah)"/>${label ? `<text class="el" x="${lx}" y="${ly}">${esc(label)}</text>` : ""}`;
+  const subs = S.core.steps.filter((s) => s.sub).length, hrs = Math.round(activeMs() / 36e5);
   return `<svg viewBox="0 0 1010 390" role="img" aria-label="Actors of the run and what flows between them">
   <defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z"/></marker></defs>
-  ${box("owner", 44, 20, 170, 78, "Owner", ["kickoff prompt", "/goal condition"], "--ln-git")}
-  ${box("orch", 292, 20, 210, 78, "Orchestrator", ["main session, 22 h", "sequences, judges, commits"], "--ln-orch")}
-  ${box("sub", 582, 20, 190, 78, "Step subagent × 52", ["fresh context per step", "one skill, one target"], "--ln-sub")}
-  ${box("skill", 836, 20, 160, 78, "HSDD skill", ["spec, adr, contract,", "phase-plan, reconcile"], "--ln-skill")}
+  ${box("owner", 44, 20, 170, 78, "Owner", ["kickoff prompt, /goal", "v0.15.1 update request"], "--ln-git")}
+  ${box("orch", 292, 20, 210, 78, "Orchestrator", [`main session, ${hrs} h`, "sequences, judges, commits"], "--ln-orch")}
+  ${box("sub", 582, 20, 190, 78, `Step subagent × ${subs}`, ["fresh context per step", "one skill, one target"], "--ln-sub")}
+  ${box("skill", 836, 20, 160, 78, "HSDD skill", ["spec, adr, contract,", "plan, reconcile, intake"], "--ln-skill")}
   ${box("plan", 44, 160, 170, 64, "Execution plan", ["stages, step log, changes"], "--ln-orch")}
   ${box("gate", 292, 160, 210, 64, "Gate", ["gate.mjs, gen-registry.mjs"], "--ln-ws")}
   ${box("exp", 582, 160, 190, 64, "Experiments", ["throwaway programs via fvm"], "--ln-ws")}
-  ${box("hsdd", 836, 160, 160, 64, "hsdd/ artifacts", ["specs, ADRs, contracts"], "--ln-skill")}
-  ${box("review", 44, 300, 170, 64, "REPORT.md", ["one-sitting review"], "--ln-git")}
+  ${box("hsdd", 836, 160, 160, 64, "hsdd/ artifacts", ["specs, ADRs, contracts,", "intake record"], "--ln-skill")}
+  ${box("review", 44, 300, 170, 64, "Reports", ["REPORT.md, then", "REPORT-v0_15_1.md"], "--ln-git")}
   ${box("ledger", 292, 300, 210, 64, "Git and ledger", ["2 commits, decisions.jsonl"], "--ln-git")}
   ${box("report", 582, 300, 190, 64, "Step report", ["steps/Snn.json: decisions"], "--ln-sub")}
   ${e("M214,52 L288,52", "prompt + goal", 218, 44)}
@@ -484,45 +499,60 @@ function actorSVG() {
   </svg>`;
 }
 function timelineSVG() {
-  const c = S.core, t0 = tms(c.run.start), t1 = tms(c.run.end), W = 1000, X = (t) => 10 + ((tms(t) - t0) / (t1 - t0)) * (W - 20);
-  let s = `<svg viewBox="0 0 ${W} 96" role="img" aria-label="Steps on the wall clock">`;
-  const hours = []; for (let h = Math.ceil(t0 / 36e5) * 36e5; h <= t1; h += 36e5 * 2) hours.push(h);
-  for (const h of hours) { const x = 10 + ((h - t0) / (t1 - t0)) * (W - 20); s += `<line x1="${x}" x2="${x}" y1="14" y2="58" stroke="var(--rule)"/><text x="${x}" y="10" text-anchor="middle">${new Date(h).toISOString().slice(11, 16)}</text>`; }
+  // One band per segment, widths in proportion to their durations; the idle time between them is cut out.
+  const c = S.core, segs = c.run.segments, W = 1000, GAP = 44;
+  const spans = segs.map((g) => [tms(g.start), tms(g.end)]);
+  const usable = W - 20 - GAP * (segs.length - 1), total = spans.reduce((a, [p, q]) => a + q - p, 0);
+  const offs = []; spans.reduce((x, [p, q]) => { offs.push(x); return x + ((q - p) / total) * usable + GAP; }, 10);
+  const Xms = (ms) => { let i = spans.findIndex(([, q]) => ms <= q); if (i < 0) i = spans.length - 1; const [p, q] = spans[i]; return offs[i] + ((Math.min(Math.max(ms, p), q) - p) / total) * usable; };
+  const X = (t) => Xms(tms(t));
+  const dayOnly = (ms) => new Date(ms).toLocaleDateString("en-GB", { day: "numeric", month: "short", timeZone: "UTC" });
+  let s = `<svg viewBox="0 0 ${W} 112" role="img" aria-label="Steps on the wall clock, one band per segment">`;
+  spans.forEach(([p, q], i) => {
+    for (let h = Math.ceil(p / 36e5) * 36e5; h <= q; h += 36e5 * 2) { const x = Xms(h); s += `<line x1="${x}" x2="${x}" y1="14" y2="58" stroke="var(--rule)"/><text x="${x}" y="10" text-anchor="middle">${new Date(h).toISOString().slice(11, 16)}</text>`; }
+    s += `<text x="${offs[i]}" y="108">${esc(dayOnly(p))}: ${esc(segs[i].title)}</text>`;
+    if (i) { const gx = offs[i] - GAP / 2; s += `<path d="M${gx - 6},56 L${gx - 2},16 M${gx + 2},56 L${gx + 6},16" stroke="var(--muted)" fill="none"/><text x="${gx}" y="70" text-anchor="middle">${Math.round((p - spans[i - 1][1]) / 36e5)} h</text>`; }
+  });
   for (const st of c.steps) {
     if (!st.start || !st.end) continue;
     const x = X(st.start), w = Math.max(1.5, X(st.end) - x);
     s += `<rect class="step" data-ref="${st.ref}" x="${x}" y="18" width="${w}" height="36" rx="2" style="fill:${skillVar(st.skill)}"><title>${st.ref} ${esc(st.skill)}: ${esc(st.target)} (${dur(st.start, st.end)})</title></rect>`;
   }
-  for (const sg of c.stages) { const first = stepBy(sg.steps[0]); if (!first?.start) continue; const x = X(first.start); s += `<line x1="${x}" x2="${x}" y1="58" y2="70" stroke="var(--muted)"/><text x="${x + 2}" y="82">${sg.id}</text>`; }
+  for (const sg of c.stages) { const first = stepBy(sg.steps[0]); if (!first?.start) continue; const x = X(first.start); s += `<line x1="${x}" x2="${x}" y1="58" y2="70" stroke="var(--muted)"/><text x="${x + 2}" y="82">${esc(sg.label)}</text>`; }
   for (const k of c.run.compactions) { const x = X(k); s += `<line x1="${x}" x2="${x}" y1="12" y2="60" stroke="var(--ink)" stroke-dasharray="3 3"/>`; }
   s += `<text x="10" y="94">stage</text></svg>`;
   return s;
 }
 const ACTORS = {
-  owner: ["Owner", "Wrote the approved design as a kickoff prompt, pasted it into a fresh session, and set a /goal condition. The condition is a disjunction: the report exists and every planning check holds, or a STOP.md names an open question. Nothing else came from the owner during the run.", ["docs/auto-run/KICKOFF.md"]],
-  orch: ["Orchestrator", "The main Claude Code session. It wrote the execution plan, prepared every step prompt, dispatched subagents, slept with ScheduleWakeup while they worked, judged run-stop candidates, ran the gate, made the two commits per step and appended the ledger. It ran no HSDD skill in its own context. Its context was summarized once during the run and it resumed from the plan, the ledger and git log.", ["docs/auto-run/execution-plan.md", "docs/auto-run/timestamp-corrections.md"]],
+  owner: ["Owner", "Wrote the approved design as a kickoff prompt, pasted it into a fresh session, and set a /goal condition. The condition is a disjunction: the report exists and every planning check holds, or a STOP.md names an open question. Nothing else came from the owner during the first segment. The second segment opened with one message after the owner moved ref/nidana-docs to v0.15.1: bring every decision and artifact in line through hsdd-intake, ask nothing, and record the decisions. Nothing else came from the owner during that segment either.", ["docs/auto-run/KICKOFF.md", "hsdd/management/2026-10-20-intake-ref-arch-v0-15-1.md"]],
+  orch: ["Orchestrator", "The main Claude Code session. It wrote the execution plan, prepared every step prompt, dispatched subagents, judged run-stop candidates, ran the gate, made the two commits per step and appended the ledger. It ran no HSDD skill in its own context. In the first segment it slept with ScheduleWakeup while subagents worked, and its context was summarized once (at S42); it resumed from the plan, the ledger and git log. In the second it waited for each hand-back without polling, answered the stop conditions as the owner's stand-in (DEC-686), and from S64 ran the gate, both commits, the ledger and the plan row through one script, commit_step.sh, kept in the session scratchpad. Its context was not summarized during that segment.", ["docs/auto-run/execution-plan.md", "docs/auto-run/timestamp-corrections.md"]],
   sub: ["Step subagent", "A fresh general-purpose agent per step. Its prompt is the step preamble (blindness, owner facts, decision policy, report format) plus the step's own section. It invokes one HSDD skill, never commits, never writes the ledger, and returns a skill stop or a run-stop candidate instead of answering it.", ["docs/auto-run/step-preamble.md", "docs/auto-run/decision.schema.json"]],
-  skill: ["HSDD skill", "The vendored HSDD v0.10 skills. The subagent loads one with the Skill tool and follows it: hsdd-spec (root, mid-level, touch), hsdd-adr, hsdd-contract, hsdd-phase-plan, hsdd-reconcile.", [".agents/skills/hsdd-spec/SKILL.md", ".agents/skills/hsdd-adr/SKILL.md", ".agents/skills/hsdd-contract/SKILL.md", ".agents/skills/hsdd-phase-plan/SKILL.md", ".agents/skills/hsdd-reconcile/SKILL.md"]],
-  plan: ["Execution plan", "Written and committed before any skill ran. It is the record of the path, not a promise: the step log grew as steps ran and the change log says what moved and why, including the six inserted steps.", ["docs/auto-run/execution-plan.md"]],
-  gate: ["Gate", "gate.mjs checks a step's changed files against the skill's write set, that the registry regenerates clean, that every cited ADR, contract, OQ and phase id resolves, and at the end that every plan, contract and pending section is final.", ["docs/auto-run/tools/gate.mjs"]],
+  skill: ["HSDD skill", "The vendored HSDD v0.10 skills. The subagent loads one with the Skill tool and follows it: hsdd-spec (root, mid-level, touch), hsdd-adr, hsdd-contract, hsdd-phase-plan (append mode in the second segment), hsdd-reconcile, and hsdd-intake, which routed the v0.15.1 change.", [".agents/skills/hsdd-intake/SKILL.md", ".agents/skills/hsdd-spec/SKILL.md", ".agents/skills/hsdd-adr/SKILL.md", ".agents/skills/hsdd-contract/SKILL.md", ".agents/skills/hsdd-phase-plan/SKILL.md", ".agents/skills/hsdd-reconcile/SKILL.md"]],
+  plan: ["Execution plan", "Written and committed before any skill ran. It is the record of the path, not a promise: the step log grew as steps ran and the change log says what moved and why, including the ten inserted steps (six in stages 0 to 8, four in stage 9). Stage 9 is one stage in the plan; this explorer shows its five parts as 9a to 9e.", ["docs/auto-run/execution-plan.md"]],
+  gate: ["Gate", "gate.mjs checks a step's changed files against the skill's write set, that the registry regenerates clean, that every cited ADR, contract, OQ and phase id resolves, and at the end that every plan, contract and pending section is final. From S56 it also knew hsdd-intake's write set, refused a change to the owner's uncommitted files by comparing their hashes, and under --final warned about references to a contract version that is no longer current.", ["docs/auto-run/tools/gate.mjs", "docs/auto-run/tools/owner-files.json"]],
   exp: ["Experiments", "When a decision rested on a runtime fact (stream replay, zones, analyzer plugins, pub resolution), the subagent wrote a throwaway program under docs/auto-run/experiments/, ran it through fvm, and cited the captured output as evidence.", []],
   report: ["Step report", "Every subagent ends by writing docs/auto-run/steps/Snn.json: status, artifacts, every decision in the ledger's shape, experiments, a self-check against the skill's quality gates, and notes for the orchestrator. The orchestrator's own decisions go in Snn.orchestrator.json or Snn.plan.json.", ["docs/auto-run/decision.schema.json"]],
-  hsdd: ["hsdd/ artifacts", "What the planning produced: node specs with phase plans, ADRs, contracts with fixtures, conventions, registries. Only the owning HSDD skill writes them.", ["hsdd/spec/nidana.md", "hsdd/conventions.md", "hsdd/contract/INDEX.md", "hsdd/adr/INDEX.md"]],
+  hsdd: ["hsdd/ artifacts", "What the planning produced: node specs with phase plans, ADRs, contracts with fixtures, conventions, registries, and from the second segment the intake record that routed v0.15.1. Only the owning HSDD skill writes them.", ["hsdd/spec/nidana.md", "hsdd/conventions.md", "hsdd/contract/INDEX.md", "hsdd/adr/INDEX.md", "hsdd/management/2026-10-20-intake-ref-arch-v0-15-1.md"]],
   ledger: ["Git and ledger", "Two commits per step: hsdd: Snn with the artifacts, then judgement: Snn with the step's decisions (each carrying the first commit's sha) and one run-log line. ledger.mjs validates every line.", ["docs/auto-run/tools/ledger.mjs"]],
-  review: ["REPORT.md", "Generated at the end from the ledger and step reports: the tree, the decisions to look at first, every decision by blast radius, experiments, assumptions, proposed upstream wording, known residue.", ["docs/auto-run/REPORT.md"]],
+  review: ["Reports", "REPORT.md closes the first segment. It was generated from the ledger and step reports: the tree, the decisions to look at first, every decision by blast radius, experiments, assumptions, proposed upstream wording, known residue. REPORT-v0_15_1.md closes the second: what v0.15.1 changed and where it landed, the 14 would-have-asked decisions, how v0.15.1 settled the first segment's upstream proposals, record gaps and deferred findings.", ["docs/auto-run/REPORT.md", "docs/auto-run/REPORT-v0_15_1.md"]],
 };
 function openActor(id) {
   const [t, d, files] = ACTORS[id];
   openDrawer(t, `<p>${linkify(d)}</p>${files.length ? `<h4>Files</h4><div class="files">${files.map((f) => `<div class="fileline"><span class="p">${esc(f)}</span><button class="linkbtn" data-file="${esc(f)}">open</button></div>`).join("")}</div>` : ""}
-  ${id === "sub" ? `<h4>Preamble every subagent received</h4><div class="md">${md(S.core.preamble)}</div>` : ""}`);
+  ${id === "sub" ? `<h4>Preamble every subagent received</h4><p>Each segment pasted its own version verbatim.</p><div class="chips">${S.core.run.segments.map((g, i) => `<button class="linkbtn" data-preamble="${i}">${g.first} to ${g.last}: ${esc(g.title)}</button>`).join("")}</div>` : ""}`);
+}
+function openPreamble(i) {
+  const g = S.core.run.segments[i];
+  openDrawer(`Step preamble, ${g.first} to ${g.last}`, `<p class="muted small">Pasted verbatim at the top of every step prompt in the segment "${esc(g.title)}".</p><div class="md">${md(S.core.preambles[g.id])}</div>`);
 }
 
 /* ---------- layer 1: a stage ---------- */
 function viewStage(v, id) {
   const sg = S.core.stages[id];
+  S.refVer = S.core.run.segments[sg.seg].ref_version;
   const steps = sg.steps.map(stepBy).filter(Boolean);
   const touched = [...new Set(steps.flatMap((s) => s.touched))];
-  v.innerHTML = `<div class="stagehead"><span class="num">STAGE ${id}</span><h2>${esc(sg.title)}</h2></div>
+  v.innerHTML = `<div class="stagehead"><span class="num">STAGE ${esc(sg.label)}</span><h2>${esc(sg.title)}</h2></div>
     <p class="lede">${linkify(sg.summary)}</p>
     <div class="kv"><div><span>Steps</span><b>${steps.length}</b></div><div><span>Decisions</span><b>${steps.reduce((a, s) => a + s.decisions.length, 0)}</b></div>
     <div><span>Elapsed</span><b>${dur(steps[0].start, steps[steps.length - 1].end)}</b></div><div><span>Experiments</span><b>${new Set(steps.flatMap((s) => s.experiments)).size}</b></div></div>
@@ -541,9 +571,10 @@ function stepCard(s) {
   return `<div class="card click stepcard" data-ref="${s.ref}" role="button" tabindex="0">
     <div class="ref">${s.ref}<small>${s.sub ? "subagent" : "orchestrator"}</small></div>
     <div style="min-width:0"><div><span class="tag c" style="--c:${skillVar(s.skill)}">${s.skill === "none" ? "orchestrator" : s.skill}</span> <span class="tgt">${esc(s.target)}</span></div>
-      <div class="chips">${s.inserted ? `<span class="chip flag" title="${esc(s.inserted)}">inserted step</span>` : ""}${cands.map((d) => `<span class="chip flag">run-stop candidate ${d.id}</span>`).join("")}${asked ? `<span class="chip flag">${asked} would have asked</span>` : ""}${s.experiments.length ? `<span class="chip flag">${s.experiments.length} experiment${s.experiments.length > 1 ? "s" : ""}</span>` : ""}</div>
+      <div class="chips">${s.inserted ? `<span class="chip flag" title="${esc(s.inserted)}">inserted step</span>` : ""}${s.resumed ? `<span class="chip flag" title="${esc(s.resumed)}">resumed once</span>` : ""}${cands.map((d) => `<span class="chip flag">run-stop candidate ${d.id}</span>`).join("")}${asked ? `<span class="chip flag">${asked} would have asked</span>` : ""}${s.experiments.length ? `<span class="chip flag">${s.experiments.length} experiment${s.experiments.length > 1 ? "s" : ""}</span>` : ""}</div>
       ${ds.length ? `<div class="blastbar" title="${counts.map(([b, n]) => `${b} ${n}`).join(", ")}">${counts.map(([b, n]) => n ? `<i style="--c:${blastVar(b)};width:${(n / tot) * 100}%"></i>` : "").join("")}</div>` : ""}
       ${s.inserted ? `<div class="learned">Inserted because ${linkify(s.inserted.charAt(0).toLowerCase() + s.inserted.slice(1))}</div>` : ""}
+      ${s.resumed ? `<div class="learned">Resumed: ${linkify(s.resumed)}</div>` : ""}
     </div>
     <div class="side">${ds.length} decisions<br>${dur(s.start, s.end)}<br>${s.commits.artifact ? `<span class="mono">${s.commits.artifact.sha}</span>` : ""}</div>
   </div>`;
@@ -551,7 +582,8 @@ function stepCard(s) {
 
 /* ---------- layer 2: a step ---------- */
 async function viewStep(v, ref) {
-  const s = stepBy(ref);
+  const s = stepBy(ref), seg = S.core.run.segments[s.seg];
+  S.refVer = seg.ref_version;
   v.innerHTML = `<div class="loading">Loading ${ref}...</div>`;
   let b, F;
   try { [b, F] = await Promise.all([stepData(ref), full()]); } catch (err) { v.innerHTML = `<div class="notice">Could not load ${ref}: ${esc(err.message)}</div>`; return; }
@@ -563,6 +595,7 @@ async function viewStep(v, ref) {
   const u = s.sub?.usage || {};
   v.innerHTML = `<div class="stephead"><h2>${ref}</h2><span class="tag c" style="--c:${skillVar(s.skill)}">${s.skill === "none" ? "orchestrator" : s.skill}</span><span>${esc(s.target)}</span></div>
     ${s.inserted ? `<div class="banner">Inserted step: ${linkify(s.inserted)}</div>` : ""}
+    ${s.resumed ? `<div class="banner">Resumed once: ${linkify(s.resumed)}</div>` : ""}
     <div class="kv">
       <div><span>Elapsed</span><b>${dur(s.start, s.end)}</b></div>
       <div><span>Subagent active</span><b>${s.sub ? dur(s.sub.start, s.sub.end) : "none"}</b></div>
@@ -588,7 +621,8 @@ async function viewStep(v, ref) {
   const panels = {
     Decisions: () => ds.length ? decList(ds) : `<p class="muted">No decision was recorded in this step.</p>`,
     Artifacts: () => artifactsPanel(s, b),
-    Prompt: () => b.prompt ? `<p class="muted small">The step's own section. ${b.prompt_has_preamble ? `It followed the shared <span class="ev-link" data-file="docs/auto-run/step-preamble.md">step preamble</span>, pasted verbatim.` : ""}</p><div class="md">${md(b.prompt)}</div>` : `<p class="muted">The orchestrator ran this step itself; no subagent prompt.</p>`,
+    Prompt: () => b.prompt ? `<p class="muted small">The step's own section. ${b.prompt_has_preamble ? `It followed the shared <span class="ev-link" data-preamble="${s.seg}">step preamble of ${seg.first} to ${seg.last}</span>, pasted verbatim.` : ""}</p><div class="md">${md(b.prompt)}</div>
+      ${(b.resumes || []).map((r) => `<h3 style="margin-top:18px">Resumed at ${hhmm(r.t)} UTC with</h3><div class="md">${md(r.message)}</div>`).join("")}` : `<p class="muted">The orchestrator ran this step itself; no subagent prompt.</p>`,
     Report: () => reportPanel(b),
     Learned: () => s.learned.length ? s.learned.map((t) => `<p class="learned" style="font-size:.9rem">${linkify(t)}</p>`).join("") + (b.final ? `<h3 style="margin-top:18px">Subagent's closing message</h3><pre class="code wrapit">${esc(b.final)}</pre>` : "") : (b.final ? `<h3>Subagent's closing message</h3><pre class="code wrapit">${esc(b.final)}</pre>` : `<p class="muted">No change-log entry names this step.</p>`),
   };
@@ -634,6 +668,7 @@ function rowSpec(e) {
   switch (key) {
     case "orch:dispatch": return o("orch", "sub", "dispatches: " + e.l, { g: "dispatch", desc: "A fresh general-purpose subagent starts with the shared step preamble (blindness, owner facts, decision policy, report format) and this step's own section." });
     case "orch:prompt": return o("orch", "orch", "writes the step prompt", { g: "prompt" });
+    case "orch:resume": return o("orch", "sub", "resumes the subagent with a finding", { g: "resume", desc: "SendMessage continues the same subagent with its context intact. The message is under the step's Prompt tab." });
     case "orch:plan": return o("orch", "orch", "updates the execution plan", { g: "plan" });
     case "orch:wait": return o("orch", "orch", "waits for the subagent", { g: "wait" });
     case "orch:wake": return o("orch", "orch", "wakes and checks", { g: "wait" });
@@ -766,6 +801,7 @@ async function openDecision(id) {
   if (!d) { $("#dr-body").innerHTML = `<p>No decision ${esc(id)} in the ledger.</p>`; return; }
   const cand = S.core.run_stop_candidates[id];
   const by = S.core.decisions.find((x) => x.id === id)?.by;
+  S.refVer = segOf(d.step_ref).ref_version;
   $("#dr-body").innerHTML = `
     <div class="chips" style="margin-top:0">${decTags({ ...d, by })}</div>
     ${cand ? `<div class="banner">A subagent reported this as a run-stop candidate in ${cand}. The orchestrator judged that the stop condition did not hold and recorded why below.</div>` : ""}
@@ -815,12 +851,17 @@ function scrollToSection(sec) {
   const h = heads.find((x) => { const t = x.textContent.trim(); return t.startsWith(want + " ") || t.startsWith(want + ".") || t.startsWith(want + ":") || t === want || t.includes("Appendix " + want) || t.startsWith("Appendix " + want); });
   if (h) { h.classList.add("hit"); setTimeout(() => h.scrollIntoView({ block: "start" }), 30); }
 }
-function openRef(ref) {
+async function openRef(ref, ver) {
+  // A citation opens in the version its segment cited (stages 0 to 8: v0.15.0, stage 9: v0.15.1); the other is one click away.
   const m = ref.match(/^(Spec|Guide|Rationale) (?:§\s?([\d.]+[a-z]?)|Appendix ([A-Z](?:\.\d+)*))/);
   if (!m) return;
+  const vers = [...new Set(S.core.run.segments.map((g) => g.ref_version))];
+  const v = ver || S.refVer || vers[vers.length - 1];
   const file = { Spec: "spec", Guide: "guide", Rationale: "rationale" }[m[1]];
   const sec = (m[2] || m[3]).replace(/\.$/, "");
-  openFile(`ref/nidana-docs/arch/nidana-bus-ref-arch-${file}-v0_15_0.md`, m[2] ? sec : sec);
+  await openFile(`ref/nidana-docs/arch/nidana-bus-ref-arch-${file}-v${v}.md`, sec);
+  const others = vers.filter((x) => x !== v);
+  if (others.length) $("#dr-body").insertAdjacentHTML("afterbegin", `<div class="chips" style="margin-top:0">${others.map((x) => `<button class="linkbtn" data-ref="${esc(ref)}" data-ver="${x}">open ${esc(ref)} in v${x.replace(/_/g, ".")}</button>`).join("")}</div>`);
 }
 function openDiff(ref, b, path) {
   const d = (b.diff || []).find((x) => x.p === path);
@@ -861,7 +902,8 @@ function viewArtifacts(v) {
     <section class="block"><header><h3>ADRs</h3></header>${fl(group(/^hsdd\/adr\/.+\.md$/))}</section>
     <section class="block"><header><h3>Contracts</h3></header>${fl(group(/^hsdd\/contract\/[^/]+\.md$/))}</section>
     <section class="block"><header><h3>Conventions and node specs</h3></header>${fl(group(/^hsdd\/(conventions\.md|spec\/.+\.md)$/))}</section>
-    <section class="block"><header><h3>The run's own records</h3><p>Kickoff design, step preamble, execution plan, tools and the report.</p></header>${fl(group(/^docs\/auto-run\/[^/]+\.(md|json)$|^docs\/auto-run\/tools\//))}</section>`;
+    <section class="block"><header><h3>Intake records</h3><p>One per change routed into the tree after it was planned.</p></header>${fl(group(/^hsdd\/management\/.+\.md$/))}</section>
+    <section class="block"><header><h3>The run's own records</h3><p>Kickoff design, step preamble, execution plan, tools, both reports and the reading guides.</p></header>${fl(group(/^docs\/auto-run\/[^/]+\.(md|json)$|^docs\/auto-run\/tools\//))}</section>`;
   for (const el of v.querySelectorAll("[data-node]")) el.addEventListener("click", () => openNode(byId[el.dataset.node]));
 }
 function openNode(n) {
@@ -909,9 +951,9 @@ function viewDecisions(v) {
   $("#sub").textContent = `${r.branch} at ${r.head} · ${day(r.start)} to ${day(r.end)}`;
   const h = (location.hash || "").slice(1);
   if (/^S\d\d$/.test(h) && stepBy(h)) go({ kind: "step", ref: h }, "process");
-  else if (/^stage\d$/.test(h)) go({ kind: "stage", id: +h.slice(5) }, "process");
+  else if (S.core.stages.some((sg) => "stage" + sg.label === h)) go({ kind: "stage", id: S.core.stages.find((sg) => "stage" + sg.label === h).id }, "process");
   else if (h === "artifacts" || h === "decisions") go(null, h);
-  else if (/^DEC-\d{3}$/.test(h)) { go({ kind: "run" }, "process"); openDecision(h); }
+  else if (/^DEC-\d{3,4}$/.test(h)) { go({ kind: "run" }, "process"); openDecision(h); }
   else go({ kind: "run" }, "process");
 })();
 </script>
