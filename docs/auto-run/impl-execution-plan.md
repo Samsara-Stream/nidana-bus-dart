@@ -172,6 +172,7 @@ a `Task N: complete` line; never re-dispatch them.
 | S101 | implement | superpowers:subagent-driven-development | nidana.model.1: 8 tasks, 3 task fix rounds, final review with one fix wave; gate exit 0, 93 tests, 102/102 structure | done | d761b1f; merged into impl/nidana.model as cab9039 |
 | S102 | config | hsdd-config | nidana.model.2 | done | eb1e181 |
 | S103 | code-plan | superpowers:writing-plans | nidana.model.2 (7 tasks; every routed item dispositioned) | done | d023480 |
+| S104 | implement | superpowers:subagent-driven-development | nidana.model.2: 7 tasks, 2 task fix rounds, final review with one fix wave; gate exit 0, 195 tests, 206/206 structure and schema; surface and reject PENDING by design | done | d9b9b14 (merge recorded in the next row) |
 
 ## Notes for the report
 
@@ -211,6 +212,14 @@ that phase's writing-plans dispatch and strikes it here when the phase's plan co
   and structure rejects stacked markers; every committed reject library is PENDING until its producer exists,
   so the first real reject replay (nidana.model.3's gate) is where a line with two codes would surface, as a
   contract gap for hsdd-adr.
+- nidana.model.6 (from S104's final review): lift the package-configuration read out of `_analyze` into a
+  replay-level step and pass a context record to `_run` (behavior, file and cli also need the package names
+  for PENDING); move `SlugPlan` from `analysis.dart` to `run.dart`; reorder the no-slug check after
+  `parseRequest` so a usage error exits 64 even with no fixture directory (D2 item 1); consider moving
+  `findWorkspaceRoot` out of `shell.dart` so conformance libraries stop compiling the tool; consider a progress
+  line for long test runs.
+- Checkpoint (from S104's final review): nidana.model.1 and .2 each landed about 9 times their line estimate;
+  re-baseline .6 and .7 (about 300 and 450 lines) before trusting the PE sizing.
 - nidana.model.6 (from S103): invalid UTF-8 in a Dart fixture still exits 2 as an environment error; make it a
   fixture failure when the behavior set reworks reading.
 - nidana.model.6 (from S101's final review): validate `--guarantee` ids against the slug's declared
