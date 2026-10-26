@@ -1,0 +1,210 @@
+/// What the `surface` and `reject` sets read (ADR-001 items 4 and 9): the
+/// diagnostics of `dart analyze --format=json`, each attributed to the
+/// fixture it was reported in, and the libraries each set analyzes.
+///
+/// Pure: the shell runs the analyzer once per replay and hands this library
+/// its stdout; nothing here reads a file or starts a process.
+library;
+
+import 'dart:convert';
+
+import 'dart_library.dart';
+import 'packages.dart';
+import 'request.dart';
+import 'snapshot.dart';
+
+/// One diagnostic as `dart analyze --format=json` reports it.
+final class Diagnostic {
+  const Diagnostic({
+    required this.file,
+    required this.line,
+    required this.severity,
+    required this.code,
+    required this.message,
+  });
+
+  /// The file, as dart analyze reports it: absolute, symbolic links
+  /// resolved.
+  final String file;
+
+  /// The 1-based line the diagnostic starts on.
+  final int line;
+
+  /// `ERROR`, `WARNING` or `INFO`.
+  final String severity;
+
+  /// The code, lowercase, as reported.
+  final String code;
+
+  /// The `problemMessage`.
+  final String message;
+}
+
+/// The diagnostics of `dart analyze --format=json`'s [stdout]; null when it holds no such report.
+///
+/// The report is decoded from the first `{` of [stdout]; text before it is
+/// ignored. [stdout] holds a report when that text decodes to a map whose
+/// `diagnostics` is a list of maps, each with a string `code`, a string
+/// `severity`, a string `location.file`, an integer
+/// `location.range.start.line` and a string `problemMessage`. Other keys are
+/// ignored.
+List<Diagnostic>? parseAnalysis(String stdout) {
+  final int start = stdout.indexOf('{');
+  if (start < 0) {
+    return null;
+  }
+  final Object? document;
+  try {
+    document = jsonDecode(stdout.substring(start));
+  } on FormatException {
+    return null;
+  }
+  if (document case {'diagnostics': final List<Object?> entries}) {
+    final List<Diagnostic?> diagnostics = entries.map(_diagnosticOf).toList();
+    return diagnostics.contains(null)
+        ? null
+        : List<Diagnostic>.unmodifiable(diagnostics.nonNulls);
+  }
+  return null;
+}
+
+/// The reason of an analysis that printed no report.
+///
+/// `dart analyze exited {exitCode} without a JSON report`, then
+/// `: {line}` with the first line of [stderr] that is not blank, trimmed,
+/// when there is one.
+String analysisFailure(int exitCode, String stderr) {
+  final String reason = 'dart analyze exited $exitCode without a JSON report';
+  final String? first = LineSplitter.split(stderr)
+      .map((String line) => line.trim())
+      .where((String line) => line.isNotEmpty)
+      .firstOrNull;
+  return first == null ? reason : '$reason: $first';
+}
+
+/// Diagnostics grouped by fixture: [byFixture] maps a fixture's path from the
+/// workspace root to the diagnostics reported in it, and [strays] are the
+/// reported files that belong to no fixture.
+typedef GroupedDiagnostics = ({
+  Map<String, List<Diagnostic>> byFixture,
+  List<String> strays,
+});
+
+/// [reported] by fixture path from the workspace root, through [fixtureOf], which maps an
+/// analyzer path to a fixture; [strays] are the reported files [fixtureOf] lacks, once, ascending.
+///
+/// Each fixture's diagnostics keep their reported order. Several analyzer
+/// paths may map to one fixture, as a path given and its symlink-resolved
+/// form do.
+GroupedDiagnostics groupDiagnostics(
+  List<Diagnostic> reported,
+  Map<String, String> fixtureOf,
+) {
+  final Set<String> fixtures = <String>{
+    for (final Diagnostic diagnostic in reported) ?fixtureOf[diagnostic.file],
+  };
+  return (
+    byFixture: Map<String, List<Diagnostic>>.unmodifiable(
+      <String, List<Diagnostic>>{
+        for (final String fixture in fixtures)
+          fixture: List<Diagnostic>.unmodifiable(<Diagnostic>[
+            for (final Diagnostic diagnostic in reported)
+              if (fixtureOf[diagnostic.file] == fixture) diagnostic,
+          ]),
+      },
+    ),
+    strays: List<String>.unmodifiable(
+      <String>{
+        for (final Diagnostic diagnostic in reported)
+          if (!fixtureOf.containsKey(diagnostic.file)) diagnostic.file,
+      }.toList()..sort(),
+    ),
+  );
+}
+
+/// `line {line}: {severity} {code}: {message}`.
+String diagnosticText(Diagnostic diagnostic) =>
+    'line ${diagnostic.line}: ${diagnostic.severity} ${diagnostic.code}: '
+    '${diagnostic.message}';
+
+/// One library a set analyzes: its [path] from the workspace root, the
+/// [library] read from its source, and the packages it names that the
+/// workspace lacks, [absent], ascending.
+typedef SetLibrary = ({String path, DartLibrary library, List<String> absent});
+
+/// Every library below `{set}/` for set surface or reject, by path from the workspace root,
+/// ascending, with the packages it names that [packages] lacks; empty for every other set.
+///
+/// A library is a file of [snapshot] that [holdsSource] accepts and whose
+/// source was read, nested ones included.
+List<SetLibrary> setLibraries(
+  SlugSnapshot snapshot,
+  CheckSet set,
+  Set<String> packages,
+) => switch (set) {
+  CheckSet.surface ||
+  CheckSet.reject => _librariesBelow(snapshot, '${set.name}/', packages),
+  CheckSet.structure ||
+  CheckSet.behavior ||
+  CheckSet.schema ||
+  CheckSet.file ||
+  CheckSet.cli => const <SetLibrary>[],
+};
+
+/// The paths of [setLibraries] whose `absent` is empty: what `dart analyze` must analyze.
+List<String> analysisTargets(
+  SlugSnapshot snapshot,
+  CheckSet set,
+  Set<String> packages,
+) => List<String>.unmodifiable(<String>[
+  for (final SetLibrary library in setLibraries(snapshot, set, packages))
+    if (library.absent.isEmpty) library.path,
+]);
+
+/// The [Diagnostic] that [entry], one element of a report's `diagnostics`,
+/// describes; null when it lacks a field or a field has another type.
+Diagnostic? _diagnosticOf(Object? entry) => switch (entry) {
+  {
+    'code': final String code,
+    'severity': final String severity,
+    'location': {
+      'file': final String file,
+      'range': {'start': {'line': final int line}},
+    },
+    'problemMessage': final String message,
+  } =>
+    Diagnostic(
+      file: file,
+      line: line,
+      severity: severity,
+      code: code,
+      message: message,
+    ),
+  _ => null,
+};
+
+/// The libraries of [snapshot] whose relative path begins with [prefix],
+/// ascending, each with the packages it names that [packages] lacks.
+List<SetLibrary> _librariesBelow(
+  SlugSnapshot snapshot,
+  String prefix,
+  Set<String> packages,
+) {
+  final String directory = fixtureDirectory(snapshot.slug);
+  final List<String> relatives = <String>[
+    for (final String relative in snapshot.files.keys)
+      if (holdsSource(relative) && relative.startsWith(prefix)) relative,
+  ]..sort();
+  return List<SetLibrary>.unmodifiable(<SetLibrary>[
+    for (final String relative in relatives)
+      if (snapshot.files[relative] case final String source)
+        _setLibrary('$directory$relative', readDartLibrary(source), packages),
+  ]);
+}
+
+/// The [SetLibrary] at [path], read as [library].
+SetLibrary _setLibrary(
+  String path,
+  DartLibrary library,
+  Set<String> packages,
+) => (path: path, library: library, absent: absentPackages(library, packages));

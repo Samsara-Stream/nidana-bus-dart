@@ -1,0 +1,229 @@
+import 'package:nidana_contract_check/src/analysis.dart';
+import 'package:nidana_contract_check/src/request.dart';
+import 'package:nidana_contract_check/src/snapshot.dart';
+import 'package:test/test.dart';
+
+import 'support/sample.dart';
+
+const String s = 'hsdd/contract/fixture/sample/';
+
+/// One diagnostic as `dart analyze --format=json` prints it (experiment A1), every key included.
+const String report =
+    r'''{"version":1,"diagnostics":[{"code":"unused_import","severity":"WARNING","type":"STATIC_WARNING","location":{"file":"/w/hsdd/contract/fixture/sample/surface/dirty.dart","range":{"start":{"offset":7,"line":1,"column":8},"end":{"offset":19,"line":1,"column":20}}},"problemMessage":"Unused import: 'dart:async'.","correctionMessage":"Try removing the import directive.","documentation":"https://dart.dev/diagnostics/unused_import"}]}''';
+
+String fields(Diagnostic d) =>
+    '${d.file}|${d.line}|${d.severity}|${d.code}|${d.message}';
+
+void main() {
+  group('parseAnalysis', () {
+    test('reads each diagnostic', () {
+      expect(parseAnalysis(report)!.map(fields), <String>[
+        "/w/hsdd/contract/fixture/sample/surface/dirty.dart|1|WARNING|unused_import|Unused import: 'dart:async'.",
+      ]);
+      expect(parseAnalysis('{"version":1,"diagnostics":[]}'), isEmpty);
+    });
+    test('ignores text before the JSON document', () {
+      expect(parseAnalysis('A notice.\n$report')!.map(fields), hasLength(1));
+    });
+    test('is null when stdout holds no report', () {
+      for (final String stdout in <String>[
+        '',
+        'Usage: dart analyze [arguments] [<directory>]',
+        '{"version":1}',
+        '{"version":1,"diagnostics":[{"code":1}]}',
+        report.substring(0, 40),
+      ]) {
+        expect(parseAnalysis(stdout), isNull, reason: stdout);
+      }
+    });
+    test('needs only the five fields; any entry that lacks one, or holds another type, voids the whole report', () {
+      String withEntries(List<String> entries) =>
+          '{"version":1,"diagnostics":[${entries.join(',')}]}';
+      String entry({
+        String code = '"c"',
+        String line = '1',
+        String message = '"problemMessage":"m"',
+      }) =>
+          '{"code":$code,"severity":"INFO","location":{"file":"/w/a.dart",'
+          '"range":{"start":{"line":$line}}},$message}';
+      expect(
+        parseAnalysis(withEntries(<String>[entry()]))!.map(fields),
+        <String>['/w/a.dart|1|INFO|c|m'],
+      );
+      for (final String stdout in <String>[
+        withEntries(<String>[entry(), entry(line: '"2"')]),
+        withEntries(<String>[entry(line: '1.5')]),
+        withEntries(<String>[entry(code: 'null')]),
+        withEntries(<String>[entry(message: '"correctionMessage":"m"')]),
+        withEntries(<String>[entry(), '1']),
+        '{"version":1,"diagnostics":{}}',
+        '$report\nA notice.',
+      ]) {
+        expect(parseAnalysis(stdout), isNull, reason: stdout);
+      }
+    });
+  });
+  test('analysisFailure names the exit code and the first line of stderr', () {
+    expect(
+      analysisFailure(
+        64,
+        "\nDirectory or file doesn't exist: x.dart\n\nUsage: dart analyze [arguments] [<directory>]\n",
+      ),
+      "dart analyze exited 64 without a JSON report: Directory or file doesn't exist: x.dart",
+    );
+    expect(
+      analysisFailure(1, ''),
+      'dart analyze exited 1 without a JSON report',
+    );
+    expect(
+      analysisFailure(255, '  \r\n\t Bad state: x. \r\nmore\r\n'),
+      'dart analyze exited 255 without a JSON report: Bad state: x.',
+    );
+    expect(
+      analysisFailure(3, ' \n\n'),
+      'dart analyze exited 3 without a JSON report',
+    );
+  });
+  test('diagnosticText', () {
+    expect(
+      diagnosticText(
+        const Diagnostic(
+          file: '/w/a.dart',
+          line: 3,
+          severity: 'INFO',
+          code: 'c',
+          message: 'm.',
+        ),
+      ),
+      'line 3: INFO c: m.',
+    );
+  });
+  test('groupDiagnostics attributes each diagnostic to its fixture and names the files it cannot', () {
+    Diagnostic at(String file, int line) => Diagnostic(
+      file: file,
+      line: line,
+      severity: 'ERROR',
+      code: 'x',
+      message: 'm',
+    );
+    final GroupedDiagnostics g = groupDiagnostics(
+      <Diagnostic>[
+        at('/private/w/a.dart', 1),
+        at('/w/a.dart', 2),
+        at('/w/b.dart', 3),
+        at('/elsewhere/c.dart', 4),
+        at('/elsewhere/c.dart', 5),
+      ],
+      <String, String>{
+        '/private/w/a.dart': '${s}surface/a.dart',
+        '/w/a.dart': '${s}surface/a.dart',
+        '/w/b.dart': '${s}reject/b.dart',
+      },
+    );
+    expect(
+      g.byFixture.map(
+        (String path, List<Diagnostic> ds) => MapEntry<String, List<int>>(
+          path,
+          ds.map((Diagnostic d) => d.line).toList(),
+        ),
+      ),
+      <String, List<int>>{
+        '${s}surface/a.dart': <int>[1, 2],
+        '${s}reject/b.dart': <int>[3],
+      },
+    );
+    expect(g.strays, <String>['/elsewhere/c.dart']);
+  });
+  test('groupDiagnostics: strays once each, ascending; nothing reported groups nothing', () {
+    Diagnostic at(String file) => Diagnostic(
+      file: file,
+      line: 1,
+      severity: 'INFO',
+      code: 'x',
+      message: 'm',
+    );
+    final GroupedDiagnostics g = groupDiagnostics(<Diagnostic>[
+      at('/z.dart'),
+      at('/a.dart'),
+      at('/z.dart'),
+    ], const <String, String>{});
+    expect(g.byFixture, isEmpty);
+    expect(g.strays, <String>['/a.dart', '/z.dart']);
+    final GroupedDiagnostics none = groupDiagnostics(
+      const <Diagnostic>[],
+      <String, String>{'/w/a.dart': '${s}surface/a.dart'},
+    );
+    expect(none.byFixture, isEmpty);
+    expect(none.strays, isEmpty);
+  });
+  group('the libraries a set analyzes', () {
+    final SlugSnapshot snapshot = snapshotOf('sample', analysisFiles);
+    test('setLibraries: every library below surface/ or reject/, by path, with the absent packages it names', () {
+      expect(
+        setLibraries(snapshot, CheckSet.surface, const <String>{
+          'sample',
+        }).map((SetLibrary l) => '${l.path} [${l.absent.join(', ')}]'),
+        <String>[
+          '${s}surface/dirty.dart []',
+          '${s}surface/pending.dart [producer]',
+          '${s}surface/use.dart []',
+        ],
+      );
+    });
+    test('analysisTargets: those that import no absent package; never behavior/ or another set', () {
+      expect(
+        analysisTargets(snapshot, CheckSet.surface, const <String>{'sample'}),
+        <String>['${s}surface/dirty.dart', '${s}surface/use.dart'],
+      );
+      expect(
+        analysisTargets(snapshot, CheckSet.reject, const <String>{'sample'}),
+        <String>[
+          '${s}reject/assigns_final.dart',
+          '${s}reject/extra_warning.dart',
+          '${s}reject/sample_is_closed.dart',
+          '${s}reject/wrong_code.dart',
+          '${s}reject/wrong_line.dart',
+        ],
+      );
+      expect(
+        analysisTargets(snapshot, CheckSet.behavior, const <String>{'sample'}),
+        isEmpty,
+      );
+      expect(
+        analysisTargets(snapshot, CheckSet.schema, const <String>{'sample'}),
+        isEmpty,
+      );
+      expect(
+        analysisTargets(snapshot, CheckSet.surface, const <String>{}),
+        isEmpty,
+      );
+    });
+    test('a nested library is one; a file that is not Dart is none; a library that names no package is never absent', () {
+      final SlugSnapshot nested = snapshotOf(
+        'sample',
+        changed(analysisFiles, <String, String?>{
+          '${s}surface/README.md': 'notes\n',
+          '${s}surface/more/core.dart':
+              "import 'dart:async';\n\nFuture<void> wait() async {}\n",
+        }),
+      );
+      expect(
+        setLibraries(
+          nested,
+          CheckSet.surface,
+          const <String>{},
+        ).map((SetLibrary l) => '${l.path} [${l.absent.join(', ')}]'),
+        <String>[
+          '${s}surface/dirty.dart [sample]',
+          '${s}surface/more/core.dart []',
+          '${s}surface/pending.dart [producer]',
+          '${s}surface/use.dart [sample]',
+        ],
+      );
+      expect(
+        analysisTargets(nested, CheckSet.surface, const <String>{}),
+        <String>['${s}surface/more/core.dart'],
+      );
+    });
+  });
+}

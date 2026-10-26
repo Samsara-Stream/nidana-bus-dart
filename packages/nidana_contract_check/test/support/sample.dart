@@ -131,6 +131,84 @@ const Map<String, String> sampleFiles = <String, String>{
   'hsdd/contract/fixture/sample/goldens/sample.txt': 'golden\n',
 };
 
+/// `hsdd/contract/fixture/sample/surface/dirty.dart`: an unused import, a
+/// warning on line 1.
+const String _surfaceDirty = r'''
+import 'dart:async';
+
+import 'package:sample/sample.dart';
+
+Sample use() => Sample();
+''';
+
+/// `hsdd/contract/fixture/sample/surface/pending.dart`: it imports a package
+/// no workspace holds.
+const String _surfacePending = r'''
+import 'package:producer/producer.dart';
+
+Producer use() => Producer();
+''';
+
+/// `hsdd/contract/fixture/sample/reject/assigns_final.dart`: the marked code
+/// on the marked line.
+const String _rejectAssignsFinal = r'''
+// covers: G1
+import 'package:sample/sample.dart';
+
+void f(Sample s) {
+  // expect-diagnostic: assignment_to_final
+  s.count = 1;
+}
+''';
+
+/// `hsdd/contract/fixture/sample/reject/extra_warning.dart`: the marked code,
+/// and a warning no marker names on line 8.
+const String _rejectExtraWarning = r'''
+// covers: G1
+import 'package:sample/sample.dart';
+
+// expect-diagnostic: invalid_use_of_type_outside_library
+final class Local extends Sample {}
+
+void f() {
+  final int unused = 0;
+}
+''';
+
+/// `hsdd/contract/fixture/sample/reject/wrong_code.dart`: the marker names a
+/// code the analyzer does not report on its line.
+const String _rejectWrongCode = r'''
+// covers: G1
+import 'package:sample/sample.dart';
+
+// expect-diagnostic: undefined_class
+final class Local extends Sample {}
+''';
+
+/// `hsdd/contract/fixture/sample/reject/wrong_line.dart`: the marked code is
+/// reported one line below the line the marker names.
+const String _rejectWrongLine = r'''
+// covers: G1
+import 'package:sample/sample.dart';
+
+// expect-diagnostic: invalid_use_of_type_outside_library
+const int before = 0;
+final class Local extends Sample {}
+''';
+
+/// [sampleFiles] with a surface library that has a warning, one that imports
+/// a package no workspace holds, and four more reject libraries; the seeds of
+/// the analyzer tests.
+const Map<String, String> analysisFiles = <String, String>{
+  ...sampleFiles,
+  'hsdd/contract/fixture/sample/surface/dirty.dart': _surfaceDirty,
+  'hsdd/contract/fixture/sample/surface/pending.dart': _surfacePending,
+  'hsdd/contract/fixture/sample/reject/assigns_final.dart': _rejectAssignsFinal,
+  'hsdd/contract/fixture/sample/reject/extra_warning.dart': _rejectExtraWarning,
+  'hsdd/contract/fixture/sample/reject/wrong_code.dart': _rejectWrongCode,
+  'hsdd/contract/fixture/sample/reject/wrong_line.dart': _rejectWrongLine,
+};
+
 /// The clean `tool` slug (kind `file`), keyed by path from the workspace root.
 const Map<String, String> toolFiles = <String, String>{
   'hsdd/contract/tool.md': _toolContract,
