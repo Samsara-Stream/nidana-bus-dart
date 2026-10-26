@@ -172,7 +172,8 @@ a `Task N: complete` line; never re-dispatch them.
 | S101 | implement | superpowers:subagent-driven-development | nidana.model.1: 8 tasks, 3 task fix rounds, final review with one fix wave; gate exit 0, 93 tests, 102/102 structure | done | d761b1f; merged into impl/nidana.model as cab9039 |
 | S102 | config | hsdd-config | nidana.model.2 | done | eb1e181 |
 | S103 | code-plan | superpowers:writing-plans | nidana.model.2 (7 tasks; every routed item dispositioned) | done | d023480 |
-| S104 | implement | superpowers:subagent-driven-development | nidana.model.2: 7 tasks, 2 task fix rounds, final review with one fix wave; gate exit 0, 195 tests, 206/206 structure and schema; surface and reject PENDING by design | done | d9b9b14 (merge recorded in the next row) |
+| S104 | implement | superpowers:subagent-driven-development | nidana.model.2: 7 tasks, 2 task fix rounds, final review with one fix wave; gate exit 0, 195 tests, 206/206 structure and schema; surface and reject PENDING by design | done | d9b9b14; merged into impl/nidana.model as 014959f |
+| S105 | config | hsdd-config | nidana.model.3 | done | 52e7a18 |
 
 ## Notes for the report
 
@@ -194,6 +195,10 @@ Findings the report must carry, written down when found so they survive context 
 - nidana.model.1 landed 3968 inserted lines in 24 files against its estimate of about 450 lines in about
   10 files (tests about two thirds; the task reviews added tests beyond the plan's). If the remaining phases
   overrun alike, the node's PE sizing under-counts by a large factor; the owner's checkpoint question.
+
+- S105: hsdd-config's template has no section for a node's own decisions (`D{n}`), so a phase context omits
+  the node decisions that fix what a phase lands (nidana.model D3, D4, D6 for the type-level phases); the
+  writing-plans prompts point at them. HSDD feedback, like S98's Rule 2 note.
 
 ## Routed to later phases
 

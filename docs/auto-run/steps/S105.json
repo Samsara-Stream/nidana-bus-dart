@@ -1,0 +1,295 @@
+{
+  "step_ref": "S105",
+  "skill": "hsdd-config",
+  "target": "nidana.model.3",
+  "status": "completed",
+  "stop": null,
+  "artifacts": [
+    "hsdd-context/nidana.model.3.md",
+    "hsdd-context/superpowers/nidana.model.3.md"
+  ],
+  "decisions": [
+    {
+      "at": "2026-10-26T22:32:41Z",
+      "artifact": "hsdd-context/nidana.model.3.md",
+      "question": "Which calendar date goes in the stamp's `date` field ('Date: today, YYYY-MM-DD'): the UTC date or the machine's local date? At the time of the run `date -u` reads 2026-10-26T22:32Z and the local date (and the harness's own date line) reads 2026-10-27.",
+      "options": [
+        {
+          "label": "UTC date",
+          "consequence": "The stamp reads 2026-10-26, the same clock as every timestamp in the report and the same choice as S98 and S102; one clock inside a step."
+        },
+        {
+          "label": "Local date",
+          "consequence": "The stamp reads 2026-10-27, one day ahead of the report's timestamps and of the earlier phases' stamps."
+        }
+      ],
+      "chosen": "UTC date",
+      "why": "S98 and S102 decided this the same way and the preamble takes every timestamp from `date -u`; docs/auto-run/timestamp-corrections.md records what went wrong when local time was labelled UTC. A rule that governance dates are the owner's local calendar day would have changed my mind.",
+      "evidence": [
+        "docs/auto-run/steps/S98.json",
+        "docs/auto-run/steps/S102.json",
+        "docs/auto-run/impl-step-preamble.md (Timestamps)",
+        "docs/auto-run/timestamp-corrections.md"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-26T22:34:37Z",
+      "artifact": "hsdd-context/nidana.model.3.md",
+      "question": "Which ADRs enter the Decisions section? The phase names Governed by [ADR-001, ADR-002, ADR-003]; its one contract, topic-model@v1, names Governed by [ADR-001, ADR-002]; the ADRs whose `affects` names topic-model@v1 are ADR-001 and ADR-002 (ADR-003's `affects` lists topology-dsl@v2, bus-api@v2, bus-testing@v2 and others, not topic-model@v1).",
+      "options": [
+        {
+          "label": "ADR-001, ADR-002 and ADR-003",
+          "consequence": "The union of the three selection rules, each once, in number order: the skill's rule. ADR-003 is in because the phase names it; its Decision and Consequences add about 60 lines."
+        },
+        {
+          "label": "ADR-001 and ADR-002 only",
+          "consequence": "Matches the contract's own Governed by and the affects rule, but drops an ADR the phase names, which the skill forbids silently."
+        }
+      ],
+      "chosen": "ADR-001, ADR-002 and ADR-003",
+      "why": "The skill's Decisions rule is a union: the phase's Governed by, each contract's Governed by, and every ADR whose `affects` names such a contract. The phase block lists ADR-003 and the phase's Scope lands the declarations the time-source rules constrain (ADR-003 item 8 is cited in G12 and G25). This differs from S98 and S102, where ADR-003 sat only in the node's field block. All three are accepted, so none carries the 'Not binding until accepted.' line.",
+      "evidence": [
+        "hsdd/spec/nidana.model.md (### nidana.model.3: Governed by)",
+        "hsdd/contract/topic-model.md (Governed by: [ADR-001, ADR-002])",
+        "hsdd/adr/INDEX.md (affects of ADR-001 to ADR-003)"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-26T22:34:37Z",
+      "artifact": "hsdd-context/nidana.model.3.md",
+      "question": "Which OQ ids enter the Open questions section? The phase's Scope cites OQ-M3 ('G5, which decides OQ-M3') and the contract's G5 and Interface cite OQ-M3; no other OQ id appears in the phase block or the contract's Interface and Guarantees. The ADR texts cite OQ8, OQ9, OQ12, OQ2, OQ7, OQ-R1, OQ-T2 and OQ-F1.",
+      "options": [
+        {
+          "label": "OQ-M3 only",
+          "consequence": "One line, with the status and question cells of nidana.model's table: `- OQ-M3 · RESOLVED (2026-10-18): topic-model@v1 G5 · Does the Dart topic model carry Spec §3.6's per-topic dispatcher hint at all?`. Follows the skill: only ids the phase or its contracts cite."
+        },
+        {
+          "label": "Also the ids the ADR texts cite",
+          "consequence": "Eight more lines, most owned by other nodes' or the root's tables (not in nidana.model's table), so their status and question could not be copied from 'the owning spec's table' of this node."
+        }
+      ],
+      "chosen": "OQ-M3 only",
+      "why": "The skill says 'only the ids the phase or its contracts cite'. An id inside an ADR excerpt is the ADR's citation; those ADRs resolve their OQs in the inlined text (ADR-001 resolves OQ8, ADR-002 resolves OQ9 and, with root D7, OQ12, ADR-003 resolves OQ7). Same call as S98 and S102 for the ADR-borne ids; the new element is that this phase does cite one id, so the section exists. The Status cell is copied whole, including its landing pointer.",
+      "evidence": [
+        "hsdd/spec/nidana.model.md (## Open questions, OQ-M3 row)",
+        "hsdd/contract/topic-model.md (G5)",
+        "docs/auto-run/steps/S98.json"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-26T22:34:37Z",
+      "artifact": "hsdd-context/nidana.model.3.md",
+      "question": "The contract's Interface body carries its own `### Topics`, `### Topic references and names`, `### Message sources`, `### Envelopes`, `### Lineage`, `### Scope`, `### Observers` and `### Redaction` headings, at the same level as the template's `### topic-model@v1 . produces . stable` subsection heading. How does the Contracts section lay them out?",
+      "options": [
+        {
+          "label": "Verbatim, no demotion",
+          "consequence": "The sub-headings sit at the level of the contract heading; the **Interface** and **Guarantees** label lines delimit the contract. Rule 1 holds and the diff against the contract file is empty; a reader sees the Interface's sections as siblings of the contract."
+        },
+        {
+          "label": "Demote them one level",
+          "consequence": "The hierarchy reads cleanly, but every such line becomes text I wrote, the excerpt no longer diffs against the contract, and Rule 1 ('Do not ... reorder ... or drop a line') is bent."
+        }
+      ],
+      "chosen": "Verbatim, no demotion",
+      "why": "Rule 1 (selection, never authorship) and Rule 4 (no truncation). The label lines make the boundary unambiguous to a reader and to the impl-gate, which looks for `### {id} ·` only. A skill wording that demotes excerpt headings would have changed my mind.",
+      "evidence": [
+        ".claude/skills/hsdd-config/SKILL.md (Filling it, Rules 1 and 4)",
+        "hsdd/contract/topic-model.md lines 37 to 390"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": true
+    },
+    {
+      "at": "2026-10-26T22:34:37Z",
+      "artifact": "hsdd-context/nidana.model.3.md",
+      "question": "Layout details the skill's templates leave open, now that Contracts, Open questions and Contract replay appear: a blank line between consecutive subsections of Contracts and Decisions; the Owns value as a nested list; the Links heading quote keeping its `### ` marker; constraint 8 ending in one period; whether there is a constraint 9 (a Dart tech skill).",
+      "options": [
+        {
+          "label": "Follow S98 and S102 byte for byte",
+          "consequence": "A blank line before every next `###` subsection (the contracts follow the ADRs' rule), nested Owns list, marker kept, one period, no constraint 9 ('No Dart tech skill is installed', conventions). The generator reproduced S98's and S102's four files exactly before it was used here."
+        },
+        {
+          "label": "Choose a different layout for this phase",
+          "consequence": "Three consecutive phases would carry three layouts of the same fixed template, with no reason in any source."
+        }
+      ],
+      "chosen": "Follow S98 and S102 byte for byte",
+      "why": "Consecutive phases should differ only in content. The conventions state that no Dart tech skill is installed, CLAUDE.md names none, so there is no constraint 9 and the Plan check says 'constraints 1 to 8'.",
+      "evidence": [
+        "docs/auto-run/steps/S98.json",
+        "docs/auto-run/steps/S102.json",
+        "hsdd/conventions.md (Companion skills)"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-26T22:34:37Z",
+      "artifact": "hsdd-context/nidana.model.3.md",
+      "question": "Discipline lines for a producing phase: the Contract replay line (names topic-model@v1) and the Grandfathered line. Does topic-model@v1's frontmatter say `validation: grandfathered`?",
+      "options": [
+        {
+          "label": "Replay line only",
+          "consequence": "Contract replay names topic-model@v1; no Grandfathered line, because the frontmatter has no `validation:` field (status stable, phase_ids final, fixtures present under hsdd/contract/fixture/topic-model/)."
+        },
+        {
+          "label": "Add a Grandfathered line anyway",
+          "consequence": "Would tell the implementer the fixtures might be missing; they exist, and the line is owed only for validation: grandfathered."
+        }
+      ],
+      "chosen": "Replay line only",
+      "why": "The skill: 'a contract with validation: grandfathered also gets its own Grandfathered line. Omit each line when it has nothing to say.' The frontmatter was read directly.",
+      "evidence": [
+        "hsdd/contract/topic-model.md frontmatter",
+        "ls hsdd/contract/fixture/topic-model"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-26T22:36:04Z",
+      "artifact": "hsdd-context/nidana.model.3.md",
+      "question": "The self-contained gate (Rule 2: 'Every contract, ADR and OQ id the file names has its text inline in its section. Other phases' ids appear only in the Phase block's Dependencies and Collides with lines') flags ids that occur only inside verbatim excerpts. How does it apply, following S98 and S102, now that the file has a Contracts section? The classification script (scratchpad) puts these outside any selected position: contract ids bus-api@v2 (node Owns, topic-model@v1's Interface and Guarantees, ADR-001 and ADR-003), topology-dsl@v2 and topology-ir@v1 (node Owns, the Interface, ADR-001), bus-testing@v2 and navigation-api@v1 and flutter-binding@v2 (ADR text), nidana-checks@v1 and topic-codegen@v1 (ADR text); OQ ids OQ8, OQ9, OQ12, OQ2, OQ7, OQ-R1, OQ-T2, OQ-F1 (ADR text); phase ids nidana.flutter.1, nidana.model.1 to .2, .6 to .7 (node Owns, ADR text) and nidana.model.5 and nidana.model.8 (the Interface's Delivery paragraph and comments) outside Dependencies and Collides with.",
+      "options": [
+        {
+          "label": "Apply the gate to ids the file selects; excerpt-internal citations stay as the source's words",
+          "consequence": "Same reading as S98 and S102. The impl-gate prints one warning (8 contract ids). Nothing is dropped, paraphrased or inlined beyond the template's selections."
+        },
+        {
+          "label": "Inline every contract the Interface names",
+          "consequence": "Adds topology-dsl@v2, topology-ir@v1 and bus-api@v2 (hundreds more lines) and, to stay consistent, every contract the ADR texts name; the phase does not consume or produce them, and the phase's Collides with and the Delivery paragraph make clear that their declarations land at nidana.model.4 and nidana.model.5."
+        },
+        {
+          "label": "Stop and report the gate as failed",
+          "consequence": "Blocks the phase on a reading of Rule 2 that the previous two phases already settled the other way."
+        }
+      ],
+      "chosen": "Apply the gate to ids the file selects; excerpt-internal citations stay as the source's words",
+      "why": "The contract section changes the picture in two ways, neither of which changes the outcome. (1) topic-model@v1, flagged in S98 and S102, now has its subsection and leaves the set; bus-testing@v2 enters it from ADR-003's text, so the impl-gate warning again lists 8 ids. (2) topology-dsl@v2, topology-ir@v1 and bus-api@v2 now occur in the contract text the phase implements, not only in node and ADR text. I read each occurrence (8 lines of the Interface and G27): every one states who owns a behavior ('is bus-api@v2's'), where the main library is completed (nidana.model.5), or which phase delivers the bodies (nidana.model.8); none states a requirement this phase must satisfy by reference. The Interface is complete without those contracts' text, which the skill's Contracts rule (Consumes and Produces only) excludes. The Delivery paragraph's nidana.model.5 and nidana.model.8 are the contract's own words. A skill wording that scoped Rule 2 to selected ids, or told the writer to inline cited contracts, would have changed my mind.",
+      "evidence": [
+        "docs/auto-run/steps/S98.json (decision 2026-10-26T17:03:14Z)",
+        "docs/auto-run/steps/S102.json (decision 2026-10-26T19:48:58Z)",
+        "node docs/auto-run/tools/impl-gate.mjs config nidana.model.3",
+        "hsdd/contract/topic-model.md Interface (Library, Delivery, dartdoc) and G27"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": true
+    },
+    {
+      "at": "2026-10-26T22:38:20Z",
+      "artifact": "hsdd-context/nidana.model.3.md",
+      "question": "The phase block's Scope cites two node-local decisions it depends on, 'as D3 defines a declaration' and 'test/purity_test.dart for G25 and G26 (D6)'. The skill's template has no section for node-local decisions (Decisions holds ADRs only; Rule 2 names contract, ADR and OQ ids), so D3 and D6 are not inline. Add them?",
+      "options": [
+        {
+          "label": "Follow the template; report the gap",
+          "consequence": "The file stays inside the skill's fixed sections and the impl-gate. The plan writer must open hsdd/spec/nidana.model.md for D3 and D6 (the Links section names the node spec), or the orchestrator's writing-plans prompt carries them."
+        },
+        {
+          "label": "Add a section with D3, D4 and D6 verbatim",
+          "consequence": "The context becomes self-contained for the type-level rules, but the skill's 'Fixed sections, in this order' is broken, and a later hsdd-config or hsdd-summary pass would not reproduce the file."
+        }
+      ],
+      "chosen": "Follow the template; report the gap",
+      "why": "The skill says to follow its sections exactly and Rule 2 does not cover D-ids; S102 made the same call for D2. It matters more here: D3 fixes what 'a declaration' is (modifiers, annotations, asserts a reject fixture expects, the final field behind every getter so the reject codes match, bodies that throw UnimplementedError, == and hashCode left as Object's) and D6 fixes what purity_test.dart checks (the exact package dependency sets, the banned imports and the banned source tokens). The contract states G25 and G26 but not those lists. I could not ask the owner. Medium confidence: a context that omits D6's token list invites the plan writer to invent one. A skill whose template carried the node-local decisions a phase cites would have settled this.",
+      "evidence": [
+        "hsdd/spec/nidana.model.md ### D3 (line 100), ### D4 (line 108), ### D6 (line 129)",
+        "hsdd/spec/nidana.model.md ### nidana.model.3 Scope",
+        "docs/auto-run/steps/S102.json notes_for_orchestrator (D2)"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": true,
+      "stop_class": "shape",
+      "would_upstream": true
+    }
+  ],
+  "experiments": [],
+  "self_check": [
+    {
+      "gate": "The generic file exists at `hsdd-context/{phase-id}.md`, named by the full phase id, with a stamp naming the spec SHA (and `-dirty` when it applies).",
+      "status": "pass",
+      "note": "hsdd-context/nidana.model.3.md; stamp {\"phase\":\"nidana.model.3\",\"spec\":\"014959f\",\"date\":\"2026-10-26\"}. `git -C hsdd status --porcelain -- spec contract adr conventions.md` printed nothing before the write, so no -dirty."
+    },
+    {
+      "gate": "Every line in it is a verbatim excerpt, template text, or a link.",
+      "status": "pass",
+      "note": "Assembled by script from the node field block, the phase block, topic-model@v1's Interface and Guarantees bodies, and the Decision and Consequences bodies of ADR-001 to ADR-003, plus the skill's template text. The script first reproduced S98's and S102's two files each, byte for byte, from the spec at their SHAs. An independent sed/diff of the Interface (contract lines 39 to 389) and Guarantees (393 to 419) against the file printed nothing; ADR-003's Decision and Consequences were compared against the ADR in Python and matched. A line-origin check found every line above Discipline in a source file except 24 template or label lines (stamp, title, section and subsection headings, the **Interface**/**Guarantees**/**Decision**/**Consequences** labels, the Goal line which is the Scope value without its label, the Node/Owns/Does not own/Isolation strategy label lines, and the Open questions line composed from the table's Status and Question cells). Zero em-dash characters and zero uses of the banned phrase in both files."
+    },
+    {
+      "gate": "The self-contained gate passed: every contract, ADR and OQ id named has its text inline, or its external one-liner.",
+      "status": "pass",
+      "note": "Passes under the decision recorded at 2026-10-26T22:36:04Z, the reading S98 and S102 applied: the ids the file selects have their text inline (topic-model@v1 in Contracts; ADR-001, ADR-002, ADR-003 in Decisions; OQ-M3 in Open questions). A literal Rule 2 flags 8 contract ids (bus-api@v2, bus-testing@v2, flutter-binding@v2, navigation-api@v1, nidana-checks@v1, topic-codegen@v1, topology-dsl@v2, topology-ir@v1), 8 OQ ids (OQ8, OQ9, OQ12, OQ2, OQ7, OQ-R1, OQ-T2, OQ-F1) and 7 other-phase ids that occur only inside verbatim excerpts. See notes_for_orchestrator."
+    },
+    {
+      "gate": "The derivative for the method was written, and the equality check printed nothing.",
+      "status": "pass",
+      "note": "hsdd-context/superpowers/nidana.model.3.md. The skill's step 11 command, `diff <(tail -n +2 hsdd-context/nidana.model.3.md) <(sed -n '/hsdd-phase-context:begin/,/hsdd-phase-context:end/p' hsdd-context/superpowers/nidana.model.3.md | sed '1d;$d')`, printed nothing (exit 0)."
+    },
+    {
+      "gate": "For OpenSpec, the project-wide context and `rules:` are unchanged.",
+      "status": "n/a",
+      "note": "Coding method is superpowers; there is no openspec/ directory and none is created (conventions, Execution setup)."
+    },
+    {
+      "gate": "For superpowers, the Global Constraints and Plan check are filled, with no braces left.",
+      "status": "pass",
+      "note": "N=5 (Size estimate '<= 5 plan tasks'), the full gate command, the gate-only tier line, no constraint 9, Plan check 'constraints 1 to 8' and 'at most 5 tasks'. impl-gate.mjs config found no unfilled placeholder in the head. The braces left in the file are the stamp's JSON and braces inside the excerpts (Dart code, `{n}` in guarantee ids)."
+    },
+    {
+      "gate": "Every stop (missing ADR, missing default gate, contingent phase) was honored; every warning is in the report.",
+      "status": "pass",
+      "note": "No stop applied: the phase's Gate is explicit (no `node default`); ADR-001, ADR-002 and ADR-003 exist and are accepted; the phase is not listed under any request's contingent phases (the node's Governance updates section is reconciled and holds no entry). Every warning is in notes_for_orchestrator."
+    },
+    {
+      "gate": "`hsdd/templates/verification.md` exists after the switch and has `## Learnings` (copied in step 7 if missing, replaced if it was a pre-v0.10 copy), and the report says which.",
+      "status": "pass",
+      "note": "hsdd/templates/verification.md already existed (S98), has `## Learnings` and is byte-identical to the skill's template (diff against both .claude/skills and .agents/skills copies printed nothing). Nothing was copied or replaced."
+    },
+    {
+      "gate": "The Contract replay line names every produced contract, and every produced contract with `validation: grandfathered` has its own Grandfathered line; both omitted only when they have nothing to say.",
+      "status": "pass",
+      "note": "The Contract replay line names topic-model@v1, the phase's one produced contract. topic-model@v1's frontmatter has no `validation:` field (status stable, phase_ids final), so there is no Grandfathered line and none is owed."
+    }
+  ],
+  "contract_gaps": [],
+  "notes_for_orchestrator": [
+    "hsdd-config report, phase nidana.model.3, method superpowers. Files written: hsdd-context/nidana.model.3.md (generic phase context, 668 lines); hsdd-context/superpowers/nidana.model.3.md (superpowers derivative, 706 lines). hsdd/templates/verification.md already existed (S98), has `## Learnings` and is identical to the skill's template, so nothing was copied or replaced. Spec SHA: 014959f (git -C hsdd rev-parse --short HEAD; hsdd/ is a plain directory, so this is the repository HEAD, the merge of nidana.model.2); clean, no -dirty warning. Derivative's N (plan task cap): 5, from the phase's Size estimate '<= 5 plan tasks'. Review tier gate-only. Gate command (constraint 4 of the derivative, and the Gate line of the Phase block): `fvm dart pub get --enforce-lockfile && fvm dart analyze --fatal-infos && fvm dart run nidana_contract_check --all --set structure && fvm dart test packages/nidana_dart_contracts && fvm dart run nidana_contract_check topic-model --set structure,surface,reject`. Warnings: (1) the impl-gate's one warning, 'contract ids named without a Contracts subsection (inside excerpts?)' for bus-api@v2, topology-dsl@v2, topology-ir@v1, topic-codegen@v1, nidana-checks@v1, flutter-binding@v2, navigation-api@v1, bus-testing@v2, which the decision at 2026-10-26T22:36:04Z answers; (2) node-local decisions D3 and D6, cited by the phase's Scope, are not inline (decision at 2026-10-26T22:38:20Z, below). No other warning: profile check not applicable (standalone-spec-repo is not used); the Gate is explicit; ADR-001, ADR-002 and ADR-003 exist and are accepted; next-runnable check: hsdd/verify/nidana.model.3.verification.md does not exist, so the phase is not done, and its one dependency nidana.model.2 has hsdd/verify/nidana.model.2.verification.md and its merge commit 014959f is HEAD (nidana.model.1's merge cab9039 is an ancestor); reconcile check: topic-model@v1 is status stable, phase_ids final, not draft, no unresolved request names it, the node's Governance updates section is reconciled and empty, and the phase is not listed under any request's contingent phases. Start the session with: Use superpowers:writing-plans to plan hsdd-context/superpowers/nidana.model.3.md",
+    "SESSION START LINE: Use superpowers:writing-plans to plan hsdd-context/superpowers/nidana.model.3.md",
+    "SETUP, present for review. Docs used: hsdd/conventions.md (Coding method: superpowers; Profile: standalone-spec-repo not used; Phase design with the plan-task ceiling, the gate-command rules, the replay-tool landing list, and the shared-workspace-files rule; Companion skills, no Dart tech skill); hsdd/spec/nidana.model.md (node field block, Default gate line, ### nidana.model.3 section, Open questions table for OQ-M3, Governance updates section; D1 to D6 were read to find what the phase cites); hsdd/contract/topic-model.md (frontmatter, Interface, Guarantees, and Boundary, Versioning and Validation to confirm what is and is not excerpted); hsdd/adr/001, 002 and 003 in full, hsdd/adr/INDEX.md; CLAUDE.md; docs/auto-run/steps/S98.json and S102.json (precedent). The other eight node specs were not read. Skill-to-step mapping is OpenSpec-only and was not used. Coding method: superpowers, equal to the --method given.",
+    "SELF-CONTAINED GATE, interpretation applied (decision at 2026-10-26T22:36:04Z, would_upstream true, same as S98 and S102). Flagged under a literal Rule 2, all inside verbatim excerpts: contract ids bus-api@v2, bus-testing@v2, flutter-binding@v2, navigation-api@v1, nidana-checks@v1, topic-codegen@v1, topology-dsl@v2, topology-ir@v1; OQ ids OQ8, OQ9, OQ12, OQ2, OQ7, OQ-R1, OQ-T2, OQ-F1; phase ids nidana.flutter.1, nidana.model.1 to .2 and .6 to .7 (node Owns, ADR text) and nidana.model.5 and .8 (the contract's Delivery paragraph and dartdoc). What changed against S98 and S102: topic-model@v1 left the flagged set because it now has its subsection; topology-dsl@v2, topology-ir@v1 and bus-api@v2 now also occur in the contract text the phase implements, as ownership statements and as the Delivery paragraph's consumer edges, none a requirement on this phase. The plan writer should read these ids as references: the phase consumes no contract and produces topic-model@v1 alone. Nothing was paraphrased, dropped or inlined to satisfy the check. Suggested upstream wording for hsdd-config Rule 2 (unchanged): scope it to ids the file selects (Consumes, Produces, Governed by, section headings), or say that ids inside a verbatim excerpt are exempt.",
+    "NODE-LOCAL DECISIONS NOT INLINE (decision at 2026-10-26T22:38:20Z, would_have_asked true, stop_class shape, would_upstream true). The phase's Scope relies on D3 (what a type-level phase lands: class, member and function signatures with their modifiers sealed/final/base/abstract interface and annotations @immutable/@nonVirtual, enums, typedefs, constructors with defaults, const and the asserts a reject fixture expects, the final field behind every getter so reject codes match, the public libraries' export lists, every computing body throwing UnimplementedError, == and hashCode left as Object's until nidana.model.8) and on D6 (the exact content of test/purity_test.dart for G25 and G26: package dependencies exactly `meta`, dev_dependencies exactly `test`, no lib/ import of dart:io, dart:isolate, dart:ffi, dart:html or a package other than meta and its own, none of nine source tokens, the package located from the workspace root by ancestor search). D4 (source layout: lib/src/topic/ for this phase; README.md, CHANGELOG.md and the LICENSE copy written once, by nidana.model.3) is also the layout rule behind the Scope's 'under lib/src/topic/'. They are at hsdd/spec/nidana.model.md lines 100, 108 and 129 (### D3, ### D4, ### D6). I recommend the orchestrator's writing-plans prompt names those three decisions beside the derivative's path, or routes the template gap upstream (an hsdd-config section for the node-local decisions a phase cites). The generic context links the node spec and the phase heading, so a plan writer that follows Links will find them.",
+    "SIZE OF THE CONTEXT: 668 lines (derivative 706). The Contracts section is about 380 lines: the Interface (351 lines, including the Delivery paragraph and eight sub-sections) and the 27 Guarantees G1 to G27. The three ADRs add about 58 lines (ADR-001), 103 lines (ADR-002) and 56 lines (ADR-003). Rule 4 (no truncation) was followed as the task directs. The node plan already says 'About half of each type-level phase's lines are dartdoc carried from its contract's Interface'. Sizing note, an observation for the owner's checkpoint, not a change to this phase: nidana.model.1's verification doc records its product diff at 4132 lines in 24 files against an estimate of about 450 lines in about 10 files (about 9.2 times), with a task cap of 8; this phase estimates ~430 lines and at most 5 plan tasks for 8 files plus the package scaffold, ten reject libraries and the purity test, so the task cap is likely the binding constraint and the plan should split by seam (scaffold and workspace member; topics; envelopes, sources and lineage; scope, observers and redaction; purity test and gate) rather than by size.",
+    "FOR THE PLAN WRITER (facts read, not decided): packages/ holds nidana_contract_check only; this phase creates packages/nidana_dart_contracts and inserts `packages/nidana_dart_contracts` into the root pubspec.yaml `workspace:` list in path order (after packages/nidana_contract_check), and must commit the lockfile it resolves (conventions, Shared workspace files; D5). In the committed pubspec.lock `meta` is currently `dependency: transitive`; the phase makes it a direct dependency of a member. The phase gate's last command replays topic-model's structure, surface and reject sets; the fixtures are forward references (hsdd/contract/fixture/topic-model/ holds surface/{topics,envelopes,observers}.dart, ten reject libraries, and behavior/ whose binding is not run by this gate), so the first replay against the real package is their first verification, and a fixture that fails against a declaration matching the Interface is a contract gap to report, not edit (ADR-001 item 8). Until the package exists, the replay reports PENDING per fixture (D2); with it, the surface and reject sets must pass. hsdd/verify/nidana.model.3.verification.md does not exist yet; the plan's last task creates it from hsdd/templates/verification.md at gate-only (slim) depth. nidana.model.4 and nidana.model.5 edit the same main library's export list later, and nidana.model.8 edits lib/src/topic/; this phase therefore exports only the topic-model@v1 declarations.",
+    "FIXED TEMPLATE TEXT KEPT AS WRITTEN: constraint 7 says '(if any)' and the Discipline text is the skill's, with {phase-id} and {review tier} substituted and the Contract replay line naming topic-model@v1. The Phase block carries the phase's Gate as written (it is explicit, not `node default`). Governance dates and the stamp use the UTC date 2026-10-26; the local date at run time was 2026-10-27. The Spec SHA names the repository HEAD at the time of reading (014959f); the orchestrator's commit of these files moves HEAD, but the cited text (spec, contract, adr, conventions.md) is unchanged by it, so the stamp stays accurate.",
+    "METHOD: the two files were assembled by a script in the session scratchpad (gen_context.py), not in the repository. Before use it was run for nidana.model.1 (spec at eef4f0c) and nidana.model.2 (spec at cab9039) and reproduced S98's and S102's four files exactly; the contract path was then checked independently as described in the self_check note. No experiment was needed (the step turns on no runtime fact).",
+    "ORCHESTRATOR GATE PREVIEW: `node docs/auto-run/tools/impl-gate.mjs config nidana.model.3` run before this report was written printed 0 errors and 1 warning ('contract ids named without a Contracts subsection (inside excerpts?)': bus-api@v2, topology-dsl@v2, topology-ir@v1, topic-codegen@v1, nidana-checks@v1, flutter-binding@v2, navigation-api@v1, bus-testing@v2), the warning the decision at 2026-10-26T22:36:04Z answers. Run it again after this report exists; the report is under docs/auto-run/steps/, which the gate allows.",
+    "NOT COMMITTED. git status shows hsdd-context/nidana.model.3.md and hsdd-context/superpowers/nidana.model.3.md untracked, plus this report once written. No git state was changed, nothing under hsdd/ was touched, no contract gap was found (contract_gaps is empty)."
+  ]
+}
