@@ -204,7 +204,7 @@ if (kind === "implement") {
       const DISP = /(spec-updated|contract-bumped \([^)]+\)|adr-proposed \([^)]+\)|dropped \([^)]+\))\.?\s*$/;
       for (const e of entries) if (e.trim() !== "- none" && !DISP.test(e)) warn(`${VERIFY}: Learning without a trailing disposition: ${e.slice(0, 100)}`);
     }
-    if (/^- Reviewer \/ date:\s*\S/m.test(v)) warn(`${VERIFY}: Sign-off is filled; the run leaves it to the owner`);
+    if (/^- Reviewer \/ date:[ \t]*\S/m.test(v)) warn(`${VERIFY}: Sign-off is filled; the run leaves it to the owner`);
   }
   // prose rules on added lines of non-generated text
   const diff = git("diff", "-U0", `${base}..HEAD`, "--", ".", ":(exclude)pubspec.lock");
