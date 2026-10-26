@@ -226,4 +226,141 @@ void main() {
       );
     });
   });
+  group('the replay\'s one analysis', () {
+    test('readsAnalysis: surface and reject, no other set', () {
+      expect(CheckSet.values.where(readsAnalysis), <CheckSet>[
+        CheckSet.surface,
+        CheckSet.reject,
+      ]);
+    });
+    test('replayTargets: analysisTargets of every planned set of every slug, once each, ascending', () {
+      final SlugSnapshot sample = snapshotOf('sample', analysisFiles);
+      final SlugSnapshot other = snapshotOf('other', <String, String>{
+        for (final MapEntry<String, String> entry in sampleFiles.entries)
+          entry.key.replaceFirst('sample', 'other'): entry.value,
+      });
+      expect(
+        replayTargets(
+          <SlugPlan>[
+            (
+              snapshot: sample,
+              sets: <CheckSet>[
+                CheckSet.structure,
+                CheckSet.reject,
+                CheckSet.behavior,
+              ],
+            ),
+            (
+              snapshot: other,
+              sets: <CheckSet>[CheckSet.structure, CheckSet.surface],
+            ),
+            (snapshot: sample, sets: <CheckSet>[CheckSet.reject]),
+          ],
+          const <String>{'sample'},
+        ),
+        <String>[
+          'hsdd/contract/fixture/other/surface/use.dart',
+          '${s}reject/assigns_final.dart',
+          '${s}reject/extra_warning.dart',
+          '${s}reject/sample_is_closed.dart',
+          '${s}reject/wrong_code.dart',
+          '${s}reject/wrong_line.dart',
+        ],
+      );
+      expect(
+        replayTargets(<SlugPlan>[
+          (
+            snapshot: sample,
+            sets: <CheckSet>[CheckSet.structure, CheckSet.surface],
+          ),
+        ], const <String>{}),
+        isEmpty,
+      );
+    });
+  });
+  group('attributeDiagnostics', () {
+    AnalysisTarget target(String name, {String? resolved}) => (
+      path: '$s$name',
+      given: '/w/$s$name',
+      resolved: resolved ?? '/private/w/$s$name',
+    );
+    Diagnostic at(String file, int line) => Diagnostic(
+      file: file,
+      line: line,
+      severity: 'ERROR',
+      code: 'x',
+      message: 'm',
+    );
+    Object linesOf(Attribution attribution) => switch (attribution) {
+      Attributed(:final Map<String, List<Diagnostic>> byFixture) =>
+        byFixture.map(
+          (String path, List<Diagnostic> ds) => MapEntry<String, List<int>>(
+            path,
+            ds.map((Diagnostic d) => d.line).toList(),
+          ),
+        ),
+      Unattributable(:final String reason) => reason,
+    };
+    test('a target is found by the path it was given and by its resolved path; one with no diagnostic has no entry', () {
+      expect(
+        linesOf(
+          attributeDiagnostics(
+            <AnalysisTarget>[
+              target('surface/a.dart'),
+              target('surface/clean.dart'),
+            ],
+            <Diagnostic>[
+              at('/private/w/${s}surface/a.dart', 1),
+              at('/w/${s}surface/a.dart', 2),
+            ],
+          ),
+        ),
+        <String, List<int>>{
+          '${s}surface/a.dart': <int>[1, 2],
+        },
+      );
+    });
+    test('targets that resolve to one file each get its diagnostics, as a link to another library does', () {
+      expect(
+        linesOf(
+          attributeDiagnostics(
+            <AnalysisTarget>[
+              target(
+                'reject/b.dart',
+                resolved:
+                    '/private/w/hsdd/contract/fixture/other/surface/a.dart',
+              ),
+              target(
+                'surface/c.dart',
+                resolved:
+                    '/private/w/hsdd/contract/fixture/other/surface/a.dart',
+              ),
+            ],
+            <Diagnostic>[
+              at('/private/w/hsdd/contract/fixture/other/surface/a.dart', 3),
+            ],
+          ),
+        ),
+        <String, List<int>>{
+          '${s}reject/b.dart': <int>[3],
+          '${s}surface/c.dart': <int>[3],
+        },
+      );
+    });
+    test('a reported file no target claims refuses the attribution, naming the first stray', () {
+      expect(
+        linesOf(
+          attributeDiagnostics(
+            <AnalysisTarget>[target('surface/a.dart')],
+            <Diagnostic>[
+              at('/private/w/${s}surface/a.dart', 1),
+              at('/z/stray.dart', 1),
+              at('/elsewhere/stray.dart', 1),
+            ],
+          ),
+        ),
+        'dart analyze reported /elsewhere/stray.dart, which the replay did not ask it to analyze',
+      );
+    });
+  });
 }

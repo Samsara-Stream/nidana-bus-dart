@@ -165,7 +165,7 @@ Future<int> _replay(
         ..writeln(usage);
       return exitUsage;
     case ParsedRequest(:final Request request):
-      final List<_Plan> plans = List<_Plan>.unmodifiable(<_Plan>[
+      final List<SlugPlan> plans = List<SlugPlan>.unmodifiable(<SlugPlan>[
         for (final String slug in request.slugs)
           _planOf(request, readSnapshot(root, slug)),
       ]);
@@ -182,19 +182,10 @@ Future<int> _replay(
   }
 }
 
-/// One slug of the request: its [snapshot] and the [sets] [plannedSets]
-/// runs over it, in order.
-typedef _Plan = ({SlugSnapshot snapshot, List<CheckSet> sets});
-
-/// The [_Plan] of [snapshot] under [request].
-_Plan _planOf(Request request, SlugSnapshot snapshot) =>
+/// The [SlugPlan] of [snapshot] under [request]: the sets [plannedSets]
+/// runs over it.
+SlugPlan _planOf(Request request, SlugSnapshot snapshot) =>
     (snapshot: snapshot, sets: plannedSets(request, snapshot));
-
-/// The sets that read the analysis (ADR-001 item 4).
-const Set<CheckSet> _analyzedSets = <CheckSet>{
-  CheckSet.surface,
-  CheckSet.reject,
-};
 
 /// What the replay's one analysis gives the `surface` and `reject` runs: the
 /// diagnostics by fixture, or the reason those runs cannot run.
@@ -222,17 +213,15 @@ final class _AnalysisUnavailable extends _Analysis {
 /// The replay's one analysis, for the `surface` and `reject` runs of every
 /// plan.
 ///
-/// The package configuration is read only when some plan holds one of those
-/// sets; otherwise the result is never consulted. The targets are
-/// [analysisTargets] of every planned set of every plan, once each,
-/// ascending; with none, no process starts, because `dart analyze` without a
-/// path analyzes the working directory.
+/// The package configuration is read only when some plan holds a set that
+/// [readsAnalysis]; otherwise the result is never consulted. With no
+/// [replayTargets], no process starts.
 Future<_Analysis> _analyze(
   Directory root,
-  List<_Plan> plans, {
+  List<SlugPlan> plans, {
   required String dart,
 }) async {
-  if (!plans.any((_Plan plan) => plan.sets.any(_analyzedSets.contains))) {
+  if (!plans.any((SlugPlan plan) => plan.sets.any(readsAnalysis))) {
     return const _Analyzed(<String>{}, <String, List<Diagnostic>>{});
   }
   final File configuration = File(_workspacePath(root, packageConfigPath));
@@ -249,47 +238,33 @@ Future<_Analysis> _analyze(
       '$packageConfigPath is not a package configuration',
     );
   }
-  final List<String> targets = List<String>.unmodifiable(
-    <String>{
-      for (final (:SlugSnapshot snapshot, :List<CheckSet> sets) in plans)
-        for (final CheckSet set in sets)
-          ...analysisTargets(snapshot, set, packages),
-    }.toList()..sort(),
-  );
+  final List<String> targets = replayTargets(plans, packages);
   return targets.isEmpty
       ? _Analyzed(packages, const <String, List<Diagnostic>>{})
       : _analyzeTargets(root, targets, packages, dart: dart);
 }
 
-/// One analyzed library: its path from the workspace root, the absolute path
-/// handed to `dart analyze`, and that path with symbolic links resolved.
-typedef _Target = ({String path, String given, String resolved});
-
-/// Runs `dart analyze` once over [targets] from [root] and attributes what
-/// it reports.
+/// Runs `dart analyze` once over [targets] from [root] and has
+/// [attributeDiagnostics] attribute what it reports.
 ///
-/// The analyzer reports symlink-resolved paths, so each target is found by
-/// the path it was given and by its resolved form. The resolved file is the
-/// group: two libraries that resolve to one file, as a link to another
-/// library does, are reported once, and each gets that file's diagnostics. A
-/// reported file no target claims is an environment error: dropping it could
-/// pass a library that has a diagnostic.
+/// The shell's part is the file system's and the process's: each target's
+/// absolute path and its symlink-resolved form, and the analyzer's output.
 Future<_Analysis> _analyzeTargets(
   Directory root,
   List<String> targets,
   Set<String> packages, {
   required String dart,
 }) async {
-  final List<_Target> files = List<_Target>.unmodifiable(<_Target>[
-    for (final String path in targets) _targetOf(root, path),
-  ]);
+  final List<AnalysisTarget> files = List<AnalysisTarget>.unmodifiable(
+    <AnalysisTarget>[for (final String path in targets) _targetOf(root, path)],
+  );
   final ProcessResult result;
   try {
     result = await Process.run(dart, <String>[
       'analyze',
       '--fatal-infos',
       '--format=json',
-      for (final _Target file in files) file.given,
+      for (final AnalysisTarget file in files) file.given,
     ], workingDirectory: root.path);
   } on ProcessException catch (error) {
     return _AnalysisUnavailable('could not run $dart: ${error.message}');
@@ -300,30 +275,19 @@ Future<_Analysis> _analyzeTargets(
       analysisFailure(result.exitCode, result.stderr as String),
     );
   }
-  final GroupedDiagnostics byFile = groupDiagnostics(reported, <String, String>{
-    for (final _Target file in files) ...<String, String>{
-      file.given: file.resolved,
-      file.resolved: file.resolved,
-    },
-  });
-  if (byFile.strays.firstOrNull case final String stray) {
-    return _AnalysisUnavailable(
-      'dart analyze reported $stray, which the replay did not ask it to '
-      'analyze',
-    );
-  }
-  return _Analyzed(
-    packages,
-    Map<String, List<Diagnostic>>.unmodifiable(<String, List<Diagnostic>>{
-      for (final _Target file in files)
-        if (byFile.byFixture[file.resolved] case final List<Diagnostic> found)
-          file.path: found,
-    }),
-  );
+  return switch (attributeDiagnostics(files, reported)) {
+    Attributed(:final Map<String, List<Diagnostic>> byFixture) => _Analyzed(
+      packages,
+      byFixture,
+    ),
+    Unattributable(:final String reason) => _AnalysisUnavailable(reason),
+  };
 }
 
-/// The [_Target] of the library at [path] from [root].
-_Target _targetOf(Directory root, String path) {
+/// The [AnalysisTarget] of the library at [path] from [root]: the absolute
+/// path handed to `dart analyze`, and that path with symbolic links
+/// resolved.
+AnalysisTarget _targetOf(Directory root, String path) {
   final String given = _workspacePath(root, path);
   return (
     path: path,

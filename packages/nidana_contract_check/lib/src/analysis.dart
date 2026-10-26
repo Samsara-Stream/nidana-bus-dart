@@ -1,9 +1,12 @@
 /// What the `surface` and `reject` sets read (ADR-001 items 4 and 9): the
 /// diagnostics of `dart analyze --format=json`, each attributed to the
-/// fixture it was reported in, and the libraries each set analyzes.
+/// fixture it was reported in, and the libraries each set analyzes; and the
+/// replay's one analysis: which sets read it, what it analyzes, and when its
+/// report cannot be attributed.
 ///
 /// Pure: the shell runs the analyzer once per replay and hands this library
-/// its stdout; nothing here reads a file or starts a process.
+/// its stdout and the paths it resolved; nothing here reads a file or starts
+/// a process.
 library;
 
 import 'dart:convert';
@@ -160,6 +163,103 @@ List<String> analysisTargets(
   for (final SetLibrary library in setLibraries(snapshot, set, packages))
     if (library.absent.isEmpty) library.path,
 ]);
+
+/// Whether [set] reads the replay's one analysis: surface and reject do.
+bool readsAnalysis(CheckSet set) => switch (set) {
+  CheckSet.surface || CheckSet.reject => true,
+  CheckSet.structure ||
+  CheckSet.behavior ||
+  CheckSet.schema ||
+  CheckSet.file ||
+  CheckSet.cli => false,
+};
+
+/// One slug of a replay: its [snapshot] and the sets planned over it, in
+/// order.
+typedef SlugPlan = ({SlugSnapshot snapshot, List<CheckSet> sets});
+
+/// What the replay's one `dart analyze` analyzes: [analysisTargets] of every set of every one of
+/// [plans], once each, ascending.
+///
+/// Empty when no planned library can be analyzed; the shell then starts no
+/// process, because `dart analyze` without a path analyzes the working
+/// directory.
+List<String> replayTargets(List<SlugPlan> plans, Set<String> packages) =>
+    List<String>.unmodifiable(
+      <String>{
+        for (final (:SlugSnapshot snapshot, :List<CheckSet> sets) in plans)
+          for (final CheckSet set in sets)
+            ...analysisTargets(snapshot, set, packages),
+      }.toList()..sort(),
+    );
+
+/// One library handed to `dart analyze`: its [path] from the workspace root,
+/// the absolute path it was [given] as, and that path with symbolic links
+/// [resolved].
+typedef AnalysisTarget = ({String path, String given, String resolved});
+
+/// The diagnostics of one analysis by target: [Attributed], or
+/// [Unattributable] with the reason the `surface` and `reject` sets cannot
+/// run.
+sealed class Attribution {
+  const Attribution();
+}
+
+/// The diagnostics reported in each target.
+final class Attributed extends Attribution {
+  const Attributed(this.byFixture);
+
+  /// The diagnostics reported in each target, by its path from the workspace
+  /// root; a target with none has no entry.
+  final Map<String, List<Diagnostic>> byFixture;
+}
+
+/// An analysis whose report cannot be attributed: an environment error, with
+/// its [reason].
+final class Unattributable extends Attribution {
+  const Unattributable(this.reason);
+
+  /// Why the report cannot be attributed, for the unavailable sets' lines.
+  final String reason;
+}
+
+/// The diagnostics [reported] by one `dart analyze` over [targets], attributed to each target.
+///
+/// The rules, in order:
+///
+/// 1. A reported file that is no target's given or resolved path is a stray:
+///    dropping it could pass a library that has a diagnostic, so the first
+///    stray, ascending, makes the report [Unattributable].
+/// 2. Otherwise each target gets every diagnostic reported at its given or
+///    its resolved path, in reported order. The analyzer reports
+///    symlink-resolved paths and reports a file once, so targets that
+///    resolve to one file, as a link to another library does, each get that
+///    file's diagnostics.
+Attribution attributeDiagnostics(
+  List<AnalysisTarget> targets,
+  List<Diagnostic> reported,
+) {
+  // Grouped by resolved file, not by fixture: several targets may share one.
+  final GroupedDiagnostics byFile = groupDiagnostics(reported, <String, String>{
+    for (final AnalysisTarget target in targets) ...<String, String>{
+      target.given: target.resolved,
+      target.resolved: target.resolved,
+    },
+  });
+  if (byFile.strays.firstOrNull case final String stray) {
+    return Unattributable(
+      'dart analyze reported $stray, which the replay did not ask it to '
+      'analyze',
+    );
+  }
+  return Attributed(
+    Map<String, List<Diagnostic>>.unmodifiable(<String, List<Diagnostic>>{
+      for (final AnalysisTarget target in targets)
+        if (byFile.byFixture[target.resolved] case final List<Diagnostic> found)
+          target.path: found,
+    }),
+  );
+}
 
 /// The [Diagnostic] that [entry], one element of a report's `diagnostics`,
 /// describes; null when it lacks a field or a field has another type.
