@@ -58,8 +58,11 @@ decisions, keeps the decision ledger, and owns every branch operation.
 - **Commits** (only when your task says to commit): stage explicit paths,
   never `git add -A` or `git add .`; one logical change per commit; a
   conventional subject (`feat(contract_check): parse the replay request`);
-  the body ends, after a blank line, with
-  `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`.
+  the body ends, after a blank line, with the co-author trailer your own
+  harness's attribution instructions give (it names the model that wrote the
+  commit, for example `Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>`
+  for a Sonnet subagent). Where a brief's commit step names another model's
+  trailer, use your own instead (orchestrator ruling, S107).
 - **Dangerous or outside actions.** If your task seems to need deleting files
   you did not create, a network action beyond pub.dev resolution and reading
   documentation, a credential, or anything irreversible, do not do it: report
