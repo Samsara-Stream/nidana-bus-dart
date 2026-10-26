@@ -12,6 +12,7 @@ import 'outcome.dart';
 import 'report.dart';
 import 'request.dart';
 import 'run.dart';
+import 'schema.dart';
 import 'snapshot.dart';
 import 'structure.dart';
 
@@ -39,11 +40,15 @@ Set<String> discoverSlugs(Directory root) {
 ///
 /// Every other directory and file below `hsdd/contract/fixture/{slug}/` is
 /// recorded by its `/`-separated path relative to that directory, a file with
-/// its source only when [holdsSource] says so. A symbolic link is never
-/// descended into, so no tree outside the fixture directory joins the
-/// snapshot: it is recorded as a file, the layout check sees it as one, and
-/// when [holdsSource] says so its source is read through the link, so a
-/// linked library is replayed and a dangling one throws.
+/// its source only when [holdsSource] says so, and with its bytes as a
+/// document only when [holdsDocument] says so. The schema file is read as
+/// bytes when it exists. Bytes are never decoded here, so a document that is
+/// not UTF-8 is that document's defect for the schema set to report. A
+/// symbolic link is never descended into, so no tree outside the fixture
+/// directory joins the snapshot: it is recorded as a file, the layout check
+/// sees it as one, and when [holdsSource] or [holdsDocument] says so it is
+/// read through the link, so a linked library or document is replayed and a
+/// dangling one throws.
 SlugSnapshot readSnapshot(Directory root, String slug) {
   final Directory fixtures = Directory(
     _workspacePath(root, fixtureDirectory(slug)),
@@ -58,18 +63,24 @@ SlugSnapshot readSnapshot(Directory root, String slug) {
         (path: path, entity: entity),
   ]);
   final File contract = File(_workspacePath(root, contractPath(slug)));
+  final File schema = File(_workspacePath(root, schemaPath(slug)));
   return SlugSnapshot(
     slug: slug,
     contractText: contract.existsSync() ? contract.readAsStringSync() : null,
-    hasSchemaFile: File(_workspacePath(root, schemaPath(slug))).existsSync(),
+    schemaBytes: schema.existsSync() ? schema.readAsBytesSync() : null,
     directories: Set<String>.unmodifiable(<String>{
       for (final (:String path, :FileSystemEntity entity) in entries)
         if (entity is Directory) path,
     }),
     files: Map<String, String?>.unmodifiable(<String, String?>{
       for (final (:String path, :FileSystemEntity entity) in entries)
-        if (entity is File || entity is Link)
+        if (_isFile(entity))
           path: holdsSource(path) ? File(entity.path).readAsStringSync() : null,
+    }),
+    documents: Map<String, List<int>>.unmodifiable(<String, List<int>>{
+      for (final (:String path, :FileSystemEntity entity) in entries)
+        if (_isFile(entity) && holdsDocument(path))
+          path: File(entity.path).readAsBytesSync(),
     }),
   );
 }
@@ -152,10 +163,10 @@ SetRun _run(CheckSet set, SlugSnapshot snapshot) => switch (set) {
     snapshot.slug,
     checkStructure(snapshot),
   ),
+  CheckSet.schema => SetChecked(set, snapshot.slug, checkSchema(snapshot)),
   // nidana.model.2 lands these.
   CheckSet.surface ||
-  CheckSet.reject ||
-  CheckSet.schema => SetUnavailable(set, snapshot.slug, notImplemented(set)),
+  CheckSet.reject => SetUnavailable(set, snapshot.slug, notImplemented(set)),
   // nidana.model.6 lands this.
   CheckSet.behavior => SetUnavailable(set, snapshot.slug, notImplemented(set)),
   // nidana.model.7 lands these.
@@ -179,6 +190,10 @@ void _print(SetRun run, {required StringSink out, required StringSink err}) {
 /// An entry below a slug's fixture directory, with its relative
 /// `/`-separated [path].
 typedef _Entry = ({String path, FileSystemEntity entity});
+
+/// Whether the snapshot records [entity] as a file: a file, or a symbolic
+/// link, which is never descended into.
+bool _isFile(FileSystemEntity entity) => entity is File || entity is Link;
 
 /// [directory] followed by each of its ancestors up to the file system root.
 Iterable<Directory> _selfAndAncestors(Directory directory) sync* {

@@ -5,6 +5,8 @@
 /// item 5).
 library;
 
+import 'dart:convert';
+
 import 'package:nidana_contract_check/src/snapshot.dart';
 
 /// `hsdd/contract/sample.md`.
@@ -201,22 +203,42 @@ Map<String, String> changed(
 
 /// The snapshot of [slug] that the shell would read from a workspace holding
 /// [files], keyed by path from the workspace root.
-SlugSnapshot snapshotOf(String slug, Map<String, String> files) {
+///
+/// [bytes] are files given as raw bytes, keyed by path from the workspace
+/// root; a path in both maps takes its bytes.
+SlugSnapshot snapshotOf(
+  String slug,
+  Map<String, String> files, {
+  Map<String, List<int>> bytes = const <String, List<int>>{},
+}) {
+  List<int>? bytesAt(String path) => switch ((bytes[path], files[path])) {
+    (final List<int> raw, _) => raw,
+    (null, final String text) => utf8.encode(text),
+    (null, null) => null,
+  };
+  String? textAt(String path) => switch (bytesAt(path)) {
+    final List<int> raw => utf8.decode(raw),
+    null => null,
+  };
   final String fixtures = fixtureDirectory(slug);
   final List<String> below = <String>[
-    for (final String path in files.keys)
+    for (final String path in <String>{...files.keys, ...bytes.keys})
       if (path.startsWith(fixtures)) path.substring(fixtures.length),
   ];
   return SlugSnapshot(
     slug: slug,
-    contractText: files[contractPath(slug)],
-    hasSchemaFile: files.containsKey(schemaPath(slug)),
+    contractText: textAt(contractPath(slug)),
+    schemaBytes: bytesAt(schemaPath(slug)),
     directories: Set<String>.unmodifiable(<String>{
       for (final String path in below) ..._ancestors(path),
     }),
     files: Map<String, String?>.unmodifiable(<String, String?>{
       for (final String path in below)
-        path: holdsSource(path) ? files['$fixtures$path'] : null,
+        path: holdsSource(path) ? textAt('$fixtures$path') : null,
+    }),
+    documents: Map<String, List<int>>.unmodifiable(<String, List<int>>{
+      for (final String path in below)
+        if (holdsDocument(path)) path: bytesAt('$fixtures$path')!,
     }),
   );
 }

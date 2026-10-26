@@ -138,13 +138,14 @@ void main() {
       SlugSnapshot(
         slug: clean.slug,
         contractText: clean.contractText,
-        hasSchemaFile: clean.hasSchemaFile,
+        schemaBytes: clean.schemaBytes,
         directories: <String>{...clean.directories, 'valid'},
         files: <String, String?>{
           ...clean.files,
           'valid/a.json': '{}',
           'valid/gen.dart': 'void main() {}\n',
         },
+        documents: clean.documents,
       ),
     );
     expect(o.map((FixtureOutcome x) => x.path), <String>[

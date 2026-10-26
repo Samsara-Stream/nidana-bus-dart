@@ -207,4 +207,124 @@ void main() {
       );
     });
   });
+  group('the schema set', () {
+    const String d = 'hsdd/contract/fixture/doc/';
+    test('a clean doc slug passes with one line per fixture', () async {
+      final ProcessResult r = await runTool(<String>[
+        'doc',
+      ], workingDirectory: seed(docFiles));
+      expect(r.exitCode, 0, reason: all(r));
+      expect(lines(r), <String>[
+        'PASS structure hsdd/contract/doc.md',
+        'PASS structure $d',
+        'PASS schema hsdd/contract/schema/doc.schema.json',
+        'PASS schema ${d}invalid/extra-property.json',
+        'PASS schema ${d}invalid/negative-count.json',
+        'PASS schema ${d}valid/minimal.json',
+        '6 fixtures: 6 passed, 0 failed, 0 pending',
+      ]);
+    });
+    test('a document that is not UTF-8 fails as a fixture, not as an environment error', () async {
+      final Directory root = seed(docFiles);
+      File('${root.path}/${d}valid/latin1.json')
+          .writeAsBytesSync(<int>[0x7b, 0xff, 0x7d]);
+      final ProcessResult r = await runTool(<String>[
+        'doc',
+        '--set',
+        'schema',
+      ], workingDirectory: root);
+      expect(r.exitCode, 1, reason: all(r));
+      expect(
+        lines(r),
+        contains(
+          'FAIL schema ${d}valid/latin1.json: document (not UTF-8: Invalid UTF-8 byte (at offset 1))',
+        ),
+      );
+    });
+    test("a structure failure does not stop the slug's other sets", () async {
+      final ProcessResult r = await runTool(
+        <String>['doc'],
+        workingDirectory: seed(
+          changed(docFiles, <String, String?>{
+            'hsdd/contract/doc.md': docContract.replaceFirst(
+              '- **G1**',
+              '- **G2** uncovered.\n- **G1**',
+            ),
+          }),
+        ),
+      );
+      expect(r.exitCode, 1, reason: all(r));
+      expect(
+        lines(r),
+        containsAll(<String>[
+          'FAIL structure $d: coverage (G2 uncovered)',
+          'PASS schema ${d}valid/minimal.json',
+        ]),
+      );
+    });
+
+    // Beyond the brief: rules of readSnapshot that would otherwise go unpinned.
+    test('a hidden entry below valid/ is no document', () async {
+      final ProcessResult r = await runTool(
+        <String>['doc'],
+        workingDirectory: seed(<String, String>{
+          ...docFiles,
+          '${d}valid/.DS_Store': 'x',
+          '${d}invalid/.hidden/a.json': 'x',
+        }),
+      );
+      expect(r.exitCode, 0, reason: all(r));
+      expect(lines(r).last, '6 fixtures: 6 passed, 0 failed, 0 pending');
+    });
+    test('a file in a data directory is never read', () async {
+      final Directory root = seed(<String, String>{
+        ...docFiles,
+        'hsdd/contract/doc.md': docContract.replaceFirst(
+          '- invalid: ',
+          '- render: `${d}render/`, renderings a conformance case reads.\n'
+              '- invalid: ',
+        ),
+      });
+      Directory('${root.path}/${d}render').createSync();
+      Link('${root.path}/${d}render/gone.json').createSync('${root.path}/gone');
+      final ProcessResult r = await runTool(<String>[
+        'doc',
+      ], workingDirectory: root);
+      expect(r.exitCode, 0, reason: all(r));
+      expect(lines(r).last, '6 fixtures: 6 passed, 0 failed, 0 pending');
+    });
+    test(
+      'a dangling link below valid/ is read, so it is an environment error (2)',
+      () async {
+        final Directory root = seed(docFiles);
+        Link('${root.path}/${d}valid/gone.json')
+            .createSync('${root.path}/gone');
+        final ProcessResult r = await runTool(<String>[
+          'doc',
+        ], workingDirectory: root);
+        expect(r.exitCode, 2, reason: all(r));
+        expect(r.stderr as String, contains('${d}valid/gone.json'));
+      },
+    );
+    test('a linked document is read through the link', () async {
+      final Directory root = seed(<String, String>{
+        ...docFiles,
+        'elsewhere/negative.json': '{"name": "a", "count": -1}\n',
+      });
+      Link('${root.path}/${d}valid/linked.json')
+          .createSync('${root.path}/elsewhere/negative.json');
+      final ProcessResult r = await runTool(<String>[
+        'doc',
+        '--set',
+        'schema',
+      ], workingDirectory: root);
+      expect(r.exitCode, 1, reason: all(r));
+      expect(
+        lines(r),
+        contains(
+          'FAIL schema ${d}valid/linked.json: valid (does not validate: /count: minimum violated (-1 < 0))',
+        ),
+      );
+    });
+  });
 }
