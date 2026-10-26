@@ -74,14 +74,25 @@ final class SchemaProblem extends SchemaCompilation {
 
 /// The schema in [bytes], compiled under draft 2020-12.
 ///
-/// A schema that declares no `$schema` is read under draft 2020-12; one that
-/// declares another draft is read by that draft's keywords, as
-/// `JsonSchema.create` does. Only a JSON object or a boolean reaches
-/// `create`: given a String, it would decode the text a second time.
-/// `create` is synchronous, so no remote reference is fetched: one is a
-/// reason the schema does not compile.
+/// A JSON object whose `$schema` is present must declare exactly
+/// `https://json-schema.org/draft/2020-12/schema`. Another draft's URI, an
+/// unknown URI, that URI with a trailing `#` and a value that is no string
+/// are each a [SchemaProblem] that names the value. Such a schema is
+/// rejected, never stripped: `JsonSchema.create` would read
+/// another draft's schema by that draft's keywords, and would throw a
+/// `TypeError` on a value that is no string. An object without `$schema`
+/// and a boolean schema compile under draft 2020-12. Only a JSON object or
+/// a boolean reaches `create`: given a String, it would decode the text a
+/// second time. `create` is synchronous, so no remote reference is fetched:
+/// one is a reason the schema does not compile.
 SchemaCompilation compileSchema(List<int> bytes) => switch (decodeJson(bytes)) {
   NotJson(:final String reason) => SchemaProblem(reason),
+  JsonValue(value: <String, Object?>{r'$schema': final Object? declared})
+      when declared != _draft2020_12 =>
+    SchemaProblem(
+      '$_doesNotCompile: \$schema must be $_draft2020_12, '
+      'got ${jsonEncode(declared)}',
+    ),
   JsonValue(value: final Map<String, Object?> schema) => _compile(schema),
   JsonValue(value: final bool schema) => _compile(schema),
   JsonValue() => const SchemaProblem(
@@ -102,7 +113,15 @@ List<String> schemaErrors(JsonSchema schema, Object? instance) =>
 /// The prefix of every reason a decoded schema does not compile.
 const String _doesNotCompile = 'does not compile under draft 2020-12';
 
+/// The one `$schema` a schema may declare: draft 2020-12's URI, exactly.
+const String _draft2020_12 = 'https://json-schema.org/draft/2020-12/schema';
+
 /// [schema], a decoded JSON object or boolean, compiled under draft 2020-12.
+///
+/// `JsonSchema.create` throws a `FormatException` or an `ArgumentError` for
+/// most schemas that do not compile, and a `TypeError` for a keyword whose
+/// value it casts without checking, such as `{"$ref": null}` or
+/// `{"required": [1]}`; each is a [SchemaProblem].
 SchemaCompilation _compile(Object schema) {
   try {
     return CompiledSchema(
@@ -112,6 +131,8 @@ SchemaCompilation _compile(Object schema) {
     return SchemaProblem('$_doesNotCompile: ${error.message}');
   } on ArgumentError catch (error) {
     return SchemaProblem('$_doesNotCompile: ${error.message}');
+  } on TypeError catch (error) {
+    return SchemaProblem('$_doesNotCompile: $error');
   }
 }
 

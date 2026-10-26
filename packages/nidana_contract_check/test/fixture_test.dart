@@ -11,6 +11,31 @@ import 'support/seed.dart';
 
 const String schemaPath = 'hsdd/contract/schema/doc.schema.json';
 
+/// `$schema` values, as JSON text, other than draft 2020-12's URI: another
+/// draft, an unknown URI, the 2020-12 URI with a trailing `#`, and values
+/// that are no string.
+const List<String> otherSchemaValues = <String>[
+  '"http://json-schema.org/draft-07/schema#"',
+  '"http://json-schema.org/draft-04/schema#"',
+  '"https://json-schema.org/draft/2019-09/schema"',
+  '"https://example.invalid/custom"',
+  '"https://json-schema.org/draft/2020-12/schema#"',
+  '5',
+  'null',
+  '[]',
+  '{}',
+];
+
+/// A schema that declares [schemaValue] as its `$schema`, with a keyword
+/// only draft 2020-12 knows.
+String declaring(String schemaValue) =>
+    '{"\$schema": $schemaValue, "prefixItems": [{"type": "string"}]}';
+
+/// The reason a schema that declares [schemaValue] does not compile.
+String notDraft2020(String schemaValue) =>
+    'does not compile under draft 2020-12: '
+    '\$schema must be https://json-schema.org/draft/2020-12/schema, got $schemaValue';
+
 /// Runs [body] with [directory] as the working directory.
 T inDirectory<T>(Directory directory, T Function() body) =>
     IOOverrides.runZoned(body, getCurrentDirectory: () => directory);
@@ -167,6 +192,24 @@ void main() {
         ),
       );
     });
+    test('a schema that declares another \$schema is an error, never a validation under another draft', () {
+      for (final String schemaValue in otherSchemaValues) {
+        expect(
+          () => inDirectory(
+            seed(<String, String>{schemaPath: declaring(schemaValue)}),
+            () => expectMatchesSchema(<Object?>[1], schemaPath),
+          ),
+          throwsA(
+            isA<StateError>().having(
+              (StateError e) => e.message,
+              'message',
+              '$schemaPath: ${notDraft2020(schemaValue)}',
+            ),
+          ),
+          reason: schemaValue,
+        );
+      }
+    });
     test('the schema is read on every call, never cached', () {
       final Directory root = seed(docFiles);
       inDirectory(
@@ -267,6 +310,31 @@ void main() {
         isNotEmpty,
       );
     });
+    test('compileSchema names a keyword value package:json_schema casts without checking, never throws', () {
+      // The reason after the prefix is the VM's TypeError text, so only the
+      // prefix is pinned.
+      for (final String text in <String>[
+        '{"\$defs": {"a": {"\$schema": null}}}',
+        '{"\$ref": null}',
+        '{"required": [1]}',
+      ]) {
+        expect(
+          compileSchema(utf8.encode(text)),
+          isA<SchemaProblem>().having(
+            (SchemaProblem s) => s.reason,
+            'reason',
+            startsWith('does not compile under draft 2020-12: type '),
+          ),
+          reason: text,
+        );
+      }
+      expect(
+        compileSchema(
+          utf8.encode('{"properties": {"\$schema": {"type": "string"}}}'),
+        ),
+        isA<CompiledSchema>(),
+      );
+    });
     test('compileSchema fetches no remote reference: one is a reason the schema does not compile', () {
       expect(
         (compileSchema(
@@ -290,6 +358,27 @@ void main() {
         ]);
       },
     );
+    test('compileSchema rejects a \$schema other than the draft 2020-12 URI and compiles that URI', () {
+      for (final String schemaValue in otherSchemaValues) {
+        expect(
+          compileSchema(utf8.encode(declaring(schemaValue))),
+          isA<SchemaProblem>().having(
+            (SchemaProblem s) => s.reason,
+            'reason',
+            notDraft2020(schemaValue),
+          ),
+          reason: schemaValue,
+        );
+      }
+      final CompiledSchema named = compileSchema(
+        utf8.encode(
+          declaring('"https://json-schema.org/draft/2020-12/schema"'),
+        ),
+      ) as CompiledSchema;
+      expect(schemaErrors(named.schema, <Object?>[1]), <String>[
+        '/0: type: wanted [string] got 1',
+      ]);
+    });
     test('schemaErrors lists every error in order, and nothing for a valid instance', () {
       final CompiledSchema compiled =
           compileSchema(utf8.encode(docSchema)) as CompiledSchema;
