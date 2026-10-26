@@ -1,0 +1,234 @@
+
+### setup: resolve the probe offline from the pub cache; the dart fvm runs
+probe pub get --offline exit: 0
+DART = the resolvedExecutable of fvm dart run: ~/fvm/versions/3.47.7/bin/cache/dart-sdk/bin/dart
+temp workspace given as {ws}; its symlink-resolved path {ws-real} differs: yes
+
+### W0 fvm dart inside the temp workspace (no .fvmrc above it)
+/bin/sh: dart: command not found
+exit: 127
+
+### W1 the temporary workspace resolves offline with DART (no hosted dependency); time
+Resolving dependencies...
+Downloading packages...
+Got dependencies!
+exit: 0
+seconds: 0.1
+package_config packages: stand_in_workspace, sample
+package_config.json
+package_graph.json
+pub
+
+### A1 one dart analyze --format=json over six files given by absolute path (temp path as given): stdout, exit, time
+exit: 3
+seconds: 0.1
+keys: [version, diagnostics] version: 1
+diagnostics: 11
+{ws-real}/hsdd/contract/fixture/absent/surface/pending.dart|1|8|ERROR|COMPILE_TIME_ERROR|uri_does_not_exist|Target of URI doesn't exist: 'package:absent/absent.dart'.
+{ws-real}/hsdd/contract/fixture/absent/surface/pending.dart|4|1|ERROR|COMPILE_TIME_ERROR|undefined_class|Undefined class 'Absent'.
+{ws-real}/hsdd/contract/fixture/absent/surface/pending.dart|4|23|ERROR|COMPILE_TIME_ERROR|undefined_function|The function 'Absent' isn't defined.
+{ws-real}/hsdd/contract/fixture/sample/reject/closed.dart|5|30|ERROR|COMPILE_TIME_ERROR|invalid_use_of_type_outside_library|The class 'Shape' can't be extended, implemented, or mixed in outside of its library because it's a sealed class.
+{ws-real}/hsdd/contract/fixture/sample/reject/closed.dart|9|5|ERROR|COMPILE_TIME_ERROR|assignment_to_final|'n' can't be used as a setter because it's final.
+{ws-real}/hsdd/contract/fixture/sample/reject/extra_warning.dart|7|5|ERROR|COMPILE_TIME_ERROR|assignment_to_final|'n' can't be used as a setter because it's final.
+{ws-real}/hsdd/contract/fixture/sample/reject/extra_warning.dart|5|13|WARNING|STATIC_WARNING|unused_local_variable|The value of the local variable 'unused' isn't used.
+{ws-real}/hsdd/contract/fixture/sample/surface/dirty.dart|1|8|WARNING|STATIC_WARNING|unused_import|Unused import: 'dart:async'.
+{ws-real}/hsdd/contract/fixture/sample/surface/dirty.dart|8|9|WARNING|STATIC_WARNING|strict_raw_type|The generic type 'List<dynamic>' should have explicit type arguments but doesn't.
+{ws-real}/hsdd/contract/fixture/sample/surface/dirty.dart|13|13|WARNING|STATIC_WARNING|unused_local_variable|The value of the local variable 'x' isn't used.
+{ws-real}/hsdd/contract/fixture/sample/surface/dirty.dart|5|17|INFO|HINT|deprecated_member_use|'old' is deprecated and shouldn't be used. use Value.
+first diagnostic keys: [code, severity, type, location, problemMessage, correctionMessage, documentation]
+first location keys: [file, range]
+stderr bytes: 0
+
+### A1b the same analysis again (a warm second run): time
+exit: 3
+seconds: 1.2
+
+### A2 the same with --fatal-infos: identical JSON?
+exit: 3
+identical stdout
+
+### A3 the files by their symlink-resolved paths, run from the repository root: which path does the JSON carry?
+exit: 3
+keys: [version, diagnostics] version: 1
+diagnostics: 2
+{ws-real}/hsdd/contract/fixture/sample/reject/closed.dart|5|30|ERROR|COMPILE_TIME_ERROR|invalid_use_of_type_outside_library|The class 'Shape' can't be extended, implemented, or mixed in outside of its library because it's a sealed class.
+{ws-real}/hsdd/contract/fixture/sample/reject/closed.dart|9|5|ERROR|COMPILE_TIME_ERROR|assignment_to_final|'n' can't be used as a setter because it's final.
+first diagnostic keys: [code, severity, type, location, problemMessage, documentation]
+first location keys: [file, range]
+raw file fields (home shortened):
+"file":"/private/var/folders/tn/_xzt8h5913dc3vhnfw95wq5c0000gn/T/rsp.X/hsdd/contract/fixture/sample/reject/closed.dart"
+WS given: /var/folders/tn/_xzt8h5913dc3vhnfw95wq5c0000gn/T/rsp.X
+
+### A4 a directory argument and a relative path, run from the temp workspace
+exit: 3
+keys: [version, diagnostics] version: 1
+diagnostics: 4
+{ws-real}/hsdd/contract/fixture/sample/reject/closed.dart|5|30|ERROR|COMPILE_TIME_ERROR|invalid_use_of_type_outside_library|The class 'Shape' can't be extended, implemented, or mixed in outside of its library because it's a sealed class.
+{ws-real}/hsdd/contract/fixture/sample/reject/closed.dart|9|5|ERROR|COMPILE_TIME_ERROR|assignment_to_final|'n' can't be used as a setter because it's final.
+{ws-real}/hsdd/contract/fixture/sample/reject/extra_warning.dart|7|5|ERROR|COMPILE_TIME_ERROR|assignment_to_final|'n' can't be used as a setter because it's final.
+{ws-real}/hsdd/contract/fixture/sample/reject/extra_warning.dart|5|13|WARNING|STATIC_WARNING|unused_local_variable|The value of the local variable 'unused' isn't used.
+first diagnostic keys: [code, severity, type, location, problemMessage, documentation]
+first location keys: [file, range]
+
+### A5 exit codes by worst severity: clean file; warnings only; infos only with and without --fatal-infos
+hsdd/contract/fixture/sample/surface/clean.dart -> exit 0 {"version":1,"diagnostics":[]} 
+hsdd/contract/fixture/sample/surface/warning_only.dart -> exit 2 {"version":1,"diagnostics":[{"code":"unused_local_variable",
+hsdd/contract/fixture/sample/surface/info_only.dart -> exit 0 {"version":1,"diagnostics":[{"code":"deprecated_member_use",
+--fatal-infos hsdd/contract/fixture/sample/surface/info_only.dart -> exit 1 {"version":1,"diagnostics":[{"code":"deprecated_member_use",
+--fatal-infos hsdd/contract/fixture/sample/surface/clean.dart -> exit 0 {"version":1,"diagnostics":[]} 
+
+### A6 a path that does not exist, among existing ones
+exit: 64
+stdout: 
+stderr: Directory or file doesn't exist: hsdd/contract/fixture/sample/surface/nosuch.dart
+
+Usage: dart analyze [arguments] [<directory>]
+-h, --help                   Print this usage information.
+    --fatal-infos            Treat info level issues as fatal.
+    --[no-]fatal-warnings    Treat warning level 
+
+### A7 a fixtures options file with an unknown option: is the options file itself reported?
+exit: 0
+keys: [version, diagnostics] version: 1
+diagnostics: 0
+
+### A8 the temp workspace with the repository's root options (lints, hsdd/** excluded): same diagnostics as A1?
+pub get --offline with lints exit: 0
+exit: 3
+same diagnostics as A1
+
+### A9 the committed fixtures analyzed by path from the repository root (read only; the producers are absent)
+exit: 3
+keys: [version, diagnostics] version: 1
+diagnostics: 68
+{repo}/hsdd/contract/fixture/topic-model/surface/topics.dart|4|8|ERROR|COMPILE_TIME_ERROR|uri_does_not_exist|Target of URI doesn't exist: 'package:nidana_dart_contracts/nidana_dart_contracts.dart'.
+{repo}/hsdd/contract/fixture/topic-model/surface/topics.dart|39|16|ERROR|COMPILE_TIME_ERROR|undefined_class|Undefined class 'StateTopic'.
+{repo}/hsdd/contract/fixture/topic-model/surface/topics.dart|39|46|ERROR|COMPILE_TIME_ERROR|const_initialized_with_non_constant_value|Const variables must be initialized with a constant value.
+{repo}/hsdd/contract/fixture/topic-model/surface/topics.dart|39|46|ERROR|COMPILE_TIME_ERROR|undefined_method|The method 'StateTopic' isn't defined for the type 'AuthTopics'.
+{repo}/hsdd/contract/fixture/topic-model/surface/topics.dart|45|16|ERROR|COMPILE_TIME_ERROR|undefined_class|Undefined class 'EventTopic'.
+{repo}/hsdd/contract/fixture/topic-model/surface/topics.dart|45|47|ERROR|COMPILE_TIME_ERROR|const_initialized_with_non_constant_value|Const variables must be initialized with a constant value.
+{repo}/hsdd/contract/fixture/topic-model/surface/topics.dart|45|47|ERROR|COMPILE_TIME_ERROR|undefined_method|The method 'EventTopic' isn't defined for the type 'AuthTopics'.
+{repo}/hsdd/contract/fixture/topic-model/surface/topics.dart|49|16|ERROR|COMPILE_TIME_ERROR|undefined_class|Undefined class 'StateTopic'.
+{repo}/hsdd/contract/fixture/topic-model/surface/topics.dart|49|46|ERROR|COMPILE_TIME_ERROR|const_initialized_with_non_constant_value|Const variables must be initialized with a constant value.
+{repo}/hsdd/contract/fixture/topic-model/surface/topics.dart|49|46|ERROR|COMPILE_TIME_ERROR|creation_with_non_type|The name 'StateTopic' isn't a class.
+
+### A10 time of one analyzer run over every committed surface and reject library, from the repository root
+exit: 3
+seconds: 2.4
+files: 65
+keys: [version, diagnostics] version: 1
+diagnostics: 1784
+
+### A11 the plan's seeds: the stand-in Sample and the reject and surface variants Task 5's tests write
+pub get --offline exit: 0
+exit: 3
+keys: [version, diagnostics] version: 1
+diagnostics: 7
+hsdd/contract/fixture/sample/reject/assigns_final.dart|6|5|ERROR|COMPILE_TIME_ERROR|assignment_to_final|'count' can't be used as a setter because it's final.
+hsdd/contract/fixture/sample/reject/extra_warning.dart|5|27|ERROR|COMPILE_TIME_ERROR|invalid_use_of_type_outside_library|The class 'Sample' can't be extended outside of its library because it's a final class.
+hsdd/contract/fixture/sample/reject/sample_is_closed.dart|6|27|ERROR|COMPILE_TIME_ERROR|invalid_use_of_type_outside_library|The class 'Sample' can't be extended outside of its library because it's a final class.
+hsdd/contract/fixture/sample/reject/wrong_code.dart|5|27|ERROR|COMPILE_TIME_ERROR|invalid_use_of_type_outside_library|The class 'Sample' can't be extended outside of its library because it's a final class.
+hsdd/contract/fixture/sample/reject/wrong_line.dart|6|27|ERROR|COMPILE_TIME_ERROR|invalid_use_of_type_outside_library|The class 'Sample' can't be extended outside of its library because it's a final class.
+hsdd/contract/fixture/sample/reject/extra_warning.dart|8|13|WARNING|STATIC_WARNING|unused_local_variable|The value of the local variable 'unused' isn't used.
+hsdd/contract/fixture/sample/surface/dirty.dart|1|8|WARNING|STATIC_WARNING|unused_import|Unused import: 'dart:async'.
+first diagnostic keys: [code, severity, type, location, problemMessage, correctionMessage, documentation]
+first location keys: [file, range]
+
+### A12 the repository's bin script run from a temporary workspace that has its own package configuration (the tests' setup)
+FAIL structure hsdd/contract/sample.md: contract-text (no contract text at hsdd/contract/sample.md)
+1 fixtures: 0 passed, 1 failed
+exit: 1
+
+### X1 the dart running a package executable (fvm dart run) and a test (fvm dart test)
+Platform.resolvedExecutable: ~/fvm/versions/3.47.7/bin/cache/dart-sdk/bin/dart
+Platform.executable: ~/fvm/versions/3.47.7/bin/cache/dart-sdk/bin/dart
+Directory.current: ~/gitx/nidana-bus-dart/docs/auto-run/experiments/replay-sets-plan/probe
+00:00 +0: resolvedExecutable under dart test
+under dart test, Platform.resolvedExecutable: ~/fvm/versions/3.47.7/bin/cache/dart-sdk/bin/dart
+00:00 +1: All tests passed!
+
+### X2 a process started with a symbolic link as its working directory: what Directory.current reads
+Directory.current: {ws-real}/seeds
+the link itself: {link-dir}/linked -> {ws-real}/seeds or {ws}/seeds
+
+### J json_schema 5.2.2
+### J1 errors for {} against topology-ir: every error, and how each prints
+isValid: false, errors: 6
+  toString: # (root): required prop missing: format from {}
+  instancePath: "" schemaPath: "/required" message: "required prop missing: format from {}"
+  toString: /format: required prop missing: format from {}
+  instancePath: "/format" schemaPath: "/required" message: "required prop missing: format from {}"
+  toString: # (root): required prop missing: topologies from {}
+  instancePath: "" schemaPath: "/required" message: "required prop missing: topologies from {}"
+  toString: /topologies: required prop missing: topologies from {}
+  instancePath: "/topologies" schemaPath: "/required" message: "required prop missing: topologies from {}"
+  toString: # (root): required prop missing: claims from {}
+  instancePath: "" schemaPath: "/required" message: "required prop missing: claims from {}"
+  toString: /claims: required prop missing: claims from {}
+  instancePath: "/claims" schemaPath: "/required" message: "required prop missing: claims from {}"
+warnings: 0
+two wrong values: 2 errors
+  /format: const violated x
+  /topologies: type: wanted [array] got 3
+### J2 a schema that does not compile
+  {"type":5}: FormatException: FormatException: type must be string or array: int
+  {"$ref":"#/$defs/missing"}: FormatException: FormatException: Failed to get schema at path: "$defs/missing". Property must be a valid schema : null
+  {"minItems":-1}: FormatException: FormatException: minItems must be non-negative: -1
+  "not a schema": ArgumentError: Invalid argument(s): String data provided to create is not valid JSON.
+  [1,2]: ArgumentError: Invalid argument(s): Data provided to JsonSchema.create is not valid: Data must be a Map or a String that parses to a Map (or bool in draft6 or later). | [1, 2]
+### J3 validate() of an undecoded string and of non-JSON Dart values
+  validate("{}") isValid: false
+  type object vs 1: [# (root): type: wanted [object] got 1]
+### J4 $schema declared draft-07 while schemaVersion says 2020-12
+  schemaVersion: https://json-schema.org/draft/2020-12/schema; [1] valid: true
+  no $schema: schemaVersion: https://json-schema.org/draft/2020-12/schema; [1] valid: false
+### J5 format keyword: annotation or assertion by default
+  "x" against format email: true
+### J6 the committed schema sets: every valid/ file validates, no invalid/ file does
+  topology-ir: 45 passed, 0 failed (files: 45)
+  PASS topic-codegen invalid/dedup-unknown.json: /domains/auth/topics/state/dedup: enum violated identity
+  topic-codegen: 57 passed, 0 failed (files: 57)
+
+### M exact messages the plan's tests pin
+{"name":"a","count":1}: valid true
+{"name":1,"count":-1,"extra":true}: valid false
+  /name: type: wanted [string] got 1
+  /count: minimum violated (-1 < 0)
+  # (root): unallowed additional property extra
+{"count":1}: valid false
+  # (root): required prop missing: name from {count: 1}
+  /name: required prop missing: name from {count: 1}
+[]: valid false
+  # (root): type: wanted [object] got []
+utf8.decode([255]): message "Invalid UTF-8 byte" offset 0 toString "FormatException: Invalid UTF-8 byte (at offset 0)"
+utf8.decode([123, 195]): message "Unfinished UTF-8 octet sequence" offset 2 toString "FormatException: Unfinished UTF-8 octet sequence (at offset 2)"
+utf8.decode([123, 255, 125]): message "Invalid UTF-8 byte" offset 1 toString "FormatException: Invalid UTF-8 byte (at offset 1)"
+jsonDecode(""): message "Unexpected end of input" offset 0
+jsonDecode("{"): message "Unexpected end of input" offset 1
+jsonDecode("{\"a\": 1,}"): message "Unexpected character" offset 8
+jsonDecode("nul"): message "Unexpected end of input" offset 3
+jsonDecode("notes\n"): message "Unexpected character" offset 0
+jsonDecode("﻿{}"): message "Unexpected character" offset 0
+create type 5: message "type must be string or array: int"
+create [1]: ArgumentError message "Data provided to JsonSchema.create is not valid: Data must be a Map or a String that parses to a Map (or bool in draft6 or later). | [1]"
+create true (a boolean schema): true
+
+### P package_config 2.2.0 on the temp workspace's configuration
+packages (3): lints, sample, stand_in_workspace
+  (empty): PackageConfigFormatException: FormatException: Unexpected end of input (at character 1)
+  {}: PackageConfigFormatException: FormatException: Missing configVersion entry
+  {"configVersion": 2}: PackageConfigFormatException: FormatException: Missing packages list
+  {"configVersion": 2, "packages": [{"name": "a"}]}: PackageConfigFormatException: FormatException: Missing rootUri entry
+  not json: PackageConfigFormatException: FormatException: Unexpected character (at character 1)
+  {"configVersion": 2, "packages": [{"name": "a", "rootUri": "/nowhere/a/"}]}: parsed, 1 packages
+  with onError: 0 packages, 1 errors: (FormatException: Missing rootUri entry)
+
+### O IOOverrides and matcher's fail
+inside: Directory.current = {ws}
+inside: Directory("x").absolute = {ws}/x
+inside: File("y").existsSync() relative = false
+outside: Directory.current = {here}/probe
+fail throws TestFailure: message\nsecond line
+
+### cleanup
+removed the temp workspace and probe/.dart_tool (probe/pubspec.lock kept)

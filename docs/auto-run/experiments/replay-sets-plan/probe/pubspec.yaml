@@ -1,0 +1,13 @@
+# replay-sets-plan probe: standalone, never a workspace member; resolved
+# offline from the pub cache the root resolution filled.
+name: replay_sets_probe
+publish_to: none
+environment:
+  sdk: ^3.13.0
+dependencies:
+  json_schema: ^5.2.2
+  matcher: ^0.12.20
+  package_config: ^2.2.0
+  path: ^1.9.1
+dev_dependencies:
+  test: ^1.31.1
