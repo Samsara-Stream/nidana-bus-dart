@@ -58,6 +58,8 @@ kind: widget
 - not executable: G8, a property of the pubspec; checked by nidana.model's gates
 - not executable: G7's last clause, on a value no case builds; checked by nidana.model's gates
 - binding: `hsdd/contract/fixture/other/behavior/other_test.dart` binds another slug's suite.
+- schema: `hsdd/contract/schema/tool.schema.json`, the data model; covers G1.
+- schema: a bullet that covers G2, then wraps
 - file: `hsdd/contract/fixture/tool/input/` holds `in.txt`. The file set covers the tree.
 
 | Case | Command | Exit | Covers |
@@ -616,7 +618,7 @@ void main() {
         base: toolFiles,
       );
       expect(at(o, 'hsdd/contract/tool.md'), <String>[
-        'validation-form (malformed Case cell: G2: an unknown option)',
+        'validation-form (malformed Case cell: generate-usage)',
       ]);
       expect(at(o, t), <String>['coverage (G2 uncovered)']);
       expect(at(o, '${t}invocation/generate-usage/'), <String>[
@@ -728,6 +730,58 @@ void main() {
       expect(at(o, s), <String>['coverage (G3 uncovered)']);
     });
   });
+  group('structure-set polish', () {
+    test('a covers clause followed by whitespace still covers', () {
+      final List<FixtureOutcome> o = check(
+        <String, String?>{
+          'hsdd/contract/tool.md': toolContractWith(
+            'The file set covers G1.',
+            'The file set covers G1.  \t',
+          ),
+        },
+        slug: 'tool',
+        base: toolFiles,
+      );
+      expect(o, everyElement(isA<Passed>()));
+    });
+    test('a covers bullet without its closing clause is a validation-form failure and covers nothing', () {
+      final List<FixtureOutcome> o = check(
+        <String, String?>{
+          'hsdd/contract/tool.md': toolContractWith(
+            'The file set covers G1.',
+            'The file set covers G1, see below',
+          ),
+        },
+        slug: 'tool',
+        base: toolFiles,
+      );
+      expect(at(o, 'hsdd/contract/tool.md'), <String>[
+        'validation-form (bullet holds covers but does not end with covers {ids}.: - file: `hsdd/contract/fixture/tool/input/` holds `in.txt`; the replay runs `fvm dart run tool:generate {input}/in.txt {output}` and compares the tree with `expected/`. The file set covers G1, see below)',
+      ]);
+      expect(at(o, t), <String>['coverage (G1 uncovered)']);
+    });
+    test('a covers header with a range of 1000 ids or more is malformed', () {
+      final List<FixtureOutcome> o = check(<String, String?>{
+        '${s}reject/sample_is_closed.dart': sampleReject.replaceFirst(
+          '// covers: G1\n',
+          '// covers: G1 to G100000000\n',
+        ),
+      });
+      expect(at(o, '${s}reject/sample_is_closed.dart'), <String>[
+        'covers-header (malformed // covers: G1 to G100000000)',
+      ]);
+      expect(at(o, s), <String>['coverage (G1 uncovered)']);
+    });
+    test('three or more uncovered ids in a row print as a range', () {
+      final List<FixtureOutcome> o = check(<String, String?>{
+        'hsdd/contract/sample.md': sampleContract.replaceFirst(
+          '- **G4**',
+          '- **G5** a.\n- **G6** b.\n- **G7** c.\n- **G4**',
+        ),
+      });
+      expect(at(o, s), <String>['coverage (G5 to G7 uncovered)']);
+    });
+  });
   group('problems follow the order of the checks, not of the lines', () {
     test('the contract text', () {
       final List<FixtureOutcome> o = check(
@@ -743,7 +797,9 @@ void main() {
         'contract-text (guarantee entry does not begin with - **G{n}**: - G3 without its bold id.)',
         'contract-text (G2 repeats)',
         'validation-form (malformed covers clause: covers the tree.)',
-        'validation-form (malformed Case cell: G1: a row without its backticks)',
+        'validation-form (bullet holds covers but does not end with covers {ids}.: - schema: a bullet that covers G2, then wraps)',
+        'validation-form (covers clause of the schema bullet names a set that is absent: no hsdd/contract/schema/tool.schema.json)',
+        'validation-form (malformed Case cell: generate-help)',
         'validation-form (malformed Covers cell of generate-usage: two)',
         "validation-form (not-executable line begins with no G{n}: - not executable: the rest; checked by nidana.model's gates)",
         "validation-form (G2's not-executable line names no node: ; checked by {node}'s gates)",

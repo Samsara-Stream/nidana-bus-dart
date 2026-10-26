@@ -116,6 +116,63 @@ void main() {
     expect(c.kind, isNull);
     expect(c.guarantees, <int>[1]);
   });
+  test('Validation lines are right-trimmed; a covers bullet without its closing clause is kept', () {
+    final ContractText c = readContract(
+      'sample',
+      text
+          .replaceFirst('covers G1 to G2 and G4.', 'covers G1 to G2 and G4. \t')
+          .replaceFirst(
+            'a second schema bullet that covers the document.',
+            'a bullet that covers G1, then wraps',
+          ),
+    );
+    expect(c.coversClauses.map((CoversClause x) => x.ids), <Set<int>?>[
+      <int>{1, 2, 4},
+    ]);
+    expect(c.unclosedCovers, <String>[
+      '- schema: a bullet that covers G1, then wraps',
+    ]);
+    expect(readContract('sample', text).unclosedCovers, isEmpty);
+  });
+  test('every line is right-trimmed before any section is read', () {
+    expectSample(
+      readContract(
+        'sample',
+        text
+            .replaceFirst('---\nid:', '---  \nid:')
+            .replaceFirst('---\n\n#', '--- \n\n#')
+            .replaceFirst('## Validation\n', '## Validation\t\n'),
+      ),
+    );
+  });
+  test('only a schema or file bullet holding the word covers is unclosed', () {
+    final ContractText c = readContract(
+      'sample',
+      text
+          .replaceFirst('uses every declaration.', 'covers G1, see below')
+          .replaceFirst(
+            'a second schema bullet that covers the document.',
+            'a bullet the tool recovers from',
+          )
+          .replaceFirst(
+            'holds one file. The file set covers G1 to G2 and G4.',
+            'holds one file that covers G1 and is read twice',
+          ),
+    );
+    expect(c.unclosedCovers, <String>[
+      '- file: `hsdd/contract/fixture/sample/input/` holds one file that covers G1 and is read twice',
+    ]);
+    expect(c.coversClauses, isEmpty);
+  });
+  test('a row keeps its Case cell as written', () {
+    expect(
+      readContract(
+        'sample',
+        text,
+      ).invocationRows.map((InvocationRow x) => x.caseCell),
+      <String>['`run-clean`', '`run-usage`', 'run-bad'],
+    );
+  });
   test('ContractKind.byLabel reads the five labels and nothing else', () {
     expect(
       ContractKind.values.map(

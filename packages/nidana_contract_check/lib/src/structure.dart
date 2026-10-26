@@ -178,8 +178,9 @@ Iterable<_Found> _contractText(_Slug slug) => _at(slug.textPath, <Problem>[
     Problem(StructureRule.contractText, 'G$id repeats'),
 ]);
 
-/// The forms of ADR-001 item 3 in `## Validation`: covers clauses and the
-/// sets they name, the Case table's rows and the not-executable lines.
+/// The forms of ADR-001 item 3 in `## Validation`: covers clauses, the
+/// covers bullets without their closing clause, the sets the clauses name,
+/// the Case table's rows and the not-executable lines.
 Iterable<_Found> _validationForms(_Slug slug) {
   final ContractText contract = slug.contract;
   return _at(slug.textPath, <Problem>[
@@ -189,6 +190,11 @@ Iterable<_Found> _validationForms(_Slug slug) {
           StructureRule.validationForm,
           'malformed covers clause: covers ${clause.text}.',
         ),
+    for (final String line in contract.unclosedCovers)
+      Problem(
+        StructureRule.validationForm,
+        'bullet holds covers but does not end with covers {ids}.: $line',
+      ),
     for (final CoversClause clause in contract.coversClauses)
       if (_absentFromSet(slug, clause) case final List<String> absent
           when absent.isNotEmpty)
@@ -201,7 +207,7 @@ Iterable<_Found> _validationForms(_Slug slug) {
       if (row.caseName == null)
         Problem(
           StructureRule.validationForm,
-          'malformed Case cell: ${row.covers}',
+          'malformed Case cell: ${row.caseCell}',
         ),
     for (final InvocationRow row in contract.invocationRows)
       if (row.caseName case final String name when row.ids == null)
@@ -390,10 +396,11 @@ Iterable<_Found> _invocationDirectories(_Slug slug) {
 /// Case table's rows that name their case and the not-executable lines of the
 /// contract text, the one parsed header of each `reject/` library, and the
 /// case names of each conformance library. A row whose Case cell is malformed
-/// names no recorded invocation, so it cites nothing. A covers clause covers
-/// its ids only when the set it names exists. A not-executable line covers
-/// its id only when it is whole and names its node; a partial line stands
-/// beside a fixture that covers the rest.
+/// names no recorded invocation, so it cites nothing, and a covers bullet
+/// without its closing clause gives no clause, so it cites nothing either. A
+/// covers clause covers its ids only when the set it names exists. A
+/// not-executable line covers its id only when it is whole and names its
+/// node; a partial line stands beside a fixture that covers the rest.
 List<_Citation> _citations(_Slug slug) => <_Citation>[
   for (final CoversClause clause in slug.contract.coversClauses)
     if (clause.ids case final Set<int> ids)
