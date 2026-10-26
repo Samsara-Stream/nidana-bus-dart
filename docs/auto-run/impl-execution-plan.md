@@ -169,7 +169,10 @@ a `Task N: complete` line; never re-dispatch them.
 | S98 | config | hsdd-config | nidana.model.1 | done | fd8bd3a |
 | S99 | code-plan | superpowers:writing-plans | nidana.model.1 (8 tasks; resumed once for the strict not-executable form) | done | 188728d |
 | S100 | contract (inserted) | hsdd-contract | bus-api@v2 touch: the G13 not-executable line names nidana.runtime (contract gap from S99) | done | 4d35eaf |
-| S101 | implement | superpowers:subagent-driven-development | nidana.model.1: 8 tasks, 3 task fix rounds, final review with one fix wave; gate exit 0, 93 tests, 102/102 structure | done | d761b1f (merged into impl/nidana.model next) |
+| S101 | implement | superpowers:subagent-driven-development | nidana.model.1: 8 tasks, 3 task fix rounds, final review with one fix wave; gate exit 0, 93 tests, 102/102 structure | done | d761b1f; merged into impl/nidana.model as cab9039 |
+| S102 | config | hsdd-config | nidana.model.2 | done | eb1e181 |
+| S103 | code-plan | superpowers:writing-plans | nidana.model.2 (7 tasks; every routed item dispositioned) | done | d023480 |
+| S104 | implement | superpowers:subagent-driven-development | nidana.model.2: 7 tasks, 2 task fix rounds, final review with one fix wave; gate exit 0, 195 tests, 206/206 structure and schema; surface and reject PENDING by design | done | d9b9b14 (merge recorded in the next row) |
 
 ## Notes for the report
 
@@ -200,23 +203,25 @@ that phase's writing-plans dispatch and strikes it here when the phase's plan co
 - nidana.model.6 (behavior set): ADR-001 item 4 says a conformance library imports neither `package:test`
   nor `package:flutter_test`; no set of nidana.model.1 checks it (the structure set's list in item 9 does
   not name it). From S101 Task 5's review.
-- nidana.model.2 (from S101's final review): `parseIdList` expands a `G{a} to G{b}` range eagerly and without a
-  bound (a typo of 1e8 or more hangs the replay; check bounds against the declared ids first); `_runs` and
-  `_replay` are synchronous and must become async for `dart analyze`; batch analysis across slugs; add
-  `Pending` and a pending count to `summaryLine` (and fix `1 fixtures` then); replace `SetUnavailable`'s fixed
-  text with an environment-error variant carrying a message; decide whether a structure failure suppresses a
-  slug's other sets; `--all` with no slug, or a symlinked slug directory, should fail loudly (exit 2) instead of
-  passing 0 fixtures or skipping; invalid UTF-8 in a fixture is a fixture defect, not an environment error;
-  line-based reading misses a covers clause with trailing whitespace or wrapped onto a continuation line, and
-  a wrapped not-executable line reports "names no node" (right-trim; report a bullet that holds `covers ` but
-  gives no clause); the malformed-Case-cell message prints the Covers cell (keep the raw Case cell in
-  `InvocationRow`); long unknown-id lists print every id (print ranges). ADR-001 item 4's marker form cannot
-  express two diagnostics on one line and structure rejects stacked markers: if the first reject replay meets
-  one, that is a contract gap for hsdd-adr.
-- nidana.model.2 (from S101's final fix wave): `run.dart`'s `setsOf` says a slug has the schema set when the
-  schema file, `valid/` or `invalid/` exists, and the file set when `input/` or `expected/` does; the structure
-  set now credits coverage only when the schema file, or both `input/` and `expected/`, exist. Decide whether
-  `setsOf` follows (a schema set with no schema file would otherwise run and fail loudly).
+- nidana.model.2: every item routed by S101 is dispositioned in S103's plan (`docs/auto-run/steps/S103.json`):
+  Pending, the async shell, a reason on `SetUnavailable`, one analysis per replay and the loud `--all` cases
+  in its Tasks 2 and 5; the range bound, right-trimming, covers bullets without a clause, the Case-cell message
+  and id ranges in Task 6; `setsOf` kept (a missing schema file fails loudly at the schema path); a structure
+  failure does not suppress other sets; wrapped continuation lines are not joined (they fail loudly; struck).
+- nidana.model.3 to .5 (from S103): ADR-001 item 4's marker form cannot express two diagnostics on one line,
+  and structure rejects stacked markers; every committed reject library is PENDING until its producer exists,
+  so the first real reject replay (nidana.model.3's gate) is where a line with two codes would surface, as a
+  contract gap for hsdd-adr.
+- nidana.model.6 (from S104's final review): lift the package-configuration read out of `_analyze` into a
+  replay-level step and pass a context record to `_run` (behavior, file and cli also need the package names
+  for PENDING); move `SlugPlan` from `analysis.dart` to `run.dart`; reorder the no-slug check after
+  `parseRequest` so a usage error exits 64 even with no fixture directory (D2 item 1); consider moving
+  `findWorkspaceRoot` out of `shell.dart` so conformance libraries stop compiling the tool; consider a progress
+  line for long test runs.
+- Checkpoint (from S104's final review): nidana.model.1 and .2 each landed about 9 times their line estimate;
+  re-baseline .6 and .7 (about 300 and 450 lines) before trusting the PE sizing.
+- nidana.model.6 (from S103): invalid UTF-8 in a Dart fixture still exits 2 as an environment error; make it a
+  fixture failure when the behavior set reworks reading.
 - nidana.model.6 (from S101's final review): validate `--guarantee` ids against the slug's declared
   guarantees (a typo admits no case and passes under item 9); a conformance library that no binding in any
   slug imports should cover nothing (needs a cross-slug view: topology-dsl's live suite is bound from

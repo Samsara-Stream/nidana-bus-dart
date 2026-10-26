@@ -50,10 +50,14 @@ final class CoversClause {
 /// A row of the recorded-invocation table.
 final class InvocationRow {
   const InvocationRow({
+    required this.caseCell,
     required this.caseName,
     required this.covers,
     required this.ids,
   });
+
+  /// The Case cell, trimmed, as written.
+  final String caseCell;
 
   /// The name in the Case cell; null when that cell is not one backticked name.
   final String? caseName;
@@ -97,6 +101,7 @@ final class ContractText {
     required this.bindings,
     required this.listedDirectories,
     required this.coversClauses,
+    required this.unclosedCovers,
     required this.invocationRows,
     required this.notExecutable,
   });
@@ -123,6 +128,10 @@ final class ContractText {
   /// The `covers` clauses of the `- schema:` and `- file:` bullets, in order.
   final List<CoversClause> coversClauses;
 
+  /// The `- schema:` and `- file:` bullets that hold `covers ` but do not end
+  /// with `covers {text}.`, whole, in order.
+  final List<String> unclosedCovers;
+
   /// The rows of the recorded-invocation table, in order.
   final List<InvocationRow> invocationRows;
 
@@ -135,10 +144,15 @@ final class ContractText {
 
 /// Reads [text], the contract text of [slug], as a [ContractText].
 ///
-/// `\r\n` reads as `\n`. Only the frontmatter and the lines of the
+/// `\r\n` reads as `\n`, and every line is read without its trailing
+/// whitespace. Only the frontmatter and the lines of the
 /// `## Guarantees / invariants` and `## Validation` sections are read.
 ContractText readContract(String slug, String text) {
-  final List<String> lines = text.replaceAll('\r\n', '\n').split('\n');
+  final List<String> lines = text
+      .replaceAll('\r\n', '\n')
+      .split('\n')
+      .map((String line) => line.trimRight())
+      .toList(growable: false);
   final List<String> frontmatter = _frontmatter(lines);
   final List<(String, int?)> entries = <(String, int?)>[
     for (final String line in _section(lines, '## Guarantees / invariants'))
@@ -165,6 +179,10 @@ ContractText readContract(String slug, String text) {
     coversClauses: List<CoversClause>.unmodifiable(<CoversClause>[
       for (final String line in validation) ?_coversClause(line),
     ]),
+    unclosedCovers: List<String>.unmodifiable(<String>[
+      for (final String line in validation)
+        if (_isUnclosedCovers(line)) line,
+    ]),
     invocationRows: List<InvocationRow>.unmodifiable(
       _invocationRows(validation),
     ),
@@ -179,6 +197,7 @@ final RegExp _guarantee = RegExp(r'^- \*\*G([1-9][0-9]*)\*\* ');
 final RegExp _binding = RegExp(r'^- binding: `([^`]+)`');
 final RegExp _coversBullet = RegExp(r'^- (schema|file): ');
 final RegExp _covers = RegExp(r'\bcovers ([^.]*)\.$');
+final RegExp _coversWord = RegExp(r'\bcovers ');
 final RegExp _tableHeader = RegExp(r'^\|\s*Case\s*\|');
 final RegExp _caseName = RegExp(r'^`([^`]+)`$');
 final RegExp _notExecutableHead = RegExp(
@@ -249,6 +268,13 @@ CoversClause? _coversClause(String line) {
         );
 }
 
+/// Whether [line] is a `- schema:` or `- file:` bullet that holds `covers `
+/// but gives no [CoversClause].
+bool _isUnclosedCovers(String line) =>
+    _coversBullet.hasMatch(line) &&
+    _coversWord.hasMatch(line) &&
+    !_covers.hasMatch(line);
+
 /// The rows of the first table in [validation] whose header's first cell is
 /// `Case`: every line beginning `|` after the header and its separator row.
 Iterable<InvocationRow> _invocationRows(List<String> validation) {
@@ -275,6 +301,7 @@ InvocationRow _invocationRow(List<String> cells, int coversColumn) {
       ? cells[coversColumn]
       : '';
   return InvocationRow(
+    caseCell: cells[1],
     caseName: _caseName.firstMatch(cells[1])?.group(1),
     covers: covers,
     ids: _unmodifiable(parseIdList(covers.split(': ').first)),

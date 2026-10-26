@@ -1,6 +1,6 @@
-/// What a set concludes about a fixture: it [Passed], or it [Failed] with the
-/// [Problem]s found, each naming the [Rule] it breaks. Every set shares these
-/// types.
+/// What a set concludes about a fixture: it [Passed], it [Failed] with the
+/// [Problem]s found, each naming the [Rule] it breaks, or it is [Pending] on
+/// packages the workspace lacks. Every set shares these types.
 library;
 
 /// A rule a set checks; each set names its rules with an enum implementing this.
@@ -40,4 +40,15 @@ final class Failed extends FixtureOutcome {
 
   /// What breaks, in the order the set checks it.
   final List<Problem> problems;
+}
+
+/// The fixture names a package absent from the workspace's package configuration (ADR-001 item 9).
+///
+/// A pending fixture fails the replay without being a defect of the fixture:
+/// a package it imports is absent from the workspace, so it cannot run.
+final class Pending extends FixtureOutcome {
+  const Pending(super.path, this.packages);
+
+  /// The absent packages, ascending, at least one.
+  final List<String> packages;
 }
