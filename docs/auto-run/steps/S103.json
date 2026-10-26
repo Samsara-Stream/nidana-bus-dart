@@ -1,0 +1,437 @@
+{
+  "step_ref": "S103",
+  "skill": "superpowers:writing-plans",
+  "target": "nidana.model.2",
+  "status": "completed",
+  "stop": null,
+  "artifacts": [
+    "docs/superpowers/plans/nidana.model.2.md",
+    "docs/auto-run/experiments/replay-sets-plan/run.sh",
+    "docs/auto-run/experiments/replay-sets-plan/output.txt",
+    "docs/auto-run/experiments/replay-sets-plan/probe/pubspec.yaml",
+    "docs/auto-run/experiments/replay-sets-plan/probe/bin/exe.dart",
+    "docs/auto-run/experiments/replay-sets-plan/probe/bin/summarize.dart",
+    "docs/auto-run/experiments/replay-sets-plan/probe/bin/schema_probe.dart",
+    "docs/auto-run/experiments/replay-sets-plan/probe/bin/config_probe.dart",
+    "docs/auto-run/experiments/replay-sets-plan/probe/bin/override_probe.dart",
+    "docs/auto-run/experiments/replay-sets-plan/probe/bin/message_probe.dart",
+    "docs/auto-run/experiments/replay-sets-plan/probe/test/exe_test.dart"
+  ],
+  "decisions": [
+    {
+      "at": "2026-10-26T20:09:41Z",
+      "artifact": "docs/superpowers/plans/nidana.model.2.md",
+      "question": "How are the phase's deliverables split into at most 7 tasks, and do the structure-set polish items routed to this phase get a task?",
+      "options": [
+        { "label": "seven tasks, polish as Task 6", "consequence": "fixture library and schemas; PENDING and the report; the schema set; the surface and reject sets; the async shell; structure-set polish; gate and verification doc. Each task can be rejected by a reviewer on its own; the cap is reached" },
+        { "label": "six tasks, polish left routed", "consequence": "a smaller review sitting; the range-typo hang and the covers-reading defects wait for nidana.model.6 or .7" },
+        { "label": "fold the polish into the shell task", "consequence": "one task fewer, but a task mixing unrelated rules that a reviewer cannot reject separately" }
+      ],
+      "chosen": "seven tasks, polish as Task 6",
+      "why": "The derivative allows 7 tasks. Each polish item is a few lines in files no other task touches (ids.dart, contract.dart, structure.dart), and the eager range expansion is a hang every gate is exposed to. Order puts the report before the schema set so that every new cli test is written once against the final summary form. The signal that would have changed this: nidana.model.1's 9x overrun repeating in review, in which case Task 6 is the one to defer.",
+      "evidence": ["hsdd-context/superpowers/nidana.model.2.md Global Constraint 3", "docs/auto-run/impl-execution-plan.md Routed to later phases", "hsdd/verify/nidana.model.1.verification.md Metrics"],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-26T20:09:41Z",
+      "artifact": "docs/superpowers/plans/nidana.model.2.md",
+      "question": "Which files hold the new pure core, and where does lib/fixture.dart find the workspace root?",
+      "options": [
+        { "label": "one file per set plus shared readers", "consequence": "lib/src/json_document.dart, packages.dart, schema.dart, analysis.dart, surface.dart, reject.dart; fixture.dart imports shell.dart's findWorkspaceRoot, so the root is defined once" },
+        { "label": "one file for both analyzed sets", "consequence": "fewer files; surface and reject change together although their rules differ" },
+        { "label": "fixture.dart with its own root search", "consequence": "no import of the shell from the public library, but two definitions of the workspace root that can drift" }
+      ],
+      "chosen": "one file per set plus shared readers",
+      "why": "nidana.model.1 names each set's file after the set (structure.dart) and keeps readers separate; nidana.model.6 and .7 will add behavior and file/cli files beside these. ADR-001 and topology-ir@v1 define the root identically for the tool and for expectMatchesSchema, so one function serves both.",
+      "evidence": ["docs/superpowers/plans/nidana.model.1.md File Structure", "hsdd/contract/topology-ir.md ## Validation (expectMatchesSchema)"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-26T20:09:41Z",
+      "artifact": "docs/superpowers/plans/nidana.model.2.md",
+      "question": "How does the schema set receive the schema file and the documents, and is a document that is not UTF-8 a fixture defect or an environment error (routed item: invalid UTF-8 is a fixture defect)?",
+      "options": [
+        { "label": "bytes in the snapshot, decoded by the pure core", "consequence": "SlugSnapshot.schemaBytes replaces hasSchemaFile (kept as a getter) and documents holds each valid/ and invalid/ file's bytes; a non-UTF-8 document is FAIL document, exit 1; the structure set's Dart sources are untouched" },
+        { "label": "strings read by the shell", "consequence": "readAsStringSync throws on invalid UTF-8, so the replay exits 2 naming the file: the routed defect stays" },
+        { "label": "a sealed content type for every file", "consequence": "fixes Dart sources too, but changes the structure set's input and its tests in this phase" }
+      ],
+      "chosen": "bytes in the snapshot, decoded by the pure core",
+      "why": "It makes invalid UTF-8 a fixture defect for the set this phase lands at the cost of two snapshot fields. Dart sources stay as nidana.model.1 reads them: a non-UTF-8 Dart fixture still fails loudly (exit 2 naming the file), so nothing passes unseen; that part stays routed.",
+      "evidence": ["docs/auto-run/impl-execution-plan.md Routed to later phases", "docs/auto-run/experiments/replay-sets-plan/output.txt M (utf8.decode messages)"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-26T20:09:41Z",
+      "artifact": "docs/superpowers/plans/nidana.model.2.md",
+      "question": "Which fixtures does the schema set report, and what happens to the documents when the schema file is absent or does not compile?",
+      "options": [
+        { "label": "the schema file is a fixture; documents only when it compiles", "consequence": "PASS or FAIL schema hsdd/contract/schema/{slug}.schema.json first; a missing or broken schema is its only line (exit 1); the committed gate replays 46 and 58 schema fixtures" },
+        { "label": "documents only, a broken schema as an environment error", "consequence": "a contract defect would exit 2 as if the machine were broken" },
+        { "label": "every document fails with schema unavailable", "consequence": "dozens of lines repeating one defect" }
+      ],
+      "chosen": "the schema file is a fixture; documents only when it compiles",
+      "why": "An absent or uncompilable schema is a defect of the contract's fixtures (ADR-001 item 8), so it fails like a fixture; judging documents against no schema says nothing. A schema that is a JSON string, array or null does not compile, because JsonSchema.create would decode a string a second time.",
+      "evidence": ["hsdd/adr/001-executable-contract-validation.md items 5 and 9", "docs/auto-run/experiments/replay-sets-plan/output.txt J2, J6"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-26T20:09:41Z",
+      "artifact": "docs/superpowers/plans/nidana.model.2.md",
+      "question": "Which files below valid/ and invalid/ does the schema set judge?",
+      "options": [
+        { "label": "every file, recursively, hidden ones excluded", "consequence": "a non-JSON or non-.json file fails as a document instead of going unreplayed" },
+        { "label": ".json files directly in the directory", "consequence": "the prototype's choice; a nested or misnamed case is silently skipped" },
+        { "label": ".json files recursively", "consequence": "a misnamed case is silently skipped" }
+      ],
+      "chosen": "every file, recursively, hidden ones excluded",
+      "why": "ADR-001 item 5 says every valid/ file validates and no invalid/ file does; a file the set skips would be a case nobody replays. Both committed trees hold only .json files directly in the directory, so the stricter reading changes no committed result.",
+      "evidence": ["hsdd/adr/001-executable-contract-validation.md item 5", "docs/auto-run/experiments/topology-ir-fixtures/packages/nidana_contract_check/bin/schema_check.dart", "docs/auto-run/experiments/replay-sets-plan/output.txt J6"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-26T20:09:41Z",
+      "artifact": "docs/superpowers/plans/nidana.model.2.md",
+      "question": "Routed: does setsOf follow the structure set's rule that a schema covers clause counts only when the schema file exists?",
+      "options": [
+        { "label": "keep setsOf; the set fails at the schema path", "consequence": "a slug with valid/ or invalid/ and no schema file runs the schema set, which prints FAIL schema-file (absent), exit 1" },
+        { "label": "setsOf requires the schema file", "consequence": "such a slug would not run the set at all; only the structure set's covers-clause check would notice, and only when the contract has a covers clause" }
+      ],
+      "chosen": "keep setsOf; the set fails at the schema path",
+      "why": "A half-present schema set must fail loudly. ADR-001 item 9 gives a slug every set it has, and a slug with valid/ has the schema set; the structure set's rule decides coverage, not whether a set runs.",
+      "evidence": ["docs/auto-run/impl-execution-plan.md Routed to later phases (S101 final fix wave)", "packages/nidana_contract_check/lib/src/run.dart", "packages/nidana_contract_check/lib/src/structure.dart _absentFromSet"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-26T20:09:41Z",
+      "artifact": "docs/superpowers/plans/nidana.model.2.md",
+      "question": "Routed: does a structure failure suppress a slug's other sets?",
+      "options": [
+        { "label": "no: every planned set runs", "consequence": "each set judges its own fixtures; a structure failure and, say, a schema failure both print" },
+        { "label": "yes: skip the slug's other sets", "consequence": "fewer lines, but independent defects hide behind an unrelated structure finding" }
+      ],
+      "chosen": "no: every planned set runs",
+      "why": "ADR-001 item 9 says structure runs first, not that it gates the others; the exit code is 1 either way. The reject set ignores malformed markers that structure reports, so the two never contradict each other; reporting both only adds information.",
+      "evidence": ["hsdd/adr/001-executable-contract-validation.md item 9"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-26T20:09:41Z",
+      "artifact": "docs/superpowers/plans/nidana.model.2.md",
+      "question": "Routed: how many dart analyze processes does one replay start?",
+      "options": [
+        { "label": "one per replay over every non-pending surface and reject library, none when there is none", "consequence": "one process for --all; the shell reads every snapshot first and prints after; zero targets start nothing" },
+        { "label": "one per slug and set", "consequence": "up to 18 analyzer starts for --all" },
+        { "label": "one per fixture", "consequence": "65 starts over the committed tree" }
+      ],
+      "chosen": "one per replay over every non-pending surface and reject library, none when there is none",
+      "why": "One dart analyze takes many file paths and analyzes all 65 committed libraries in about 0.4 s; batching costs only printing after the analysis. dart analyze without a path analyzes the working directory, so zero targets must start nothing.",
+      "evidence": ["docs/auto-run/experiments/replay-sets-plan/output.txt A1, A10"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-26T20:09:41Z",
+      "artifact": "docs/superpowers/plans/nidana.model.2.md",
+      "question": "How are the analyzer's reported paths matched to fixtures, and what if a reported path matches none?",
+      "options": [
+        { "label": "map normalized and symlink-resolved target paths; a stray is an environment error", "consequence": "works under macOS's /var to /private/var temp paths and a linked checkout; a mismatch exits 2 instead of passing a surface library" },
+        { "label": "compare normalized paths only", "consequence": "every diagnostic is dropped when the root is reached through a link, so surface libraries pass vacuously" },
+        { "label": "drop strays silently", "consequence": "an attribution bug passes surface libraries" }
+      ],
+      "chosen": "map normalized and symlink-resolved target paths; a stray is an environment error",
+      "why": "dart analyze reports symlink-resolved paths whatever form it was given, and only the analyzed files' diagnostics; so a stray can only be an attribution bug, which must not read as a pass.",
+      "evidence": ["docs/auto-run/experiments/replay-sets-plan/output.txt A1, A3, X2"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-26T20:09:41Z",
+      "artifact": "docs/superpowers/plans/nidana.model.2.md",
+      "question": "How does the reject set compare the reported (line, code) pairs with the markers' pairs, and how does it report a difference?",
+      "options": [
+        { "label": "set semantics with missing and unexpected problems", "consequence": "the pairs form sets; missing-diagnostic 'line {n}: {code}, named by the marker on line {n-1}, not reported', unexpected-diagnostic with severity, code and message; marker 'no // expect-diagnostic: marker' first; line by line, missing before unexpected; malformed markers name nothing" },
+        { "label": "multiset semantics", "consequence": "a code reported twice on its line would need two markers, which item 4's one-marker-per-line form cannot write" },
+        { "label": "one mismatch problem listing both sets", "consequence": "harder to read which marker is wrong" }
+      ],
+      "chosen": "set semantics with missing and unexpected problems",
+      "why": "ADR-001 item 4 speaks of pairs equal to the markers' pairs, and the prototypes that confirmed every committed reject code compared sets. The phase's Verification (a marker on the wrong line, a wrong code, an extra warning) maps onto these two problem kinds.",
+      "evidence": ["hsdd/adr/001-executable-contract-validation.md item 4", "docs/auto-run/experiments/topology-ir-fixtures/packages/nidana_contract_check/bin/reject_check.dart", "docs/auto-run/experiments/replay-sets-plan/output.txt A11"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-26T20:09:41Z",
+      "artifact": "docs/superpowers/plans/nidana.model.2.md",
+      "question": "Which analyze command does the tool run, and what does a surface failure print?",
+      "options": [
+        { "label": "analyze --fatal-infos --format=json with absolute paths; one problem per diagnostic", "consequence": "the command item 4 names; detail 'line {n}: {SEVERITY} {code}: {message}', sorted by line" },
+        { "label": "analyze --format=json without --fatal-infos", "consequence": "identical report, a command that reads differently from item 4" },
+        { "label": "codes only", "consequence": "shorter lines a reader has to look up" }
+      ],
+      "chosen": "analyze --fatal-infos --format=json with absolute paths; one problem per diagnostic",
+      "why": "--fatal-infos changes only the exit code, which the tool never reads (it reads the JSON), so passing it costs nothing and keeps the command item 4's. The message tells the reader what to fix.",
+      "evidence": ["docs/auto-run/experiments/replay-sets-plan/output.txt A2, A5"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-26T20:09:41Z",
+      "artifact": "docs/superpowers/plans/nidana.model.2.md",
+      "question": "What makes a fixture PENDING in this phase, and does PENDING detection already cover behavior libraries?",
+      "options": [
+        { "label": "package: URIs of imports and exports; surface and reject now, behavior at nidana.model.6", "consequence": "Pending(path, packages) for a surface or reject library naming a package absent from .dart_tool/package_config.json; the behavior set stays not implemented and will reuse absentPackages" },
+        { "label": "imports only", "consequence": "an export of an absent package would fail as uri_does_not_exist, a defect" },
+        { "label": "mark behavior libraries PENDING now", "consequence": "outcomes for a set this version cannot run" }
+      ],
+      "chosen": "package: URIs of imports and exports; surface and reject now, behavior at nidana.model.6",
+      "why": "ADR-001 item 9 says a fixture that names a package absent from the package configuration is PENDING; an export names a package as surely as an import. The behavior set lands at nidana.model.6 (D1), which applies the same function to bindings.",
+      "evidence": ["hsdd/adr/001-executable-contract-validation.md item 9", "hsdd/spec/nidana.model.md D1, D2 item 2"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-26T20:09:41Z",
+      "artifact": "docs/superpowers/plans/nidana.model.2.md",
+      "question": "Routed: how does the summary line show PENDING fixtures?",
+      "options": [
+        { "label": "always '{n} fixtures: {p} passed, {f} failed, {q} pending'", "consequence": "one form; 'fixture' for one; nidana.model.1's tests change their expected summaries" },
+        { "label": "the pending count only when non-zero", "consequence": "two forms of the line" },
+        { "label": "summary unchanged", "consequence": "PENDING fixtures counted nowhere" }
+      ],
+      "chosen": "always '{n} fixtures: {p} passed, {f} failed, {q} pending'",
+      "why": "One form is easier to read and to grep in a gate log; it also fixes the routed '1 fixtures'.",
+      "evidence": ["docs/auto-run/impl-execution-plan.md Routed to later phases", "docs/auto-run/experiments/replay-sets-plan/output.txt A12 ('1 fixtures')"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-26T20:09:41Z",
+      "artifact": "docs/superpowers/plans/nidana.model.2.md",
+      "question": "Routed: how does an environment error carry a message in place of SetUnavailable's fixed text?",
+      "options": [
+        { "label": "SetUnavailable gains a reason", "consequence": "ERROR {set} {slug}: {reason}; notImplemented(set) keeps nidana.model.1's text for behavior, file and cli; reasons for a missing or malformed package configuration, a dart that cannot start, no JSON report, a stray path" },
+        { "label": "a new sealed variant beside SetUnavailable", "consequence": "two variants with the same meaning and exit code" },
+        { "label": "a replay-wide environment error that aborts", "consequence": "other slugs' sets would not report" }
+      ],
+      "chosen": "SetUnavailable gains a reason",
+      "why": "SetUnavailable already means 'this set could not run' and already outranks failures in exitCodeOf; a field keeps one variant and lets the rest of the replay report.",
+      "evidence": ["packages/nidana_contract_check/lib/src/report.dart", "hsdd/adr/001-executable-contract-validation.md item 9 (exit 2)"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-26T20:09:41Z",
+      "artifact": "docs/superpowers/plans/nidana.model.2.md",
+      "question": "When has dart analyze failed to run, and how do the tests reach those paths?",
+      "options": [
+        { "label": "no JSON report or a ProcessException; runCli takes an optional dart", "consequence": "the exit code is never read; tests call runCli in process with a missing path and with /bin/echo" },
+        { "label": "an exit code above 3", "consequence": "relies on undocumented codes; a crash that prints JSON-less output with code 3 would read as a clean report" },
+        { "label": "no seam", "consequence": "the environment-error paths of the analysis go untested" }
+      ],
+      "chosen": "no JSON report or a ProcessException; runCli takes an optional dart",
+      "why": "The report's presence, not the exit code, says whether the analysis ran (A5 shows exit codes 0 to 3 with a full report, A6 exit 64 with none). The parameter defaults to Platform.resolvedExecutable, so the bin script and ADR-001 item 9's 'dart running the tool' are unchanged.",
+      "evidence": ["docs/auto-run/experiments/replay-sets-plan/output.txt A5, A6, X1"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-26T20:09:41Z",
+      "artifact": "docs/superpowers/plans/nidana.model.2.md",
+      "question": "How does expectMatchesSchema fail, what does it print, and does it cache compiled schemas?",
+      "options": [
+        { "label": "TestFailure for validation errors, StateError for root and schema problems, no cache", "consequence": "'does not match {path}:' and one line per json_schema error; a missing root, a missing schema or a schema that does not compile is an error, not a failure" },
+        { "label": "TestFailure for everything", "consequence": "a broken fixture reads like the producer's failure" },
+        { "label": "cache compiled schemas", "consequence": "mutable global state for a few milliseconds per call" }
+      ],
+      "chosen": "TestFailure for validation errors, StateError for root and schema problems, no cache",
+      "why": "topology-ir@v1 fixes the failure for validation errors only; the split mirrors the tool's fixture failure versus environment error. The owner prefers immutability, and seven sample graphs compile quickly.",
+      "evidence": ["hsdd/contract/topology-ir.md ## Validation", "docs/auto-run/experiments/replay-sets-plan/output.txt J1, O"],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-26T20:09:41Z",
+      "artifact": "docs/superpowers/plans/nidana.model.2.md",
+      "question": "What temporary workspace do the analyzer-backed tests seed, and how is it resolved?",
+      "options": [
+        { "label": "a pub workspace with a dependency-free stand-in, resolved by Platform.resolvedExecutable pub get --offline", "consequence": "packages/sample with final class Sample; the committed fixtures' analysis options copied in; no hosted package needed; about 0.1 s to resolve" },
+        { "label": "fixtures analyzed inside the repository", "consequence": "writes under hsdd/ or analyzes against the root's resolution, which holds no stand-in" },
+        { "label": "a stand-in with hosted dependencies from the cache", "consequence": "slower and nothing the sets need" }
+      ],
+      "chosen": "a pub workspace with a dependency-free stand-in, resolved by Platform.resolvedExecutable pub get --offline",
+      "why": "fvm runs no dart in a temp directory, so the SDK dart must be called directly; the stand-in's diagnostics for every seed were captured exactly; the repository's bin script resolves its own packages from such a workspace. A workspace without the stand-in is the 'producer absent' case of the phase's Verification.",
+      "evidence": ["docs/auto-run/experiments/replay-sets-plan/output.txt W0, W1, A11, A12"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-26T20:09:41Z",
+      "artifact": "docs/superpowers/plans/nidana.model.2.md",
+      "question": "When is .dart_tool/package_config.json read, and what if it is missing or malformed?",
+      "options": [
+        { "label": "only when surface or reject is planned; missing or malformed is their SetUnavailable reason", "consequence": "structure and schema replays need no resolution; a broken environment exits 2 naming the file" },
+        { "label": "always, as a replay-wide environment error", "consequence": "the structure-only gate would depend on resolution it does not use" },
+        { "label": "treat every package as absent", "consequence": "every fixture PENDING, exit 1, reading like an absent producer" }
+      ],
+      "chosen": "only when surface or reject is planned; missing or malformed is their SetUnavailable reason",
+      "why": "PENDING must mean a producer is absent, not that resolution is broken.",
+      "evidence": ["hsdd/adr/001-executable-contract-validation.md item 9", "docs/auto-run/experiments/replay-sets-plan/output.txt P"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-26T20:09:41Z",
+      "artifact": "docs/superpowers/plans/nidana.model.2.md",
+      "question": "How are the routed structure-set polish items fixed?",
+      "options": [
+        { "label": "bounded ranges, right-trimmed lines, unclosed covers bullets, raw Case cells, ranges in formatIds", "consequence": "a range spanning 1000 or more ids is no list (malformed, reported at once); every contract line right-trimmed; a - schema: or - file: bullet holding 'covers ' without the closing clause is a validation-form failure; the Case cell kept as written; runs of three or more ids print as G{a} to G{b}; continuation lines not joined" },
+        { "label": "symbolic ranges checked against the declared ids", "consequence": "exact unknown-id messages for huge ranges, but new id types through contract.dart, dart_library.dart and structure.dart" },
+        { "label": "join indented continuation lines into their bullet", "consequence": "a small markdown parser in the reader" }
+      ],
+      "chosen": "bounded ranges, right-trimmed lines, unclosed covers bullets, raw Case cells, ranges in formatIds",
+      "why": "Each fix is a few lines, and every committed contract reads as before (no Validation line ends in whitespace; both committed bullets holding 'covers ' end with the clause). A wrapped bullet now fails loudly (unclosed covers or names-no-node), and every committed Validation bullet is one line, so joining continuation lines buys nothing today.",
+      "evidence": ["docs/auto-run/impl-execution-plan.md Routed to later phases", "hsdd/contract/topic-codegen.md ## Validation", "hsdd/contract/topology-ir.md ## Validation"],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-26T20:09:41Z",
+      "artifact": "docs/superpowers/plans/nidana.model.2.md",
+      "question": "Routed: what do --all with no slug directory, and a symbolic link where a slug directory belongs, do?",
+      "options": [
+        { "label": "exit 2 with an error line", "consequence": "'error: no slug directory under hsdd/contract/fixture/'; a link raises FileSystemException(\"a slug's fixture directory is a symbolic link\", path), which runCli already prints and exits 2 on" },
+        { "label": "follow a linked slug directory", "consequence": "a fixture tree outside hsdd/contract/fixture/ joins the replay" },
+        { "label": "keep nidana.model.1's behavior", "consequence": "0 fixtures and exit 0, or a slug silently skipped" }
+      ],
+      "chosen": "exit 2 with an error line",
+      "why": "Both are broken workspaces, and a gate must not pass on them. nidana.model.1's link policy already treats links in a slug as files; a linked slug is outside what ADR-001 item 2 locates.",
+      "evidence": ["docs/auto-run/impl-execution-plan.md Routed to later phases", "packages/nidana_contract_check/lib/src/shell.dart discoverSlugs"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-26T20:22:43Z",
+      "artifact": "docs/superpowers/plans/nidana.model.2.md",
+      "question": "How does a test show that diagnostics reach their fixtures when the workspace root is reached through a symbolic link?",
+      "options": [
+        { "label": "call runCli in process with the linked root", "consequence": "the shell sees the unresolved root and must map the analyzer's resolved paths" },
+        { "label": "run the bin script with the link as working directory", "consequence": "the child reads its working directory back resolved, so the test would pass without exercising the mapping" }
+      ],
+      "chosen": "call runCli in process with the linked root",
+      "why": "Settled by experiment X2 during self-review: a process started through a linked working directory reads Directory.current resolved.",
+      "evidence": ["docs/auto-run/experiments/replay-sets-plan/output.txt X2"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    }
+  ],
+  "experiments": [
+    {
+      "path": "docs/auto-run/experiments/replay-sets-plan/",
+      "question": "What does dart analyze --format=json print for fixtures under hsdd/contract/fixture/analysis_options.yaml (several paths, symlinked temp paths, committed fixtures by path, exit codes, failures)? Can a temp workspace with a stand-in be resolved offline, and with which dart? Which dart runs the tool and its tests, and what cwd does a child started through a link read? How does package:json_schema 5.2.2 report errors and compile failures, and do the committed schema sets pass? How does package_config parse? Does IOOverrides change Directory.current?",
+      "finding": "W0: fvm dart in a temp dir runs no dart (exit 127). W1: Platform.resolvedExecutable pub get --offline resolves a dependency-free stand-in workspace in 0.1 s. A1: one analyze takes several file paths; stdout is the JSON document alone; diagnostics carry code, severity (ERROR/WARNING/INFO), location.file, location.range.start.line (1-based), problemMessage; a library a fixture imports is not reported. A2: identical JSON with --fatal-infos. A3: reported paths are symlink-resolved (/private/var). A5: exits 0/2/3, 1 only for infos under --fatal-infos. A6: a missing path exits 64 with usage on stderr, empty stdout. A7: a bad fixture options key is not reported. A8, A9: the root's hsdd/** exclusion does not stop analysis by path; the committed fixtures report uri_does_not_exist today. A10: 65 committed libraries in about 0.4 s. A11: exact codes, lines and messages of the plan's seeds against final class Sample. A12: the repo's bin script resolves its packages from a temp workspace with its own package config. X1: resolvedExecutable is the SDK dart under fvm dart run and fvm dart test. X2: a child started through a linked cwd reads it resolved. J1/M: validate reports every error, toString '{path or # (root)}: {message}', a missing required property reported twice. J2: create throws FormatException or ArgumentError. J5: format is an annotation. J6: topology-ir 45/45 and topic-codegen 57/57 documents judged correctly. P: parseString does no I/O, malformed input raises PackageConfigFormatException or goes to onError. O: IOOverrides works; matcher's fail throws TestFailure."
+    }
+  ],
+  "self_check": [
+    { "gate": "The plan's Global Constraints contain constraints 1 to 8 above, verbatim.", "status": "pass", "note": "copied line for line from the derivative; node docs/auto-run/tools/impl-gate.mjs code-plan nidana.model.2 reports 0 errors, 0 warnings" },
+    { "gate": "Every `### Task N:` except the last starts with a failing-test step.", "status": "pass", "note": "Tasks 1 to 6 open with 'Step 1: Write the failing test' and record the failure in Step 2" },
+    { "gate": "The last task writes the verification doc named in constraint 5.", "status": "pass", "note": "Task 7 runs the gate first, writes hsdd/verify/nidana.model.2.verification.md from the template at full-review depth with the title '# Verification: nidana.model.2 - Replay tool: surface, reject and schema sets', Learnings dispositioned, Sign-off empty" },
+    { "gate": "The plan has at most 7 tasks.", "status": "pass", "note": "7 tasks" },
+    { "gate": "The plan is saved under docs/superpowers/plans/.", "status": "pass", "note": "docs/superpowers/plans/nidana.model.2.md; its Spec line names hsdd-context/superpowers/nidana.model.2.md" },
+    { "gate": "Spec coverage: Skim each section/requirement in the spec. Can you point to a task that implements it? List any gaps.", "status": "pass", "note": "Scope (1) fixture.dart: Task 1; (2) surface and reject from dart analyze --format=json under the fixtures' options: Tasks 4 and 5; (3) schema set over valid/ and invalid/, never a data or expected tree: Task 3 (holdsDocument test) and Task 4 (analysisTargets test); (4) PENDING: Tasks 2, 4, 5; tests over a stand-in in a temp workspace resolved offline: Task 5; Verification: wrong line, wrong code, extra warning (Tasks 4, 5), schema sets as committed (Task 3 Step 6, Tasks 5 to 7), PENDING per fixture with exit 1 (Task 5, Task 7 Step 2); gate: Global Constraint 4 in Tasks 5, 6, 7. No gap." },
+    { "gate": "Step scan: Every step must let the implementer write exactly one reasonable thing, and no step may carry more than that: a line that decides nothing is a gap, a function body the signature and tests already determine is a transcript. Fix both.", "status": "pass", "note": "no TBD or open-ended steps; code steps give signatures, files, exact messages and rule tables; no implementation body is transcribed; the shell algorithm and the reject comparison are prose because the signatures leave them open. Fixed in review: the symlink test (in-process runCli, X2), two Expected lines, the Task 7 count" },
+    { "gate": "Type consistency: Do the types, method signatures, and property names you used in later tasks match what you defined in earlier tasks?", "status": "pass", "note": "checked every Consumes block against the Produces block it names: JsonDecoding/JsonValue/NotJson, SchemaCompilation, schemaErrors, Pending, SetUnavailable(set, slug, reason), notImplemented, packageConfigPath, packageNamesOf, absentPackages, SlugSnapshot.schemaBytes/documents/hasSchemaFile, holdsDocument, checkSchema, Diagnostic, parseAnalysis, analysisFailure, groupDiagnostics/GroupedDiagnostics, setLibraries/SetLibrary, analysisTargets, checkSurface, checkReject, runCli(dart:), seedWorkspace, docFiles, analysisFiles; and against nidana.model.1's real names (findWorkspaceRoot, readSnapshot, plannedSets, setsOf, outcomeLine, cli_test helpers lines/all/cleanLines/s, structure_test helpers check/at/toolContractWith)" },
+    { "gate": "Review Focus: For each input class or failure mode the spec implies, is there a task whose tests exercise it?", "status": "pass", "note": "five lines (symlinked root, nothing to analyze, duplicate or stray marked codes, odd documents, schema file absent), each with its test in Tasks 3, 4 or 5" },
+    { "gate": "Proportion: Compare the plan's length to the spec's.", "status": "pass", "note": "about 101 KB against the derivative's 45 KB (about 2.2x, nidana.model.1's ratio was 2x); the code blocks are tests with exact values, seeded fixtures and signatures; no implementation body" }
+  ],
+  "contract_gaps": [],
+  "notes_for_orchestrator": [
+    "Plan check: node docs/auto-run/tools/impl-gate.mjs code-plan nidana.model.2 reports 0 errors, 0 warnings. Nothing committed; untracked: docs/superpowers/plans/nidana.model.2.md, docs/auto-run/experiments/replay-sets-plan/ (probe/pubspec.lock is git-ignored), this report.",
+    "Routed: the Pending outcome, its place in the summary and the exit code: in the plan, Task 2 (summary always shows the pending count; '1 fixture'; Pending exits 1, environment errors 2 above it).",
+    "Routed: the shell's replay async for dart analyze: in the plan, Task 5.",
+    "Routed: an environment-error variant carrying a message: in the plan, SetUnavailable gains a reason (Task 2); Task 5 fills it for a missing or malformed package configuration, a dart that cannot start, no JSON report and a stray path.",
+    "Routed: setsOf against the structure set's schema-file rule: decided, setsOf unchanged; the schema set fails at the schema path when the file is absent (Task 3 test).",
+    "Routed: whether a structure failure suppresses a slug's other sets: decided no (Task 3 cli test).",
+    "Routed: batching the analysis: in the plan, one dart analyze per replay over every non-pending surface and reject library, none when there is none (Task 5).",
+    "Routed: a bound on G{a} to G{b} ranges: in the plan, Task 6 (a range spanning 1000 or more ids is a malformed list, rejected before expansion).",
+    "Routed: right-trimming before the covers match and reporting a bullet that holds 'covers ' without a clause: in the plan, Task 6 (every contract line right-trimmed; unclosedCovers as validation-form).",
+    "Routed: the malformed-Case-cell message printing the Case cell: in the plan, Task 6 (InvocationRow.caseCell).",
+    "Routed: ranges in long unknown-id lists: in the plan, Task 6 (formatIds prints runs of three or more as G{a} to G{b}).",
+    "Routed: --all with no slug, or a symlinked slug directory, failing loudly: in the plan, Task 5 (both exit 2).",
+    "Routed: invalid UTF-8 as a fixture defect: in the plan for the schema set's documents and schema file (Task 3); still routed for Dart sources the structure set reads (snapshot files stay Map<String, String?>; such a file still exits 2 naming itself), suggested for nidana.model.6, which next touches Dart-library reading.",
+    "Routed (S101 note): a covers clause or not-executable line wrapped onto a continuation line: not joined; it now fails loudly (unclosed covers, or names-no-node), and every committed Validation bullet is one line. Suggest striking it.",
+    "Routed watch (ADR-001 item 4's marker form cannot express two codes on one line; structure rejects stacked markers): not met in this phase, because all 65 committed surface and reject libraries are PENDING (they import nidana_dart_contracts, nidana_dart_runtime, nidana_dart_navigation, nidana_dart_runtime_flutter or flutter). Carry it to nidana.model.3, .4 and .5, whose gates run the first real reject replays.",
+    "Expected committed-tree results the phase's gate and verification should show: --all --set structure,schema gives 206 fixtures (102 structure, 46 topology-ir schema, 58 topic-codegen schema), exit 0; --all --set surface,reject gives 167 fixtures: 102 passed, 0 failed, 65 pending, exit 1, no analyzer run; topic-model --set surface,reject gives 30 fixtures: 17 passed, 0 failed, 13 pending.",
+    "Fact for later tool phases (nidana.model.6, .7): fvm runs no dart inside a temp directory without .fvmrc (W0); tests and the tool must start Platform.resolvedExecutable. A child started through a linked working directory reads it resolved (X2).",
+    "Sizing: the phase estimates about 420 lines in about 8 files; the plan creates or changes about 20 files under packages/nidana_contract_check (10 library, 10 test or support). If nidana.model.1's ratio repeats, expect well over 1500 lines; the owner's checkpoint question already noted at S101."
+  ]
+}
