@@ -1,7 +1,8 @@
-/// The seeded samples the tests share: the clean `sample` slug (kind `api`)
-/// and the clean `tool` slug (kind `file`), as strings keyed by their paths
-/// from the workspace root. A seeded fixture is a string, never a `.dart`
-/// file in the package (D2 item 5).
+/// The seeded samples the tests share: the clean `sample` slug (kind `api`),
+/// the clean `tool` slug (kind `file`) and the clean `doc` slug (kind
+/// `schema`), as strings keyed by their paths from the workspace root. A
+/// seeded fixture is a string, never a `.dart` file in the package (D2
+/// item 5).
 library;
 
 import 'package:nidana_contract_check/src/snapshot.dart';
@@ -136,6 +137,54 @@ const Map<String, String> toolFiles = <String, String>{
   'hsdd/contract/fixture/tool/invocation/generate-usage/args':
       'tool:generate\n--frob\n',
   'hsdd/contract/fixture/tool/invocation/generate-usage/exit_code': '2\n',
+};
+
+/// `hsdd/contract/doc.md`, a contract of kind `schema`.
+const String docContract = r'''
+---
+id: doc
+version: v1
+status: stable
+kind: schema
+---
+
+# doc@v1
+
+## Guarantees / invariants
+
+- **G1** a document names itself and counts from zero.
+
+## Validation
+
+- schema: `hsdd/contract/schema/doc.schema.json`, JSON Schema draft 2020-12, replayed by the `schema` set (ADR-001 item 5); covers G1.
+- valid: `hsdd/contract/fixture/doc/valid/`, documents that validate.
+- invalid: `hsdd/contract/fixture/doc/invalid/`, documents that do not.
+''';
+
+/// `hsdd/contract/schema/doc.schema.json`.
+const String docSchema = r'''
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "name": { "type": "string" },
+    "count": { "type": "integer", "minimum": 0 }
+  },
+  "required": ["name", "count"],
+  "additionalProperties": false
+}
+''';
+
+/// The clean `doc` slug (kind `schema`), keyed by path from the workspace
+/// root: one document that validates and two that do not.
+const Map<String, String> docFiles = <String, String>{
+  'hsdd/contract/doc.md': docContract,
+  'hsdd/contract/schema/doc.schema.json': docSchema,
+  'hsdd/contract/fixture/doc/valid/minimal.json': '{"name": "a", "count": 0}\n',
+  'hsdd/contract/fixture/doc/invalid/negative-count.json':
+      '{"name": "a", "count": -1}\n',
+  'hsdd/contract/fixture/doc/invalid/extra-property.json':
+      '{"name": "a", "count": 0, "extra": true}\n',
 };
 
 /// [base] with each of [changes] applied: a path mapped to a text holds that
