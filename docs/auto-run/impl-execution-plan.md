@@ -174,6 +174,7 @@ a `Task N: complete` line; never re-dispatch them.
 | S103 | code-plan | superpowers:writing-plans | nidana.model.2 (7 tasks; every routed item dispositioned) | done | d023480 |
 | S104 | implement | superpowers:subagent-driven-development | nidana.model.2: 7 tasks, 2 task fix rounds, final review with one fix wave; gate exit 0, 195 tests, 206/206 structure and schema; surface and reject PENDING by design | done | d9b9b14; merged into impl/nidana.model as 014959f |
 | S105 | config | hsdd-config | nidana.model.3 | done | 52e7a18 |
+| S106 | code-plan | superpowers:writing-plans | nidana.model.3 (4 tasks; dry-run of every block: gate exit 0, 30/30) | done | 5d420f4 |
 
 ## Notes for the report
 
@@ -225,6 +226,19 @@ that phase's writing-plans dispatch and strikes it here when the phase's plan co
   line for long test runs.
 - Checkpoint (from S104's final review): nidana.model.1 and .2 each landed about 9 times their line estimate;
   re-baseline .6 and .7 (about 300 and 450 lines) before trusting the PE sizing.
+- End of nidana.model, governance sweep (from S106): topic-model@v1's Interface, "Message sources": the four
+  angle-bracket renderings (`'topology:<id>'` and the others) in a doc comment trip `unintended_html_in_doc_comment`
+  when copied verbatim under the root lint set; the code puts them in backticks. A compatible hsdd-contract
+  touch within v1 would put them in backticks in the contract too. Not blocking: no fixture depends on it.
+- nidana.model.6 (from S106): the topic-model binding already loads against nidana.model.3's declarations
+  (9 cases pass, 32 fail), and not every failure is `UnimplementedError` (some are identity equality or
+  `Object.toString`), so nidana.model.6's Verification sentence "cases fail on UnimplementedError, not on
+  loading" holds only loosely; its plan should state what it checks.
+- nidana.model.8 (from S106): what it must add or replace is listed in `docs/auto-run/steps/S106.json`
+  `notes_for_orchestrator` (the stored `initial`, the copied `parentCorrelationIds`, removing the
+  `// ignore: unused_element` on `RedactedPayload._`, value equality and `toString`).
+- nidana.model.4 and .5 (from S106): no topic-model reject line carries two codes; the two-codes item
+  carries on to the topology-dsl and topology-ir reject replays.
 - nidana.model.6 (from S103): invalid UTF-8 in a Dart fixture still exits 2 as an environment error; make it a
   fixture failure when the behavior set reworks reading.
 - nidana.model.6 (from S101's final review): validate `--guarantee` ids against the slug's declared
