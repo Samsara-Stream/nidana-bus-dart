@@ -166,4 +166,45 @@ void main() {
     expect(r.exitCode, 0, reason: all(r));
     expect(lines(r), cleanLines);
   });
+  group('a symbolic link is a file of the snapshot', () {
+    test('a top-level link to a directory fails the layout', () async {
+      final Directory root = seed(sampleFiles);
+      Link('${root.path}/${s}linked').createSync('${root.path}/${s}reject');
+      final ProcessResult r = await runTool(<String>[
+        'sample',
+        '--set',
+        'structure',
+      ], workingDirectory: root);
+      expect(r.exitCode, 1, reason: all(r));
+      expect(
+        lines(r),
+        contains(
+          'FAIL structure ${s}linked: layout (linked is neither a set directory of kind api nor a data directory listed in ## Validation)',
+        ),
+      );
+    });
+    test('a linked reject library is read through the link', () async {
+      final Directory root = seed(<String, String>{
+        ...sampleFiles,
+        'elsewhere/no_header.dart': sampleReject.replaceFirst(
+          '// covers: G1\n',
+          '',
+        ),
+      });
+      Link('${root.path}/${s}reject/linked.dart')
+          .createSync('${root.path}/elsewhere/no_header.dart');
+      final ProcessResult r = await runTool(<String>[
+        'sample',
+        '--set',
+        'structure',
+      ], workingDirectory: root);
+      expect(r.exitCode, 1, reason: all(r));
+      expect(
+        lines(r),
+        contains(
+          'FAIL structure ${s}reject/linked.dart: covers-header (no // covers: header)',
+        ),
+      );
+    });
+  });
 }

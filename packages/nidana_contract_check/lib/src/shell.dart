@@ -39,8 +39,11 @@ Set<String> discoverSlugs(Directory root) {
 ///
 /// Every other directory and file below `hsdd/contract/fixture/{slug}/` is
 /// recorded by its `/`-separated path relative to that directory, a file with
-/// its source only when [holdsSource] says so. Links are not followed and are
-/// recorded as neither.
+/// its source only when [holdsSource] says so. A symbolic link is never
+/// descended into, so no tree outside the fixture directory joins the
+/// snapshot: it is recorded as a file, the layout check sees it as one, and
+/// when [holdsSource] says so its source is read through the link, so a
+/// linked library is replayed and a dangling one throws.
 SlugSnapshot readSnapshot(Directory root, String slug) {
   final Directory fixtures = Directory(
     _workspacePath(root, fixtureDirectory(slug)),
@@ -67,8 +70,8 @@ SlugSnapshot readSnapshot(Directory root, String slug) {
     }),
     files: Map<String, String?>.unmodifiable(<String, String?>{
       for (final (:String path, :FileSystemEntity entity) in entries)
-        if (entity case final File file)
-          path: holdsSource(path) ? file.readAsStringSync() : null,
+        if (entity is File || entity is Link)
+          path: holdsSource(path) ? File(entity.path).readAsStringSync() : null,
     }),
   );
 }
