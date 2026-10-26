@@ -17,14 +17,14 @@ int? parseGuaranteeId(String text) {
 
 /// The numbers of an `{ids}` list, or null when [text] is not one.
 Set<int>? parseIdList(String text) {
-  final List<Set<int>?> parts =
-      text.split(_separator).map(_parsePart).toList(growable: false);
+  final List<Set<int>?> parts = text
+      .split(_separator)
+      .map(_parsePart)
+      .toList(growable: false);
   if (parts.any((Set<int>? part) => part == null)) {
     return null;
   }
-  return <int>{
-    for (final Set<int>? part in parts) ...part!,
-  };
+  return <int>{for (final Set<int>? part in parts) ...part!};
 }
 
 /// `G{n}` for each of [ids] in ascending order, joined by `, `.
