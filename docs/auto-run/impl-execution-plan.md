@@ -183,3 +183,7 @@ Findings the report must carry, written down when found so they survive context 
 ## Change log
 
 - 2026-10-26 (UTC), S96 and S97: segment opened.
+- 2026-10-26 (UTC), before S101: the SDD role prompts (implementer, task reviewer, re-reviewer, final
+  reviewer), adapted from superpowers 6.4.2 for the unattended run, live in
+  `docs/auto-run/impl-sdd-prompts.md`; each dispatch names its role and fills the values. Dispatches
+  reference the preamble and the role file instead of pasting them.

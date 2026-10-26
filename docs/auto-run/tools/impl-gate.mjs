@@ -53,7 +53,7 @@ const NEVER = [/^ref\//, /^\.agents\//, /^\.claude\//, /^skills-lock\.json$/, /^
 const SCRATCH = [/^docs\/auto-run\/steps\//, /^docs\/auto-run\/experiments\//];
 // Orchestrator-owned run files, edited between steps and committed with judgement commits:
 // ignored in the working tree, never allowed in a step's own commits.
-const ORCH = [/^docs\/auto-run\/impl-execution-plan\.md$/, /^docs\/auto-run\/tools\//, /^docs\/auto-run\/REPORT-impl[^/]*\.md$/];
+const ORCH = [/^docs\/auto-run\/impl-(execution-plan|sdd-prompts|step-preamble)\.md$/, /^docs\/auto-run\/tools\//, /^docs\/auto-run\/REPORT-impl[^/]*\.md$/];
 const ALLOW = {
   config: [new RegExp(`^${esc(CTX)}$`), new RegExp(`^${esc(DER)}$`), new RegExp(`^${esc(TEMPLATE)}$`)],
   "code-plan": [new RegExp(`^${esc(PLAN)}$`)],
