@@ -166,6 +166,18 @@ a `Task N: complete` line; never re-dispatch them.
 |------|------|-------|--------|--------|-----------------|
 | S96 | setup | none (orchestrator) | implementation inputs, scope, stop policy | done | see the judgement commit |
 | S97 | plan | none (orchestrator) | this plan, the preamble, the tools | done | see the judgement commit |
+| S98 | config | hsdd-config | nidana.model.1 | done | fd8bd3a |
+| S99 | code-plan | superpowers:writing-plans | nidana.model.1 (8 tasks; resumed once for the strict not-executable form) | done | 188728d |
+
+## Notes for the report
+
+Findings the report must carry, written down when found so they survive context summaries.
+
+- S98: hsdd-config's self-contained gate (Rule 2, switch step 9) read literally flags ids that occur only
+  inside verbatim excerpts (ADR text, the node's Owns); the subagent scoped it to selected ids and marked
+  the decision `would_upstream`, which here means HSDD's own skill text, not the reference architecture.
+- Prompts reference the preamble file instead of pasting it (HARNESS.md item 1's cost): the file is
+  committed, so each dispatch's instructions stay reproducible from git.
 
 ## Change log
 
