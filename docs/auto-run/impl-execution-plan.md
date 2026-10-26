@@ -172,7 +172,10 @@ a `Task N: complete` line; never re-dispatch them.
 | S101 | implement | superpowers:subagent-driven-development | nidana.model.1: 8 tasks, 3 task fix rounds, final review with one fix wave; gate exit 0, 93 tests, 102/102 structure | done | d761b1f; merged into impl/nidana.model as cab9039 |
 | S102 | config | hsdd-config | nidana.model.2 | done | eb1e181 |
 | S103 | code-plan | superpowers:writing-plans | nidana.model.2 (7 tasks; every routed item dispositioned) | done | d023480 |
-| S104 | implement | superpowers:subagent-driven-development | nidana.model.2: 7 tasks, 2 task fix rounds, final review with one fix wave; gate exit 0, 195 tests, 206/206 structure and schema; surface and reject PENDING by design | done | d9b9b14 (merge recorded in the next row) |
+| S104 | implement | superpowers:subagent-driven-development | nidana.model.2: 7 tasks, 2 task fix rounds, final review with one fix wave; gate exit 0, 195 tests, 206/206 structure and schema; surface and reject PENDING by design | done | d9b9b14; merged into impl/nidana.model as 014959f |
+| S105 | config | hsdd-config | nidana.model.3 | done | 52e7a18 |
+| S106 | code-plan | superpowers:writing-plans | nidana.model.3 (4 tasks; dry-run of every block: gate exit 0, 30/30) | done | 5d420f4 |
+| S107 | implement | superpowers:subagent-driven-development | nidana.model.3: 4 tasks, no fix round, final review ready to merge; gate exit 0, topic-model 30/30 (first real surface and reject replay) | done | 881a18f (merge recorded in the next row) |
 
 ## Notes for the report
 
@@ -188,12 +191,17 @@ Findings the report must carry, written down when found so they survive context 
   a phase defect; for the owner.
 - S101: whether a gate should enforce `dart format` is a phase-plan question for the owner; the run formats
   by ruling (S101.orchestrator.json).
-- Implementer commits carry the run's `Co-Authored-By: Claude Opus 5.5` trailer whatever model implemented
-  the task (sonnet for some); the ledger's dispatch records hold the true model.
+- Implementer commits up to S107 Task 1 carry the run's `Co-Authored-By: Claude Opus 5.5` trailer whatever
+  model implemented the task (sonnet for some; the S{nn}.orchestrator.json notes say which); from S107 Task 2
+  on, each subagent commit names the model that wrote it (ruling in S107.orchestrator.json).
 
 - nidana.model.1 landed 3968 inserted lines in 24 files against its estimate of about 450 lines in about
   10 files (tests about two thirds; the task reviews added tests beyond the plan's). If the remaining phases
   overrun alike, the node's PE sizing under-counts by a large factor; the owner's checkpoint question.
+
+- S105: hsdd-config's template has no section for a node's own decisions (`D{n}`), so a phase context omits
+  the node decisions that fix what a phase lands (nidana.model D3, D4, D6 for the type-level phases); the
+  writing-plans prompts point at them. HSDD feedback, like S98's Rule 2 note.
 
 ## Routed to later phases
 
@@ -220,6 +228,40 @@ that phase's writing-plans dispatch and strikes it here when the phase's plan co
   line for long test runs.
 - Checkpoint (from S104's final review): nidana.model.1 and .2 each landed about 9 times their line estimate;
   re-baseline .6 and .7 (about 300 and 450 lines) before trusting the PE sizing.
+- End of nidana.model, governance sweep (from S106): topic-model@v1's Interface, "Message sources": the four
+  angle-bracket renderings (`'topology:<id>'` and the others) in a doc comment trip `unintended_html_in_doc_comment`
+  when copied verbatim under the root lint set; the code puts them in backticks. A compatible hsdd-contract
+  touch within v1 would put them in backticks in the contract too. Not blocking: no fixture depends on it.
+- nidana.model.4 (from S107's final review): harden `packages/nidana_dart_contracts/test/purity_test.dart`'s
+  directive reader before more libraries land (it reads only the first URI of a conditional import, misses
+  `import r'dart:io';`, and accepts a relative URI that climbs out of `lib/`; collect every string literal up to
+  the directive's `;`, reject relative URIs outside `lib/`, add self-test cases, and exercise the token scan);
+  RED baseline: with the package present, `topology-dsl topology-ir --set surface,reject` prints
+  `41 fixtures: 25 passed, 16 failed, 0 pending` (FAIL, not PENDING), `uri_does_not_exist` for
+  `topology_plan.dart` among them.
+- nidana.model.8 (from S107's final review): restore the Interface's trailing comments the declaration
+  phase dropped (`// T` on `valueType`, the four `// non-empty`), and carry the Interface's dartdoc and trailing
+  comments onto `==`, `hashCode` and `toString`; fix `envelope.dart`'s `// copied, unmodifiable` by copying;
+  a private `Lineage` constructor for `combine` and `withLatestFrom`; store `initial` under both const
+  `StateTopic` constructors; correct the README's "Everything here is a value or a total function" (observer
+  interfaces are neither; `Lineage.combine` throws `ArgumentError`); a one-line test that non-default `dedup` and
+  `tracing` reach their fields.
+- Consumer nodes (nidana.runtime and later, from S107's final review): once nidana.model.8 overrides `==`, a
+  non-empty const set or const map keyed by topics, refs, sources, envelopes or lineages stops compiling
+  (`const_set_element_not_primitive_equality`); consumer plans must not rely on such collections. For the
+  report and the owner.
+- End of nidana.model, governance sweep (from S107's final review): nidana.model D6's purity token list misses
+  `Random.secure(`, `DateTime.timestamp()`, `Timer.run(`, `runZoned`, `Stream.periodic(`; an hsdd-spec touch
+  could make the list a floor ("at least").
+- nidana.model.6 (from S106): the topic-model binding already loads against nidana.model.3's declarations
+  (9 cases pass, 32 fail), and not every failure is `UnimplementedError` (some are identity equality or
+  `Object.toString`), so nidana.model.6's Verification sentence "cases fail on UnimplementedError, not on
+  loading" holds only loosely; its plan should state what it checks.
+- nidana.model.8 (from S106): what it must add or replace is listed in `docs/auto-run/steps/S106.json`
+  `notes_for_orchestrator` (the stored `initial`, the copied `parentCorrelationIds`, removing the
+  `// ignore: unused_element` on `RedactedPayload._`, value equality and `toString`).
+- nidana.model.4 and .5 (from S106): no topic-model reject line carries two codes; the two-codes item
+  carries on to the topology-dsl and topology-ir reject replays.
 - nidana.model.6 (from S103): invalid UTF-8 in a Dart fixture still exits 2 as an environment error; make it a
   fixture failure when the behavior set reworks reading.
 - nidana.model.6 (from S101's final review): validate `--guarantee` ids against the slug's declared

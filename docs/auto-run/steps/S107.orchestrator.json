@@ -1,0 +1,112 @@
+{
+  "step_ref": "S107",
+  "decisions": [
+    {
+      "at": "2026-10-26T23:01:38Z",
+      "artifact": null,
+      "question": "SDD pre-flight for nidana.model.3, a gate-only phase whose plan carries complete code verified by a dry run against the real replay tool: which model implements the tasks?",
+      "options": [
+        {
+          "label": "Sonnet for every task",
+          "consequence": "Transcription plus the replay, at a mid-tier cost; reviews still catch drift from the plan."
+        },
+        {
+          "label": "Opus for the declaration tasks",
+          "consequence": "More cost for transcription the plan's dry run already settled."
+        }
+      ],
+      "chosen": "Sonnet for every task",
+      "why": "S97 put opus on full-review implementers only; SDD's model rule gives transcription of complete plan code the cheapest workable tier, and the run keeps mid-tier as the floor for prose-heavy dartdoc.",
+      "evidence": [
+        "docs/auto-run/steps/S97.orchestrator.json",
+        "docs/auto-run/experiments/topic-model-declarations-plan/output.txt"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-26T23:08:00Z",
+      "artifact": "docs/auto-run/impl-step-preamble.md",
+      "question": "The run rules told every implementer to end its commits with a Claude Opus 5.5 co-author trailer whatever model it runs on; a sonnet implementer followed its own harness's attribution (Claude Sonnet 5.5) instead, which is the accurate one. Which trailer do subagent commits carry from here on?",
+      "options": [
+        {
+          "label": "The model that wrote the commit, as the subagent's harness attribution names it",
+          "consequence": "Attribution in git history is accurate from here on; earlier sonnet-written commits keep the Opus trailer, which the report lists."
+        },
+        {
+          "label": "Keep the uniform Opus trailer",
+          "consequence": "Uniform history that misattributes every sonnet-written commit."
+        }
+      ],
+      "chosen": "The model that wrote the commit, as the subagent's harness attribution names it",
+      "why": "A co-author trailer is a statement of who wrote the change; uniformity is no reason to misstate it. The run never amends commits, so earlier ones stay as written and the report says which tasks sonnet implemented.",
+      "evidence": [
+        "commit 226685b (Sonnet trailer)",
+        "docs/auto-run/impl-execution-plan.md, Notes for the report (trailer note)"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-26T23:15:38Z",
+      "artifact": "hsdd/verify/nidana.model.3.verification.md",
+      "question": "Which Learnings does nidana.model.3's slim verification doc carry, with which proposed dispositions?",
+      "options": [
+        {
+          "label": "Four, each dropped with a reason: the Interface's angle-bracket renderings, the lockfile wording, nidana.model.6's loose Verification sentence, the size against the estimate",
+          "consequence": "Every gate-time finding about the tree is visible at sign-off; the doc-comment one names the end-of-node contract touch that can absorb it."
+        },
+        {
+          "label": "Only the doc-comment finding",
+          "consequence": "Shorter, but the owner would not see that the phase plan's lockfile wording and nidana.model.6's Verification sentence are loose."
+        }
+      ],
+      "chosen": "Four, each dropped with a reason: the Interface's angle-bracket renderings, the lockfile wording, nidana.model.6's loose Verification sentence, the size against the estimate",
+      "why": "The template asks for every gate-time finding about the tree; none of the four changes a result today. The run will batch compatible contract touches found during the node into one governance sweep after nidana.model.14 rather than interrupt each phase for a doc-comment edit.",
+      "evidence": [
+        "docs/auto-run/steps/S106.json (contract gap note)",
+        "docs/auto-run/impl-execution-plan.md, Routed to later phases"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-26T23:32:19Z",
+      "artifact": "docs/auto-run/impl-execution-plan.md",
+      "question": "nidana.model.3's final review reads 'ready to merge: yes' with minor findings only (the purity test's directive reader misses conditional and raw-string imports; D6's token list has gaps; the README overstates; dropped trailing comments). Run a fix wave, or route them?",
+      "options": [
+        {
+          "label": "Merge without a fix wave; route each finding to the phase that next edits the code (nidana.model.4 for the purity test, nidana.model.8 for comments and the README) or to the end-of-node governance sweep (D6)",
+          "consequence": "The phase merges as reviewed; each finding lands where its code changes next, and the routed list carries it across context summaries."
+        },
+        {
+          "label": "A fix wave now",
+          "consequence": "Fixes land sooner, at the cost of another implementer and re-review for findings the reviewer triaged as can-wait."
+        }
+      ],
+      "chosen": "Merge without a fix wave; route each finding to the phase that next edits the code (nidana.model.4 for the purity test, nidana.model.8 for comments and the README) or to the end-of-node governance sweep (D6)",
+      "why": "SDD's fix wave answers final-review findings that must be fixed before the merge; the reviewer triaged every one as can-wait. The purity test hardening should land before nidana.model.4 adds libraries, so it is routed there rather than dropped.",
+      "evidence": [
+        "S107 final review (assessment and triage)",
+        "docs/auto-run/impl-execution-plan.md, Routed to later phases"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "would_upstream": false
+    }
+  ],
+  "skill": "superpowers:subagent-driven-development",
+  "target": "nidana.model.3",
+  "status": "completed",
+  "notes": [
+    "SDD controller rulings are the decisions here; the per-task review log is docs/auto-run/steps/S107.sdd-progress.md.",
+    "Dispatches: 4 implementers (sonnet), 4 task reviews (sonnet), 1 final review (opus); no fix round."
+  ]
+}
