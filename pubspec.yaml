@@ -4,5 +4,6 @@ environment:
   sdk: ^3.13.0
 workspace:
   - packages/nidana_contract_check
+  - packages/nidana_dart_contracts
 dev_dependencies:
   lints: ^6.1.0
