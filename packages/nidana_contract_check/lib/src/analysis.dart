@@ -11,6 +11,8 @@ library;
 
 import 'dart:convert';
 
+import 'package:path/path.dart' as p;
+
 import 'dart_library.dart';
 import 'packages.dart';
 import 'request.dart';
@@ -223,22 +225,42 @@ final class Unattributable extends Attribution {
   final String reason;
 }
 
-/// The diagnostics [reported] by one `dart analyze` over [targets], attributed to each target.
+/// The diagnostics [reported] by one `dart analyze` over [targets], attributed to each target;
+/// [fixtures] is hsdd/contract/fixture/ as an absolute path with symbolic links resolved.
 ///
 /// The rules, in order:
 ///
-/// 1. A reported file that is no target's given or resolved path is a stray:
+/// 1. A target that resolves outside [fixtures] is a symbolic link the
+///    analyzer follows: it analyzes the file under the analysis options of
+///    where the link lands, not the fixture analysis options (ADR-001
+///    item 2), so the verdict would not be the fixture's. The first such
+///    target makes the report [Unattributable]. A link to another file
+///    within [fixtures] is analyzed under those options and is attributed.
+/// 2. A reported file that is no target's given or resolved path is a stray:
 ///    dropping it could pass a library that has a diagnostic, so the first
 ///    stray, ascending, makes the report [Unattributable].
-/// 2. Otherwise each target gets every diagnostic reported at its given or
+/// 3. Otherwise each target gets every diagnostic reported at its given or
 ///    its resolved path, in reported order. The analyzer reports
 ///    symlink-resolved paths and reports a file once, so targets that
 ///    resolve to one file, as a link to another library does, each get that
 ///    file's diagnostics.
 Attribution attributeDiagnostics(
   List<AnalysisTarget> targets,
+  String fixtures,
   List<Diagnostic> reported,
 ) {
+  if (targets
+          .where(
+            (AnalysisTarget target) => !p.isWithin(fixtures, target.resolved),
+          )
+          .firstOrNull
+      case final AnalysisTarget outside) {
+    return Unattributable(
+      '${outside.path} is a symbolic link to ${outside.resolved}, outside '
+      'hsdd/contract/fixture/, so dart analyze does not apply the fixture '
+      'analysis options',
+    );
+  }
   // Grouped by resolved file, not by fixture: several targets may share one.
   final GroupedDiagnostics byFile = groupDiagnostics(reported, <String, String>{
     for (final AnalysisTarget target in targets) ...<String, String>{

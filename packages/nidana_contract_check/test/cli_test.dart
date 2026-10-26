@@ -661,7 +661,7 @@ void main() {
         reason: '$out',
       );
     });
-    test('a linked library gets the diagnostics of the file it resolves to, another library or one outside the fixtures', () async {
+    test('a library linked to another library gets its diagnostics; one linked outside the fixtures refuses the analysis (2)', () async {
       final String dirty = analysisFiles['${s}surface/dirty.dart']!;
       final Directory root = await seedWorkspace(<String, String>{
         ...sampleFiles,
@@ -670,8 +670,6 @@ void main() {
       });
       Link('${root.path}/${s}surface/shared.dart')
           .createSync('${root.path}/${s}surface/dirty.dart');
-      Link('${root.path}/${s}surface/outside.dart')
-          .createSync('${root.path}/elsewhere/outside.dart');
       final StringBuffer out = StringBuffer();
       final StringBuffer err = StringBuffer();
       expect(
@@ -687,12 +685,38 @@ void main() {
       expect(
         out.toString().trimRight().split('\n'),
         containsAll(<String>[
-          for (final String library in <String>['dirty', 'outside', 'shared'])
+          for (final String library in <String>['dirty', 'shared'])
             "FAIL surface ${s}surface/$library.dart: diagnostic (line 1: WARNING unused_import: Unused import: 'dart:async'.)",
           'PASS surface ${s}surface/use.dart',
         ]),
       );
       expect(err.toString(), isEmpty);
+      Link('${root.path}/${s}surface/outside.dart')
+          .createSync('${root.path}/elsewhere/outside.dart');
+      final StringBuffer refusedOut = StringBuffer();
+      final StringBuffer refused = StringBuffer();
+      expect(
+        await runCli(
+          <String>['sample', '--set', 'surface'],
+          workingDirectory: root,
+          out: refusedOut,
+          err: refused,
+        ),
+        2,
+        reason: '$refusedOut$refused',
+      );
+      expect(
+        refused.toString(),
+        contains(
+          'ERROR surface sample: ${s}surface/outside.dart is a symbolic link to '
+          '${File('${root.path}/elsewhere/outside.dart').resolveSymbolicLinksSync()}, '
+          'outside hsdd/contract/fixture/, so dart analyze does not apply the fixture analysis options',
+        ),
+      );
+      expect(
+        refusedOut.toString(),
+        isNot(contains('surface ${s}surface/outside.dart')),
+      );
     });
     test(
       'a hidden link directly under fixture/ is not part of the replay',

@@ -248,7 +248,8 @@ Future<_Analysis> _analyze(
 /// [attributeDiagnostics] attribute what it reports.
 ///
 /// The shell's part is the file system's and the process's: each target's
-/// absolute path and its symlink-resolved form, and the analyzer's output.
+/// absolute path and its symlink-resolved form, hsdd/contract/fixture/
+/// resolved once, and the analyzer's output.
 Future<_Analysis> _analyzeTargets(
   Directory root,
   List<String> targets,
@@ -258,6 +259,9 @@ Future<_Analysis> _analyzeTargets(
   final List<AnalysisTarget> files = List<AnalysisTarget>.unmodifiable(
     <AnalysisTarget>[for (final String path in targets) _targetOf(root, path)],
   );
+  final String fixtures = Directory(
+    _workspacePath(root, 'hsdd/contract/fixture/'),
+  ).resolveSymbolicLinksSync();
   final ProcessResult result;
   try {
     result = await Process.run(dart, <String>[
@@ -275,7 +279,7 @@ Future<_Analysis> _analyzeTargets(
       analysisFailure(result.exitCode, result.stderr as String),
     );
   }
-  return switch (attributeDiagnostics(files, reported)) {
+  return switch (attributeDiagnostics(files, fixtures, reported)) {
     Attributed(:final Map<String, List<Diagnostic>> byFixture) => _Analyzed(
       packages,
       byFixture,

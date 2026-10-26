@@ -279,6 +279,7 @@ void main() {
     });
   });
   group('attributeDiagnostics', () {
+    const String fixtures = '/private/w/hsdd/contract/fixture';
     AnalysisTarget target(String name, {String? resolved}) => (
       path: '$s$name',
       given: '/w/$s$name',
@@ -309,6 +310,7 @@ void main() {
               target('surface/a.dart'),
               target('surface/clean.dart'),
             ],
+            fixtures,
             <Diagnostic>[
               at('/private/w/${s}surface/a.dart', 1),
               at('/w/${s}surface/a.dart', 2),
@@ -336,6 +338,7 @@ void main() {
                     '/private/w/hsdd/contract/fixture/other/surface/a.dart',
               ),
             ],
+            fixtures,
             <Diagnostic>[
               at('/private/w/hsdd/contract/fixture/other/surface/a.dart', 3),
             ],
@@ -352,6 +355,7 @@ void main() {
         linesOf(
           attributeDiagnostics(
             <AnalysisTarget>[target('surface/a.dart')],
+            fixtures,
             <Diagnostic>[
               at('/private/w/${s}surface/a.dart', 1),
               at('/z/stray.dart', 1),
@@ -360,6 +364,31 @@ void main() {
           ),
         ),
         'dart analyze reported /elsewhere/stray.dart, which the replay did not ask it to analyze',
+      );
+    });
+    test('a target that resolves outside the fixtures refuses the attribution, before any stray and whatever is reported', () {
+      String outside(String resolved, List<Diagnostic> reported) => linesOf(
+        attributeDiagnostics(
+          <AnalysisTarget>[
+            target('surface/a.dart'),
+            target('surface/linked.dart', resolved: resolved),
+          ],
+          fixtures,
+          reported,
+        ),
+      ) as String;
+      expect(
+        outside('/private/w/outside/cast.dart', <Diagnostic>[
+          at('/z/stray.dart', 1),
+        ]),
+        '${s}surface/linked.dart is a symbolic link to /private/w/outside/cast.dart, outside hsdd/contract/fixture/, so dart analyze does not apply the fixture analysis options',
+      );
+      expect(
+        outside(
+          '/private/w/hsdd/contract/fixture-copy/cast.dart',
+          const <Diagnostic>[],
+        ),
+        '${s}surface/linked.dart is a symbolic link to /private/w/hsdd/contract/fixture-copy/cast.dart, outside hsdd/contract/fixture/, so dart analyze does not apply the fixture analysis options',
       );
     });
   });
