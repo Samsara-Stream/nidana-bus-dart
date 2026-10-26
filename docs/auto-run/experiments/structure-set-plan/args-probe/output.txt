@@ -1,0 +1,8 @@
+pub get exit: 0
+[topic-model, --set, ] -> set=[''] guarantee=[] rest=[topic-model]
+[topic-model, --set=] -> set=[''] guarantee=[] rest=[topic-model]
+[topic-model, --set, structure,schema, --set=surface] -> set=['structure', 'schema', 'surface'] guarantee=[] rest=[topic-model]
+[topic-model, --guarantee, G1, G2] -> set=[] guarantee=['G1', ' G2'] rest=[topic-model]
+[topic-model, --guarantee, G1,] -> set=[] guarantee=['G1', ''] rest=[topic-model]
+[topic-model, --set] -> FormatException: Missing argument for "--set".
+[--frobnicate, topic-model] -> FormatException: Could not find an option named "--frobnicate".

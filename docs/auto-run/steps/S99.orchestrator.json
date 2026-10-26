@@ -1,0 +1,24 @@
+{
+  "step_ref": "S99",
+  "skill": "none",
+  "target": "nidana.model.1 plan: the not-executable line reading",
+  "status": "completed",
+  "decisions": [
+    {
+      "at": "2026-10-26T17:38:57Z",
+      "artifact": "docs/superpowers/plans/nidana.model.1.md",
+      "question": "S99's plan reads a partial not-executable line (G{n}'s ...) as valid without a '; checked by {node}'s gates' clause, so bus-api@v2's G13 line passes structure as committed. ADR-001 item 3 states both forms, whole and partial, ending in '; checked by {node}'s gates'. Which reading does the structure set implement?",
+      "options": [
+        { "label": "ADR-001 item 3 as written: both forms name the node; route bus-api@v2's G13 line to hsdd-contract before the gate replays the nine contracts", "consequence": "The replay tool implements its ADR literally, and the one committed line that breaks the form is fixed through its owning skill, in a touch that changes no guarantee. Costs one inserted hsdd-contract step and a plan rework before execution." },
+        { "label": "The plan's lenient reading: the node is optional in the partial form", "consequence": "No inserted step, but the tool would accept a form its ADR does not state, and the structure set would stop checking that every not-executable claim names who checks it." }
+      ],
+      "chosen": "ADR-001 item 3 as written: both forms name the node; route bus-api@v2's G13 line to hsdd-contract before the gate replays the nine contracts",
+      "why": "The replay tool is gate infrastructure for every node; a rule it relaxes on its own is a rule no gate enforces. ADR-001 item 3 is unambiguous about both forms, and the phase context's Discipline says a committed fixture or contract text that the rules reject is a contract gap, never something the phase works around. The line's own reason (no conforming runtime can be made to raise the exception) is still a claim someone checks at review, which nidana.runtime's gates own as they do for G38 and G39. This overrides S99's decision 8.",
+      "evidence": ["hsdd/adr/001-executable-contract-validation.md item 3", "hsdd/contract/bus-api.md, Validation (the G13, G38 and G39 lines)", "docs/auto-run/experiments/structure-set-plan/ S2", "hsdd-context/nidana.model.1.md, Discipline"],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "would_upstream": false
+    }
+  ]
+}

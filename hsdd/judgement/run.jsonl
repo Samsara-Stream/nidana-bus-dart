@@ -96,3 +96,7 @@
 {"step_ref":"S95","skill":"none","target":"intake report","started":"2026-10-21T00:28:59Z","finished":"2026-10-21T00:29:02Z","commit":"3889d8c","dispatches":0,"note":"orchestrator writes the report"}
 {"step_ref":"S96","skill":"none","target":"implementation segment: inputs, scope, stop policy","started":"2026-10-26T16:54:02Z","finished":"2026-10-26T16:59:19Z","commit":"1f20fef","dispatches":0,"note":"orchestrator"}
 {"step_ref":"S97","skill":"none","target":"implementation execution plan, preamble and tools","started":"2026-10-26T16:57:51Z","finished":"2026-10-26T16:59:27Z","commit":"1f20fef","dispatches":0,"note":"orchestrator"}
+{"step_ref":"S98","skill":"hsdd-config","target":"nidana.model.1","started":"2026-10-26T16:59:48Z","finished":"2026-10-26T17:06:17Z","commit":"fd8bd3a","dispatches":1}
+{"step_ref":"S99","skill":"superpowers:writing-plans","target":"nidana.model.1","started":"2026-10-26T17:06:41Z","finished":"2026-10-26T17:41:58Z","commit":"188728d","dispatches":2}
+{"step_ref":"S100","skill":"hsdd-contract","target":"bus-api@v2 touch: G13 not-executable line","started":"2026-10-26T17:42:43Z","finished":"2026-10-26T17:47:16Z","commit":"4d35eaf","dispatches":1}
+{"step_ref":"S101","skill":"superpowers:subagent-driven-development","target":"nidana.model.1","started":"2026-10-26T17:47:24Z","finished":"2026-10-26T19:45:08Z","commit":"d761b1f","dispatches":25,"note":"controller: orchestrator; implementers T1,T8 sonnet, T2-T7 opus; reviews sonnet; final review and fix wave opus"}

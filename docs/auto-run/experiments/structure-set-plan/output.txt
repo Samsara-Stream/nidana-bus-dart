@@ -1,0 +1,140 @@
+Dart SDK version: 3.13.5 (stable) (Tue Sep 29 01:00:52 2026 -0700) on "macos_arm64"
+
+### W1 fvm dart pub get at the root: exit, and every file it writes outside hsdd/ and docs/
+1 package has newer versions incompatible with dependency constraints.
+Try `dart pub outdated` for more information.
+exit: 0
+  ./.dart_tool/package_config.json
+  ./.dart_tool/package_graph.json
+  ./.dart_tool/pub/workspace_ref.json
+  ./packages/nidana_contract_check/.dart_tool/pub/workspace_ref.json
+  ./pubspec.lock
+under hsdd/ or docs/:
+  (end)
+
+### W2 resolved versions of the member's dependencies and of lints
+  args             2.7.0
+  json_schema      5.2.2
+  matcher          0.12.20
+  package_config   2.2.0
+  path             1.9.1
+  test             1.33.0
+  test_api         0.7.15
+  test_core        0.6.21
+  lints            6.1.0
+
+### W3 fvm dart pub get --enforce-lockfile
+Try `dart pub outdated` for more information.
+exit: 0
+
+### W4 fvm dart analyze --fatal-infos at the root (docs/ holds a type error, hsdd/ the fixtures)
+Analyzing tmp.cwFjgkzyQZ...
+No issues found!
+exit: 0
+
+### W5 fvm dart run nidana_contract_check from the root: arguments, working directory, exit code
+all=true set=[structure] guarantee=[] rest=[] cwd=/private/var/folders/tn/_xzt8h5913dc3vhnfw95wq5c0000gn/T/tmp.cwFjgkzyQZ
+exit: 0
+all=false set=[] guarantee=[] rest=[topic-model] cwd=/private/var/folders/tn/_xzt8h5913dc3vhnfw95wq5c0000gn/T/tmp.cwFjgkzyQZ
+exit: 64
+all=false set=[] guarantee=[] rest=[topic-model] cwd=/private/var/folders/tn/_xzt8h5913dc3vhnfw95wq5c0000gn/T/tmp.cwFjgkzyQZ
+exit: 1
+usage error: Could not find an option named "--frobnicate".
+exit: 64
+
+### W6 package:args: repeated and comma-separated multi-options, options after positionals
+all=false set=[structure, schema, surface] guarantee=[G1] rest=[topic-model, topology-ir] cwd=/private/var/folders/tn/_xzt8h5913dc3vhnfw95wq5c0000gn/T/tmp.cwFjgkzyQZ
+exit: 0
+usage error: Missing argument for "--set".
+exit: 64
+
+### W7 fvm dart test packages/nidana_contract_check from the root; a test runs the bin script from outside the workspace
+00:00 +0: loading packages/nidana_contract_check/test/probe_test.dart
+00:00 +0: packages/nidana_contract_check/test/probe_test.dart: the working directory and the executable
+cwd=/private/var/folders/tn/_xzt8h5913dc3vhnfw95wq5c0000gn/T/tmp.cwFjgkzyQZ
+resolvedExecutable=/Users/purbo/fvm/versions/3.47.7/bin/cache/dart-sdk/bin/dart
+00:00 +1: packages/nidana_contract_check/test/probe_test.dart: the bin script by absolute path, from a directory outside the workspace
+plain: exit=0 stdout=all=false set=[structure, schema] guarantee=[G1, topology-dsl/G5] rest=[topic-model] cwd=/private/var/folders/tn/_xzt8h5913dc3vhnfw95wq5c0000gn/T/ncc_probe_7gsA71 stderr=
+unknown option: exit=64 stderr=usage error: Could not find an option named "--frobnicate".
+00:00 +2: All tests passed!
+exit: 0
+
+### W8 the same tests from inside the member
+cwd=/private/var/folders/tn/_xzt8h5913dc3vhnfw95wq5c0000gn/T/tmp.cwFjgkzyQZ/packages/nidana_contract_check
+00:00 +2: All tests passed!
+exit: 0
+
+### S1 structure_proto.dart over the nine contracts as committed (strict: both forms need the node clause)
+bus-api (api): 42 guarantees, 109 cases, 15 libraries, 2 bindings, 0 invocation rows, not executable 2 whole and 0 in part, data directories none
+FAIL structure hsdd/contract/bus-api.md: validation-form (G13 not-executable line names no node (; checked by {node}'s gates))
+bus-testing (api): 20 guarantees, 50 cases, 7 libraries, 1 bindings, 0 invocation rows, not executable 1 whole and 0 in part, data directories none
+flutter-binding (api): 20 guarantees, 69 cases, 13 libraries, 2 bindings, 0 invocation rows, not executable 2 whole and 0 in part, data directories none
+navigation-api (api): 27 guarantees, 68 cases, 13 libraries, 2 bindings, 0 invocation rows, not executable 2 whole and 0 in part, data directories none
+nidana-checks (cli): 18 guarantees, 0 cases, 0 libraries, 0 bindings, 17 invocation rows, not executable 1 whole and 2 in part, data directories none
+topic-codegen (file): 21 guarantees, 0 cases, 0 libraries, 0 bindings, 22 invocation rows, not executable 4 whole and 3 in part, data directories rejected
+topic-model (shared-model): 27 guarantees, 41 cases, 15 libraries, 1 bindings, 0 invocation rows, not executable 2 whole and 0 in part, data directories none
+topology-dsl (api): 30 guarantees, 73 cases, 14 libraries, 1 bindings, 0 invocation rows, not executable 0 whole and 0 in part, data directories none
+topology-ir (api): 23 guarantees, 43 cases, 7 libraries, 1 bindings, 0 invocation rows, not executable 0 whole and 0 in part, data directories render
+9 slugs, 1 problem(s)
+exit: 1
+
+### S2 the same over a copy whose bus-api G13 line ends with the clause the hsdd-contract touch adds
+  437:- not executable: G13's last sentence, on an exception the bus's own delivery code raises, because no case can make a conforming runtime raise one; checked by nidana.runtime's gates
+bus-api (api): 42 guarantees, 109 cases, 15 libraries, 2 bindings, 0 invocation rows, not executable 2 whole and 1 in part, data directories none
+bus-testing (api): 20 guarantees, 50 cases, 7 libraries, 1 bindings, 0 invocation rows, not executable 1 whole and 0 in part, data directories none
+flutter-binding (api): 20 guarantees, 69 cases, 13 libraries, 2 bindings, 0 invocation rows, not executable 2 whole and 0 in part, data directories none
+navigation-api (api): 27 guarantees, 68 cases, 13 libraries, 2 bindings, 0 invocation rows, not executable 2 whole and 0 in part, data directories none
+nidana-checks (cli): 18 guarantees, 0 cases, 0 libraries, 0 bindings, 17 invocation rows, not executable 1 whole and 2 in part, data directories none
+topic-codegen (file): 21 guarantees, 0 cases, 0 libraries, 0 bindings, 22 invocation rows, not executable 4 whole and 3 in part, data directories rejected
+topic-model (shared-model): 27 guarantees, 41 cases, 15 libraries, 1 bindings, 0 invocation rows, not executable 2 whole and 0 in part, data directories none
+topology-dsl (api): 30 guarantees, 73 cases, 14 libraries, 1 bindings, 0 invocation rows, not executable 0 whole and 0 in part, data directories none
+topology-ir (api): 23 guarantees, 43 cases, 7 libraries, 1 bindings, 0 invocation rows, not executable 0 whole and 0 in part, data directories render
+9 slugs, 0 problem(s)
+exit: 0
+
+### S2b the first draft's lenient reading (a partial line may omit the clause), for the record
+bus-api (api): 42 guarantees, 109 cases, 15 libraries, 2 bindings, 0 invocation rows, not executable 2 whole and 1 in part, data directories none
+1 slugs, 0 problem(s) (LENIENT)
+exit: 0
+
+### S3 seeded defects in a copy that carries the bus-api touch: each must be reported, naming the path and the rule
+  a. an unlisted directory: topology-dsl/goldens/
+  b. a reject file without a covers header: topic-model no_dispatcher_hint.dart (G5 then uncovered)
+  c. an uncovered guarantee: topic-model gains G28
+  d. a listed binding that is absent: topology-ir nidana_dart_contracts_test.dart
+  e. a src/ import: topology-dsl surface/plan.dart
+  f. a case name that does not begin with its id, and a topic constructor's name: in a body (not a case)
+  g. an unlisted binding: topic-model behavior/extra_test.dart
+  h. an invocation directory with no row: nidana-checks invocation/scan-extra/
+  i. a listed data directory renamed: topology-ir render/ to rendr/
+  j. a malformed marker: bus-testing reject testing_types_are_closed.dart
+  k. a not-executable line citing an undeclared id: topic-model G26 to G99
+  l. a file directly under the slug directory: bus-testing/notes.txt
+  m. a partial not-executable line without its node clause: topic-model gains one for G4
+  438:- not executable: G4's last clause, on a value no case builds
+bus-api (api): 42 guarantees, 109 cases, 15 libraries, 2 bindings, 0 invocation rows, not executable 2 whole and 1 in part, data directories none
+bus-testing (api): 20 guarantees, 50 cases, 7 libraries, 1 bindings, 0 invocation rows, not executable 1 whole and 0 in part, data directories none
+FAIL structure hsdd/contract/fixture/bus-testing/notes.txt: layout (neither a set directory of kind api nor a data directory listed in ## Validation)
+FAIL structure hsdd/contract/fixture/bus-testing/reject/testing_types_are_closed.dart: marker (line 7 malformed)
+flutter-binding (api): 20 guarantees, 69 cases, 13 libraries, 2 bindings, 0 invocation rows, not executable 2 whole and 0 in part, data directories none
+navigation-api (api): 27 guarantees, 68 cases, 13 libraries, 2 bindings, 0 invocation rows, not executable 2 whole and 0 in part, data directories none
+nidana-checks (cli): 18 guarantees, 0 cases, 0 libraries, 0 bindings, 17 invocation rows, not executable 1 whole and 2 in part, data directories none
+FAIL structure hsdd/contract/fixture/nidana-checks/invocation/scan-extra/: invocation-row (no row in the Case table)
+topic-codegen (file): 21 guarantees, 0 cases, 0 libraries, 0 bindings, 22 invocation rows, not executable 4 whole and 3 in part, data directories rejected
+topic-model (shared-model): 28 guarantees, 41 cases, 16 libraries, 1 bindings, 0 invocation rows, not executable 2 whole and 0 in part, data directories none
+FAIL structure hsdd/contract/topic-model.md: validation-form (G4 not-executable line names no node (; checked by {node}'s gates))
+FAIL structure hsdd/contract/topic-model.md: unknown-id (G99 cited by not executable)
+FAIL structure hsdd/contract/fixture/topic-model/reject/no_dispatcher_hint.dart: covers-header (no // covers: header)
+FAIL structure hsdd/contract/fixture/topic-model/behavior/extra_test.dart: binding (not listed in ## Validation)
+FAIL structure hsdd/contract/fixture/topic-model/: coverage (G5, G26, G28 uncovered)
+topology-dsl (api): 30 guarantees, 72 cases, 14 libraries, 1 bindings, 0 invocation rows, not executable 0 whole and 0 in part, data directories none
+FAIL structure hsdd/contract/fixture/topology-dsl/goldens/: layout (neither a set directory of kind api nor a data directory listed in ## Validation)
+FAIL structure hsdd/contract/fixture/topology-dsl/surface/plan.dart: src-import (package:nidana_dart_contracts/src/topology/topology.dart)
+FAIL structure hsdd/contract/fixture/topology-dsl/behavior/recording_conformance.dart: case-name (case name does not begin with G{n}: g9 planOf runs declare once against a fresh builder and carries the id and scope)
+topology-ir (api): 23 guarantees, 43 cases, 6 libraries, 1 bindings, 0 invocation rows, not executable 0 whole and 0 in part, data directories render
+FAIL structure hsdd/contract/fixture/topology-ir/rendr/: layout (neither a set directory of kind api nor a data directory listed in ## Validation)
+FAIL structure hsdd/contract/fixture/topology-ir/render/: layout (listed in ## Validation, absent)
+FAIL structure hsdd/contract/fixture/topology-ir/behavior/nidana_dart_contracts_test.dart: binding (listed in ## Validation, absent)
+9 slugs, 14 problem(s)
+exit: 1
+  trap lines seeded: 2

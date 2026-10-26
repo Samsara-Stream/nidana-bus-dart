@@ -1,0 +1,70 @@
+{
+  "step_ref": "S99",
+  "skill": "superpowers:writing-plans",
+  "target": "nidana.model.1",
+  "status": "completed",
+  "stop": null,
+  "artifacts": [
+    "docs/superpowers/plans/nidana.model.1.md",
+    "docs/auto-run/experiments/structure-set-plan/structure_proto.dart",
+    "docs/auto-run/experiments/structure-set-plan/run.sh",
+    "docs/auto-run/experiments/structure-set-plan/output.txt"
+  ],
+  "decisions": [
+    {
+      "at": "2026-10-26T17:41:14Z",
+      "artifact": "docs/superpowers/plans/nidana.model.1.md",
+      "question": "Rework after the orchestrator's ruling on S99 decision 8 (docs/auto-run/steps/S99.orchestrator.json): how does the plan carry the strict reading that both not-executable forms need '; checked by {node}'s gates'?",
+      "options": [
+        { "label": "change the rule, the sample and the tests; drop every lenient mention", "consequence": "Task 5's row applies to whole and partial lines alike, its coverage paragraph states both forms, the sample contract's partial G3 line gains its clause, a new test seeds a partial line without it; Task 7 Step 5 expects all nine contracts to pass with no bus-api remark; Task 8 no longer prescribes a Learning about bus-api" },
+        { "label": "change the rule only", "consequence": "the clean sample's partial G3 line, written without a node, would fail the clean-sample test" }
+      ],
+      "chosen": "change the rule, the sample and the tests; drop every lenient mention",
+      "why": "The ruling makes ADR-001 item 3 as written the rule and routes bus-api's line to hsdd-contract before execution, so the plan must neither explain the lenient reading nor expect the line to pass as it stands. The sample's partial line had pinned the lenient reading and now pins the strict one.",
+      "evidence": ["docs/auto-run/steps/S99.orchestrator.json", "hsdd/adr/001-executable-contract-validation.md item 3", "docs/auto-run/experiments/structure-set-plan/output.txt S1, S2, S3 m"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    }
+  ],
+  "changes": [
+    "Task 5, rule table: the row 'a whole (not partial) not-executable line whose node is null' became 'a not-executable line, whole or partial, with an id and a null node' (validation-form, detail unchanged: \"G{n}'s not-executable line names no node: ; checked by {node}'s gates\").",
+    "Task 5, coverage paragraph: states both forms of ADR-001 item 3 with their clause; a line without it fails validation-form and covers nothing; a partial line covers nothing even with its node. The sentences on the lenient reading, on bus-api's G13 line and on the S99 contract gap are gone.",
+    "Task 5, sample contract: '- not executable: G3's last clause, on a value no case can build' now ends with '; checked by nidana.model's gates'.",
+    "Task 5, structure_test.dart: the whole-line test is renamed 'a whole not-executable line must name its node, and covers nothing without it'; a new test 'a partial not-executable line must name its node too' removes the G3 line's clause and expects \"validation-form (G3's not-executable line names no node: ; checked by {node}'s gates)\" at the contract and no coverage problem.",
+    "Task 7 Step 5: the expected 102 passes over the nine contracts now cite output.txt S2 (the copy carrying the bus-api touch); no bus-api remark.",
+    "Task 8, Learnings: the prescribed bus-api Learning is gone; the instruction is dispositioned one-line entries or '- none'.",
+    "Experiment: structure_proto.dart applies the strict rule by default (LENIENT=1 restores the first draft's reading); run.sh S1 runs it over the nine contracts as committed, S2 over a copy whose bus-api G13 line carries the clause, S2b keeps the lenient run for the record, S3 seeds a partial line without its clause (m) beside the earlier defects, in a copy that carries the bus-api touch. output.txt re-run in full; the W steps are unchanged."
+  ],
+  "experiments": [
+    {
+      "path": "docs/auto-run/experiments/structure-set-plan/",
+      "question": "Under the strict rule (both not-executable forms need their node clause), is bus-api's G13 line the only problem across the nine contracts, and do they all pass once it carries '; checked by nidana.runtime's gates'?",
+      "finding": "S1: exactly one problem over the nine contracts as committed, 'FAIL structure hsdd/contract/bus-api.md: validation-form (G13 not-executable line names no node)'. S2: with '; checked by nidana.runtime's gates' appended to that line in a copy, 0 problems; 102 subjects as before. S3 m: a partial line without its clause seeded into topic-model.md is reported as validation-form at hsdd/contract/topic-model.md; the other twelve seeded defects are reported as before."
+    }
+  ],
+  "self_check": [
+    { "gate": "The plan's Global Constraints contain constraints 1 to 8 above, verbatim.", "status": "pass", "note": "unchanged by the rework; impl-gate code-plan: 0 errors, 0 warnings" },
+    { "gate": "Every `### Task N:` except the last starts with a failing-test step.", "status": "pass", "note": "unchanged; the new test sits in Task 5 Step 1" },
+    { "gate": "The last task writes the verification doc named in constraint 5.", "status": "pass", "note": "unchanged" },
+    { "gate": "The plan has at most 8 tasks.", "status": "pass", "note": "8" },
+    { "gate": "The plan is saved under docs/superpowers/plans/.", "status": "pass", "note": "docs/superpowers/plans/nidana.model.1.md" },
+    { "gate": "Type consistency: Do the types, method signatures, and property names you used in later tasks match what you defined in earlier tasks?", "status": "pass", "note": "the rework changes no name or signature; NotExecutableLine keeps id, partial and node" },
+    { "gate": "Spec coverage: Skim each section/requirement in the spec. Can you point to a task that implements it? List any gaps.", "status": "pass", "note": "ADR-001 item 3's two not-executable forms are now both enforced by Task 5 and tested for each form" }
+  ],
+  "contract_gaps": [
+    {
+      "contract": "bus-api@v2",
+      "where": "hsdd/contract/bus-api.md line 437, ## Validation: '- not executable: G13's last sentence, on an exception the bus's own delivery code raises, because no case can make a conforming runtime raise one'",
+      "problem": "ADR-001 item 3's partial form is '- not executable: G{n}'s {part}, {reason}; checked by {node}'s gates'; this line has no '; checked by {node}'s gates' clause, so the structure set as the plan now specifies it fails bus-api with validation-form, and the phase gate's '--all --set structure' exits 1 (output.txt S1).",
+      "proposed_fix": "hsdd-contract touch within v2, no guarantee or fixture change: the line becomes '- not executable: G13's last sentence, on an exception the bus's own delivery code raises, because no case can make a conforming runtime raise one; checked by nidana.runtime's gates'. With exactly that text the nine contracts pass the structure prototype (output.txt S2)."
+    }
+  ],
+  "notes_for_orchestrator": [
+    "node docs/auto-run/tools/impl-gate.mjs code-plan nidana.model.1 now reports 0 errors and 0 warnings.",
+    "The plan no longer mentions bus-api's G13 line; Task 7 Step 5 expects 102 passes over the nine contracts, which holds only after the hsdd-contract touch lands on the phase branch. If it has not, Task 7 Step 5 stops BLOCKED on that line as the plan instructs.",
+    "S99.json is left as written; this report lists only the rework."
+  ]
+}

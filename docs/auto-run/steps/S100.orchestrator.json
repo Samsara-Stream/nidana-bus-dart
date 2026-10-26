@@ -1,0 +1,41 @@
+{
+  "step_ref": "S100",
+  "skill": "none",
+  "target": "inserted step: bus-api@v2 not-executable line (contract gap from nidana.model.1's plan)",
+  "status": "completed",
+  "decisions": [
+    {
+      "at": "2026-10-26T17:42:43Z",
+      "artifact": "docs/auto-run/impl-execution-plan.md",
+      "question": "The plan says an inserted governance step runs at the root lineage. Which branch does a contract fix found during a phase land on?",
+      "options": [
+        { "label": "The current phase branch, as its own step and commit, reaching the node and root branches through the phase's merge", "consequence": "The append-only ledger stays on one linear lineage; the fix is one identifiable commit (hsdd: S{nn} hsdd-contract ...) inside the phase's merge." },
+        { "label": "auto/v1-impl-1, then merged into the node and phase branches", "consequence": "Governance lands on the root first, as conventions picture it, but the judgement commits on two lineages would conflict in decisions.jsonl and run.jsonl at every merge." }
+      ],
+      "chosen": "The current phase branch, as its own step and commit, reaching the node and root branches through the phase's merge",
+      "why": "Nothing runs in parallel in this run, so there is no second lineage the fix could diverge from; the conventions' reason for root-first governance (parallel phase branches reading one truth) does not arise. Keeping the ledger on one lineage avoids hand-merging an append-only file, which the planning run never had to do.",
+      "evidence": ["hsdd/conventions.md, Execution protocol, Branch discipline", "docs/auto-run/impl-execution-plan.md, Contract gaps and other governance defects"],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-26T17:42:43Z",
+      "artifact": "docs/auto-run/tools/owner-files.json",
+      "question": "gate.mjs reports four errors before any step runs: its hash snapshot of the owner's files (HARNESS.md, JUDGEMENT-LAYER.md, explorer/) predates the owner's own commits a67b65a and 7a2f215. Refreshing the snapshot was refused by the session's permission classifier. How are governance steps gated?",
+      "options": [
+        { "label": "Keep the snapshot; a step passes when it adds no gate error beyond those four, and the owner files are checked against HEAD with git diff", "consequence": "The guard keeps reporting what it reports; the comparison against HEAD is the stronger check now that the owner's files are committed. The owner can refresh the snapshot when convenient." },
+        { "label": "Refresh the snapshot anyway by another route", "consequence": "A cleaner gate output, but it works around a refusal the session's guard made, which the run does not do." }
+      ],
+      "chosen": "Keep the snapshot; a step passes when it adds no gate error beyond those four, and the owner files are checked against HEAD with git diff",
+      "why": "The four errors are the owner's own committed edits, not a step's; git diff against HEAD shows those files unchanged (2026-10-26T17:42:43Z). Changing a guard's baseline is the owner's call once a guard has refused it.",
+      "evidence": ["docs/auto-run/tools/gate.mjs, owner files unchanged since the snapshot", "git log -- docs/auto-run/HARNESS.md (a67b65a, 7a2f215)"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": true,
+      "stop_class": "external",
+      "would_upstream": false
+    }
+  ]
+}

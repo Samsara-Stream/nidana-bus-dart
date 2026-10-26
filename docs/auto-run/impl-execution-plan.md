@@ -166,7 +166,76 @@ a `Task N: complete` line; never re-dispatch them.
 |------|------|-------|--------|--------|-----------------|
 | S96 | setup | none (orchestrator) | implementation inputs, scope, stop policy | done | see the judgement commit |
 | S97 | plan | none (orchestrator) | this plan, the preamble, the tools | done | see the judgement commit |
+| S98 | config | hsdd-config | nidana.model.1 | done | fd8bd3a |
+| S99 | code-plan | superpowers:writing-plans | nidana.model.1 (8 tasks; resumed once for the strict not-executable form) | done | 188728d |
+| S100 | contract (inserted) | hsdd-contract | bus-api@v2 touch: the G13 not-executable line names nidana.runtime (contract gap from S99) | done | 4d35eaf |
+| S101 | implement | superpowers:subagent-driven-development | nidana.model.1: 8 tasks, 3 task fix rounds, final review with one fix wave; gate exit 0, 93 tests, 102/102 structure | done | d761b1f (merged into impl/nidana.model next) |
+
+## Notes for the report
+
+Findings the report must carry, written down when found so they survive context summaries.
+
+- S98: hsdd-config's self-contained gate (Rule 2, switch step 9) read literally flags ids that occur only
+  inside verbatim excerpts (ADR text, the node's Owns); the subagent scoped it to selected ids and marked
+  the decision `would_upstream`, which here means HSDD's own skill text, not the reference architecture.
+- Prompts reference the preamble file instead of pasting it (HARNESS.md item 1's cost): the file is
+  committed, so each dispatch's instructions stay reproducible from git.
+- S101 Task 1 review: ADR-002 Consequences' "analyzer 14.5.0 as a transitive package" is one release stale
+  (the lockfile resolved 14.6.0 on 2026-10-26, since no member constrains analyzer yet). Governance text, not
+  a phase defect; for the owner.
+- S101: whether a gate should enforce `dart format` is a phase-plan question for the owner; the run formats
+  by ruling (S101.orchestrator.json).
+- Implementer commits carry the run's `Co-Authored-By: Claude Opus 5.5` trailer whatever model implemented
+  the task (sonnet for some); the ledger's dispatch records hold the true model.
+
+- nidana.model.1 landed 3968 inserted lines in 24 files against its estimate of about 450 lines in about
+  10 files (tests about two thirds; the task reviews added tests beyond the plan's). If the remaining phases
+  overrun alike, the node's PE sizing under-counts by a large factor; the owner's checkpoint question.
+
+## Routed to later phases
+
+Items a phase found that belong to a later phase's context or plan; the orchestrator carries each into
+that phase's writing-plans dispatch and strikes it here when the phase's plan covers it.
+
+- nidana.model.6 (behavior set): ADR-001 item 4 says a conformance library imports neither `package:test`
+  nor `package:flutter_test`; no set of nidana.model.1 checks it (the structure set's list in item 9 does
+  not name it). From S101 Task 5's review.
+- nidana.model.2 (from S101's final review): `parseIdList` expands a `G{a} to G{b}` range eagerly and without a
+  bound (a typo of 1e8 or more hangs the replay; check bounds against the declared ids first); `_runs` and
+  `_replay` are synchronous and must become async for `dart analyze`; batch analysis across slugs; add
+  `Pending` and a pending count to `summaryLine` (and fix `1 fixtures` then); replace `SetUnavailable`'s fixed
+  text with an environment-error variant carrying a message; decide whether a structure failure suppresses a
+  slug's other sets; `--all` with no slug, or a symlinked slug directory, should fail loudly (exit 2) instead of
+  passing 0 fixtures or skipping; invalid UTF-8 in a fixture is a fixture defect, not an environment error;
+  line-based reading misses a covers clause with trailing whitespace or wrapped onto a continuation line, and
+  a wrapped not-executable line reports "names no node" (right-trim; report a bullet that holds `covers ` but
+  gives no clause); the malformed-Case-cell message prints the Covers cell (keep the raw Case cell in
+  `InvocationRow`); long unknown-id lists print every id (print ranges). ADR-001 item 4's marker form cannot
+  express two diagnostics on one line and structure rejects stacked markers: if the first reject replay meets
+  one, that is a contract gap for hsdd-adr.
+- nidana.model.2 (from S101's final fix wave): `run.dart`'s `setsOf` says a slug has the schema set when the
+  schema file, `valid/` or `invalid/` exists, and the file set when `input/` or `expected/` does; the structure
+  set now credits coverage only when the schema file, or both `input/` and `expected/`, exist. Decide whether
+  `setsOf` follows (a schema set with no schema file would otherwise run and fail loudly).
+- nidana.model.6 (from S101's final review): validate `--guarantee` ids against the slug's declared
+  guarantees (a typo admits no case and passes under item 9); a conformance library that no binding in any
+  slug imports should cover nothing (needs a cross-slug view: topology-dsl's live suite is bound from
+  bus-api); pin `--guarantee=G1`, one-slug `--all` with a bare id, and the usage text once a set reads the
+  restriction.
+- nidana.model.7 (from S101's final review): `readSnapshot`'s hidden-entry filter must not leak into the
+  byte-for-byte comparisons of `expected/` and `invocation/*/expected/`.
 
 ## Change log
 
 - 2026-10-26 (UTC), S96 and S97: segment opened.
+- 2026-10-26 (UTC), before S101: the SDD role prompts (implementer, task reviewer, re-reviewer, final
+  reviewer), adapted from superpowers 6.4.2 for the unattended run, live in
+  `docs/auto-run/impl-sdd-prompts.md`; each dispatch names its role and fills the values. Dispatches
+  reference the preamble and the role file instead of pasting them.
+- 2026-10-26 (UTC), S101: decisions are stamped when taken with `docs/auto-run/tools/decide.mjs`
+  (HARNESS.md item 2); `ledger.mjs` gained a main-module guard so `decide.mjs` can import its check. The SDD
+  progress ledger of each phase is archived as `docs/auto-run/steps/S{nn}.sdd-progress.md` before SDD deletes
+  its workspace, because it is the only record of the per-task reviews, fix rounds and rulings. The S{nn}
+  judgement commit of an implement step lands on the phase branch before the merge (the orchestrator's
+  pending files differ between the phase and node branches); the merge commit is recorded in the next
+  step's row.

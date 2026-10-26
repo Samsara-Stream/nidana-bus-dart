@@ -16,6 +16,7 @@
 import { readFileSync, appendFileSync, existsSync, mkdirSync } from "node:fs";
 import { execFileSync } from "node:child_process";
 import { join } from "node:path";
+import { pathToFileURL } from "node:url";
 
 const ROOT = process.cwd();
 const DIR = join(ROOT, "hsdd", "judgement");
@@ -117,8 +118,11 @@ function validate() {
   return errs;
 }
 
-const [cmd, ...a] = process.argv.slice(2);
-if (cmd === "decisions") {
+const isMain = process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href;
+const [cmd, ...a] = isMain ? process.argv.slice(2) : [];
+if (!isMain) {
+  // imported for check() (decide.mjs): no CLI
+} else if (cmd === "decisions") {
   const [step, stepRef, commit, file] = a;
   if (!commitExists(commit)) { console.error(`commit ${commit} not in repo`); process.exit(1); }
   const parsed = JSON.parse(readFileSync(file, "utf8"));
