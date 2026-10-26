@@ -372,17 +372,18 @@ Iterable<_Found> _invocationDirectories(_Slug slug) {
 }
 
 /// Every citation of guarantee ids (ADR-001 item 3): the covers clauses, the
-/// Case table's rows and the not-executable lines of the contract text, the
-/// one parsed header of each `reject/` library, and the case names of each
-/// conformance library. A not-executable line covers its id only when it is
-/// whole and names its node; a partial line stands beside a fixture that
-/// covers the rest.
+/// Case table's rows that name their case and the not-executable lines of the
+/// contract text, the one parsed header of each `reject/` library, and the
+/// case names of each conformance library. A row whose Case cell is malformed
+/// names no recorded invocation, so it cites nothing. A not-executable line
+/// covers its id only when it is whole and names its node; a partial line
+/// stands beside a fixture that covers the rest.
 List<_Citation> _citations(_Slug slug) => <_Citation>[
   for (final CoversClause clause in slug.contract.coversClauses)
     if (clause.ids case final Set<int> ids)
       (path: slug.textPath, ids: ids, covers: true),
   for (final InvocationRow row in slug.contract.invocationRows)
-    if (row.ids case final Set<int> ids)
+    if (row case InvocationRow(caseName: String(), ids: final Set<int> ids))
       (path: slug.textPath, ids: ids, covers: true),
   for (final NotExecutableLine line in slug.contract.notExecutable)
     if (line.id case final int id)
