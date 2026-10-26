@@ -36,9 +36,9 @@ The phase produces no contract and no schema, so there is no schema replay and n
 ## Expected output
 
 - The gate exits 0 and its output holds, in order: `Got dependencies!`, `No issues found!`, the line `102 fixtures: 102 passed, 0 failed` (one `PASS structure` line per contract text, per slug fixture directory and per Dart library of the nine committed contracts, no `FAIL` line), and `All tests passed!` with the package's test count, 88.
-- Each seeded defect in `cli_test.dart` exits 1 and prints exactly one `FAIL` line, naming the fixture and the rule, over the seeded `sample` slug:
+- Each seeded defect in `cli_test.dart` exits 1 and prints the `FAIL` line below, naming the fixture and the rule, over the seeded `sample` slug:
   - an unlisted directory: `FAIL structure hsdd/contract/fixture/sample/extra/: layout (extra is neither a set directory of kind api nor a data directory listed in ## Validation)`
-  - a reject file without a `covers` header: `FAIL structure hsdd/contract/fixture/sample/reject/sample_is_closed.dart: covers-header (no // covers: header)`
+  - a reject file without a `covers` header: `FAIL structure hsdd/contract/fixture/sample/reject/sample_is_closed.dart: covers-header (no // covers: header)`; this defect also prints `FAIL structure hsdd/contract/fixture/sample/: coverage (G1 uncovered)`, because that file is the only coverer of G1, so its run ends `6 fixtures: 4 passed, 2 failed`
   - an uncovered guarantee: `FAIL structure hsdd/contract/fixture/sample/: coverage (G5 uncovered)`
   - a listed binding that is absent: `FAIL structure hsdd/contract/fixture/sample/behavior/sample_impl_test.dart: binding (listed in ## Validation, absent)`
   - a `src/` import: `FAIL structure hsdd/contract/fixture/sample/surface/use.dart: src-import (package:sample/src/sample_base.dart)`
