@@ -168,6 +168,7 @@ a `Task N: complete` line; never re-dispatch them.
 | S97 | plan | none (orchestrator) | this plan, the preamble, the tools | done | see the judgement commit |
 | S98 | config | hsdd-config | nidana.model.1 | done | fd8bd3a |
 | S99 | code-plan | superpowers:writing-plans | nidana.model.1 (8 tasks; resumed once for the strict not-executable form) | done | 188728d |
+| S100 | contract (inserted) | hsdd-contract | bus-api@v2 touch: the G13 not-executable line names nidana.runtime (contract gap from S99) | done | 4d35eaf |
 
 ## Notes for the report
 
