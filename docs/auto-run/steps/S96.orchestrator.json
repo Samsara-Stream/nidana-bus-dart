@@ -1,0 +1,72 @@
+{
+  "step_ref": "S96",
+  "skill": "none",
+  "target": "implementation segment: inputs, scope, stop policy",
+  "status": "completed",
+  "decisions": [
+    {
+      "at": "2026-10-26T16:54:02Z",
+      "artifact": "docs/auto-run/impl-execution-plan.md",
+      "question": "The owner asked for the implementation to run unattended: \"Don't stop to ask me to make decision, just record your decisions like before ... But, please do stop if you're about to do something dangerous.\" Which conditions still end the run with STOP.md?",
+      "options": [
+        { "label": "Decide and record every former run-stop condition; stop only before a dangerous or outside action, or when every path forward is a guess", "consequence": "The run keeps going through contract gaps, breaking amendments and failed gates, marking each such decision would_have_asked with its stop_class so the owner reviews them first; only destructive, irreversible or outside actions (push, credential, ref/, global tooling) and a defect that leaves no reasoned path stop it." },
+        { "label": "Keep the planning kickoff's stop set", "consequence": "A breaking contract amendment or a gate failing twice would end the night's run, against the owner's words." }
+      ],
+      "chosen": "Decide and record every former run-stop condition; stop only before a dangerous or outside action, or when every path forward is a guess",
+      "why": "The owner's message says so in as many words, and the v0.15.1 intake read the same instruction the same way (DEC-686). superpowers subagent-driven-development's own stop set (destructive, security-sensitive, outside side effect, a plan so broken every path is a guess) is the same shape, so the two layers agree.",
+      "evidence": ["owner message, 2026-10-26", "hsdd/judgement/decisions.jsonl DEC-686", "superpowers subagent-driven-development SKILL.md, Rulings, not stalls"],
+      "blast_radius": "tree",
+      "confidence": "high",
+      "would_have_asked": false,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-26T16:54:02Z",
+      "artifact": "docs/auto-run/impl-execution-plan.md",
+      "question": "In which order do nidana.model's 14 phases run, serially?",
+      "options": [
+        { "label": "Numeric order, 1 to 14", "consequence": "A valid topological order of the phase graph: the tool lane (.6, .7) lands after the types band and before .8, which needs .6. Simple to follow and to resume." },
+        { "label": "Critical path first, .7 last", "consequence": "nidana.model.7 (file and cli sets) serves only nidana.tooling's gates; moving it last brings .8 to .14 forward by one phase, which matters only if the run stops early." }
+      ],
+      "chosen": "Numeric order, 1 to 14",
+      "why": "Both orders finish the same set. Numeric order matches the plan's numbering and its lane note, and the phase graph allows it. The signal that would change it: a reason to expect the run to end before .14, which nothing suggests.",
+      "evidence": ["hsdd/spec/nidana.model.md, Phase Plan and Phase dependency graph"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-26T16:57:51Z",
+      "artifact": "docs/auto-run/impl-step-preamble.md",
+      "question": "The planning run's step preamble names the old machine's path (/Users/mohamad.purbo/...) and planning-only rules. What do implementation subagents get?",
+      "options": [
+        { "label": "A new preamble for the implementation segment", "consequence": "docs/auto-run/step-preamble.md stays the record of what the planning steps saw; the new file carries this machine's path, the git rules implementers need (they commit, unlike planning steps), and the report shape with step kinds." },
+        { "label": "Edit step-preamble.md in place", "consequence": "One file, but the planning steps' prompts would no longer be reproducible from git at HEAD, and the file would mix two protocols." }
+      ],
+      "chosen": "A new preamble for the implementation segment",
+      "why": "The planning preamble is evidence for 1071 decisions; editing it would blur what those steps were told. The implementation segment also needs rules the planning one forbade (implementers commit on the phase branch).",
+      "evidence": ["docs/auto-run/step-preamble.md", "docs/auto-run/HARNESS.md, item 7"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-26T16:57:51Z",
+      "artifact": "docs/auto-run/impl-step-preamble.md",
+      "question": "What may implementation subagents read?",
+      "options": [
+        { "label": "The planning run's blindness, with the v0.15.1 files as the only reference architecture", "consequence": "No implementer sees the manual run (which may hold code by now) or HSDD's own development notes; experiments under docs/auto-run/experiments/ stay readable, since the tree cites them and some hold prototype code of the replay tool." },
+        { "label": "No blindness for implementation", "consequence": "Simpler prompts, but an implementer could copy code from the manual run, which would void the comparison the owner runs the automatic segment for." }
+      ],
+      "chosen": "The planning run's blindness, with the v0.15.1 files as the only reference architecture",
+      "why": "The automatic run exists to be compared with the manual one (KICKOFF.md, HARNESS.md); the comparison only means something if neither reads the other. v0.15.0 was only ever a baseline for the intake diff, and implementers build against the governance, which already cites v0.15.1.",
+      "evidence": ["docs/auto-run/KICKOFF.md, Blindness", "docs/auto-run/HARNESS.md, item 5"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "would_upstream": false
+    }
+  ]
+}
