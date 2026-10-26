@@ -18,7 +18,7 @@ final class SlugSnapshot {
   /// The text of `hsdd/contract/{slug}.md`; null when it is absent.
   final String? contractText;
 
-  /// Whether `hsdd/contract/schema/{slug}.schema.json` exists.
+  /// Whether [schemaPath] of [slug] exists.
   final bool hasSchemaFile;
 
   /// The directories below `hsdd/contract/fixture/{slug}/`, each as a
@@ -39,6 +39,9 @@ bool holdsSource(String relativePath) =>
 
 /// The path of [slug]'s contract text from the workspace root.
 String contractPath(String slug) => 'hsdd/contract/$slug.md';
+
+/// The path of [slug]'s schema file from the workspace root (ADR-001 item 2).
+String schemaPath(String slug) => 'hsdd/contract/schema/$slug.schema.json';
 
 /// The path of [slug]'s fixture directory from the workspace root, with its
 /// trailing slash.

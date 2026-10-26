@@ -161,7 +161,7 @@ SlugSnapshot snapshotOf(String slug, Map<String, String> files) {
   return SlugSnapshot(
     slug: slug,
     contractText: files[contractPath(slug)],
-    hasSchemaFile: files.containsKey('hsdd/contract/schema/$slug.schema.json'),
+    hasSchemaFile: files.containsKey(schemaPath(slug)),
     directories: Set<String>.unmodifiable(<String>{
       for (final String path in below) ..._ancestors(path),
     }),

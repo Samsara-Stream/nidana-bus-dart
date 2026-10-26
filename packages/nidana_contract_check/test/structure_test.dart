@@ -153,6 +153,16 @@ void main() {
         <String>['layout (listed in ## Validation, absent)'],
       );
     });
+    test('a listed set directory that is absent', () {
+      final List<FixtureOutcome> o = check(<String, String?>{
+        '${s}surface/use.dart': null,
+      });
+      expect(at(o, '${s}surface/'), <String>[
+        'layout (listed in ## Validation, absent)',
+      ]);
+      expect(at(o, 'hsdd/contract/sample.md'), isEmpty);
+      expect(at(o, s), isEmpty);
+    });
     test('a shared-model contract has no valid/ directory', () {
       final List<FixtureOutcome> o = check(<String, String?>{
         'hsdd/contract/sample.md': contractWith(
@@ -410,6 +420,68 @@ void main() {
         'validation-form (malformed covers clause: covers the tree.)',
       ]);
       expect(at(clause, t), <String>['coverage (G1 uncovered)']);
+    });
+    test('a covers clause whose set is absent covers nothing', () {
+      final String tool = toolFiles['hsdd/contract/tool.md']!;
+      final List<FixtureOutcome> o = check(
+        <String, String?>{
+          'hsdd/contract/tool.md': tool
+              .substring(0, tool.indexOf('- invocations:'))
+              .replaceFirst(
+                '- file:',
+                '- schema: `hsdd/contract/schema/tool.schema.json`, '
+                    'the data model; covers G2.\n- file:',
+              ),
+          '${t}input/in.txt': null,
+          '${t}expected/out.txt': null,
+          '${t}invocation/generate-usage/args': null,
+          '${t}invocation/generate-usage/exit_code': null,
+        },
+        slug: 'tool',
+        base: toolFiles,
+      );
+      expect(at(o, 'hsdd/contract/tool.md'), <String>[
+        'validation-form (covers clause of the schema bullet names a set that is absent: no hsdd/contract/schema/tool.schema.json)',
+        'validation-form (covers clause of the file bullet names a set that is absent: no input/ and expected/)',
+      ]);
+      expect(at(o, t), <String>['coverage (G1, G2 uncovered)']);
+    });
+    test('a file covers clause needs both input/ and expected/', () {
+      List<FixtureOutcome> without(String path) =>
+          check(<String, String?>{path: null}, slug: 'tool', base: toolFiles);
+      final List<FixtureOutcome> noInput = without('${t}input/in.txt');
+      expect(at(noInput, 'hsdd/contract/tool.md'), <String>[
+        'validation-form (covers clause of the file bullet names a set that is absent: no input/)',
+      ]);
+      expect(at(noInput, t), <String>['coverage (G1 uncovered)']);
+      final List<FixtureOutcome> noExpected = without('${t}expected/out.txt');
+      expect(at(noExpected, 'hsdd/contract/tool.md'), <String>[
+        'validation-form (covers clause of the file bullet names a set that is absent: no expected/)',
+      ]);
+      expect(at(noExpected, t), <String>['coverage (G1 uncovered)']);
+    });
+    test('a schema covers clause covers when the schema file exists', () {
+      final String tool = toolFiles['hsdd/contract/tool.md']!;
+      final List<FixtureOutcome> o = check(
+        <String, String?>{
+          'hsdd/contract/tool.md': tool
+              .replaceFirst(
+                '| `generate-usage` | `tool:generate --frob` | 2 | G2: an unknown option |\n',
+                '',
+              )
+              .replaceFirst(
+                '- file:',
+                '- schema: `hsdd/contract/schema/tool.schema.json`, '
+                    'the data model; covers G2.\n- file:',
+              ),
+          '${t}invocation/generate-usage/args': null,
+          '${t}invocation/generate-usage/exit_code': null,
+          'hsdd/contract/schema/tool.schema.json': '{}',
+        },
+        slug: 'tool',
+        base: toolFiles,
+      );
+      expect(o, everyElement(isA<Passed>()));
     });
   });
   group('the contract text', () {

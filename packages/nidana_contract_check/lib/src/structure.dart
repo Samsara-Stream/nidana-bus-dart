@@ -152,6 +152,10 @@ final RegExp _bindingLibrary = RegExp(r'^behavior/[^/]+_test\.dart$');
 final RegExp _invocationCase = RegExp(r'^invocation/([^/]+)$');
 final RegExp _caseNameId = RegExp(r'^G([1-9][0-9]*) ');
 
+/// The directories a file replay reads (ADR-001 item 6), in the order a
+/// problem names them.
+const List<String> _fileSetDirectories = <String>['input', 'expected'];
+
 /// The frontmatter's `id` and `kind`, and the guarantee entries.
 Iterable<_Found> _contractText(_Slug slug) => _at(slug.textPath, <Problem>[
   if (slug.contract.id != slug.name)
@@ -173,8 +177,8 @@ Iterable<_Found> _contractText(_Slug slug) => _at(slug.textPath, <Problem>[
     Problem(StructureRule.contractText, 'G$id repeats'),
 ]);
 
-/// The forms of ADR-001 item 3 in `## Validation`: covers clauses, the Case
-/// table's rows and the not-executable lines.
+/// The forms of ADR-001 item 3 in `## Validation`: covers clauses and the
+/// sets they name, the Case table's rows and the not-executable lines.
 Iterable<_Found> _validationForms(_Slug slug) {
   final ContractText contract = slug.contract;
   return _at(slug.textPath, <Problem>[
@@ -183,6 +187,14 @@ Iterable<_Found> _validationForms(_Slug slug) {
         Problem(
           StructureRule.validationForm,
           'malformed covers clause: covers ${clause.text}.',
+        ),
+    for (final CoversClause clause in contract.coversClauses)
+      if (_absentFromSet(slug, clause) case final List<String> absent
+          when absent.isNotEmpty)
+        Problem(
+          StructureRule.validationForm,
+          'covers clause of the ${clause.bullet} bullet names a set that is '
+          'absent: no ${absent.join(' and ')}',
         ),
     for (final InvocationRow row in contract.invocationRows)
       if (row.caseName == null)
@@ -224,7 +236,9 @@ Iterable<_Found> _listedBindingForms(_Slug slug) =>
     ]);
 
 /// The entries directly under the fixture directory against the set
-/// directories of [kind] and the data directories `## Validation` lists.
+/// directories of [kind] and the data directories `## Validation` lists; then
+/// each directory `## Validation` lists, set directory or data directory,
+/// that is absent.
 Iterable<_Found> _layout(_Slug slug, ContractKind kind) {
   final Set<String> setDirectories = kind.setDirectories;
   final Set<String> dataDirectories = slug.contract.listedDirectories
@@ -243,7 +257,7 @@ Iterable<_Found> _layout(_Slug slug, ContractKind kind) {
           !setDirectories.contains(entry) &&
           !dataDirectories.contains(entry))
         (path: '${slug.directory}$entry/', problem: neither(entry)),
-    for (final String name in dataDirectories)
+    for (final String name in slug.contract.listedDirectories)
       if (!slug.snapshot.directories.contains(name))
         (
           path: '${slug.directory}$name/',
@@ -375,13 +389,18 @@ Iterable<_Found> _invocationDirectories(_Slug slug) {
 /// Case table's rows that name their case and the not-executable lines of the
 /// contract text, the one parsed header of each `reject/` library, and the
 /// case names of each conformance library. A row whose Case cell is malformed
-/// names no recorded invocation, so it cites nothing. A not-executable line
-/// covers its id only when it is whole and names its node; a partial line
-/// stands beside a fixture that covers the rest.
+/// names no recorded invocation, so it cites nothing. A covers clause covers
+/// its ids only when the set it names exists. A not-executable line covers
+/// its id only when it is whole and names its node; a partial line stands
+/// beside a fixture that covers the rest.
 List<_Citation> _citations(_Slug slug) => <_Citation>[
   for (final CoversClause clause in slug.contract.coversClauses)
     if (clause.ids case final Set<int> ids)
-      (path: slug.textPath, ids: ids, covers: true),
+      (
+        path: slug.textPath,
+        ids: ids,
+        covers: _absentFromSet(slug, clause).isEmpty,
+      ),
   for (final InvocationRow row in slug.contract.invocationRows)
     if (row case InvocationRow(caseName: String(), ids: final Set<int> ids))
       (path: slug.textPath, ids: ids, covers: true),
@@ -495,6 +514,21 @@ int? _caseId(String? name) {
       : _caseNameId.firstMatch(name)?.group(1);
   return digits == null ? null : int.tryParse(digits);
 }
+
+/// What the set that [clause]'s bullet names lacks: the schema file for a
+/// `schema` bullet, `input/` and `expected/` for a `file` bullet. Empty when
+/// the set exists.
+List<String> _absentFromSet(_Slug slug, CoversClause clause) =>
+    switch (clause.bullet) {
+      'schema' => <String>[
+        if (!slug.snapshot.hasSchemaFile) schemaPath(slug.name),
+      ],
+      'file' => <String>[
+        for (final String directory in _fileSetDirectories)
+          if (!slug.snapshot.directories.contains(directory)) '$directory/',
+      ],
+      _ => const <String>[],
+    };
 
 /// [binding], a path from the workspace root, relative to [directory] when
 /// it has the form `{directory}behavior/{name}_test.dart`; null otherwise.

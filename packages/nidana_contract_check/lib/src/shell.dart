@@ -61,9 +61,7 @@ SlugSnapshot readSnapshot(Directory root, String slug) {
   return SlugSnapshot(
     slug: slug,
     contractText: contract.existsSync() ? contract.readAsStringSync() : null,
-    hasSchemaFile: File(
-      _workspacePath(root, 'hsdd/contract/schema/$slug.schema.json'),
-    ).existsSync(),
+    hasSchemaFile: File(_workspacePath(root, schemaPath(slug))).existsSync(),
     directories: Set<String>.unmodifiable(<String>{
       for (final (:String path, :FileSystemEntity entity) in entries)
         if (entity is Directory) path,
