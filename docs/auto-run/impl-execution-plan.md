@@ -175,7 +175,8 @@ a `Task N: complete` line; never re-dispatch them.
 | S104 | implement | superpowers:subagent-driven-development | nidana.model.2: 7 tasks, 2 task fix rounds, final review with one fix wave; gate exit 0, 195 tests, 206/206 structure and schema; surface and reject PENDING by design | done | d9b9b14; merged into impl/nidana.model as 014959f |
 | S105 | config | hsdd-config | nidana.model.3 | done | 52e7a18 |
 | S106 | code-plan | superpowers:writing-plans | nidana.model.3 (4 tasks; dry-run of every block: gate exit 0, 30/30) | done | 5d420f4 |
-| S107 | implement | superpowers:subagent-driven-development | nidana.model.3: 4 tasks, no fix round, final review ready to merge; gate exit 0, topic-model 30/30 (first real surface and reject replay) | done | 881a18f (merge recorded in the next row) |
+| S107 | implement | superpowers:subagent-driven-development | nidana.model.3: 4 tasks, no fix round, final review ready to merge; gate exit 0, topic-model 30/30 (first real surface and reject replay) | done | 881a18f; merged into impl/nidana.model as a8d43df |
+| S108 | config | hsdd-config | nidana.model.4 (found the scope cannot analyze: TransformEdge lands at .5) | done | 6c258b4 |
 
 ## Notes for the report
 
