@@ -760,7 +760,7 @@ void main() {
       ]);
       expect(at(o, t), <String>['coverage (G1 uncovered)']);
     });
-    test('a covers header with a range of 1000 ids or more is malformed', () {
+    test('a covers header with a range wider than 1000 ids (b - a >= 1000) is malformed', () {
       final List<FixtureOutcome> o = check(<String, String?>{
         '${s}reject/sample_is_closed.dart': sampleReject.replaceFirst(
           '// covers: G1\n',

@@ -59,14 +59,11 @@ void main() {
   test('formatIds lists ids in ascending order', () {
     expect(formatIds(<int>{5, 1, 3}), 'G1, G3, G5');
   });
-  test(
-    'a range spans fewer than 1000 ids; a wider one is no list, at once',
-    () {
-      expect(parseIdList('G1 to G1000'), hasLength(1000));
-      expect(parseIdList('G1 to G1001'), isNull);
-      expect(parseIdList('G3, G1 to G100000000'), isNull);
-    },
-  );
+  test('a range holds at most 1000 ids (b - a < 1000); a wider one is no list, at once', () {
+    expect(parseIdList('G1 to G1000'), hasLength(1000));
+    expect(parseIdList('G1 to G1001'), isNull);
+    expect(parseIdList('G3, G1 to G100000000'), isNull);
+  });
   test('formatIds writes a run of three or more ids as a range', () {
     expect(formatIds(<int>{1, 2}), 'G1, G2');
     expect(
