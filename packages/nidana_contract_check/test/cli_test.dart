@@ -13,7 +13,7 @@ const List<String> cleanLines = <String>[
   'PASS structure hsdd/contract/fixture/sample/behavior/sample_impl_test.dart',
   'PASS structure hsdd/contract/fixture/sample/reject/sample_is_closed.dart',
   'PASS structure hsdd/contract/fixture/sample/surface/use.dart',
-  '6 fixtures: 6 passed, 0 failed',
+  '6 fixtures: 6 passed, 0 failed, 0 pending',
 ];
 
 List<String> lines(ProcessResult r) =>
@@ -41,7 +41,7 @@ void main() {
       ...cleanLines.take(6),
       'PASS structure hsdd/contract/tool.md',
       'PASS structure hsdd/contract/fixture/tool/',
-      '8 fixtures: 8 passed, 0 failed',
+      '8 fixtures: 8 passed, 0 failed, 0 pending',
     ]);
   });
   group('each seeded defect names the fixture and the rule, and exits 1', () {

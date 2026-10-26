@@ -24,7 +24,18 @@ const SetChecked failing = SetChecked(
     Failed('c', <Problem>[Problem(StructureRule.layout, 'x')]),
   ],
 );
-const SetUnavailable unavailable = SetUnavailable(CheckSet.surface, 'sample');
+const SetUnavailable unavailable = SetUnavailable(
+  CheckSet.surface,
+  'sample',
+  'dart analyze exited 64 without a JSON report',
+);
+const SetChecked pending = SetChecked(
+  CheckSet.reject,
+  'sample',
+  <FixtureOutcome>[
+    Pending('hsdd/contract/fixture/sample/reject/a.dart', <String>['sample']),
+  ],
+);
 
 void main() {
   group('setsOf', () {
@@ -116,16 +127,60 @@ void main() {
         'FAIL structure hsdd/contract/fixture/sample/x.dart: layout (one); marker (two)',
       );
     });
-    test('an unavailable set', () {
+    test('a pending fixture names the absent packages', () {
       expect(
-        unavailableLine(unavailable),
-        'ERROR surface sample: this version of nidana_contract_check does not implement the surface set',
+        outcomeLine(
+          CheckSet.surface,
+          const Pending(
+            'hsdd/contract/fixture/sample/surface/use.dart',
+            <String>['sample'],
+          ),
+        ),
+        'PENDING surface hsdd/contract/fixture/sample/surface/use.dart: package sample is absent from .dart_tool/package_config.json',
+      );
+      expect(
+        outcomeLine(
+          CheckSet.reject,
+          const Pending('hsdd/contract/fixture/sample/reject/a.dart', <String>[
+            'alpha',
+            'zeta',
+          ]),
+        ),
+        'PENDING reject hsdd/contract/fixture/sample/reject/a.dart: packages alpha, zeta are absent from .dart_tool/package_config.json',
       );
     });
-    test('the summary counts fixtures', () {
+    test('an unavailable set prints its reason', () {
       expect(
-        summaryLine(const <SetRun>[passing, failing, unavailable]),
-        '3 fixtures: 2 passed, 1 failed',
+        unavailableLine(unavailable),
+        'ERROR surface sample: dart analyze exited 64 without a JSON report',
+      );
+      expect(
+        unavailableLine(
+          SetUnavailable(
+            CheckSet.behavior,
+            'sample',
+            notImplemented(CheckSet.behavior),
+          ),
+        ),
+        'ERROR behavior sample: this version of nidana_contract_check does not implement the behavior set',
+      );
+    });
+    test('the summary counts passed, failed and pending fixtures', () {
+      expect(
+        summaryLine(const <SetRun>[passing, failing, pending, unavailable]),
+        '4 fixtures: 2 passed, 1 failed, 1 pending',
+      );
+      expect(
+        summaryLine(const <SetRun>[
+          SetChecked(CheckSet.structure, 'sample', <FixtureOutcome>[
+            Passed('a'),
+          ]),
+        ]),
+        '1 fixture: 1 passed, 0 failed, 0 pending',
+      );
+      expect(
+        summaryLine(const <SetRun>[]),
+        '0 fixtures: 0 passed, 0 failed, 0 pending',
       );
     });
   });
@@ -144,6 +199,16 @@ void main() {
         exitEnvironment,
       );
     });
+    test(
+      '1 when a fixture is pending, 2 when a set is unavailable as well',
+      () {
+        expect(exitCodeOf(const <SetRun>[passing, pending]), exitFailed);
+        expect(
+          exitCodeOf(const <SetRun>[pending, unavailable]),
+          exitEnvironment,
+        );
+      },
+    );
     test('the four codes of ADR-001 item 9', () {
       expect(
         <int>[exitPassed, exitFailed, exitEnvironment, exitUsage],

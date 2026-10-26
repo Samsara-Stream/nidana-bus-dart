@@ -144,7 +144,8 @@ Iterable<SetRun> _runs(Request request, Directory root) sync* {
 }
 
 /// [set] run over [snapshot]. Each set this version does not implement is
-/// [SetUnavailable]; the phase that lands it replaces its branch.
+/// [SetUnavailable] with the [notImplemented] reason; the phase that lands it
+/// replaces its branch.
 SetRun _run(CheckSet set, SlugSnapshot snapshot) => switch (set) {
   CheckSet.structure => SetChecked(
     set,
@@ -154,11 +155,12 @@ SetRun _run(CheckSet set, SlugSnapshot snapshot) => switch (set) {
   // nidana.model.2 lands these.
   CheckSet.surface ||
   CheckSet.reject ||
-  CheckSet.schema => SetUnavailable(set, snapshot.slug),
+  CheckSet.schema => SetUnavailable(set, snapshot.slug, notImplemented(set)),
   // nidana.model.6 lands this.
-  CheckSet.behavior => SetUnavailable(set, snapshot.slug),
+  CheckSet.behavior => SetUnavailable(set, snapshot.slug, notImplemented(set)),
   // nidana.model.7 lands these.
-  CheckSet.file || CheckSet.cli => SetUnavailable(set, snapshot.slug),
+  CheckSet.file ||
+  CheckSet.cli => SetUnavailable(set, snapshot.slug, notImplemented(set)),
 };
 
 /// Prints [run]: each outcome's line to [out], or the unavailable line to

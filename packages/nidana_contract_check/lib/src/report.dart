@@ -3,6 +3,7 @@
 library;
 
 import 'outcome.dart';
+import 'packages.dart';
 import 'request.dart';
 
 /// Every fixture the replay ran passed.
@@ -37,35 +38,49 @@ final class SetChecked extends SetRun {
   final List<FixtureOutcome> outcomes;
 }
 
-/// A set this version of the tool does not implement yet: an environment error.
+/// A set that could not run: an environment error, with its [reason].
 final class SetUnavailable extends SetRun {
-  const SetUnavailable(super.set, super.slug);
+  const SetUnavailable(super.set, super.slug, this.reason);
+
+  /// Why the set could not run, for its report line.
+  final String reason;
 }
 
-/// The report line of [outcome] under [set]: `PASS {set} {path}`, or
-/// `FAIL {set} {path}: {rule} ({detail}); ...` with every problem in order.
+/// The reason of a set this version does not implement.
+String notImplemented(CheckSet set) =>
+    'this version of nidana_contract_check does not implement the '
+    '${set.name} set';
+
+/// The report line of [outcome] under [set]: `PASS {set} {path}`,
+/// `FAIL {set} {path}: {rule} ({detail}); ...` with every problem in order,
+/// or `PENDING {set} {path}: ...` naming every absent package.
 String outcomeLine(CheckSet set, FixtureOutcome outcome) => switch (outcome) {
   Passed(:final String path) => 'PASS ${set.name} $path',
   Failed(:final String path, :final List<Problem> problems) =>
     'FAIL ${set.name} $path: ${problems.map(_problemText).join('; ')}',
+  Pending(:final String path, :final List<String> packages) =>
+    'PENDING ${set.name} $path: ${_absenceText(packages)}',
 };
 
-/// The report line of a set this version of the tool does not implement.
+/// The report line of a set that could not run: `ERROR {set} {slug}: {reason}`.
 String unavailableLine(SetUnavailable run) =>
-    'ERROR ${run.set.name} ${run.slug}: this version of nidana_contract_check '
-    'does not implement the ${run.set.name} set';
+    'ERROR ${run.set.name} ${run.slug}: ${run.reason}';
 
 /// The summary over the outcomes of every [SetChecked] in [runs]:
-/// `{n} fixtures: {passed} passed, {failed} failed`.
+/// `{n} fixtures: {passed} passed, {failed} failed, {pending} pending`, with
+/// `fixture` for one fixture.
+///
+/// Every count is printed, zero or not, so the line has one form.
 String summaryLine(List<SetRun> runs) {
   final List<FixtureOutcome> outcomes = _outcomesOf(runs);
-  final ({int passed, int failed}) tally = _tally(outcomes);
-  return '${outcomes.length} fixtures: '
-      '${tally.passed} passed, ${tally.failed} failed';
+  final _Tally tally = _tally(outcomes);
+  return '${outcomes.length} ${outcomes.length == 1 ? 'fixture' : 'fixtures'}: '
+      '${tally.passed} passed, ${tally.failed} failed, '
+      '${tally.pending} pending';
 }
 
 /// The exit code of [runs]: [exitEnvironment] when any set is unavailable,
-/// else [exitFailed] when any fixture fails, else [exitPassed].
+/// else [exitFailed] when any fixture fails or is pending, else [exitPassed].
 ///
 /// An environment error outranks a failure: the replay is then incomplete,
 /// so a gate must not read its failures as the whole story.
@@ -79,6 +94,12 @@ int exitCodeOf(List<SetRun> runs) =>
 /// `{rule} ({detail})`.
 String _problemText(Problem problem) =>
     '${problem.rule.label} (${problem.detail})';
+
+/// `package {a} is absent from ...` for one package, or
+/// `packages {a}, {b} are absent from ...` for more.
+String _absenceText(List<String> packages) => packages.length == 1
+    ? 'package ${packages.single} is absent from $packageConfigPath'
+    : 'packages ${packages.join(', ')} are absent from $packageConfigPath';
 
 /// The outcomes of every [SetChecked] in [runs], in run order.
 List<FixtureOutcome> _outcomesOf(List<SetRun> runs) =>
@@ -96,19 +117,35 @@ bool _isUnavailable(SetRun run) => switch (run) {
   SetUnavailable() => true,
 };
 
-/// Whether [outcome] makes the replay exit [exitFailed].
+/// Whether [outcome] makes the replay exit [exitFailed]: a pending fixture
+/// fails the replay as a failed one does (ADR-001 item 9).
 bool _fails(FixtureOutcome outcome) => switch (outcome) {
   Passed() => false,
   Failed() => true,
+  Pending() => true,
 };
 
-/// How many of [outcomes] passed and how many failed.
-({int passed, int failed}) _tally(List<FixtureOutcome> outcomes) =>
-    outcomes.fold(
-      (passed: 0, failed: 0),
-      (({int passed, int failed}) tally, FixtureOutcome outcome) =>
-          switch (outcome) {
-            Passed() => (passed: tally.passed + 1, failed: tally.failed),
-            Failed() => (passed: tally.passed, failed: tally.failed + 1),
-          },
-    );
+/// How many fixtures passed, failed and are pending.
+typedef _Tally = ({int passed, int failed, int pending});
+
+/// The [_Tally] of [outcomes].
+_Tally _tally(List<FixtureOutcome> outcomes) => outcomes.fold(
+  (passed: 0, failed: 0, pending: 0),
+  (_Tally tally, FixtureOutcome outcome) => switch (outcome) {
+    Passed() => (
+      passed: tally.passed + 1,
+      failed: tally.failed,
+      pending: tally.pending,
+    ),
+    Failed() => (
+      passed: tally.passed,
+      failed: tally.failed + 1,
+      pending: tally.pending,
+    ),
+    Pending() => (
+      passed: tally.passed,
+      failed: tally.failed,
+      pending: tally.pending + 1,
+    ),
+  },
+);
