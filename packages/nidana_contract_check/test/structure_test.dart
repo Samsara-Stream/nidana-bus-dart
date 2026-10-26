@@ -1,5 +1,6 @@
 // packages/nidana_contract_check/test/structure_test.dart
 import 'package:nidana_contract_check/src/outcome.dart';
+import 'package:nidana_contract_check/src/snapshot.dart';
 import 'package:nidana_contract_check/src/structure.dart';
 import 'package:test/test.dart';
 
@@ -128,6 +129,31 @@ void main() {
     expect(o.map((FixtureOutcome x) => x.path), <String>[
       'hsdd/contract/tool.md',
       t,
+    ]);
+    expect(o, everyElement(isA<Passed>()));
+  });
+  test('a source at a path holdsSource rejects is no Dart library', () {
+    final SlugSnapshot clean = snapshotOf('sample', sampleFiles);
+    final List<FixtureOutcome> o = checkStructure(
+      SlugSnapshot(
+        slug: clean.slug,
+        contractText: clean.contractText,
+        hasSchemaFile: clean.hasSchemaFile,
+        directories: <String>{...clean.directories, 'valid'},
+        files: <String, String?>{
+          ...clean.files,
+          'valid/a.json': '{}',
+          'valid/gen.dart': 'void main() {}\n',
+        },
+      ),
+    );
+    expect(o.map((FixtureOutcome x) => x.path), <String>[
+      'hsdd/contract/sample.md',
+      s,
+      '${s}behavior/sample_conformance.dart',
+      '${s}behavior/sample_impl_test.dart',
+      '${s}reject/sample_is_closed.dart',
+      '${s}surface/use.dart',
     ]);
     expect(o, everyElement(isA<Passed>()));
   });

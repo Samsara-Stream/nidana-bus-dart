@@ -81,9 +81,8 @@ final class _Slug {
   factory _Slug.read(SlugSnapshot snapshot, ContractText contract) {
     final String directory = fixtureDirectory(snapshot.slug);
     final List<String> sourcePaths = <String>[
-      for (final MapEntry<String, String?>(:String key, :String? value)
-          in snapshot.files.entries)
-        if (value != null) key,
+      for (final String relative in snapshot.files.keys)
+        if (holdsSource(relative)) relative,
     ]..sort();
     return _Slug(
       name: snapshot.slug,
@@ -98,11 +97,12 @@ final class _Slug {
       }),
       libraries: List<_Library>.unmodifiable(<_Library>[
         for (final String relative in sourcePaths)
-          (
-            relative: relative,
-            path: '$directory$relative',
-            content: readDartLibrary(snapshot.files[relative]!),
-          ),
+          if (snapshot.files[relative] case final String source)
+            (
+              relative: relative,
+              path: '$directory$relative',
+              content: readDartLibrary(source),
+            ),
       ]),
     );
   }
@@ -129,7 +129,8 @@ final class _Slug {
   /// each relative to [directory].
   final Set<String> listedBindings;
 
-  /// The Dart libraries the snapshot holds, by ascending relative path.
+  /// The files [holdsSource] accepts, read as Dart libraries, by ascending
+  /// relative path.
   final List<_Library> libraries;
 }
 
