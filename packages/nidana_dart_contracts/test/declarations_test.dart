@@ -69,4 +69,50 @@ void main() {
       throwsA(isA<AssertionError>()),
     );
   });
+
+  test('a source with an empty field fails an assertion', () {
+    String empty = '';
+    expect(() => TopologySource(empty), throwsA(isA<AssertionError>()));
+    expect(() => ServiceSource(empty), throwsA(isA<AssertionError>()));
+    expect(() => PageSource(empty), throwsA(isA<AssertionError>()));
+    expect(() => ExecutorSource(empty), throwsA(isA<AssertionError>()));
+    empty = 'x';
+    expect(() => ServiceSource(empty), returnsNormally);
+  });
+
+  test('an envelope keeps the fields it is given, with no causation and no '
+      'parents by default', () {
+    final DateTime at = DateTime.utc(2026);
+    const MessageSource source = ServiceSource('s');
+    final MessageEnvelope<int> envelope = MessageEnvelope<int>(
+      id: 'e-1',
+      payload: 1,
+      correlationId: 'c-1',
+      timestamp: at,
+      source: source,
+      sensitive: true,
+    );
+    expect(envelope.id, 'e-1');
+    expect(envelope.payload, 1);
+    expect(envelope.correlationId, 'c-1');
+    expect(envelope.causationId, isNull);
+    expect(envelope.parentCorrelationIds, isEmpty);
+    expect(envelope.timestamp, at);
+    expect(envelope.source, same(source));
+    expect(envelope.sensitive, isTrue);
+  });
+
+  test('G18 Lineage.root has no causation and no parents, and the '
+      'correlation and sensitivity it is given, null and false by default', () {
+    const Lineage root = Lineage.root();
+    expect(root.causationId, isNull);
+    expect(root.correlationId, isNull);
+    expect(root.parentCorrelationIds, isEmpty);
+    expect(root.sensitive, isFalse);
+    const Lineage started = Lineage.root(correlationId: 'f-1', sensitive: true);
+    expect(started.causationId, isNull);
+    expect(started.correlationId, 'f-1');
+    expect(started.parentCorrelationIds, isEmpty);
+    expect(started.sensitive, isTrue);
+  });
 }
