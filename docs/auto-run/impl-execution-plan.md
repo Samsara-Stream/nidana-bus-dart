@@ -169,7 +169,8 @@ a `Task N: complete` line; never re-dispatch them.
 | S98 | config | hsdd-config | nidana.model.1 | done | fd8bd3a |
 | S99 | code-plan | superpowers:writing-plans | nidana.model.1 (8 tasks; resumed once for the strict not-executable form) | done | 188728d |
 | S100 | contract (inserted) | hsdd-contract | bus-api@v2 touch: the G13 not-executable line names nidana.runtime (contract gap from S99) | done | 4d35eaf |
-| S101 | implement | superpowers:subagent-driven-development | nidana.model.1: 8 tasks, 3 task fix rounds, final review with one fix wave; gate exit 0, 93 tests, 102/102 structure | done | d761b1f (merged into impl/nidana.model next) |
+| S101 | implement | superpowers:subagent-driven-development | nidana.model.1: 8 tasks, 3 task fix rounds, final review with one fix wave; gate exit 0, 93 tests, 102/102 structure | done | d761b1f; merged into impl/nidana.model as cab9039 |
+| S102 | config | hsdd-config | nidana.model.2 | done | eb1e181 |
 
 ## Notes for the report
 
