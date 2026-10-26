@@ -493,3 +493,6 @@ orchestrator and recorded with `would_have_asked: true`.
   final; `gate.mjs --final` reports 0 errors and 44 historical warnings. S95 filled the intake record's
   Produced ledger and wrote `docs/auto-run/REPORT-v0_15_1.md`. Stage 9 ends here; the record stays open
   until its phases ship.
+- 2026-10-26 (UTC), S96 and S97: the owner asked for the implementation of nidana.model's phases to run
+  unattended. That segment has its own plan, `docs/auto-run/impl-execution-plan.md`, and its own preamble,
+  `docs/auto-run/impl-step-preamble.md`; its step log continues the S numbers there.

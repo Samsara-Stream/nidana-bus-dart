@@ -22,7 +22,8 @@ const DIR = join(ROOT, "hsdd", "judgement");
 const DECISIONS = join(DIR, "decisions.jsonl");
 const RUN = join(DIR, "run.jsonl");
 
-const STEPS = ["setup", "plan", "intake", "root-spec", "mid-level-spec", "adr", "contract", "phase-plan", "reconcile"];
+const STEPS = ["setup", "plan", "intake", "root-spec", "mid-level-spec", "adr", "contract", "phase-plan", "reconcile",
+  "config", "code-plan", "implement"];
 const BLAST = ["node-local", "contract", "tree", "upstream"];
 const CONF = ["high", "medium", "low"];
 const STOP = ["axis", "shape", "upstream", "breaking-amend", "collision", "external", null];

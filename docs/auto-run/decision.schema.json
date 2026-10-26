@@ -18,8 +18,8 @@
       "description": "When the decision was taken, ISO 8601 with a zone."
     },
     "step": {
-      "enum": ["setup", "plan", "intake", "root-spec", "mid-level-spec", "adr", "contract", "phase-plan", "reconcile"],
-      "description": "The step type, aligned with TBM's verdict steps so both calibrate the same judge. setup = inputs settled before any skill ran; plan = the execution plan itself; intake = hsdd-intake routing a change request into the planned tree (from S55)."
+      "enum": ["setup", "plan", "intake", "root-spec", "mid-level-spec", "adr", "contract", "phase-plan", "reconcile", "config", "code-plan", "implement"],
+      "description": "The step type, aligned with TBM's verdict steps so both calibrate the same judge. setup = inputs settled before any skill ran; plan = the execution plan itself; intake = hsdd-intake routing a change request into the planned tree (from S55); config = an hsdd-config phase context switch, code-plan = superpowers:writing-plans on a phase, implement = executing a phase plan through to its gate and verification doc (from S96, the implementation segment)."
     },
     "step_ref": {
       "type": "string",
