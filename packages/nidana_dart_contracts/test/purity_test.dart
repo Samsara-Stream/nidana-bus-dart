@@ -29,37 +29,63 @@ Set<String> sectionKeys(String text, String section) {
   return keys;
 }
 
-/// A string literal, raw or not, in single or double quotes: its body is
-/// group 1 or group 2.
-final RegExp stringLiteral = RegExp(r'''r?'([^'\n]*)'|r?"([^"\n]*)"''');
+/// A string literal, raw or not, in single or double quotes, triple-quoted or
+/// not: its body is group 1, 2, 3 or 4.
+final RegExp stringLiteral = RegExp(
+  r'''r?'{3}([\s\S]*?)'{3}|r?"{3}([\s\S]*?)"{3}|r?'([^'\n]*)'|r?"([^"\n]*)"''',
+);
 
 /// Adjacent string literals, which Dart reads as one string.
 final RegExp adjacentLiterals = RegExp(
-  r'''(?:r?'[^'\n]*'|r?"[^"\n]*")(?:\s*(?:r?'[^'\n]*'|r?"[^"\n]*"))*''',
+  '(?:${stringLiteral.pattern})(?:\\s*(?:${stringLiteral.pattern}))*',
+);
+
+/// A comment or a string literal, whichever starts first.
+final RegExp commentOrLiteral = RegExp(
+  '${stringLiteral.pattern}|//[^\\n]*|/\\*[\\s\\S]*?\\*/',
+);
+
+/// The string a match of [stringLiteral] spells, apart from escapes. Dart
+/// drops the first line of a triple-quoted literal when it holds nothing but
+/// white space.
+String literalBody(Match literal) =>
+    (literal[1] ?? literal[2])?.replaceFirst(
+      RegExp(r'^[ \t]*(?:\r\n|\n|\r)'),
+      '',
+    ) ??
+    (literal[3] ?? literal[4])!;
+
+/// [source] with each comment read as Dart reads it, as white space: a
+/// space, and the comment's line breaks. A `//` or `/*` inside a string
+/// literal starts no comment.
+String withoutComments(String source) => source.replaceAllMapped(
+  commentOrLiteral,
+  (Match m) => m[0]!.startsWith('/')
+      ? ' ${m[0]!.replaceAll(RegExp(r'[^\n]'), '')}'
+      : m[0]!,
 );
 
 /// The URIs of every import, export and part directive in [source], read
 /// from the directive's keyword to its `;`: every URI of a conditional
-/// import, each run of adjacent literals joined into one.
+/// import, each run of adjacent literals joined into one, comments read as
+/// white space.
 List<String> directiveUris(String source) => <String>[
   for (final Match directive in RegExp(
     r'^\s*(?:import|export|part)\b[^;]*;',
     multiLine: true,
-  ).allMatches(source))
+  ).allMatches(withoutComments(source)))
     for (final Match run in adjacentLiterals.allMatches(directive[0]!))
-      stringLiteral
-          .allMatches(run[0]!)
-          .map((Match literal) => literal[1] ?? literal[2]!)
-          .join(),
+      stringLiteral.allMatches(run[0]!).map(literalBody).join(),
 ];
 
 /// Whether the library at [path], in a package whose libraries are under
 /// [lib], may name [uri] (G25, G26): a `dart:` library other than dart:io,
 /// dart:isolate, dart:ffi and dart:html, `package:meta`, this package, or a
-/// relative URI that resolves inside [lib]. A URI with a backslash is never
-/// allowed, because an escape can spell any URI.
+/// relative URI that resolves inside [lib]. A URI with a backslash or a
+/// percent sign is never allowed, because a string escape or a percent
+/// encoding can spell any URI.
 bool allowedUri(String uri, {required String path, required String lib}) {
-  if (uri.contains(r'\')) {
+  if (uri.contains(r'\') || uri.contains('%')) {
     return false;
   }
   if (uri.startsWith('dart:')) {
@@ -171,6 +197,50 @@ void main() {
     );
   });
 
+  test('the directive reader sees through comments inside a directive', () {
+    expect(
+      directiveUris(
+        "import 'dart:' /* c */ 'io';\n"
+        "import 'dart:' // c\n    'isolate';\n"
+        "import /* ; */ 'dart:ffi';\n"
+        "import /* it's */ 'dart:html';\n"
+        "import 'a.dart' /* \"c\" */ if (dart.library.io) /* ' */ 'b.dart';\n",
+      ),
+      <String>[
+        'dart:io',
+        'dart:isolate',
+        'dart:ffi',
+        'dart:html',
+        'a.dart',
+        'b.dart',
+      ],
+    );
+  });
+
+  test('the directive reader keeps comment marks inside a string and skips '
+      'a directive inside a comment', () {
+    expect(
+      directiveUris(
+        "import 'package:x//y.dart';\nimport 'a/*b.dart';\n"
+        "import 'c.dart'; /* tail */\n"
+        "/*\n  import 'dart:io';\n*/\n"
+        "  // import 'dart:ffi';\n",
+      ),
+      <String>['package:x//y.dart', 'a/*b.dart', 'c.dart'],
+    );
+  });
+
+  test('the directive reader reads a triple-quoted URI, whose first line '
+      'break Dart drops', () {
+    expect(
+      directiveUris(
+        "import '''\ndart:io''' as a;\nimport \"\"\"dart:ffi\"\"\";\n"
+        "import '''dart:''' 'isolate';\nimport '''  \t\ndart:html''';\n",
+      ),
+      <String>['dart:io', 'dart:ffi', 'dart:isolate', 'dart:html'],
+    );
+  });
+
   test('allowedUri admits the SDK but four libraries, meta, this package '
       'and lib/, and nothing else', () {
     bool allowed(String uri) => allowedUri(
@@ -184,6 +254,11 @@ void main() {
     expect(allowed('dart:ffi'), isFalse);
     expect(allowed('dart:html'), isFalse);
     expect(allowed(r'dart:\x69o'), isFalse);
+    expect(allowed('dart:%69o'), isFalse);
+    expect(allowed('dart:i%73olate'), isFalse);
+    expect(allowed('dart:%66fi'), isFalse);
+    expect(allowed('dart:ht%6dl'), isFalse);
+    expect(allowed('../%2e%2e/test/purity_test.dart'), isFalse);
     expect(allowed('package:meta/meta.dart'), isTrue);
     expect(allowed('package:nidana_dart_contracts/topology_plan.dart'), isTrue);
     expect(allowed('package:collection/collection.dart'), isFalse);
