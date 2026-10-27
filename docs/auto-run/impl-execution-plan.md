@@ -209,7 +209,8 @@ a `Task N: complete` line; never re-dispatch them.
 | S138 | reconcile | hsdd-reconcile | nidana.model pending section (amend of .11 and .13 gates): topology-ir@v1 Delivery, compatible within v1 | done | 708e7df |
 | S139 | config | hsdd-config | nidana.model.11 re-run after the gate amend (topology-ir G2,G5,G6,G8 to G12: 17 cases, 7 for .11) | done | d68ad72 |
 | S140 | code-plan | superpowers:writing-plans | nidana.model.11 (5 tasks; dry run gate exit 0: topology-dsl 24/24, topology-ir restricted 17/17; every routed item taken) | done | bba6721 |
-| S141 | implement | superpowers:subagent-driven-development | nidana.model.11: 5 tasks, no fix rounds, final review with fixes, one fix wave; gate exit 0, 235 tests; topology-dsl@v2 fully produced (24/24 unrestricted); topology-ir restricted 17/17 | done | 9119de2 |
+| S141 | implement | superpowers:subagent-driven-development | nidana.model.11: 5 tasks, no fix rounds, final review with fixes, one fix wave; gate exit 0, 235 tests; topology-dsl@v2 fully produced (24/24 unrestricted); topology-ir restricted 17/17 | done | 9119de2; merged into impl/nidana.model as c021914 |
+| S142 | config | hsdd-config | nidana.model.12 (N=6, full-review; all 31 restricted topology-ir cases reachable, 12 for .12) | done | f0160dd |
 
 ## Notes for the report
 
