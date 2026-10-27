@@ -192,6 +192,7 @@ a `Task N: complete` line; never re-dispatch them.
 | S121 | code-plan | superpowers:writing-plans | nidana.model.7 (8 tasks; script form for package commands; 2 contract gaps routed) | done | 0eacc99 |
 | S122 | implement | superpowers:subagent-driven-development | nidana.model.7: 8 tasks, a pre-review amendment on Task 3 (sealed FileEntry), a doc fix round on Task 8, final review with fixes (tests pinned governance content), one fix wave; gate exit 0, 468 tests, 102/102; --all 321: 235/3/83; the replay tool is complete | done | f4a13fd; merged into impl/nidana.model as eb033bb |
 | S123 | config | hsdd-config | nidana.model.8 (N=7, spot-check; produces topic-model@v1, last producing phase; the known excerpt-ids warning) | done | b979378 |
+| S124 | code-plan | superpowers:writing-plans | nidana.model.8 (6 tasks; dry run green: topic-model 41 behavior cases; 3 contract gaps routed) | done | 7a245e7 |
 
 ## Notes for the report
 
@@ -278,7 +279,7 @@ that phase's writing-plans dispatch and strikes it here when the phase's plan co
   RED baseline: with the package present, `topology-dsl topology-ir --set surface,reject` prints
   `41 fixtures: 25 passed, 16 failed, 0 pending` (FAIL, not PENDING), `uri_does_not_exist` for
   `topology_plan.dart` among them.
-- nidana.model.8 (from S107's final review): restore the Interface's trailing comments the declaration
+- nidana.model.8 (from S107's final review; taken into S124's plan, Tasks 1 to 5): restore the Interface's trailing comments the declaration
   phase dropped (`// T` on `valueType`, the four `// non-empty`), and carry the Interface's dartdoc and trailing
   comments onto `==`, `hashCode` and `toString`; fix `envelope.dart`'s `// copied, unmodifiable` by copying;
   a private `Lineage` constructor for `combine` and `withLatestFrom`; store `initial` under both const
@@ -333,6 +334,13 @@ that phase's writing-plans dispatch and strikes it here when the phase's plan co
   reading, nidana.model.6 decision 5 and nidana.model.7 decision 12); a duplicate Case-table row's ids are
   ignored, first row wins (a structure-list touch: item 3 says one row); `plugins: # comment` in a case's
   `files/analysis_options.yaml` reads as no plugin, which turns a PENDING case into a run (item 7 plugin note).
+- End of nidana.model, governance sweep (from S124, hsdd-contract on topic-model@v1, compatible): G15 and G24's
+  "never contains the payload's own rendering" cannot hold for a very short rendering (`RedactedPayload.of('String')`
+  renders `<redacted String #...>`); G15 applied to an already-redacted envelope wraps it again, so the log shows
+  `<redacted RedactedPayload #...>` and the payload type is lost (the surface fixture's `AuditObserver` logs exactly
+  this; a rule choice for hsdd-contract); "Everything here is a value or a total function" (topic-model line 18 and
+  nidana.model's Pure band, hsdd-spec) is inaccurate: the observer interfaces are neither and `Lineage.combine`
+  throws. `docs/auto-run/steps/S124.json` contract_gaps.
 - nidana.tooling.codegen.6, .9, .11 and nidana.tooling.lint.4 (from S122): the first gates to run the 39 committed
   recorded invocations and topic-codegen's file replay for real (all PENDING until then); their `{files}` and
   `{root}` recordings and in-place `files/` runs are first exercised there.
@@ -379,7 +387,7 @@ that phase's writing-plans dispatch and strikes it here when the phase's plan co
   (9 cases pass, 32 fail), and not every failure is `UnimplementedError` (some are identity equality or
   `Object.toString`), so nidana.model.6's Verification sentence "cases fail on UnimplementedError, not on
   loading" holds only loosely; its plan should state what it checks.
-- nidana.model.8 (from S106): what it must add or replace is listed in `docs/auto-run/steps/S106.json`
+- nidana.model.8 (from S106; taken into S124's plan, Tasks 1 to 3): what it must add or replace is listed in `docs/auto-run/steps/S106.json`
   `notes_for_orchestrator` (the stored `initial`, the copied `parentCorrelationIds`, removing the
   `// ignore: unused_element` on `RedactedPayload._`, value equality and `toString`).
 - nidana.model.4 and .5 (from S106): no topic-model reject line carries two codes; the two-codes item

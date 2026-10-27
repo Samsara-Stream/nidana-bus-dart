@@ -1,0 +1,305 @@
+{
+  "step_ref": "S124",
+  "skill": "superpowers:writing-plans",
+  "target": "nidana.model.8",
+  "status": "completed",
+  "stop": null,
+  "artifacts": [
+    "docs/superpowers/plans/nidana.model.8.md",
+    "docs/auto-run/experiments/topic-model-values-plan/",
+    "docs/auto-run/steps/S124.json"
+  ],
+  "decisions": [
+    {
+      "at": "2026-10-27T10:58:00Z",
+      "artifact": "docs/superpowers/plans/nidana.model.8.md",
+      "question": "What is each task's failing test, given that the committed conformance suite already holds 41 cases over every behavior guarantee this phase delivers?",
+      "options": [
+        { "label": "Restricted replay plus tests beyond the suite", "consequence": "Each task's failing step replays its own guarantee ids through the committed binding (`--set behavior --guarantee ...`) and adds a package test file for what the suite leaves open (Review Focus inputs, routed items, property tests). No suite case is copied, so a fixture change cannot drift from a package copy; the replay output names each case that turns green." },
+        { "label": "Copy the suite's cases into package tests", "consequence": "Self-contained package tests, but about 800 duplicated lines that drift from the fixtures, and the plan doubles in length." },
+        { "label": "Package tests only, replay at the end", "consequence": "Simpler steps, but the guarantees would turn green unobserved until Task 5, and which task delivers which case would be a claim, not an observation." }
+      ],
+      "chosen": "Restricted replay plus tests beyond the suite",
+      "why": "ADR-001 items 4 and 10 make the conformance suite the executable statement of the guarantees, and nidana.model.6 landed `--guarantee` restriction for exactly this use. The dry run shows every task's restricted replay failing before and passing after (T1.2 to T5.4), which also answers the brief's 'say which task turns which failing guarantees green' by observation.",
+      "evidence": ["hsdd/adr/001-executable-contract-validation.md items 4, 9, 10", "docs/auto-run/experiments/topic-model-values-plan/output.txt T1.2 to T5.4"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T10:58:00Z",
+      "artifact": "docs/superpowers/plans/nidana.model.8.md",
+      "question": "How are the bodies split into tasks (at most 7)?",
+      "options": [
+        { "label": "Six tasks, leaves to dependents", "consequence": "Topics; sources, scopes, capabilities and redaction; lineage values with the envelope's parent copy; combine with its property tests and the README; envelopes; gate and verification. Each task's restricted replay goes green except Task 3's one combine case, by design. Combine is reviewable apart from the simpler lineage values." },
+        { "label": "Five tasks, lineage in one", "consequence": "One fewer review gate, but combine's algorithm and property tests share a task with causedBy and equality, so a reviewer cannot reject one without the other." },
+        { "label": "Envelopes before lineage", "consequence": "G14's conformance case calls Lineage.causedBy, so the envelope task's replay could not go green." }
+      ],
+      "chosen": "Six tasks, leaves to dependents",
+      "why": "The dependency order is fixed by the code: RedactedPayload before the envelope's toString, causedBy before publishedTo's case, list equality before both equalities. The envelope's unmodifiable copy moved into Task 3 because Lineage.causedBy shares the envelope's list, so its unmodifiability test needs the copy (found while drafting; without it Task 3's own test fails).",
+      "evidence": ["docs/auto-run/experiments/topic-model-values-plan/output.txt T3.4", "hsdd/contract/fixture/topic-model/behavior/topic_model_conformance.dart (G14 case 2 uses Lineage.causedBy)"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T10:40:00Z",
+      "artifact": "packages/nidana_dart_contracts/lib/src/topic/topic.dart (planned)",
+      "question": "How do both const StateTopic constructors store `initial` (a T, or a T Function()) so that createInitial is correct for every T?",
+      "options": [
+        { "label": "T? _constant and T Function()? _factory", "consequence": "Type-safe; createInitial calls _factory when set and returns `_constant as T` otherwise, which is right for a nullable T declared with null." },
+        { "label": "Object? _initial and a bool _computed", "consequence": "One field, but a cast from Object? either way and a flag to keep in sync." },
+        { "label": "Private named parameter `required T this._initial`", "consequence": "What the lint suggests; newer syntax that changes how the parameter is declared, for no behavioral gain." }
+      ],
+      "chosen": "T? _constant and T Function()? _factory",
+      "why": "A field named `_initial` assigned from `initial` trips the root lint set's prefer_initializing_formals (dry run, first draft). `_constant ?? _factory!()` would throw for StateTopic<String?> with initial null (seeded defect D2, caught by the plan's Task 1 test).",
+      "evidence": ["docs/auto-run/experiments/topic-model-values-plan/output.txt D2", "hsdd/contract/topic-model.md G3, G9"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T10:40:00Z",
+      "artifact": "packages/nidana_dart_contracts/lib/src/topic/message_source.dart (planned)",
+      "question": "Where do source equality, hash code and rendering live?",
+      "options": [
+        { "label": "In the sealed base, by the rendering", "consequence": "toString is one exhaustive switch; == compares renderings and hashCode hashes the rendering. About 15 lines; correct because G17 makes the rendering injective (tryParse is its inverse, and the variant is named before the first colon). Costs a string per comparison." },
+        { "label": "Per variant", "consequence": "Each of the five variants overrides == and hashCode over its own field; about 25 more lines, the most conventional form." }
+      ],
+      "chosen": "In the sealed base, by the rendering",
+      "why": "One definition for the closed family, matching the owner's preference for declarative ADT code, and exactly G17's equality ('equal exactly when variant and field are') since the rendering is a bijection onto valid renderings. Sources are compared at activation and in tests, not on a hot path. A reviewer who wants per-variant overrides can ask for them without changing any test.",
+      "evidence": ["hsdd/contract/topic-model.md G17", "docs/auto-run/experiments/topic-model-values-plan/output.txt T2.4"],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T10:40:00Z",
+      "artifact": "packages/nidana_dart_contracts/lib/src/topic/list_equality.dart (planned)",
+      "question": "How do envelope and lineage equality compare parent lists element by element, with no package beyond meta?",
+      "options": [
+        { "label": "One internal library, elementsEqual", "consequence": "lib/src/topic/list_equality.dart with `bool elementsEqual(List<Object?> a, List<Object?> b)`, not exported (the main library uses show lists, so exports_test is unchanged); nidana.model.10's IR equality can reuse it." },
+        { "label": "A private helper in each library", "consequence": "No new file, two copies of the same loop." },
+        { "label": "package:collection's ListEquality", "consequence": "Not allowed: ADR-002 item 4 gives nidana_dart_contracts meta alone." }
+      ],
+      "chosen": "One internal library, elementsEqual",
+      "why": "DRY across envelope.dart and lineage.dart, which already import each other; D4 places topic-model code under lib/src/topic/. List's own == is identity (F L1).",
+      "evidence": ["hsdd/adr/002-package-workspace-layout.md item 4", "hsdd/spec/nidana.model.md D4", "docs/auto-run/experiments/topic-model-values-plan/output.txt F L1"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T10:40:00Z",
+      "artifact": "packages/nidana_dart_contracts/lib/src/topic/lineage.dart (planned)",
+      "question": "Does Lineage.causedBy copy the envelope's parent list again?",
+      "options": [
+        { "label": "Share it", "consequence": "No copy per pipeline value; correct because the envelope's list is its own unmodifiable copy and MessageEnvelope is final, so no subclass can supply another." },
+        { "label": "Copy again", "consequence": "Defensive, one allocation per lineage, guarding against nothing the type system allows." }
+      ],
+      "chosen": "Share it",
+      "why": "G4 holds by construction once the envelope copies (Task 3); Lineage.withLatestFrom shares the primary's list on the same ground, and combine builds its own unmodifiable lists.",
+      "evidence": ["hsdd/contract/topic-model.md G4", "docs/auto-run/experiments/topic-model-values-plan/draft/test/lineage_test.dart"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T10:40:00Z",
+      "artifact": "packages/nidana_dart_contracts/lib/src/topic/lineage.dart (planned)",
+      "question": "Which errors does Lineage.combine throw, the Interface saying ArgumentError for an empty list or a trigger out of range?",
+      "options": [
+        { "label": "ArgumentError.value, then RangeError.checkValidIndex", "consequence": "Idiomatic index check; a RangeError is an ArgumentError, so the Interface and the suite's throwsArgumentError hold." },
+        { "label": "ArgumentError.value for both", "consequence": "The Interface's type exactly, with a hand-written range test." }
+      ],
+      "chosen": "ArgumentError.value, then RangeError.checkValidIndex",
+      "why": "Settled by experiment: RangeError.checkValidIndex throws a RangeError, which is an ArgumentError, for an index past the end and for -1 (F A2, A3). Both checks run before any freshCorrelationId call, which the suite asserts.",
+      "evidence": ["docs/auto-run/experiments/topic-model-values-plan/output.txt F A1 to A3", "hsdd/contract/topic-model.md G19"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T10:40:00Z",
+      "artifact": "packages/nidana_dart_contracts/lib/src/topic/topic.dart (planned)",
+      "question": "How does isWellFormedTopicName apply the pattern?",
+      "options": [
+        { "label": "Split at '.', one anchored pattern per segment", "consequence": "Reads as the Interface's sentence (two or three segments, each matching); a trailing newline fails because Dart's $ without multiLine matches only at the end of input." },
+        { "label": "One pattern over the whole name", "consequence": "Shorter; with multiLine it accepts 'auth.state\\n', which the suite's G11 cases do not catch (seeded defect D3)." }
+      ],
+      "chosen": "Split at '.', one anchored pattern per segment",
+      "why": "F R2 and R4 settle the anchoring and the empty-string case; D3 shows why the plan's Task 1 test pins the trailing newline.",
+      "evidence": ["docs/auto-run/experiments/topic-model-values-plan/output.txt F R1 to R5, D3", "hsdd/contract/topic-model.md G11"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T10:50:00Z",
+      "artifact": "packages/nidana_dart_contracts/lib/src/topic/envelope.dart (planned)",
+      "question": "What does MessageEnvelope.toString render, which G15 constrains only for a sensitive payload?",
+      "options": [
+        { "label": "All eight fields, pinned by a test", "consequence": "`MessageEnvelope(id: e-1, payload: shoes, correlationId: c-1, causationId: e-0, parentCorrelationIds: [p-1, p-2], timestamp: 2026-10-27 12:00:00.000Z, source: page:search, sensitive: false)`, a sensitive payload as RedactedPayload.of(payload); one reasonable thing for the implementer, and logs show the whole lineage." },
+        { "label": "Fewer fields, unpinned", "consequence": "Shorter logs, but each implementer picks a format, and later phases' tests cannot rely on it." }
+      ],
+      "chosen": "All eight fields, pinned by a test",
+      "why": "An observer's log line is the main reader (surface observers.dart logs safe.toString()); the causation and correlation ids are what a reader of a log needs. No type argument: the redacted() envelope is MessageEnvelope<Object?>, which would render differently from the original for no information.",
+      "evidence": ["hsdd/contract/topic-model.md G15", "hsdd/contract/fixture/topic-model/surface/observers.dart"],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T10:50:00Z",
+      "artifact": "packages/nidana_dart_contracts/lib/src/topic/envelope.dart (planned)",
+      "question": "redacted() and toString() on an envelope whose payload is already a RedactedPayload: re-wrap, as G15 states, or keep it?",
+      "options": [
+        { "label": "Follow G15 as written", "consequence": "redacted() always wraps RedactedPayload.of(payload) and toString always renders RedactedPayload.of(payload) for a sensitive envelope, so envelope.redacted().toString() shows `<redacted RedactedPayload #...>` and loses the original type. Nothing leaks." },
+        { "label": "Make redaction idempotent", "consequence": "Keeps the original type in the audit log, but departs from G15's literal text for that input, which Versioning lists as a breaking change to the redaction format." }
+      ],
+      "chosen": "Follow G15 as written",
+      "why": "The run rules forbid improvising around a contract; the behavior is safe, only less informative. Reported as a contract gap for hsdd-contract. The plan does not pin the double-wrapped type name, only that no payload rendering leaks, so a later contract change touches no test of this phase.",
+      "evidence": ["hsdd/contract/topic-model.md G15, G24, Versioning", "hsdd/contract/fixture/topic-model/surface/observers.dart (AuditObserver)"],
+      "blast_radius": "contract",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T10:45:00Z",
+      "artifact": "packages/nidana_dart_contracts/test/lineage_property_test.dart (planned)",
+      "question": "How do the property tests generate lineages without a new dependency?",
+      "options": [
+        { "label": "dart:math Random with fixed seeds", "consequence": "500 seeds per property, 1 to 5 inputs drawn from root and causedBy lineages over a small correlation and parent alphabet; each failure names its seed; a coverage assertion proves every branch of the table is reached. Under a second." },
+        { "label": "Exhaustive enumeration of small inputs", "consequence": "Complete over a tiny domain, but combinatorial in input length and parents, and not the 'generated inputs' the node's isolation strategy names." },
+        { "label": "A property-testing package", "consequence": "Not allowed: ADR-002 item 3's table gives the package's dev dependencies as test alone." }
+      ],
+      "chosen": "dart:math Random with fixed seeds",
+      "why": "ADR-002 items 3 and 4 allow no new package; D6's purity test scans lib/ only, so Random under test/ is fine. Seeded defects D5 (fresh id taken eagerly), D6 (repeated parents kept) and D7 (causation from the last input) are each caught by a property.",
+      "evidence": ["hsdd/adr/002-package-workspace-layout.md items 3, 4", "hsdd/spec/nidana.model.md D6", "docs/auto-run/experiments/topic-model-values-plan/output.txt T4.4, D5 to D7"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T10:50:00Z",
+      "artifact": "docs/superpowers/plans/nidana.model.8.md",
+      "question": "Where do the Interface's trailing comments on ==, hashCode and toString go, now that those members have bodies?",
+      "options": [
+        { "label": "A // line above @override", "consequence": "Next to the signature, formatter-stable, as nidana.model.5 placed the comments the formatter would split." },
+        { "label": "Trailing after the body", "consequence": "Far from the signature after a multi-line body; the formatter may move it." }
+      ],
+      "chosen": "A // line above @override",
+      "why": "The routed item asks to carry them; the precedent puts comments the formatter would split on the line above. MessageEnvelope's toString keeps its /// dartdoc above @override.",
+      "evidence": ["docs/superpowers/plans/nidana.model.5.md Global Constraints, Comments", "docs/auto-run/experiments/topic-model-values-plan/output.txt T1.4 to T5.4 (format 0 changed)"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T10:55:00Z",
+      "artifact": "packages/nidana_dart_contracts/README.md (planned)",
+      "question": "What replaces the README's 'Everything here is a value or a total function', given D4's 'README.md ... written once, by nidana.model.3'?",
+      "options": [
+        { "label": "Correct the one sentence", "consequence": "'Everything here is an immutable value, a pure function, or one of the observer interfaces an application implements; a function rejects an argument outside its domain with an ArgumentError, as Lineage.combine does for an empty input list.' The rest of the README stays." },
+        { "label": "Leave the README", "consequence": "Keeps D4's 'written once' strictly, with a false sentence in the published package." }
+      ],
+      "chosen": "Correct the one sentence",
+      "why": "The orchestrator routed the correction here; D4 forbids editing CHANGELOG.md by name and reads 'written once' as authorship, not a freeze. The same sentence in the contract and the node spec is reported as a gap rather than edited.",
+      "evidence": ["docs/auto-run/impl-execution-plan.md, Routed to later phases (nidana.model.8)", "hsdd/spec/nidana.model.md D4"],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T10:58:00Z",
+      "artifact": "docs/superpowers/plans/nidana.model.8.md",
+      "question": "Which five input classes go into Review Focus?",
+      "options": [
+        { "label": "Hash collections, nullable initial, name edges, tryParse edges, payload shapes", "consequence": "Equal values built apart as set elements and map keys (and a widened envelope); a nullable T with a null initial; topic names with a trailing newline or non-ASCII letter; padded or colon-bearing source text; a sensitive envelope of any payload shape, after redacted() too. Each has a test in its owning task." },
+        { "label": "Include the >32-bit hash code", "consequence": "Also tested (Task 2), but less likely to bite than the five above." }
+      ],
+      "chosen": "Hash collections, nullable initial, name edges, tryParse edges, payload shapes",
+      "why": "Ranked by who meets them first: the recording builder and observers key and collect by value (nidana.model.9; bus-api@v2's suite compares a Set<MessageSource>); nullable state is common; names and sources arrive as text. Seeded defects D2 and D3 show two of them pass the suite but fail the plan's tests.",
+      "evidence": ["docs/auto-run/experiments/topic-model-values-plan/output.txt D2, D3, D8", "hsdd/contract/fixture/bus-api/behavior/bus_api_conformance.dart line 761"],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    }
+  ],
+  "experiments": [
+    {
+      "path": "docs/auto-run/experiments/topic-model-values-plan/",
+      "question": "Runtime and analyzer facts the plan relies on (hash-code stability, Object.hash over lists, unmodifiable copies, RegExp anchoring, RangeError as ArgumentError, '$T' renderings, const collections once == is overridden), today's failing behavior cases, and a dry run of every task's failing and passing step in a temporary copy of HEAD 6dddef2.",
+      "finding": "Object.hash, Object.hashAll and enum hash codes differ between runs; Object.hash of a List hashes its identity, Object.hashAll its elements. A non-empty const set of, or const map keyed by, a value class that overrides == is a compile error (also in an implicit const context); const lists, const map values, empty const sets and constant patterns stay legal; the same probe is clean against the committed declarations. The 84 fixture Dart libraries of every slug report identical diagnostics (3143 in 70 of them) before and after the drafted bodies, none a const-collection code. Baseline: 9 passed, 32 failed. Every task's restricted replay fails then passes as the plan states (Task 3 ends with the one combine case open, by design); the phase gate exits 0 with 102, +60, 31 (41 behavior cases passing) and 87; every Dart block of the plan is draft text (X); seeded defects D1 to D8 are each caught, D3 only by the plan's package test."
+    }
+  ],
+  "self_check": [
+    { "gate": "Spec coverage: Skim each section/requirement in the spec. Can you point to a task that implements it?", "status": "pass", "note": "Every Scope item maps to Tasks 1 to 5 (table 'Which task turns which failing case green'); the gate and verification doc to Task 6; the phase Verification's three items to Task 6's checklist." },
+    { "gate": "Step scan: Every step must let the implementer write exactly one reasonable thing, and no step may carry more than that", "status": "pass", "note": "Test steps carry whole test files; code steps carry signatures, the algorithm for combine in prose, and code only where a choice is not determined (StateTopic storage, MessageSource base, the private Lineage constructor, the envelope constructor, the toString format)." },
+    { "gate": "Type consistency: Do the types, method signatures, and property names you used in later tasks match what you defined in earlier tasks?", "status": "pass", "note": "elementsEqual(List<Object?>, List<Object?>), Lineage._'s four named parameters, _constant and _factory are named identically wherever used; the dry run compiled the drafts the blocks come from (X)." },
+    { "gate": "Review Focus: For each input class or failure mode the spec implies, is there a task whose tests exercise it?", "status": "pass", "note": "Five lines, each with its test in the owning task." },
+    { "gate": "Proportion: Compare the plan's length to the spec's.", "status": "pass", "note": "1144 lines against a 706-line derivative; about 560 lines are the six test files, which the step format requires as code; library code appears only in seven short blocks." },
+    { "gate": "The plan's Global Constraints contain constraints 1 to 8 above, verbatim.", "status": "pass", "note": "node docs/auto-run/tools/impl-gate.mjs code-plan nidana.model.8: 0 errors, 0 warnings." },
+    { "gate": "Every `### Task N:` except the last starts with a failing-test step.", "status": "pass", "note": "Tasks 1 to 5 open with 'Write the failing test(s)'." },
+    { "gate": "The last task writes the verification doc named in constraint 5.", "status": "pass", "note": "Task 6 writes hsdd/verify/nidana.model.8.verification.md, titled '# Verification: nidana.model.8 - Topic model values and lineage', Sign-off empty." },
+    { "gate": "The plan has at most 7 tasks.", "status": "pass", "note": "6 tasks." },
+    { "gate": "The plan is saved under docs/superpowers/plans/.", "status": "pass", "note": "docs/superpowers/plans/nidana.model.8.md, Spec line names hsdd-context/superpowers/nidana.model.8.md." },
+    { "gate": "Execution Handoff", "status": "n/a", "note": "The orchestrator takes the hand-off; the brief fixes superpowers:subagent-driven-development with sonnet implementers." }
+  ],
+  "contract_gaps": [
+    {
+      "contract": "topic-model@v1",
+      "where": "hsdd/contract/topic-model.md G15 ('never the payload's own rendering') and G24 ('never contains p's own rendering')",
+      "problem": "No implementation can hold these for a payload whose rendering is short enough to occur in the redaction format: RedactedPayload.of('String') renders '<redacted String #...>', which contains the payload's rendering 'String'; a one-character string or a one-digit number can occur among the hexadecimal digits. The suite's payload has a distinctive rendering, so no fixture fails.",
+      "proposed_fix": "A compatible wording touch: the redaction is computed from the payload's runtime type and hash code alone and never calls the payload's toString(), so it shows nothing of the payload beyond its type name and eight hexadecimal digits."
+    },
+    {
+      "contract": "topic-model@v1",
+      "where": "hsdd/contract/topic-model.md G15 and the Envelopes Interface (redacted(), toString())",
+      "problem": "G15 has redacted() replace a sensitive payload with RedactedPayload.of(payload) and toString() render RedactedPayload.of(payload), whatever the payload. For an envelope that is already redacted, both re-wrap: envelope.redacted().toString() renders '<redacted RedactedPayload #...>', losing the payload type that Spec §9.2 item 2 shows. topic-model@v1's own surface fixture (observers.dart, AuditObserver) logs exactly safe.toString() of envelope.redacted(). The plan follows G15 as written.",
+      "proposed_fix": "hsdd-contract decides: either state that a payload that is already a RedactedPayload is kept by redacted() and rendered as itself by toString() (a change to the redaction rule, which Versioning lists as breaking, though no fixture depends on the re-wrap), or keep the rule and note the consequence for observers that redact before logging."
+    },
+    {
+      "contract": "topic-model@v1",
+      "where": "hsdd/contract/topic-model.md line 18 ('Everything here is a value or a total function'); also hsdd/spec/nidana.model.md Phase Plan, Pure band (line 165)",
+      "problem": "The observer interfaces BusObserver, ObserveContext and SpanHandle are neither values nor functions, and Lineage.combine throws ArgumentError (not total). The package README carried the same sentence; this phase corrects the README only.",
+      "proposed_fix": "A compatible prose touch at the governance sweep: 'Everything here is an immutable value, a pure function, or an observer interface an application implements; a function rejects an argument outside its domain with ArgumentError.'"
+    }
+  ],
+  "notes_for_orchestrator": [
+    "Routed items, one line each: trailing comments (// T, four // non-empty) restored in Tasks 1 and 2; the Interface's comments carried onto ==, hashCode and toString in Tasks 1, 2, 3 and 5; envelope.dart's copy in Task 3; private Lineage._ in Task 3, used in Tasks 3 and 4; StateTopic's initial stored in Task 1; README sentence corrected in Task 4; the dedup and tracing one-line test in Task 1; RedactedPayload._'s ignore removed in Task 2; backticks kept in Task 2; const collections checked, none in any committed fixture, package library or test, recorded as a Learning for consumer plans (no contract gap).",
+    "Today's replay: 9 passed, 32 failed. Task 1 turns 7 green (G7 1, G8 2, G9 2, G11 2), Task 2 7 (G17 3, G21, G23, G24 2), Task 3 3 (G4 envelope, G18 causedBy, G20), Task 4 8 (G4 lineage, G19 7 with Spec §2.4's two worked examples), Task 5 7 (G13, G14 3, G15 3). Task 3's restricted replay ends with one failure (G4's lineage case, which calls combine) by design; the plan says so.",
+    "For nidana.model.9 and nidana.model.10: topic, TopicRef and MessageSource value equality land here; lib/src/topic/list_equality.dart's elementsEqual is an internal helper IR equality can reuse; Object.hash and enum hash codes are seeded per run, so no later test should pin a hash literal.",
+    "Consumer plans (nidana.runtime and later): a non-empty const set of, or const map keyed by, topics, refs, sources, envelopes, lineages or redacted payloads stops compiling once this phase merges (probe in the experiment). DateTime == distinguishes a UTC from a local timestamp of the same instant (F D1), so envelopes stamped by different clocks compare unequal; bus-api@v2's provider clock makes that moot inside one bus.",
+    "The experiment's run.sh takes about five minutes and leaves nothing behind (it removes its temporary workspace).",
+    "The plan is long (1144 lines) because it carries the six test files whole; library code appears only in short blocks."
+  ]
+}
