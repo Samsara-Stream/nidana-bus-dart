@@ -180,6 +180,7 @@ a `Task N: complete` line; never re-dispatch them.
 | S109 | phase-plan (inserted) | hsdd-phase-plan | nidana.model re-plan of unshipped .4 and .5 (main library at .4, topology_ir.dart at .5) | done | 6f1d4b4 |
 | S110 | reconcile (inserted) | hsdd-reconcile | nidana.model pending section: three Delivery amends within version, conventions fp-progression | done | 87b473a |
 | S111 | config | hsdd-config | nidana.model.4 re-run after the re-plan (N 6) | done | a78d464 |
+| S112 | code-plan | superpowers:writing-plans | nidana.model.4 (5 tasks; dry run 57/57; purity hardening routed in) | done | d3c8f85 |
 
 ## Notes for the report
 
@@ -236,7 +237,7 @@ that phase's writing-plans dispatch and strikes it here when the phase's plan co
   angle-bracket renderings (`'topology:<id>'` and the others) in a doc comment trip `unintended_html_in_doc_comment`
   when copied verbatim under the root lint set; the code puts them in backticks. A compatible hsdd-contract
   touch within v1 would put them in backticks in the contract too. Not blocking: no fixture depends on it.
-- nidana.model.4 (from S107's final review): harden `packages/nidana_dart_contracts/test/purity_test.dart`'s
+- nidana.model.4 (from S107's final review; taken into S112's plan, Task 1 and Task 2's RED step): harden `packages/nidana_dart_contracts/test/purity_test.dart`'s
   directive reader before more libraries land (it reads only the first URI of a conditional import, misses
   `import r'dart:io';`, and accepts a relative URI that climbs out of `lib/`; collect every string literal up to
   the directive's `;`, reject relative URIs outside `lib/`, add self-test cases, and exercise the token scan);
@@ -254,6 +255,10 @@ that phase's writing-plans dispatch and strikes it here when the phase's plan co
   non-empty const set or const map keyed by topics, refs, sources, envelopes or lineages stops compiling
   (`const_set_element_not_primitive_equality`); consumer plans must not rely on such collections. For the
   report and the owner.
+- nidana.model.10 (from S112): remove the two `// ignore: unused_element` on `TransformEdge._` and
+  `TopologyDefinition._`; `FunctionRef.named`'s empty-name `ArgumentError`.
+- End of nidana.model, governance sweep (from S112): topology-ir@v1's Interface prose (line 47) says every value
+  type is `@immutable`, but its code blocks show no annotation; the code annotates as the prose says.
 - End of nidana.model, governance sweep (from S110): hsdd-adr touch of ADR-001 item 10 (its premise that a
   contract's first producing phase lands every declaration, and its sub-bullet that nidana.model.4 lands only
   `TopologyDefinition`, now understate the split); hsdd-spec touches of `hsdd/spec/nidana.md` line 211
