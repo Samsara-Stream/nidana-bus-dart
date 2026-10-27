@@ -220,6 +220,7 @@ a `Task N: complete` line; never re-dispatch them.
 | S149 | code-plan | superpowers:writing-plans | nidana.model.14 (3 tasks; dry run: topology-ir unrestricted 41/43 to 43/43, gate exit 0, 369 tests; 5 of 16 seeded defects caught only by package tests) | done | e817f16 |
 | S150 | implement | superpowers:subagent-driven-development | nidana.model.14: 3 tasks, 1 doc fix round (Task 3, review evidence), final review ready with one doc-line wave; gate exit 0, 371 tests; topic-model 41/41, topology-dsl 24/24, topology-ir 43/43 all unrestricted, 120/120 fixtures; topology-ir@v1 fully produced, the node's code complete | done | 4cbd957; merged into impl/nidana.model as 526fdd0 |
 | S151 | contract (inserted, sweep) | hsdd-contract | topic-model@v1 touch within v1: S106, S124, S125 wording gaps stated as the code behaves; 3 new behavior cases (44/44); S133 left; owner items: re-redaction, NaN identity, renderings, Spec §2.4 | done | 7bfc2da |
+| S152 | contract (inserted, sweep) | hsdd-contract | topology-dsl@v2 touch within v2 (S127: closed-first, apply's wrong length, a throwing call records nothing, topic equality for one sink, visitor type arguments; 7 recording cases, 31/31; 15 seeded defects each caught) and nidana-checks@v1 touch within v1 (the scan's run form, S121) | done | 2614631 |
 
 ## Notes for the report
 
@@ -391,7 +392,7 @@ that phase's writing-plans dispatch and strikes it here when the phase's plan co
   print `Instance of 'TopicRef'`; compatible renderings would need the contract (D4 gives `lib/src/topic/` no later
   owner). Also: Spec §2.4's worked examples are checked only as G19's conformance cases encode them; compare them
   with the Specification once `ref/nidana-docs` is checked out (nidana.model.8's Outstanding).
-- End of nidana.model, governance sweep (from S127, hsdd-contract on topology-dsl@v2, non-blocking): the recording
+- End of nidana.model, governance sweep (from S127, hsdd-contract on topology-dsl@v2, non-blocking; taken by S152): the recording
   suite misses several defects seeded against stated rules (wrong type arguments in the visitors, an identity-based
   one-sink check, stages left behind after a rejected call); the contract does not say which error wins when a
   closed builder also gets a bad argument, or what `apply` does with a list of the wrong length (the code checks
@@ -497,7 +498,7 @@ that phase's writing-plans dispatch and strikes it here when the phase's plan co
 - nidana.tooling.codegen.6, .9, .11 and nidana.tooling.lint.4 (from S122): the first gates to run the 39 committed
   recorded invocations and topic-codegen's file replay for real (all PENDING until then); their `{files}` and
   `{root}` recordings and in-place `files/` runs are first exercised there.
-- End of nidana.model, governance sweep (from S121): ADR-001 item 9's `dart pub get --enforce-lockfile` does not
+- End of nidana.model, governance sweep (from S121; nidana-checks@v1's sentence taken by S152, the rest S154's and S155's): ADR-001 item 9's `dart pub get --enforce-lockfile` does not
   make a stale workspace fresh (pub's mtime rule; Dart 3.13.5), so its stated reason is wrong; the replay tool
   runs a `{package}:{executable}` command as `bin/{executable}.dart` of the package's root under the running
   `dart` with `--packages`, which runs either way. hsdd-adr: item 7 states the form, item 9's bullet restates its
