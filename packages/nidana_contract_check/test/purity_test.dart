@@ -14,21 +14,43 @@ final String lib = p.join(
   'lib',
 );
 
+/// The libraries under lib/src/ that import `dart:io`, the replay tool's
+/// imperative shell (nidana.model D2 item 5).
+const List<String> shell = <String>[
+  'command_runs.dart',
+  'processes.dart',
+  'runners.dart',
+  'shell.dart',
+  'workspace.dart',
+];
+
 List<String> directivesOf(String path) =>
     readDartLibrary(File(path).readAsStringSync()).directives;
 
+/// The `/`-separated path relative to [lib] that a directive [uri] of the library at [from] names:
+/// a URI with no scheme resolved against [from]'s directory, `package:nidana_contract_check/{path}`
+/// as `{path}`, any other URI null.
+String? targetOf(String uri, String from) {
+  const String own = 'package:nidana_contract_check/';
+  if (uri.startsWith(own)) {
+    return uri.substring(own.length);
+  }
+  return Uri.parse(uri).hasScheme
+      ? null
+      : p.posix.normalize(p.posix.join(p.posix.dirname(from), uri));
+}
+
 /// The `/`-separated paths, relative to [lib], of the libraries the directives of the library at
-/// [path] name with no scheme, each resolved against [path]'s directory.
+/// [path] name, each as [targetOf] reads it.
 Set<String> relativeTargetsOf(String path) => <String>{
   for (final String uri in directivesOf(
     p.joinAll(<String>[lib, ...p.posix.split(path)]),
   ))
-    if (!Uri.parse(uri).hasScheme)
-      p.posix.normalize(p.posix.join(p.posix.dirname(path), uri)),
+    ?targetOf(uri, path),
 };
 
 /// The paths, relative to [lib], of every library reached from `lib/{from}` through directives
-/// that have no scheme, each resolved against its importer's directory, [from] itself excluded.
+/// [targetOf] follows, [from] itself excluded.
 Set<String> relativeClosure(String from) {
   Set<String> reach(Set<String> reached, String path) =>
       relativeTargetsOf(path)
@@ -42,14 +64,48 @@ Set<String> relativeClosure(String from) {
   return reach(const <String>{}, from);
 }
 
+/// The names of the `.dart` files directly under lib/src/, ascending.
+List<String> sourceNames() => <String>[
+  for (final FileSystemEntity f in Directory(p.join(lib, 'src')).listSync())
+    if (f is File && f.path.endsWith('.dart')) p.basename(f.path),
+]..sort();
+
 void main() {
-  test('no library under lib/src/ but runners.dart, shell.dart and workspace.dart imports dart:io', () {
+  test('no library under lib/src/ but command_runs.dart, processes.dart, runners.dart, shell.dart and workspace.dart imports dart:io', () {
     final List<String> importing = <String>[
-      for (final FileSystemEntity f in Directory(p.join(lib, 'src')).listSync())
-        if (f is File && directivesOf(f.path).contains('dart:io'))
-          p.basename(f.path),
-    ]..sort();
-    expect(importing, <String>['runners.dart', 'shell.dart', 'workspace.dart']);
+      for (final String name in sourceNames())
+        if (directivesOf(p.join(lib, 'src', name)).contains('dart:io')) name,
+    ];
+    expect(importing, shell);
+  });
+  test('targetOf follows the package\'s own package: URIs', () {
+    expect(
+      targetOf('package:nidana_contract_check/src/shell.dart', 'fixture.dart'),
+      'src/shell.dart',
+    );
+    expect(targetOf('b.dart', 'src/a.dart'), 'src/b.dart');
+    expect(targetOf('src/a.dart', 'fixture.dart'), 'src/a.dart');
+    expect(targetOf('package:path/path.dart', 'fixture.dart'), isNull);
+    expect(targetOf('dart:io', 'fixture.dart'), isNull);
+  });
+  test('no pure library reaches a library that imports dart:io', () {
+    final List<String> pure = <String>[
+      for (final String name in sourceNames())
+        if (!shell.contains(name)) name,
+    ];
+    // A list that lost its libraries would pass vacuously.
+    expect(pure, containsAll(<String>['analysis.dart', 'report.dart']));
+    for (final String name in pure) {
+      expect(
+        relativeClosure('src/$name'),
+        isNot(
+          anyElement(
+            isIn(<String>[for (final String library in shell) 'src/$library']),
+          ),
+        ),
+        reason: 'src/$name',
+      );
+    }
   });
   test('fixture.dart, which every conformance library imports, reaches json_document.dart and workspace.dart alone', () {
     expect(relativeClosure('fixture.dart'), <String>{
@@ -65,14 +121,25 @@ void main() {
       relativeClosure('src/shell.dart'),
       containsAll(<String>[
         'src/analysis.dart',
+        'src/command_runs.dart',
         'src/dart_library.dart',
         'src/dart_scanner.dart',
+        'src/processes.dart',
         'src/workspace.dart',
       ]),
     );
     expect(
       relativeClosure('src/shell.dart'),
       isNot(contains('src/shell.dart')),
+    );
+  });
+  // Beyond the brief: a parent-directory URI resolves, and a package whose
+  // name only begins with this package's is another package.
+  test('targetOf resolves .. against the importer and leaves other package: URIs unfollowed', () {
+    expect(targetOf('../fixture.dart', 'src/a.dart'), 'fixture.dart');
+    expect(
+      targetOf('package:nidana_contract_check_x/a.dart', 'x.dart'),
+      isNull,
     );
   });
 }

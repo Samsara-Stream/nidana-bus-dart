@@ -92,9 +92,9 @@ final class BindingRun extends BindingPlan {
   final Set<int>? admitted;
 }
 
-/// The slugs of the conformance libraries the bindings of [snapshot] import, its own included
-/// when they import one of its own; a binding whose source was not read contributes none.
-Set<String> suiteSlugs(SlugSnapshot snapshot) =>
+/// The paths from the workspace root of the conformance libraries the bindings of [snapshot]
+/// import, another slug's included; a binding whose source was not read contributes none.
+Set<String> suitePaths(SlugSnapshot snapshot) =>
     Set<String>.unmodifiable(<String>{
       for (final String relative in _bindingsOf(snapshot))
         if (snapshot.files[relative] case final String source)
@@ -102,12 +102,12 @@ Set<String> suiteSlugs(SlugSnapshot snapshot) =>
             '${fixtureDirectory(snapshot.slug)}$relative',
             readDartLibrary(source),
           ))
-            suite.slug,
+            suite.path,
     });
 
-/// One plan per binding of [snapshot], ascending by path. [snapshots] holds the snapshots of the
-/// other slugs whose suites the bindings import (more may be present); [packages] are the
-/// workspace's package names.
+/// One plan per binding of [snapshot], ascending by path. [snapshots] holds, for each other slug
+/// whose suites the bindings import, a snapshot holding at least those suite files (more may be
+/// present); [packages] are the workspace's package names.
 ///
 /// A binding's verdicts come in a fixed order (design decision 5): a binding
 /// or a suite that cannot be read fails; then an absent package of either

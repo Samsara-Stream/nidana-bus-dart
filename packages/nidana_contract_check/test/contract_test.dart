@@ -2,6 +2,29 @@
 import 'package:nidana_contract_check/src/contract.dart';
 import 'package:test/test.dart';
 
+import 'support/committed.dart';
+
+/// A `gen` contract whose generator spans sit among spans that name no command.
+const String genText = '''
+---
+id: gen
+version: v1
+kind: file
+---
+
+# gen@v1
+
+## Interface
+
+- file: `dart run gen:interface {output}` outside the Validation section.
+
+## Validation
+
+- file: `hsdd/contract/fixture/gen/input/` holds `word.txt`; the replay runs `fvm dart run gen:generate {input}/word.txt {output}`, formats the Dart in `{output}` and compares `{output}/a` with `expected/`.
+- file: then `dart run gen:other {output}`.
+- schema: `dart run x {output}`.
+''';
+
 const String text = '''
 ---
 id: sample
@@ -182,5 +205,48 @@ void main() {
     );
     expect(ContractKind.byLabel('widget'), isNull);
     expect(ContractKind.byLabel(null), isNull);
+  });
+  test('generatorCommands holds the spans of - file: bullets that hold {output} and a space', () {
+    expect(readContract('gen', genText).generatorCommands, <String>[
+      'fvm dart run gen:generate {input}/word.txt {output}',
+      'dart run gen:other {output}',
+    ]);
+  });
+  // The committed contracts are governance that hsdd-contract amends, and
+  // another node's gate runs this suite: a property, never the command.
+  test('each committed contract with a - file: bullet names exactly one generator command', () {
+    final Map<String, ContractText> contracts = committedFileContracts();
+    expect(contracts, isNotEmpty);
+    for (final MapEntry<String, ContractText>(
+          key: String slug,
+          value: ContractText contract,
+        )
+        in contracts.entries) {
+      expect(contract.generatorCommands, hasLength(1), reason: slug);
+    }
+  });
+
+  // Beyond the brief: CRLF text reads alike; a span needs both {output} and
+  // a space; only a line that begins `- file: ` counts; a text with no
+  // generator span has none.
+  test('generatorCommands reads CRLF text alike and needs {output}, a space and a - file: line', () {
+    expect(
+      readContract('gen', genText.replaceAll('\n', '\r\n')).generatorCommands,
+      readContract('gen', genText).generatorCommands,
+    );
+    expect(
+      readContract(
+        'gen',
+        '## Validation\n\n'
+            '- file: `dart run {input}` and `{output}/x` and `dart{output}`.\n'
+            '  - file: `dart run gen:nested {output}`.\n'
+            'file: `dart run gen:bare {output}`.\n'
+            '- files: `dart run gen:plural {output}`.\n'
+            '- file:`dart run gen:tight {output}`.\n'
+            '- file: `dart run gen:last {output}`\n',
+      ).generatorCommands,
+      <String>['dart run gen:last {output}'],
+    );
+    expect(readContract('sample', text).generatorCommands, isEmpty);
   });
 }

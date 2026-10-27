@@ -256,14 +256,8 @@ void main() {
     });
 
     // Beyond the brief: the replay-level reads of run.dart that would
-    // otherwise go unpinned.
-    test('readsPackages: surface, reject and behavior, no other set', () {
-      expect(CheckSet.values.where(readsPackages), <CheckSet>[
-        CheckSet.surface,
-        CheckSet.reject,
-        CheckSet.behavior,
-      ]);
-    });
+    // otherwise go unpinned. Which sets readsPackages is pinned in
+    // report_test.dart, beside runsCommands.
     test('every set that readsAnalysis also readsPackages, so the analysis always has its names', () {
       expect(
         CheckSet.values.where(readsAnalysis),

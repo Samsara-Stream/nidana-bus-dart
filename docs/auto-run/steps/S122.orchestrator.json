@@ -1,0 +1,133 @@
+{
+  "step_ref": "S122",
+  "decisions": [
+    {
+      "at": "2026-10-27T06:51:50Z",
+      "artifact": null,
+      "question": "SDD pre-flight for nidana.model.7 (full-review): which model implements each task?",
+      "options": [
+        {
+          "label": "Opus for Tasks 1 to 7, sonnet for Task 8",
+          "consequence": "Snapshot reads, commands, trees, plans, processes and both process shells get the most capable model; the verification doc a mid-tier one."
+        },
+        {
+          "label": "Sonnet for the pure tasks 2 to 4",
+          "consequence": "Cheaper; those tasks decide what every nidana.tooling gate reports."
+        }
+      ],
+      "chosen": "Opus for Tasks 1 to 7, sonnet for Task 8",
+      "why": "S97's allocation for full-review phases, as in nidana.model.1, .2 and .6.",
+      "evidence": [
+        "docs/auto-run/steps/S97.orchestrator.json",
+        "docs/auto-run/steps/S119.orchestrator.json"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T10:35:44Z",
+      "artifact": "packages/nidana_contract_check/lib/src/tree.dart",
+      "question": "nidana.model.7 Task 3's FileTree (Map<String, List<int>>) cannot hold an entry that exists but cannot be read (dangling link, cycle, unreadable file, FIFO, socket), so the shell would throw (exit 2, no fixture line) or drop it (misreported missing or extra). Widen the interface?",
+      "options": [
+        {
+          "label": "Widen now: a sealed FileEntry (FileBytes | FileUnreadable) and an unreadable-file problem; readTree records, never throws",
+          "consequence": "A generator that writes an unreadable entry fails its case; one sealed type and one rule added before the shell exists."
+        },
+        {
+          "label": "Keep the brief's map; the shell throws",
+          "consequence": "A generator defect becomes an environment error that hides every fixture line."
+        },
+        {
+          "label": "Keep the map; the shell drops the entry",
+          "consequence": "The report names the wrong problem (missing or extra file)."
+        }
+      ],
+      "chosen": "Widen now: a sealed FileEntry (FileBytes | FileUnreadable) and an unreadable-file problem; readTree records, never throws",
+      "why": "ADR-001 item 6 compares the file set byte for byte; an unreadable entry is a wrong tree, a case failure. The owner prefers sealed types. Task 6's reviewer probed 20 kinds and readTree never threw.",
+      "evidence": [
+        "docs/auto-run/steps/S122.sdd-progress.md (Task 3, Task 6)",
+        "hsdd/adr/001-executable-contract-validation.md item 6"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T10:35:44Z",
+      "artifact": "packages/nidana_contract_check/lib/src/shell.dart",
+      "question": "Should dart pub get --enforce-lockfile run when the file or cli set is planned but the restriction admits none of its cases?",
+      "options": [
+        {
+          "label": "Run it whenever the set is planned; a failure exits 2",
+          "consequence": "Follows ADR-001 item 9's 'before the file or cli set'; a restricted replay of a broken workspace exits 2 instead of passing unrun."
+        },
+        {
+          "label": "Run it only when a case is admitted",
+          "consequence": "Saves a pub get on restricted replays; departs from the item's wording."
+        }
+      ],
+      "chosen": "Run it whenever the set is planned; a failure exits 2",
+      "why": "Every gate already runs fvm dart pub get --enforce-lockfile first, so the precedence never changes a gate's outcome; the literal reading is simpler to state.",
+      "evidence": [
+        "hsdd/adr/001-executable-contract-validation.md item 9",
+        "docs/auto-run/steps/S122.sdd-progress.md (Task 5)"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T10:35:44Z",
+      "artifact": "packages/nidana_contract_check/test/",
+      "question": "nidana.model.7's final review (Important): the package's tests asserted the committed fixtures' counts and literals (22 and 17 cases, their packages, the generator command), and nidana.flutter.1's gate runs this suite, so an expected hsdd-contract amendment of the 39 recordings would fail another node's gate. Fix now?",
+      "options": [
+        {
+          "label": "Fix in the final fix wave: properties over whatever is committed; counts and literals stay in the verification doc",
+          "consequence": "No other node's gate breaks on a contract amendment; the tests still catch any committed case that stops reading or planning."
+        },
+        {
+          "label": "Park it",
+          "consequence": "The first hsdd-contract amendment of topic-codegen or nidana-checks fails nidana.flutter.1's gate."
+        }
+      ],
+      "chosen": "Fix in the final fix wave: properties over whatever is committed; counts and literals stay in the verification doc",
+      "why": "ADR-002 item 3 gives each node its own package; a test that pins another node's contract content couples gates across nodes. The fix was cheap and re-reviewed (468 tests).",
+      "evidence": [
+        "hsdd/spec/nidana.flutter.md nidana.flutter.1 Gate",
+        "docs/auto-run/steps/S122.sdd-progress.md (final review)"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T10:35:44Z",
+      "artifact": "hsdd/verify/nidana.model.7.verification.md",
+      "question": "After the one final fix wave: a generator that replaces the file set's {output} with a link to a directory holding the right formatted tree passes the file set, while the cli set fails the same as not a directory. Another round?",
+      "options": [
+        {
+          "label": "Park it; the doc states the asymmetry; the end-of-node sweep may give parity",
+          "consequence": "A deliberately perverse generator could pass a file replay without being hermetic; the tool's own write outside {t} (dart format through the link) is closed and pinned."
+        },
+        {
+          "label": "Another fix round",
+          "consequence": "Exceeds the one-fix-wave cap for a case no producer makes."
+        }
+      ],
+      "chosen": "Park it; the doc states the asymmetry; the end-of-node sweep may give parity",
+      "why": "ADR-001 item 6's empty directory is the tool's own; the harm the tool caused is closed; the re-reviewer judged it acceptable.",
+      "evidence": [
+        "docs/auto-run/steps/S122.sdd-progress.md (final fix wave)"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "would_upstream": false
+    }
+  ]
+}

@@ -1,14 +1,19 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:nidana_contract_check/src/request.dart' show usage;
 import 'package:nidana_contract_check/src/shell.dart';
+import 'package:nidana_contract_check/src/snapshot.dart';
 import 'package:test/test.dart';
 
+import 'support/runners.dart';
 import 'support/sample.dart';
 import 'support/seed.dart';
 import 'support/workspace.dart';
 
 const String s = 'hsdd/contract/fixture/sample/';
+const String t = 'hsdd/contract/fixture/tool/';
+const String h = 'hsdd/contract/fixture/host/';
 const List<String> cleanLines = <String>[
   'PASS structure hsdd/contract/sample.md',
   'PASS structure hsdd/contract/fixture/sample/',
@@ -153,6 +158,144 @@ void main() {
       ),
     );
     expect(r.stderr as String, isEmpty);
+  });
+  test("readSnapshot keeps the bytes of a recorded invocation's files and no other's", () {
+    final Directory root = seed(<String, String>{
+      ...toolFiles,
+      '${t}invocation/generate-usage/stdout': 'out\n',
+      '${t}invocation/generate-usage/stderr': 'err\n',
+      '${t}invocation/generate-usage/files/analysis_options.yaml': 'plugins:\n',
+      '${t}invocation/generate-usage/files/in.txt': 'x\n',
+      '${t}invocation/generate-usage/expected/out.txt': 'y\n',
+    });
+    final Map<String, List<int>> records = readSnapshot(root, 'tool').records;
+    expect(records.keys.toSet(), <String>{
+      'invocation/generate-usage/args',
+      'invocation/generate-usage/exit_code',
+      'invocation/generate-usage/stdout',
+      'invocation/generate-usage/stderr',
+      'invocation/generate-usage/files/analysis_options.yaml',
+    });
+    expect(
+      utf8.decode(records['invocation/generate-usage/args']!),
+      'tool:generate\n--frob\n',
+    );
+  });
+  test('a record is read through a link, a dangling one throws, and a hidden case holds none', () {
+    const String c = '${t}invocation/generate-usage/';
+    final Directory root = seed(<String, String>{
+      ...toolFiles,
+      'elsewhere/stdout': 'linked\n',
+      '${t}invocation/.hidden/args': 'dart\n',
+    });
+    Link('${root.path}/${c}stdout').createSync('${root.path}/elsewhere/stdout');
+    final Map<String, List<int>> records = readSnapshot(root, 'tool').records;
+    expect(records.keys.toSet(), <String>{
+      'invocation/generate-usage/args',
+      'invocation/generate-usage/exit_code',
+      'invocation/generate-usage/stdout',
+    });
+    expect(
+      utf8.decode(records['invocation/generate-usage/stdout']!),
+      'linked\n',
+    );
+    Link('${root.path}/${c}stderr').createSync('${root.path}/nowhere');
+    expect(
+      () => readSnapshot(root, 'tool'),
+      throwsA(
+        isA<FileSystemException>().having(
+          (FileSystemException e) => e.path,
+          'path',
+          endsWith('${c}stderr'),
+        ),
+      ),
+    );
+  });
+  test('snapshotOf reads the contract text and the records as readSnapshot reads them', () {
+    final Map<String, String> files = <String, String>{
+      ...toolFiles,
+      '${t}invocation/generate-usage/stdout': 'out\n',
+      '${t}invocation/generate-usage/files/analysis_options.yaml': 'plugins:\n',
+      '${t}invocation/generate-usage/files/in.txt': 'x\n',
+    };
+    final Directory root = seed(files);
+    File('${root.path}/hsdd/contract/tool.md')
+        .writeAsBytesSync(const <int>[0x23, 0xff]);
+    final SlugSnapshot read = readSnapshot(root, 'tool');
+    final SlugSnapshot seeded = snapshotOf(
+      'tool',
+      files,
+      bytes: const <String, List<int>>{
+        'hsdd/contract/tool.md': <int>[0x23, 0xff],
+      },
+    );
+    expect(read.contractText, isNull);
+    expect(
+      read.contractUndecodable,
+      'not UTF-8: Invalid UTF-8 byte (at offset 1)',
+    );
+    expect(seeded.contractText, read.contractText);
+    expect(seeded.contractUndecodable, read.contractUndecodable);
+    expect(seeded.records, read.records);
+  });
+  test('a contract text that is not UTF-8 fails structure (1), and a restriction still reads its ids', () async {
+    final Directory root = seed(sampleFiles);
+    File('${root.path}/hsdd/contract/sample.md')
+        .writeAsBytesSync(<int>[0xff, ...utf8.encode(sampleContract)]);
+    for (final List<String> arguments in <List<String>>[
+      <String>['sample', '--set', 'structure'],
+      <String>['sample', '--set', 'structure', '--guarantee', 'G1'],
+    ]) {
+      final ProcessResult r = await runTool(arguments, workingDirectory: root);
+      expect(r.exitCode, 1, reason: '$arguments\n${all(r)}');
+      expect(lines(r), <String>[
+        'FAIL structure hsdd/contract/sample.md: contract-text (not UTF-8: Invalid UTF-8 byte (at offset 0))',
+        '1 fixture: 0 passed, 1 failed, 0 pending',
+      ], reason: '$arguments');
+    }
+  });
+  test("a read defect in another slug's tree outside its suite stops no binding's replay", () async {
+    final Directory root = await seedWorkspace(<String, String>{
+      ...behaviorFiles,
+      ...hostFiles,
+    });
+    Link('${root.path}/hsdd/contract/fixture/sample/surface/broken.dart')
+        .createSync('${root.path}/nowhere.dart');
+    final ProcessResult r = await runTool(<String>[
+      'host',
+      '--set',
+      'behavior',
+    ], workingDirectory: root);
+    expect(r.exitCode, 1, reason: all(r));
+    expect(r.stderr as String, isNot(contains('error:')));
+    expect(
+      lines(r),
+      contains(
+        'PENDING behavior ${h}behavior/host_impl_test.dart: packages matcher, nidana_contract_check, test are absent from .dart_tool/package_config.json',
+      ),
+    );
+  });
+  test('a suite file that is a dangling link fails its binding, not the replay', () async {
+    final Directory root = await seedWorkspace(<String, String>{
+      ...behaviorFiles,
+      ...hostFiles,
+    });
+    const String suite =
+        'hsdd/contract/fixture/sample/behavior/sample_conformance.dart';
+    File('${root.path}/$suite').deleteSync();
+    Link('${root.path}/$suite').createSync('${root.path}/nowhere.dart');
+    final ProcessResult r = await runTool(<String>[
+      'host',
+      '--set',
+      'behavior',
+    ], workingDirectory: root);
+    expect(r.exitCode, 1, reason: all(r));
+    expect(
+      lines(r),
+      contains(
+        'FAIL behavior ${h}behavior/host_impl_test.dart: suite ($suite does not exist)',
+      ),
+    );
   });
   group('the surface and reject sets over a seeded workspace, one dart analyze', () {
     late ProcessResult r;
@@ -952,5 +1095,213 @@ ids: G{n} for the one slug named, or {slug}/G{n}''');
         expect(out.toString().trimRight().split('\n'), cleanLines);
       },
     );
+  });
+  group('the one pub get of a replay', () {
+    /// The lines of [calls], none when it was never written.
+    List<String> callsOf(File calls) =>
+        calls.existsSync() ? calls.readAsLinesSync() : const <String>[];
+    const String unsatisfied =
+        'dart pub get --enforce-lockfile exited 65: Unable to satisfy `pubspec.yaml` using `pubspec.lock`.';
+
+    test('one dart pub get --enforce-lockfile runs at the root before the file or cli set, and never for the other sets', () async {
+      final Directory root = await seedWorkspace(<String, String>{
+        ...sampleFiles,
+        ...toolFiles,
+      }, standIn: false);
+      final ({String dart, File calls}) rec = recordingDart();
+      final StringBuffer out = StringBuffer();
+      final StringBuffer err = StringBuffer();
+      await runCli(
+        <String>['--all'],
+        workingDirectory: root,
+        out: out,
+        err: err,
+        dart: rec.dart,
+      );
+      final List<String> calls = callsOf(rec.calls);
+      expect(calls.where((String line) => line.startsWith('pub ')), <String>[
+        'pub get --enforce-lockfile',
+      ]);
+      expect(calls.first, 'pub get --enforce-lockfile');
+      expect(
+        err.toString().split('\n').first,
+        'running dart pub get --enforce-lockfile',
+      );
+      // Beyond the brief: once pub get passed, the file set plans its replay
+      // and the cli set its recorded invocation, each PENDING on tool's
+      // absent generator, and the progress line is written once.
+      expect(
+        out.toString(),
+        allOf(
+          contains(
+            'PENDING file hsdd/contract/fixture/tool/expected/: package tool is absent from .dart_tool/package_config.json\n',
+          ),
+          contains(
+            'PENDING cli hsdd/contract/fixture/tool/invocation/generate-usage/: package tool is absent from .dart_tool/package_config.json\n',
+          ),
+        ),
+      );
+      expect(
+        err.toString(),
+        allOf(isNot(contains('ERROR file ')), isNot(contains('ERROR cli '))),
+      );
+      expect(
+        'running dart pub get'.allMatches(err.toString()),
+        hasLength(1),
+        reason: '$err',
+      );
+
+      final ({String dart, File calls}) other = recordingDart();
+      final StringBuffer otherErr = StringBuffer();
+      await runCli(
+        <String>['--all', '--set', 'structure,surface,reject,behavior,schema'],
+        workingDirectory: root,
+        out: StringBuffer(),
+        err: otherErr,
+        dart: other.dart,
+      );
+      expect(
+        callsOf(other.calls).where((String line) => line.startsWith('pub ')),
+        isEmpty,
+      );
+      expect(otherErr.toString(), isNot(contains('running dart pub get')));
+    });
+    test('a failing pub get makes every file and cli set unavailable with its reason (2), and the other sets still print', () async {
+      final Directory root = seed(<String, String>{
+        ...sampleFiles,
+        ...toolFiles,
+      });
+      final StringBuffer out = StringBuffer();
+      final StringBuffer err = StringBuffer();
+      expect(
+        await runCli(
+          <String>['tool'],
+          workingDirectory: root,
+          out: out,
+          err: err,
+          dart: recordingDart(pubFails: true).dart,
+        ),
+        2,
+      );
+      expect(
+        err.toString(),
+        allOf(
+          contains('ERROR file tool: $unsatisfied'),
+          contains('ERROR cli tool: $unsatisfied'),
+        ),
+      );
+      expect(out.toString(), contains('PASS structure hsdd/contract/tool.md'));
+    });
+    test(
+      'without a lockfile the real pub get fails, and the replay exits 2',
+      () async {
+        final Directory root = await seedWorkspace(toolFiles, standIn: false);
+        File('${root.path}/pubspec.lock').deleteSync();
+        final ProcessResult r = await runTool(<String>[
+          'tool',
+          '--set',
+          'file',
+        ], workingDirectory: root);
+        expect(r.exitCode, 2, reason: all(r));
+        expect(
+          r.stderr as String,
+          contains(
+            'ERROR file tool: dart pub get --enforce-lockfile exited 1: Retrieving dependencies failed.',
+          ),
+        );
+      },
+    );
+
+    // Beyond the brief: a dart that cannot start is the reason of every
+    // command set, and one pub get serves every slug of the replay.
+    test(
+      'a pub get that cannot start is the reason of every file and cli set (2)',
+      () async {
+        final Directory root = seed(<String, String>{
+          ...sampleFiles,
+          ...toolFiles,
+        });
+        final String missing = '${root.path}/no-such-dart';
+        final StringBuffer out = StringBuffer();
+        final StringBuffer err = StringBuffer();
+        expect(
+          await runCli(
+            <String>['tool'],
+            workingDirectory: root,
+            out: out,
+            err: err,
+            dart: missing,
+          ),
+          2,
+        );
+        expect(
+          err.toString(),
+          allOf(
+            startsWith('running dart pub get --enforce-lockfile\n'),
+            contains('ERROR file tool: could not run $missing: '),
+            contains('ERROR cli tool: could not run $missing: '),
+          ),
+        );
+        expect(
+          out.toString(),
+          contains('PASS structure hsdd/contract/tool.md'),
+        );
+      },
+    );
+    test(
+      'one pub get serves every slug whose file or cli set the replay runs',
+      () async {
+        final Directory root = seed(<String, String>{
+          ...toolFiles,
+          for (final MapEntry<String, String>(:String key, :String value)
+              in toolFiles.entries)
+            key.replaceFirst('tool', 'other'): value.replaceAll(
+              'tool',
+              'other',
+            ),
+        });
+        final ({String dart, File calls}) rec = recordingDart(pubFails: true);
+        final StringBuffer err = StringBuffer();
+        expect(
+          await runCli(
+            <String>['--all', '--set', 'cli'],
+            workingDirectory: root,
+            out: StringBuffer(),
+            err: err,
+            dart: rec.dart,
+          ),
+          2,
+        );
+        expect(callsOf(rec.calls), <String>['pub get --enforce-lockfile']);
+        expect(
+          err.toString(),
+          allOf(
+            contains('ERROR cli other: $unsatisfied'),
+            contains('ERROR cli tool: $unsatisfied'),
+            isNot(contains('ERROR file ')),
+          ),
+        );
+      },
+    );
+    test('a package configuration with a root that is no plain file: URI is no package configuration (2)', () async {
+      final Directory root = seed(<String, String>{
+        ...sampleFiles,
+        '.dart_tool/package_config.json':
+            '{"configVersion": 2, "packages": [{"name": "sample", '
+            '"rootUri": "http://cache.example/sample/", "packageUri": "lib/"}]}\n',
+      });
+      final ProcessResult r = await runTool(<String>[
+        'sample',
+        '--set',
+        'behavior',
+      ], workingDirectory: root);
+      expect(r.exitCode, 2, reason: all(r));
+      expect(
+        r.stderr as String,
+        contains(
+          'ERROR behavior sample: .dart_tool/package_config.json is not a package configuration',
+        ),
+      );
+    });
   });
 }

@@ -17,6 +17,7 @@ import 'dart:convert';
 import 'behavior.dart';
 import 'ids.dart';
 import 'outcome.dart';
+import 'report.dart';
 
 /// What a runner printed with `--reporter json`, read.
 sealed class TestReport {
@@ -96,12 +97,12 @@ TestReport readTestReport(String stdout) {
   };
 }
 
-/// `{runner} exited {exitCode} without a JSON report for {path}`, then `: {line}` with the first
-/// line of [stderr] that is not blank, trimmed, when there is one.
+/// `{runner} exited {exitCode} without a JSON report for {path}`, then `: {line}` with the
+/// [firstTextLine] of [stderr] when there is one.
 String runnerFailure(BindingRun run, int exitCode, String stderr) {
   final String reason =
       '${run.runner.label} exited $exitCode without a JSON report for ${run.path}';
-  return switch (_firstText(LineSplitter.split(stderr))) {
+  return switch (firstTextLine(stderr)) {
     final String first => '$reason: $first',
     null => reason,
   };
@@ -318,11 +319,10 @@ String _firstError(List<_Event> events, int id) =>
         ?.text ??
     '';
 
-/// The detail of a load failure by its first error's [text]: the first non-blank text after
+/// The detail of a load failure by its first error's [text]: the [firstTextLine] after
 /// `Failed to load "{path}":` when [text] begins so, else of the whole [text].
 String _loadError(String text) =>
-    _firstText(LineSplitter.split(text.replaceFirst(_failedToLoad, ''))) ??
-    _noErrorText;
+    firstTextLine(text.replaceFirst(_failedToLoad, '')) ?? _noErrorText;
 
 /// The counts of [visible] and the names of its failed tests, in start order.
 CasesRan _casesRan(List<_Visible> visible, {required bool runnerFailed}) {
@@ -339,12 +339,6 @@ CasesRan _casesRan(List<_Visible> visible, {required bool runnerFailed}) {
     runnerFailed: runnerFailed,
   );
 }
-
-/// The first of [lines] that is not blank, trimmed; null when every one is blank.
-String? _firstText(Iterable<String> lines) => lines
-    .map((String line) => line.trim())
-    .where((String line) => line.isNotEmpty)
-    .firstOrNull;
 
 /// The [Failed] of the binding at [path] with [problems].
 Failed _failed(String path, List<Problem> problems) =>

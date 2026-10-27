@@ -1,12 +1,16 @@
 /// The replay tool's imperative shell (nidana.model D2 item 5): it finds the
 /// workspace root, reads the contract texts a restriction names, one
-/// [SlugSnapshot] per slug of the request and per slug whose suite a binding
-/// imports, and the package configuration, runs `dart analyze` once for the
-/// `surface` and `reject` sets of every slug, runs one test runner per
-/// binding the `behavior` set runs (through `runners.dart`), runs the planned
-/// sets and prints the report. Every decision is the pure core's. With
-/// `runners.dart` and `workspace.dart`, it is one of the three libraries
-/// under `lib/src/` that import `dart:io`.
+/// [SlugSnapshot] per slug of the request, one holding the suite files alone
+/// per other slug whose suite a binding imports, runs `dart pub get
+/// --enforce-lockfile` once before the `file` and `cli` sets, reads the
+/// package configuration, runs `dart analyze` once for the `surface` and
+/// `reject` sets of every slug, runs one test runner per binding the
+/// `behavior` set runs (through `runners.dart`), one generator per file
+/// replay the `file` set runs and one command per recorded invocation the
+/// `cli` set runs (through `command_runs.dart`), runs the planned sets and
+/// prints the report. Every decision is the pure core's, and every process
+/// starts through `processes.dart`. It is one of the libraries under
+/// `lib/src/` that import `dart:io`, which `test/purity_test.dart` lists.
 library;
 
 import 'dart:convert';
@@ -16,9 +20,13 @@ import 'package:path/path.dart' as p;
 
 import 'analysis.dart';
 import 'behavior.dart';
+import 'cli_set.dart';
+import 'command_runs.dart';
 import 'contract.dart';
+import 'file_set.dart';
 import 'outcome.dart';
 import 'packages.dart';
+import 'processes.dart';
 import 'reject.dart';
 import 'report.dart';
 import 'request.dart';
@@ -61,18 +69,20 @@ Set<String> discoverSlugs(Directory root) {
 ///
 /// Every other directory and file below `hsdd/contract/fixture/{slug}/` is
 /// recorded by its `/`-separated path relative to that directory, a file with
-/// its source only when [holdsSource] says so, and with its bytes as a
-/// document only when [holdsDocument] says so. The schema file is read as
-/// bytes when it exists. A source is read as bytes and decoded by
-/// [decodeSource], so a source that is not UTF-8 has a null source and its
-/// reason in [SlugSnapshot.undecodable], that source's defect for the
-/// structure set to report. A document's bytes are never decoded here, so a
-/// document that is not UTF-8 is that document's defect for the schema set
-/// to report. A symbolic link is never descended into, so no tree outside
-/// the fixture directory joins the snapshot: it is recorded as a file, the
-/// layout check sees it as one, and when [holdsSource] or [holdsDocument]
-/// says so it is read through the link, so a linked library or document is
-/// replayed and a dangling one throws.
+/// its source only when [holdsSource] says so, with its bytes as a document
+/// only when [holdsDocument] says so, and with its bytes as a record only
+/// when [holdsRecord] says so. The schema file is read as bytes when it
+/// exists. The contract text and each source are read as bytes and decoded
+/// by [decodeSource], so one that is not UTF-8 has a null text and its
+/// reason in [SlugSnapshot.contractUndecodable] or
+/// [SlugSnapshot.undecodable], its defect for the structure set to report. A
+/// document's and a record's bytes are never decoded here, so one that is not
+/// UTF-8 is its own set's defect to report. A symbolic link is never
+/// descended into, so no tree outside the fixture directory joins the
+/// snapshot: it is recorded as a file, the layout check sees it as one, and
+/// when [holdsSource], [holdsDocument] or [holdsRecord] says so it is read
+/// through the link, so a linked library, document or record is replayed and
+/// a dangling one throws.
 SlugSnapshot readSnapshot(Directory root, String slug) {
   final Directory fixtures = Directory(
     workspacePath(root, fixtureDirectory(slug)),
@@ -93,10 +103,14 @@ SlugSnapshot readSnapshot(Directory root, String slug) {
             path: decodeSource(File(entity.path).readAsBytesSync()),
       });
   final File contract = File(workspacePath(root, contractPath(slug)));
+  final SourceDecoding? contractDecoding = contract.existsSync()
+      ? decodeSource(contract.readAsBytesSync())
+      : null;
   final File schema = File(workspacePath(root, schemaPath(slug)));
   return SlugSnapshot(
     slug: slug,
-    contractText: contract.existsSync() ? contract.readAsStringSync() : null,
+    contractText: _textOf(contractDecoding),
+    contractUndecodable: _reasonOf(contractDecoding),
     schemaBytes: schema.existsSync() ? schema.readAsBytesSync() : null,
     directories: Set<String>.unmodifiable(<String>{
       for (final (:String path, :FileSystemEntity entity) in entries)
@@ -104,40 +118,98 @@ SlugSnapshot readSnapshot(Directory root, String slug) {
     }),
     files: Map<String, String?>.unmodifiable(<String, String?>{
       for (final (:String path, :FileSystemEntity entity) in entries)
-        if (_isFile(entity))
-          path: switch (sources[path]) {
-            SourceText(:final String text) => text,
-            SourceNotUtf8() || null => null,
-          },
+        if (_isFile(entity)) path: _textOf(sources[path]),
     }),
     documents: Map<String, List<int>>.unmodifiable(<String, List<int>>{
       for (final (:String path, :FileSystemEntity entity) in entries)
         if (_isFile(entity) && holdsDocument(path))
           path: File(entity.path).readAsBytesSync(),
     }),
-    undecodable: Map<String, String>.unmodifiable(<String, String>{
+    undecodable: _undecodable(sources),
+    records: Map<String, List<int>>.unmodifiable(<String, List<int>>{
+      for (final (:String path, :FileSystemEntity entity) in entries)
+        if (_isFile(entity) && holdsRecord(path))
+          path: File(entity.path).readAsBytesSync(),
+    }),
+  );
+}
+
+/// The snapshot of [slug] under [root] that holds the suite files at [paths] alone, each a
+/// `/`-separated path from the workspace root below the slug's fixture directory.
+///
+/// Nothing else of the slug is read, so a defect elsewhere in its tree
+/// stops no binding's replay. A suite file that `File.existsSync` does not
+/// find, absent or a dangling link, is not in the snapshot, and the planner
+/// fails a binding of it as a suite that does not exist; one it finds is
+/// read through a link, as [readSnapshot] reads a source, and decoded by
+/// [decodeSource].
+SlugSnapshot _readSuites(Directory root, String slug, Iterable<String> paths) {
+  final String directory = fixtureDirectory(slug);
+  final Map<String, SourceDecoding> sources =
+      Map<String, SourceDecoding>.unmodifiable(<String, SourceDecoding>{
+        for (final String path in paths)
+          if (File(workspacePath(root, path)) case final File file
+              when file.existsSync())
+            path.substring(directory.length): decodeSource(
+              file.readAsBytesSync(),
+            ),
+      });
+  return SlugSnapshot(
+    slug: slug,
+    contractText: null,
+    schemaBytes: null,
+    directories: const <String>{},
+    files: Map<String, String?>.unmodifiable(<String, String?>{
       for (final MapEntry<String, SourceDecoding>(
             key: String path,
             value: SourceDecoding decoding,
           )
           in sources.entries)
-        if (decoding case SourceNotUtf8(:final String reason)) path: reason,
+        path: _textOf(decoding),
     }),
+    documents: const <String, List<int>>{},
+    undecodable: _undecodable(sources),
   );
 }
 
+/// The text of [decoding]; null when there is none or it is not UTF-8.
+String? _textOf(SourceDecoding? decoding) => switch (decoding) {
+  SourceText(:final String text) => text,
+  SourceNotUtf8() || null => null,
+};
+
+/// Why [decoding] is not UTF-8; null when there is none or it is UTF-8.
+String? _reasonOf(SourceDecoding? decoding) => switch (decoding) {
+  SourceNotUtf8(:final String reason) => reason,
+  SourceText() || null => null,
+};
+
+/// Each source of [sources] that is not UTF-8, with its reason.
+Map<String, String> _undecodable(Map<String, SourceDecoding> sources) =>
+    Map<String, String>.unmodifiable(<String, String>{
+      for (final MapEntry<String, SourceDecoding>(
+            key: String path,
+            value: SourceDecoding decoding,
+          )
+          in sources.entries)
+        if (_reasonOf(decoding) case final String reason) path: reason,
+    });
+
 /// Parses, replays, prints one line per fixture to [out] and errors to [err]; returns the exit code.
-/// [dart] runs `dart analyze` and `dart test`, and the flutter of its Flutter SDK runs
-/// `flutter test`; null means Platform.resolvedExecutable, the dart running the tool.
+/// [dart] runs `dart pub get`, `dart analyze`, `dart test`, the file set's generators, the
+/// recorded invocations' `dart` and `{package}:{executable}` commands and `dart format`, and the
+/// flutter of its Flutter SDK runs `flutter test` and the recorded invocations' `flutter`
+/// commands; null means Platform.resolvedExecutable, the dart running the tool.
 ///
 /// Outcome lines and the summary go to [out]; a set that could not run, a
-/// usage error, an environment error and one progress line before each test
-/// runner starts go to [err]. The exit code is
-/// [exitCodeOf] the runs; [exitUsage] on a usage error, a command line
-/// [parseRequest] rejects or a restriction with an id its slug does not
-/// declare, even in a workspace with no slug directory; and
-/// [exitEnvironment] when no workspace root or no slug directory is found or
-/// reading fails.
+/// usage error, an environment error, one progress line before `pub get`
+/// and before each test runner, each generator and each recorded invocation
+/// starts, and one for each temporary directory that cannot be deleted go
+/// to [err]. The exit code is [exitCodeOf] the runs; [exitUsage] on a usage
+/// error, a command line [parseRequest] rejects or a restriction with an id
+/// its slug does not declare, even in a workspace with no slug directory;
+/// and [exitEnvironment] when no workspace root or no slug directory is
+/// found or reading fails.
 Future<int> runCli(
   List<String> arguments, {
   required Directory workingDirectory,
@@ -171,19 +243,24 @@ Future<int> runCli(
 }
 
 /// Parses [arguments] against the slugs under [root], checks the
-/// restriction, reads every slug of the request, the slugs whose suites its
-/// bindings import and the package configuration, runs the one analysis and
-/// every planned set, then prints each run in order and the summary.
+/// restriction, reads every slug of the request and the slugs whose suites
+/// its bindings import, runs the one `pub get`, reads the package
+/// configuration, runs the one analysis and every planned set, the `file`
+/// set's generators and the `cli` set's recorded invocations among them,
+/// then prints each run in order and the summary.
 ///
 /// The order is fixed: a usage error comes before the check for a slug
 /// directory, so a command line that does not parse exits [exitUsage] even
 /// in a workspace with no fixtures; the restriction is checked against the
 /// contract texts it names before any snapshot is read; the slugs of the
 /// suites are read after the request's, only for a plan that holds the
-/// `behavior` set; the package configuration is read once, for every set
-/// that [readsPackages], before the analysis that needs its names. The sets
-/// run one after another, so the `behavior` set's runners run one at a time,
-/// in plan order.
+/// `behavior` set; `pub get` runs once, only for a plan that holds a set
+/// that [runsCommands], before the package configuration is read, as it may
+/// rewrite the configuration (design decision 15); the configuration is read
+/// once, for every set that [readsPackages], before the analysis that needs
+/// its names. The sets run one after another, so the `behavior` set's
+/// runners, the `file` set's generators and the `cli` set's recorded
+/// invocations run one at a time, in plan order.
 ///
 /// Every run is computed before the first line is printed: the analysis
 /// serves every slug, so no slug's runs are known before it completes.
@@ -216,6 +293,12 @@ Future<int> _replay(
         plans,
         discovered,
       );
+      final String? pubGetFailure = await _pubGet(
+        root,
+        plans,
+        dart: dart,
+        progress: err,
+      );
       final _Packages packages = _readPackages(root, plans);
       final _Context context = (
         root: root,
@@ -226,6 +309,7 @@ Future<int> _replay(
         dart: dart,
         flutter: _flutterOf(dart),
         progress: err,
+        pubGetFailure: pubGetFailure,
       );
       final List<SetRun> runs = List<SetRun>.unmodifiable(<SetRun>[
         for (final (:SlugSnapshot snapshot, :List<CheckSet> sets) in plans)
@@ -261,21 +345,31 @@ Map<String, Set<int>?> _declaredGuarantees(Directory root, Request request) =>
 
 /// The ids the contract text of [slug] under [root] declares; null when it is absent, as
 /// [readSnapshot] reads it.
+///
+/// The text is decoded by [lenientUtf8], so a contract text that is not
+/// UTF-8 still declares its ids and a restricted replay of its slug reaches
+/// the structure set, which fails it.
 Set<int>? _declaredBy(Directory root, String slug) {
   final File contract = File(workspacePath(root, contractPath(slug)));
   return contract.existsSync()
       ? Set<int>.unmodifiable(
-          readContract(slug, contract.readAsStringSync()).guarantees,
+          readContract(
+            slug,
+            lenientUtf8.decode(contract.readAsBytesSync()),
+          ).guarantees,
         )
       : null;
 }
 
 /// What a replay reads once for all its runs: the workspace [root], its
 /// [_Packages] and the replay's one [_Analysis]; the [snapshots] of every
-/// slug read, the request's and the slugs of the suites its bindings import;
-/// the request's [restriction]; the [dart] running the tool and the
-/// [flutter] beside it, null when its Flutter SDK holds none; and the
-/// [progress] sink, `err`, that a line goes to before each runner starts.
+/// slug read, the request's and, holding their suite files alone, the other
+/// slugs of the suites its bindings import; the request's [restriction]; the
+/// [dart] running the tool and the [flutter] beside it, null when its
+/// Flutter SDK holds none; the [progress] sink, `err`, that a line goes to
+/// before each runner, generator and recorded invocation starts; and the
+/// reason the replay's one `pub get` failed, [pubGetFailure], null when it
+/// passed or did not run.
 typedef _Context = ({
   Directory root,
   _Packages packages,
@@ -285,13 +379,16 @@ typedef _Context = ({
   String dart,
   String? flutter,
   StringSink progress,
+  String? pubGetFailure,
 });
 
-/// The snapshot of each slug of [plans], and of each slug that [discovered] holds whose suite a
-/// binding of a plan with the `behavior` set imports, read once each, in ascending order.
+/// The snapshot of each slug of [plans]; and, for each other slug that [discovered] holds whose
+/// suite a binding of a plan with the `behavior` set imports, one holding those suite files
+/// alone ([_readSuites]), in ascending order of slug.
 ///
 /// A suite's slug that has no fixture directory is not read: the planner
-/// fails a binding of it as a suite that does not exist.
+/// fails a binding of it as a suite that does not exist. A requested slug's
+/// suites are read from its own snapshot.
 Map<String, SlugSnapshot> _snapshotsOf(
   Directory root,
   List<SlugPlan> plans,
@@ -300,17 +397,30 @@ Map<String, SlugSnapshot> _snapshotsOf(
   final Map<String, SlugSnapshot> requested = <String, SlugSnapshot>{
     for (final SlugPlan plan in plans) plan.snapshot.slug: plan.snapshot,
   };
-  final List<String> suites = <String>{
+  final Set<String> suites = <String>{
     for (final SlugPlan plan in plans)
-      if (plan.sets.contains(CheckSet.behavior)) ...suiteSlugs(plan.snapshot),
+      if (plan.sets.contains(CheckSet.behavior)) ...suitePaths(plan.snapshot),
+  };
+  final List<String> slugs = <String>{
+    for (final String path in suites)
+      if (_suiteSlug(path) case final String slug
+          when discovered.contains(slug) && !requested.containsKey(slug))
+        slug,
   }.toList()..sort();
   return Map<String, SlugSnapshot>.unmodifiable(<String, SlugSnapshot>{
     ...requested,
-    for (final String slug in suites)
-      if (discovered.contains(slug) && !requested.containsKey(slug))
-        slug: readSnapshot(root, slug),
+    for (final String slug in slugs)
+      slug: _readSuites(
+        root,
+        slug,
+        suites.where((String path) => _suiteSlug(path) == slug),
+      ),
   });
 }
+
+/// The slug of the suite at [path], a path [suitePaths] gives: its fourth segment, `{slug}` of
+/// `hsdd/contract/fixture/{slug}/behavior/{name}_conformance.dart`.
+String _suiteSlug(String path) => path.split('/')[3];
 
 /// The flutter of the Flutter SDK that holds [dart], [flutterBeside] it, when that file exists;
 /// else null.
@@ -319,18 +429,20 @@ String? _flutterOf(String dart) => switch (flutterBeside(dart)) {
   _ => null,
 };
 
-/// The workspace's package names, read once per replay from
-/// [packageConfigPath], or the reason they cannot be read.
+/// The workspace's packages, read once per replay from [packageConfigPath],
+/// or the reason they cannot be read.
 sealed class _Packages {
   const _Packages();
 }
 
-/// The [names] of the packages the workspace's package configuration
-/// configures.
+/// The [roots] of the packages the workspace's package configuration
+/// configures, by name, and so their [names].
 final class _PackageNames extends _Packages {
-  const _PackageNames(this.names);
+  const _PackageNames(this.roots);
 
-  final Set<String> names;
+  final Map<String, Uri> roots;
+
+  Set<String> get names => roots.keys.toSet();
 }
 
 /// The workspace has no package configuration it can read: every run that
@@ -344,12 +456,13 @@ final class _NoPackages extends _Packages {
 /// The package configuration under [root], for the sets of [plans] that [readsPackages].
 ///
 /// When no plan holds such a set, the configuration is not read and the
-/// empty names stand in; no run consults them. The configuration is read as
+/// empty roots stand in; no run consults them. The configuration is read as
 /// bytes and decoded strictly, so bytes that are not UTF-8 are a
-/// configuration that is not one, as a text [packageNamesOf] rejects is.
+/// configuration that is not one, as a text [packageRootsOf] rejects is. Its
+/// relative roots resolve against the configuration file's absolute URI.
 _Packages _readPackages(Directory root, List<SlugPlan> plans) {
   if (!plans.any((SlugPlan plan) => plan.sets.any(readsPackages))) {
-    return const _PackageNames(<String>{});
+    return const _PackageNames(<String, Uri>{});
   }
   final File configuration = File(workspacePath(root, packageConfigPath));
   if (!configuration.existsSync()) {
@@ -357,15 +470,15 @@ _Packages _readPackages(Directory root, List<SlugPlan> plans) {
       'no package configuration at $packageConfigPath; run fvm dart pub get',
     );
   }
-  final Set<String>? names = switch (_strictUtf8(
+  final Map<String, Uri>? roots = switch (_strictUtf8(
     configuration.readAsBytesSync(),
   )) {
-    final String text => packageNamesOf(text),
+    final String text => packageRootsOf(text, configuration.absolute.uri),
     null => null,
   };
-  return names == null
+  return roots == null
       ? const _NoPackages('$packageConfigPath is not a package configuration')
-      : _PackageNames(names);
+      : _PackageNames(roots);
 }
 
 /// [bytes] decoded as UTF-8; null when they are not UTF-8.
@@ -430,8 +543,9 @@ Future<_Analysis> _analyze(
 ///
 /// The shell's part is the file system's and the process's: each target's
 /// absolute path and its symlink-resolved form, hsdd/contract/fixture/
-/// resolved once, and the analyzer's output, decoded by [lenientUtf8] so
-/// bytes that are not UTF-8 never stop the replay.
+/// resolved once, and the analyzer started by [runProcess], its output
+/// decoded by [lenientUtf8] so bytes that are not UTF-8 never stop the
+/// replay.
 Future<_Analysis> _analyzeTargets(
   Directory root,
   List<String> targets, {
@@ -443,34 +557,57 @@ Future<_Analysis> _analyzeTargets(
   final String fixtures = Directory(
     workspacePath(root, 'hsdd/contract/fixture/'),
   ).resolveSymbolicLinksSync();
-  final ProcessResult result;
-  try {
-    result = await Process.run(
-      dart,
-      <String>[
-        'analyze',
-        '--fatal-infos',
-        '--format=json',
-        for (final AnalysisTarget file in files) file.given,
-      ],
-      workingDirectory: root.path,
-      stdoutEncoding: lenientUtf8,
-      stderrEncoding: lenientUtf8,
-    );
-  } on ProcessException catch (error) {
-    return _AnalysisUnavailable('could not run $dart: ${error.message}');
+  return switch (await runProcess(dart, <String>[
+    'analyze',
+    '--fatal-infos',
+    '--format=json',
+    for (final AnalysisTarget file in files) file.given,
+  ], workingDirectory: root.path)) {
+    NotStarted(:final String reason) => _AnalysisUnavailable(reason),
+    Exited(
+      exit: (:final int code, :final String stdout, :final String stderr),
+    ) =>
+      switch (parseAnalysis(stdout)) {
+        null => _AnalysisUnavailable(analysisFailure(code, stderr)),
+        final List<Diagnostic> reported => switch (attributeDiagnostics(
+          files,
+          fixtures,
+          reported,
+        )) {
+          Attributed(:final Map<String, List<Diagnostic>> byFixture) =>
+            _Analyzed(byFixture),
+          Unattributable(:final String reason) => _AnalysisUnavailable(reason),
+        },
+      },
+  };
+}
+
+/// Runs `{dart} pub get --enforce-lockfile` from [root] once when a plan holds a set that
+/// [runsCommands], after a progress line; null when it passed or did not run, else the reason.
+///
+/// The progress line, `running dart pub get --enforce-lockfile`, goes to
+/// [progress]. The reason is [pubGetFailure] of a non-zero exit, or why the
+/// process could not start; it makes every `file` and `cli` set of the
+/// replay unavailable, and the other sets still run (design decision 15).
+Future<String?> _pubGet(
+  Directory root,
+  List<SlugPlan> plans, {
+  required String dart,
+  required StringSink progress,
+}) async {
+  if (!plans.any((SlugPlan plan) => plan.sets.any(runsCommands))) {
+    return null;
   }
-  final List<Diagnostic>? reported = parseAnalysis(result.stdout as String);
-  if (reported == null) {
-    return _AnalysisUnavailable(
-      analysisFailure(result.exitCode, result.stderr as String),
-    );
-  }
-  return switch (attributeDiagnostics(files, fixtures, reported)) {
-    Attributed(:final Map<String, List<Diagnostic>> byFixture) => _Analyzed(
-      byFixture,
-    ),
-    Unattributable(:final String reason) => _AnalysisUnavailable(reason),
+  progress.writeln('running dart pub get --enforce-lockfile');
+  return switch (await runProcess(dart, const <String>[
+    'pub',
+    'get',
+    '--enforce-lockfile',
+  ], workingDirectory: root.path)) {
+    Exited(exit: (code: 0, stdout: _, stderr: _)) => null,
+    Exited(exit: (:final int code, stdout: _, :final String stderr)) =>
+      pubGetFailure(code, stderr),
+    NotStarted(:final String reason) => reason,
   };
 }
 
@@ -486,10 +623,9 @@ AnalysisTarget _targetOf(Directory root, String path) {
   );
 }
 
-/// [set] run over [snapshot], the `surface`, `reject` and `behavior` sets
-/// reading [context]. Each set this version does not implement is
-/// [SetUnavailable] with the [notImplemented] reason; the phase that lands it
-/// replaces its branch.
+/// [set] run over [snapshot], the `surface`, `reject`, `behavior`, `file` and `cli` sets reading
+/// [context]. A `file` or `cli` set is [SetUnavailable] with the reason the replay's `pub get`
+/// failed when it did.
 Future<SetRun> _run(
   CheckSet set,
   SlugSnapshot snapshot,
@@ -504,9 +640,8 @@ Future<SetRun> _run(
   CheckSet.reject => _analyzedRun(set, snapshot, context, checkReject),
   CheckSet.behavior => await _behaviorRun(snapshot, context),
   CheckSet.schema => SetChecked(set, snapshot.slug, checkSchema(snapshot)),
-  // nidana.model.7 lands these.
-  CheckSet.file ||
-  CheckSet.cli => SetUnavailable(set, snapshot.slug, notImplemented(set)),
+  CheckSet.file => await _fileRun(snapshot, context),
+  CheckSet.cli => await _cliRun(snapshot, context),
 };
 
 /// A set that judges libraries by the diagnostics reported in them:
@@ -564,6 +699,59 @@ Future<SetRun> _behaviorRun(SlugSnapshot snapshot, _Context context) async =>
         root: context.root,
         dart: context.dart,
         flutter: context.flutter,
+        progress: context.progress,
+      ),
+    };
+
+/// The `file` set over [snapshot]: [SetUnavailable] with the reason the replay's `pub get`
+/// failed, else with the packages' reason when the package configuration cannot be read; else
+/// [runFileSet] runs the replay [planFileReplay] plans with the package names and the
+/// restriction of [context], with the root, the dart and the progress sink of [context].
+///
+/// The `pub get` comes first even when the restriction admits no file
+/// replay, so its failure is an environment error of every replay that
+/// holds the set (design decision 15).
+Future<SetRun> _fileRun(SlugSnapshot snapshot, _Context context) async =>
+    switch ((context.pubGetFailure, context.packages)) {
+      (final String reason, _) || (null, _NoPackages(:final String reason)) =>
+        SetUnavailable(CheckSet.file, snapshot.slug, reason),
+      (null, _PackageNames(:final Set<String> names)) => await runFileSet(
+        snapshot.slug,
+        planFileReplay(
+          snapshot,
+          packages: names,
+          restriction: context.restriction,
+        ),
+        root: context.root,
+        dart: context.dart,
+        progress: context.progress,
+      ),
+    };
+
+/// The `cli` set over [snapshot]: [SetUnavailable] with the reason the replay's `pub get`
+/// failed, else with the packages' reason when the package configuration cannot be read; else
+/// [runCliSet] runs the recorded invocations [planInvocations] plans with the package names and
+/// the restriction of [context], with the root, the dart, the flutter, the package roots and the
+/// progress sink of [context].
+///
+/// The `pub get` comes first even when the restriction admits no recorded
+/// invocation, so its failure is an environment error of every replay that
+/// holds the set (design decision 15).
+Future<SetRun> _cliRun(SlugSnapshot snapshot, _Context context) async =>
+    switch ((context.pubGetFailure, context.packages)) {
+      (final String reason, _) || (null, _NoPackages(:final String reason)) =>
+        SetUnavailable(CheckSet.cli, snapshot.slug, reason),
+      (null, final _PackageNames packages) => await runCliSet(
+        snapshot.slug,
+        planInvocations(
+          snapshot,
+          packages: packages.names,
+          restriction: context.restriction,
+        ),
+        root: context.root,
+        dart: context.dart,
+        flutter: context.flutter,
+        roots: packages.roots,
         progress: context.progress,
       ),
     };

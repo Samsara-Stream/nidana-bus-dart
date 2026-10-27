@@ -1,0 +1,38 @@
+
+### N1 dart run gen:generate from files/ (stale)
+N1: exit 255
+  ! Could not find a file named "pubspec.yaml" in "{T-real}/fcs.IumERR/hsdd/contract/fixture/sample/invocation/case/files".
+
+### N2 dart {script} from files/ (stale)
+N2: exit 0
+  | wrote {T}/fcs.IumERR/out
+  | cwd {T-real}/fcs.IumERR/hsdd/contract/fixture/sample/invocation/case/files
+
+### N3 dart run {script} from files/ (stale)
+N3: exit 0
+  | wrote {T}/fcs.IumERR/out
+  | cwd {T-real}/fcs.IumERR/hsdd/contract/fixture/sample/invocation/case/files
+
+### N4 dart --packages={config} {script} from files/ (stale)
+N4: exit 0
+  | wrote {T}/fcs.IumERR/out
+  | cwd {T-real}/fcs.IumERR/hsdd/contract/fixture/sample/invocation/case/files
+
+### N5 N4's form for a script that imports package:gen/gen.dart (stale)
+N5: exit 0
+  | from lib
+N5, dart run gen:greet: exit 255
+  ! Could not find a file named "pubspec.yaml" in "{T-real}/fcs.IumERR/hsdd/contract/fixture/sample/invocation/case/files".
+
+### N6 N4's form for an executable the package does not have
+N6: exit 254
+  ! Error when reading '{T}/fcs.IumERR/packages/gen/bin/nosuch.dart': No such file or directory.
+
+### N7 a fresh workspace, from the root: N4 and dart run print the same
+dart run: exit 0
+N4: exit 0
+the two outputs are EQUAL
+
+### N8 the time of five runs each, from the root
+dart run, five runs: 0.7 s
+N4, five runs: 0.7 s

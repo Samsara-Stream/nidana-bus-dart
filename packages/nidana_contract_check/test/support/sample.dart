@@ -430,9 +430,11 @@ Map<String, String> changed(
 /// [files], keyed by path from the workspace root.
 ///
 /// [bytes] are files given as raw bytes, keyed by path from the workspace
-/// root; a path in both maps takes its bytes. A source [holdsSource] accepts
-/// is decoded by [decodeSource], as the shell decodes it: one that is not
-/// UTF-8 has a null source and its reason in [SlugSnapshot.undecodable].
+/// root; a path in both maps takes its bytes. The contract text and a source
+/// [holdsSource] accepts are decoded by [decodeSource], as the shell decodes
+/// them: one that is not UTF-8 has a null text and its reason in
+/// [SlugSnapshot.contractUndecodable] or [SlugSnapshot.undecodable]. A file
+/// [holdsRecord] accepts keeps its bytes in [SlugSnapshot.records].
 SlugSnapshot snapshotOf(
   String slug,
   Map<String, String> files, {
@@ -443,8 +445,10 @@ SlugSnapshot snapshotOf(
     (null, final String text) => utf8.encode(text),
     (null, null) => null,
   };
-  String? textAt(String path) => switch (bytesAt(path)) {
-    final List<int> raw => utf8.decode(raw),
+  final SourceDecoding? contractDecoding = switch (bytesAt(
+    contractPath(slug),
+  )) {
+    final List<int> raw => decodeSource(raw),
     null => null,
   };
   final String fixtures = fixtureDirectory(slug);
@@ -459,7 +463,14 @@ SlugSnapshot snapshotOf(
       });
   return SlugSnapshot(
     slug: slug,
-    contractText: textAt(contractPath(slug)),
+    contractText: switch (contractDecoding) {
+      SourceText(:final String text) => text,
+      SourceNotUtf8() || null => null,
+    },
+    contractUndecodable: switch (contractDecoding) {
+      SourceNotUtf8(:final String reason) => reason,
+      SourceText() || null => null,
+    },
     schemaBytes: bytesAt(schemaPath(slug)),
     directories: Set<String>.unmodifiable(<String>{
       for (final String path in below) ..._ancestors(path),
@@ -482,6 +493,10 @@ SlugSnapshot snapshotOf(
           )
           in sources.entries)
         if (decoding case SourceNotUtf8(:final String reason)) path: reason,
+    }),
+    records: Map<String, List<int>>.unmodifiable(<String, List<int>>{
+      for (final String path in below)
+        if (holdsRecord(path)) path: bytesAt('$fixtures$path')!,
     }),
   );
 }

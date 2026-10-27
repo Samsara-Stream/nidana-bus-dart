@@ -1,0 +1,45 @@
+
+### M1 stale, then package_config.json deleted, then dart pub get --enforce-lockfile
+pubspec.yaml=+0 packages/gen/pubspec.yaml=+2 pubspec.lock=+0 .dart_tool/package_config.json=+0 
+dart run from files/: exit 255
+  | Could not find a file named "pubspec.yaml" in "{T-real}/fcs.kIW1ew/hsdd/contract/fixture/sample/invocation/case/files".
+dart pub get --enforce-lockfile: exit 0
+  | Got dependencies!
+pubspec.yaml=+0 packages/gen/pubspec.yaml=+2 pubspec.lock=+0 .dart_tool/package_config.json=+4 
+dart run from files/: exit 255
+  | Could not find a file named "pubspec.yaml" in "{T-real}/fcs.kIW1ew/hsdd/contract/fixture/sample/invocation/case/files".
+
+### M2 stale, then pubspec.lock deleted and restored by dart pub get --offline, then --enforce-lockfile
+pubspec.yaml=+0 packages/gen/pubspec.yaml=+6 pubspec.lock=+0 .dart_tool/package_config.json=+4 
+dart run from files/: exit 255
+  | Could not find a file named "pubspec.yaml" in "{T-real}/fcs.kIW1ew/hsdd/contract/fixture/sample/invocation/case/files".
+dart pub get --offline: exit 0
+  | Got dependencies!
+pubspec.yaml=+0 packages/gen/pubspec.yaml=+6 pubspec.lock=+8 .dart_tool/package_config.json=+4 
+pubspec.lock: the same bytes
+dart pub get --enforce-lockfile: exit 0
+  | Got dependencies!
+pubspec.yaml=+0 packages/gen/pubspec.yaml=+6 pubspec.lock=+8 .dart_tool/package_config.json=+4 
+dart run from files/: exit 255
+  | Could not find a file named "pubspec.yaml" in "{T-real}/fcs.kIW1ew/hsdd/contract/fixture/sample/invocation/case/files".
+
+### M3 stale, then pubspec.lock touched, then package_config.json touched
+pubspec.yaml=+0 packages/gen/pubspec.yaml=+12 pubspec.lock=+14 .dart_tool/package_config.json=+17 
+dart run from files/: exit 0
+
+### M4 package_config.json older than pubspec.lock alone: dart run from the root, then from files/
+pubspec.yaml=+0 packages/gen/pubspec.yaml=+12 pubspec.lock=+19 .dart_tool/package_config.json=+17 
+dart run from files/: exit 255
+  | Could not find a file named "pubspec.yaml" in "{T-real}/fcs.kIW1ew/hsdd/contract/fixture/sample/invocation/case/files".
+dart run from the root: exit 0
+  | wrote {T}/fcs.kIW1ew/out
+  | cwd {T-real}/fcs.kIW1ew
+pubspec.yaml=+0 packages/gen/pubspec.yaml=+12 pubspec.lock=+19 .dart_tool/package_config.json=+17 
+dart run from files/: exit 255
+  | Could not find a file named "pubspec.yaml" in "{T-real}/fcs.kIW1ew/hsdd/contract/fixture/sample/invocation/case/files".
+
+### M5 the repository, read only
+packages/nidana_contract_check/pubspec.yaml .dart_tool/package_config.json packages/nidana_dart_contracts/pubspec.yaml pubspec.yaml pubspec.lock (oldest first)
+last commit touching pubspec.lock: e16b3f9 2026-10-27 00:50:03 +0700
+dart run nidana_contract_check nosuch from scan-clean/files/: exit 255
+  | Could not find a file named "pubspec.yaml" in "~/gitx/nidana-bus-dart/hsdd/contract/fixture/nidana-checks/invocation/scan-clean/files".

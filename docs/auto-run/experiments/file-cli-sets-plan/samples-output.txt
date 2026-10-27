@@ -1,0 +1,56 @@
+
+### Q1 the workspace resolves offline
+Got dependencies!
+exit: 0
+
+### Q2 the structure set of the tool as it stands over the gen slug
+PASS structure hsdd/contract/gen.md
+PASS structure hsdd/contract/fixture/gen/
+2 fixtures: 2 passed, 0 failed, 0 pending
+exit: 0
+
+### Q3 the file replay by hand
+generator exit: 0
+format exit: 0
+file replay: PASS
+
+### Q4 each recorded invocation, the plan's cli set in prototype
+PASS analyze-lib
+PASS generate-from-files
+PASS generate-tree
+PASS generate-usage
+
+### Q5 a stale workspace: gen's pubspec.yaml touched after the resolution
+PASS analyze-lib
+PASS generate-from-files
+PASS generate-tree
+PASS generate-usage
+generator exit: 0
+format exit: 0
+file replay: PASS
+dart run gen:generate from generate-from-files/files/: exit 255
+
+### Q6 seeded defects
+-- one changed byte in expected/notes.txt
+generator exit: 0
+format exit: 0
+file replay: FAIL
+  | diff -r {T}/ncc_file_.GKQrOz/notes.txt {T}/ncc_.ASmcT5/hsdd/contract/fixture/gen/expected/notes.txt
+  | 1c1
+  | < from hello
+  | ---
+  | > from Hello
+-- expected/ holds a file the generator does not write
+generator exit: 0
+format exit: 0
+file replay: FAIL
+  | Only in {T}/ncc_.ASmcT5/hsdd/contract/fixture/gen/expected: more.txt
+-- expected/ lacks a file the generator writes
+generator exit: 0
+format exit: 0
+file replay: FAIL
+  | Only in {T}/ncc_file_.UqLG30: notes.txt
+-- generate-usage records exit 0
+FAIL generate-usage: exit (exited 2, expected 0)
+-- generate-leaves-output: exit 1 recorded, no expected/
+FAIL generate-leaves-output: output ({output} exists after the run, expected nothing there)

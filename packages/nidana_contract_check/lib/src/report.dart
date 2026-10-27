@@ -2,6 +2,8 @@
 /// per fixture, a summary line, and the exit code.
 library;
 
+import 'dart:convert';
+
 import 'outcome.dart';
 import 'packages.dart';
 import 'request.dart';
@@ -46,11 +48,6 @@ final class SetUnavailable extends SetRun {
   final String reason;
 }
 
-/// The reason of a set this version does not implement.
-String notImplemented(CheckSet set) =>
-    'this version of nidana_contract_check does not implement the '
-    '${set.name} set';
-
 /// The report line of [outcome] under [set]: `PASS {set} {path}`, or
 /// `PASS {set} {path}: {detail}` when the outcome has a detail,
 /// `FAIL {set} {path}: {rule} ({detail}); ...` with every problem in order,
@@ -93,6 +90,16 @@ int exitCodeOf(List<SetRun> runs) =>
       (false, true) => exitFailed,
       (false, false) => exitPassed,
     };
+
+/// The first line of [text] that is not blank, trimmed; null when there is none.
+///
+/// A line ends at `\n`, `\r\n` or `\r`, as [LineSplitter] splits it. A
+/// reason quotes it from a process's stderr.
+String? firstTextLine(String text) =>
+    LineSplitter.split(text)
+        .map((String line) => line.trim())
+        .where((String line) => line.isNotEmpty)
+        .firstOrNull;
 
 /// `{rule} ({detail})`.
 String _problemText(Problem problem) =>

@@ -1,9 +1,9 @@
 /// The `structure` set (ADR-001 item 9): marker and header syntax, item 3's
 /// coverage, the bindings listed in `## Validation` against the files
 /// present, the fixture directory's layout with its data directories, the
-/// ban on `src/` imports, every Dart source read as UTF-8, and item 4's ban
-/// on a conformance library that imports `package:test` or
-/// `package:flutter_test`.
+/// ban on `src/` imports, the contract text and every Dart source read as
+/// UTF-8, and item 4's ban on a conformance library that imports
+/// `package:test` or `package:flutter_test`.
 ///
 /// It needs no implementation of the contract: it reads one [SlugSnapshot].
 library;
@@ -43,15 +43,18 @@ enum StructureRule implements Rule {
 /// that is not UTF-8 among them, appears only when it fails. The contract
 /// text comes first, the fixture directory second, and every other path
 /// after them in ascending order. A [Failed] lists its problems in the order
-/// the checks run. Without a contract text, the contract text's [Failed] is
-/// the only outcome.
+/// the checks run. Without a contract text, absent or not UTF-8, the
+/// contract text's [Failed] is the only outcome.
 List<FixtureOutcome> checkStructure(SlugSnapshot snapshot) {
   final String? text = snapshot.contractText;
   if (text == null) {
     final String path = contractPath(snapshot.slug);
     return List<FixtureOutcome>.unmodifiable(<FixtureOutcome>[
       _outcome(path, <Problem>[
-        Problem(StructureRule.contractText, 'no contract text at $path'),
+        Problem(
+          StructureRule.contractText,
+          snapshot.contractUndecodable ?? 'no contract text at $path',
+        ),
       ]),
     ]);
   }

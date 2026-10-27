@@ -166,13 +166,15 @@ void main() {
       );
       expect(
         unavailableLine(
-          SetUnavailable(
-            CheckSet.behavior,
-            'sample',
-            notImplemented(CheckSet.behavior),
+          const SetUnavailable(
+            CheckSet.cli,
+            'gen',
+            'no flutter in the Flutter SDK of /sdk/bin/dart; '
+                'hsdd/contract/fixture/gen/invocation/flutter-version/ runs flutter',
           ),
         ),
-        'ERROR behavior sample: this version of nidana_contract_check does not implement the behavior set',
+        'ERROR cli gen: no flutter in the Flutter SDK of /sdk/bin/dart; '
+        'hsdd/contract/fixture/gen/invocation/flutter-version/ runs flutter',
       );
     });
     test('the summary counts passed, failed and pending fixtures', () {
@@ -224,6 +226,107 @@ void main() {
         <int>[exitPassed, exitFailed, exitEnvironment, exitUsage],
         <int>[0, 1, 2, 64],
       );
+    });
+  });
+
+  group('admission', () {
+    const Set<GuaranteeRef> r = <GuaranteeRef>{
+      (slug: 'gen', number: 1),
+      (slug: 'gen', number: 3),
+      (slug: 'other', number: 2),
+    };
+    test('an unrestricted replay admits every replay, one that covers nothing included', () {
+      expect(admitsAll(null, 'gen', const <int>{}), isTrue);
+      expect(admitsAll(null, 'gen', const <int>{1}), isTrue);
+    });
+    test('a restriction admits a replay only when every id it covers is a restriction id of its slug', () {
+      expect(admitsAll(r, 'gen', const <int>{1, 3}), isTrue);
+      expect(admitsAll(r, 'gen', const <int>{1}), isTrue);
+      expect(admitsAll(r, 'gen', const <int>{1, 2}), isFalse);
+      expect(admitsAll(r, 'gen', const <int>{}), isFalse);
+      expect(admitsAll(r, 'other', const <int>{1}), isFalse);
+    });
+    // Beyond the brief: an id of the slug's own admits it under a restriction
+    // that also names other slugs, and the empty restriction admits nothing.
+    test(
+      'the restriction ids of other slugs neither admit nor bar a replay',
+      () {
+        expect(admitsAll(r, 'other', const <int>{2}), isTrue);
+        expect(
+          admitsAll(const <GuaranteeRef>{}, 'gen', const <int>{1}),
+          isFalse,
+        );
+      },
+    );
+    test('the detail of a replay not admitted names its ids, or that it covers none', () {
+      expect(
+        notAdmitted(const <int>{3, 1}),
+        'not run: the restriction does not admit all of G1, G3',
+      );
+      expect(
+        notAdmitted(const <int>{}),
+        'not run: it covers no declared guarantee, and the replay is restricted',
+      );
+    });
+    test('file and cli run commands, and no other set does', () {
+      expect(
+        <CheckSet>[
+          for (final CheckSet set in CheckSet.values)
+            if (runsCommands(set)) set,
+        ],
+        <CheckSet>[CheckSet.file, CheckSet.cli],
+      );
+    });
+    test('the reason of a pub get that failed names its exit and the first line of its stderr', () {
+      expect(
+        pubGetFailure(
+          65,
+          'Unable to satisfy `pubspec.yaml` using `pubspec.lock`.\n\nTo update ...',
+        ),
+        'dart pub get --enforce-lockfile exited 65: Unable to satisfy `pubspec.yaml` using `pubspec.lock`.',
+      );
+      expect(pubGetFailure(1, ''), 'dart pub get --enforce-lockfile exited 1');
+      // Beyond the brief: a stderr of blank lines has no first text line.
+      expect(
+        pubGetFailure(1, ' \r\n\t\n'),
+        'dart pub get --enforce-lockfile exited 1',
+      );
+    });
+    test('surface, reject, behavior, file and cli read the package configuration; structure and schema do not', () {
+      expect(
+        <CheckSet>[
+          for (final CheckSet set in CheckSet.values)
+            if (readsPackages(set)) set,
+        ],
+        <CheckSet>[
+          CheckSet.surface,
+          CheckSet.reject,
+          CheckSet.behavior,
+          CheckSet.file,
+          CheckSet.cli,
+        ],
+      );
+    });
+    // Beyond the brief: the configuration a command set reads is the one the
+    // pub get before it leaves.
+    test('every set that runsCommands also readsPackages', () {
+      expect(
+        CheckSet.values.where(runsCommands),
+        everyElement(predicate<CheckSet>(readsPackages, 'reads packages')),
+      );
+    });
+    test(
+      'the first text line is the first line that is not blank, trimmed',
+      () {
+        expect(firstTextLine('\n  \n  boom  \nnext'), 'boom');
+        expect(firstTextLine(' \n'), isNull);
+        expect(firstTextLine(''), isNull);
+      },
+    );
+    // Beyond the brief: the line ends a line splitter reads.
+    test('a first text line ends at a carriage return, alone or before a line feed', () {
+      expect(firstTextLine('\r\n  boom\r\nnext'), 'boom');
+      expect(firstTextLine('boom\rnext'), 'boom');
     });
   });
 }

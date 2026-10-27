@@ -3,22 +3,19 @@
 /// runs under `dart test` or under the flutter beside the running dart, one
 /// process after another, from the workspace root, and its report becomes
 /// the binding's outcome. Every decision is the pure core's (`behavior.dart`
-/// and `test_report.dart`). With `shell.dart` and `workspace.dart`, it is one
-/// of the three libraries under `lib/src/` that import `dart:io`.
+/// and `test_report.dart`); each runner starts through `processes.dart`. It
+/// is one of the libraries under `lib/src/` that import `dart:io`, which
+/// `test/purity_test.dart` lists.
 library;
 
-import 'dart:convert';
 import 'dart:io';
 
 import 'behavior.dart';
 import 'outcome.dart';
+import 'processes.dart';
 import 'report.dart';
 import 'request.dart';
 import 'test_report.dart';
-
-/// UTF-8 that decodes malformed bytes as U+FFFD instead of throwing: how the replay decodes the
-/// output of every process it starts, so bytes that are not UTF-8 never stop a replay.
-const Utf8Codec lenientUtf8 = Utf8Codec(allowMalformed: true);
 
 /// The `behavior` set over [slug]'s binding [plans], in plan order, each [BindingRun] under its
 /// runner from [root]: [dart] for `dart test`, [flutter] for `flutter test --no-pub`, null when
@@ -169,11 +166,12 @@ Future<SetRun> _runSteps(
 };
 
 /// [run] under [executable]: its progress line to [progress], then the runner started from
-/// [root] and its report read into the binding's outcome.
+/// [root] by [runProcess] and its report read into the binding's outcome.
 ///
 /// The runner's output is decoded by [lenientUtf8], so bytes a case writes
 /// to stdout that are not UTF-8 never stop the replay; a malformed line is no
-/// event, and the report reader skips it.
+/// event, and the report reader skips it. A runner that cannot start, or
+/// prints no report, makes the binding [_RunnerUnavailable].
 Future<_BindingResult> _started(
   BindingRun run,
   String executable, {
@@ -181,22 +179,18 @@ Future<_BindingResult> _started(
   required StringSink progress,
 }) async {
   progress.writeln('running behavior ${run.path} under ${run.runner.label}');
-  final ProcessResult result;
-  try {
-    result = await Process.run(
-      executable,
-      testArguments(run),
-      workingDirectory: root.path,
-      stdoutEncoding: lenientUtf8,
-      stderrEncoding: lenientUtf8,
-    );
-  } on ProcessException catch (error) {
-    return _RunnerUnavailable('could not run $executable: ${error.message}');
-  }
-  return switch (readTestReport(result.stdout as String)) {
-    NoReport() => _RunnerUnavailable(
-      runnerFailure(run, result.exitCode, result.stderr as String),
-    ),
-    final Reported report => _BindingConcluded(ranOutcome(run, report)),
+  return switch (await runProcess(
+    executable,
+    testArguments(run),
+    workingDirectory: root.path,
+  )) {
+    NotStarted(:final String reason) => _RunnerUnavailable(reason),
+    Exited(
+      exit: (:final int code, :final String stdout, :final String stderr),
+    ) =>
+      switch (readTestReport(stdout)) {
+        NoReport() => _RunnerUnavailable(runnerFailure(run, code, stderr)),
+        final Reported report => _BindingConcluded(ranOutcome(run, report)),
+      },
   };
 }

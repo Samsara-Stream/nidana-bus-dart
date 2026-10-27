@@ -1,8 +1,12 @@
 /// Which sets a slug has, which of them a [Request] runs (ADR-001 item 9),
-/// the [SlugPlan] of each slug of a replay, and which sets read the
-/// workspace's package configuration.
+/// the [SlugPlan] of each slug of a replay, which sets read the workspace's
+/// package configuration and which run commands, the reason of the `pub get`
+/// before them that failed, and which file replays and recorded invocations
+/// a `--guarantee` restriction admits.
 library;
 
+import 'ids.dart';
+import 'report.dart';
 import 'request.dart';
 import 'snapshot.dart';
 
@@ -41,18 +45,70 @@ typedef SlugPlan = ({SlugSnapshot snapshot, List<CheckSet> sets});
 SlugPlan slugPlan(Request request, SlugSnapshot snapshot) =>
     (snapshot: snapshot, sets: plannedSets(request, snapshot));
 
-/// Whether [set] reads the workspace's package configuration: surface, reject and behavior do.
+/// Whether [set] reads the workspace's package configuration: surface, reject, behavior, file
+/// and cli do.
 ///
 /// The shell reads the configuration once per replay, and only when some
-/// planned set reads it.
+/// planned set reads it. file and cli read it for the packages their
+/// commands run, absent ones PENDING, and for each package's root (design
+/// decisions 1 and 11).
 bool readsPackages(CheckSet set) => switch (set) {
-  CheckSet.surface || CheckSet.reject || CheckSet.behavior => true,
-  // nidana.model.7 moves file and cli here when they read it for PENDING.
-  CheckSet.structure ||
-  CheckSet.schema ||
+  CheckSet.surface ||
+  CheckSet.reject ||
+  CheckSet.behavior ||
   CheckSet.file ||
-  CheckSet.cli => false,
+  CheckSet.cli => true,
+  CheckSet.structure || CheckSet.schema => false,
 };
+
+/// Whether [set] runs commands, before which the replay runs `dart pub get --enforce-lockfile`
+/// once: file and cli do.
+bool runsCommands(CheckSet set) => switch (set) {
+  CheckSet.file || CheckSet.cli => true,
+  CheckSet.structure ||
+  CheckSet.surface ||
+  CheckSet.reject ||
+  CheckSet.behavior ||
+  CheckSet.schema => false,
+};
+
+/// `dart pub get --enforce-lockfile exited {exitCode}`, then `: {firstTextLine(stderr)}` when there is one.
+///
+/// The reason of every `file` and `cli` set of a replay whose `pub get`
+/// exited non-zero (design decision 15).
+String pubGetFailure(int exitCode, String stderr) {
+  final String reason = 'dart pub get --enforce-lockfile exited $exitCode';
+  return switch (firstTextLine(stderr)) {
+    final String first => '$reason: $first',
+    null => reason,
+  };
+}
+
+/// Whether a file replay or recorded invocation of [slug] that covers [ids] runs under
+/// [restriction] (ADR-001 item 9): unrestricted, or [ids] is not empty and each is a restriction
+/// id of [slug].
+///
+/// A replay that covers no id runs only unrestricted: a slug with no id of
+/// its own in the restriction runs none of them (design decision 13). The
+/// restriction ids of other slugs neither admit nor bar it.
+bool admitsAll(Set<GuaranteeRef>? restriction, String slug, Set<int> ids) =>
+    switch (restriction) {
+      null => true,
+      final Set<GuaranteeRef> restricted =>
+        ids.isNotEmpty &&
+            ids.every(
+              (int number) => restricted.contains((slug: slug, number: number)),
+            ),
+    };
+
+/// The detail of a replay [admitsAll] does not admit.
+///
+/// `not run: the restriction does not admit all of {ids}` names [ids] as
+/// [formatIds] gives them; `not run: it covers no declared guarantee, and the
+/// replay is restricted` stands for no id.
+String notAdmitted(Set<int> ids) => ids.isEmpty
+    ? 'not run: it covers no declared guarantee, and the replay is restricted'
+    : 'not run: the restriction does not admit all of ${formatIds(ids)}';
 
 /// Whether [snapshot]'s slug has [set], read from the entries directly under
 /// its fixture directory and from its schema file.
