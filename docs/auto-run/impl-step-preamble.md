@@ -41,7 +41,11 @@ decisions, keeps the decision ledger, and owns every branch operation.
   `docs/auto-run/experiments/`, whose programs are evidence the tree cites);
   the reference architecture under `ref/nidana-docs/arch/`, the
   `*-v0_15_1.md` files only (the Specification normative, the Guide and the
-  Rationale informative); the HSDD skills under `.agents/skills/` and
+  Rationale informative), which is not checked out on this machine (the
+  submodule is a private repository; the run does not fetch it): build from
+  the governance under `hsdd/`, which states every Interface, guarantee and
+  rule a phase implements, and report as a contract gap any rule you find
+  only cited to the Specification and not stated in the governance; the HSDD skills under `.agents/skills/` and
   `~/git/hsdd/spec/hsdd-spec-v0_10.md`; the Dart and Flutter SDKs through
   fvm; public package documentation (pub.dev, api.dart.dev).
 - **Prose rules** for everything you write that gets committed (code

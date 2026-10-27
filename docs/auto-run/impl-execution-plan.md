@@ -181,6 +181,7 @@ a `Task N: complete` line; never re-dispatch them.
 | S110 | reconcile (inserted) | hsdd-reconcile | nidana.model pending section: three Delivery amends within version, conventions fp-progression | done | 87b473a |
 | S111 | config | hsdd-config | nidana.model.4 re-run after the re-plan (N 6) | done | a78d464 |
 | S112 | code-plan | superpowers:writing-plans | nidana.model.4 (5 tasks; dry run 57/57; purity hardening routed in) | done | d3c8f85 |
+| S113 | implement | superpowers:subagent-driven-development | nidana.model.4: 5 tasks, 2 fix rounds (purity reader), final review with one fix wave; gate exit 0, 32 tests, 57/57 | done | ccac409 (merge recorded in the next row) |
 
 ## Notes for the report
 
@@ -207,6 +208,11 @@ Findings the report must carry, written down when found so they survive context 
 - S105: hsdd-config's template has no section for a node's own decisions (`D{n}`), so a phase context omits
   the node decisions that fix what a phase lands (nidana.model D3, D4, D6 for the type-level phases); the
   writing-plans prompts point at them. HSDD feedback, like S98's Rule 2 note.
+
+- S113: `ref/nidana-docs` (the reference architecture) is an uninitialized submodule on this machine, a
+  private repository behind a personal SSH alias; the run does not fetch it (credential) and builds from
+  the governance (decision in S113.orchestrator.json). Watch nidana.model.8, whose Verification cites Spec
+  §2.4's worked examples.
 
 ## Routed to later phases
 
@@ -255,6 +261,9 @@ that phase's writing-plans dispatch and strikes it here when the phase's plan co
   non-empty const set or const map keyed by topics, refs, sources, envelopes or lineages stops compiling
   (`const_set_element_not_primitive_equality`); consumer plans must not rely on such collections. For the
   report and the owner.
+- nidana.model.9 (from S113's final review): G14's "a handle another builder made" check needs a
+  handle-to-builder link (a private constructor argument or an Expando); `CombineStage.apply` for `combineAll`
+  needs `T`, which `CombineStage<R>` does not carry, so capture a typed closure in the private constructor.
 - nidana.model.10 (from S112): remove the two `// ignore: unused_element` on `TransformEdge._` and
   `TopologyDefinition._`; `FunctionRef.named`'s empty-name `ArgumentError`.
 - End of nidana.model, governance sweep (from S112): topology-ir@v1's Interface prose (line 47) says every value
@@ -265,8 +274,9 @@ that phase's writing-plans dispatch and strikes it here when the phase's plan co
   (Development flow item 1) and `hsdd/spec/nidana.model.md` line 40 ("Inherited from the root"), which still
   say "one contract per phase"; stale reasons (".5 completes the main library") in
   `hsdd/spec/nidana.tooling.codegen.md` line 299 and `hsdd/spec/nidana.navigation.md` line 177, edges correct.
-- End of nidana.model, governance sweep (from S107's final review): nidana.model D6's purity token list misses
-  `Random.secure(`, `DateTime.timestamp()`, `Timer.run(`, `runZoned`, `Stream.periodic(`; an hsdd-spec touch
+- End of nidana.model, governance sweep (from S107's and S113's final reviews): nidana.model D6's purity token
+  list misses `Random.secure(`, `DateTime.timestamp(` (a clock read, verified on the pinned SDK), `Timer.run(`,
+  `runZoned`, `Stream.periodic(`, `Future(`; an hsdd-spec touch
   could make the list a floor ("at least").
 - nidana.model.6 (from S106): the topic-model binding already loads against nidana.model.3's declarations
   (9 cases pass, 32 fail), and not every failure is `UnimplementedError` (some are identity equality or
