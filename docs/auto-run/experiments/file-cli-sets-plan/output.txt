@@ -1,0 +1,284 @@
+
+### D1 the dart that runs a program under fvm dart run, from the repository
+Platform.resolvedExecutable: ~/fvm/versions/3.47.7/bin/cache/dart-sdk/bin/dart
+Dart SDK version: 3.13.5 (stable) (Tue Sep 29 01:00:52 2026 -0700) on "macos_arm64"
+
+### D2 fvm dart from a temporary directory (no .fvmrc above it)
+-- fvm dart --version in {T}
+stdout:
+stderr:
+  | /bin/sh: dart: command not found
+exit: 127
+
+### S1 a temporary directory's path as Dart reads it
+Directory.systemTemp.path: {T}
+createTempSync path:       {T}/probe_JA1jQK
+resolveSymbolicLinksSync:  {T-real}/probe_JA1jQK
+
+### S2 a child started with a temporary working directory, given {output} as an argument; then both replacement orders
+child exit: 0
+cwd: {T-real}/probe_VTsoGE/files
+PWD: ~/gitx/nidana-bus-dart/docs/auto-run/experiments/file-cli-sets-plan
+arg: {T}/probe_VTsoGE/output
+relative made absolute: {T-real}/probe_VTsoGE/files/rel.txt
+arg resolved: {T-real}/probe_VTsoGE/output
+-- given form first, then resolved:
+cwd: /private{files}
+PWD: ~/gitx/nidana-bus-dart/docs/auto-run/experiments/file-cli-sets-plan
+arg: {output}
+relative made absolute: /private{files}/rel.txt
+arg resolved: /private{output}
+-- the longer form of each pair first:
+cwd: {files}
+PWD: ~/gitx/nidana-bus-dart/docs/auto-run/experiments/file-cli-sets-plan
+arg: {output}
+relative made absolute: {files}/rel.txt
+arg resolved: {output}
+
+### I1 a child that reads stdin under Process.run
+child exit: 0, stdout: read: end of input, seconds: 0.2
+
+### F1 dart format over a directory: which files it formats
+-- dart format {dir}
+stdout:
+  | Formatted {T}/fcs.ZTNohx/fmt/a.dart
+  | Formatted {T}/fcs.ZTNohx/fmt/sub/b.dart
+  | Formatted 2 files (2 changed) in 0.00 seconds.
+stderr:
+exit: 0
+a.dart: formatted
+sub/b.dart: formatted
+.hidden/c.dart: unchanged
+.d.dart: unchanged
+x.txt: unchanged
+e.dart.txt: unchanged
+-- dart format {dir} again (nothing to change)
+stdout:
+  | Formatted 2 files (0 changed) in 0.00 seconds.
+stderr:
+exit: 0
+
+### F2 dart format over an empty directory, and over a path that does not exist
+-- empty directory
+stdout:
+  | Formatted no files in 0.00 seconds.
+stderr:
+exit: 0
+-- absent path
+stdout:
+  | Formatted no files in 0.00 seconds.
+stderr:
+  | No file or directory found at "{T}/fcs.ZTNohx/nope".
+exit: 0
+
+### F3 dart format over a directory holding a file that does not parse
+-- good.dart and bad.dart
+stdout:
+  | Formatted {T}/fcs.ZTNohx/bad/good.dart
+  | Formatted 1 file (1 changed) in 0.00 seconds.
+stderr:
+  | Could not format because the source could not be parsed:
+  | 
+  | line 2, column 1 of {T}/fcs.ZTNohx/bad/bad.dart: Expected an identifier.
+  |   ╷
+  | 2 │ 
+  |   │ ^
+  |   ╵
+  | line 2, column 1 of {T}/fcs.ZTNohx/bad/bad.dart: A function body must be provided.
+  |   ╷
+  | 2 │ 
+  |   │ ^
+  |   ╵
+  | line 2, column 1 of {T}/fcs.ZTNohx/bad/bad.dart: Expected to find '}'.
+  |   ╷
+  | 2 │  
+  |   │ ^
+  |   ╵
+  | line 2, column 1 of {T}/fcs.ZTNohx/bad/bad.dart: Expected to find ')'.
+  |   ╷
+  | 2 │  
+  |   │ ^
+  |   ╵
+exit: 65
+good.dart: formatted
+
+### F4 the language version outside any package: topic-codegen's expected/topics.g.dart, and a sample whose short and tall styles differ
+-- topics.g.dart in {T}
+stdout:
+  | Formatted 1 file (0 changed) in 0.00 seconds.
+stderr:
+exit: 0
+topics.g.dart: no byte changed
+outside any package:
+  | void f() {
+  |   someFunction(
+  |     argumentNumberOne,
+  |     argumentNumberTwo,
+  |     argumentNumberThree,
+  |     argumentFour,
+  |   );
+  | }
+below the repository root (language 3.13):
+  | void f() {
+  |   someFunction(
+  |     argumentNumberOne,
+  |     argumentNumberTwo,
+  |     argumentNumberThree,
+  |     argumentFour,
+  |   );
+  | }
+the two are EQUAL
+short: pub get exit 0
+in a package at language 3.6 (short style):
+  | void f() {
+  |   someFunction(
+  |       argumentNumberOne, argumentNumberTwo, argumentNumberThree, argumentFour);
+  | }
+
+### W1 a temporary workspace with a stand-in generator member gen, resolved offline
+-- pub get --offline
+stdout:
+  | Resolving dependencies...
+  | Downloading packages...
+  | Got dependencies!
+stderr:
+exit: 0
+seconds: 0.1
+hsdd in.txt packages pubspec.lock pubspec.yaml 
+
+### P1 dart pub get --enforce-lockfile at its root
+-- enforce-lockfile
+stdout:
+  | Resolving dependencies...
+  | Downloading packages...
+  | Got dependencies!
+stderr:
+exit: 0
+
+### P2 the same with every proxy pointing at a closed port (no network)
+-- enforce-lockfile, no network
+stdout:
+  | Resolving dependencies...
+  | Downloading packages...
+  | Got dependencies!
+stderr:
+exit: 0
+
+### P3 a member pubspec.yaml that adds a dependency the lockfile lacks
+-- enforce-lockfile on a stale lockfile
+stdout:
+  | Resolving dependencies...
+  | Downloading packages...
+  | + path 1.9.1
+  | Would change 1 dependency.
+stderr:
+  | Unable to satisfy `pubspec.yaml` using `pubspec.lock`.
+  | 
+  | To update `pubspec.lock` run `dart pub get` without
+  | `--enforce-lockfile`.
+exit: 65
+-- restored
+stdout:
+  | Resolving dependencies...
+  | Downloading packages...
+  | Got dependencies!
+stderr:
+exit: 0
+
+### P4 no lockfile
+-- enforce-lockfile without pubspec.lock
+stdout:
+stderr:
+  | Retrieving dependencies failed.
+  | Cannot do `--enforce-lockfile` without an existing `pubspec.lock`.
+  | 
+  | Try running `dart pub get` to create `pubspec.lock`.
+exit: 1
+hsdd in.txt packages pubspec.lock pubspec.yaml 
+
+### G1 dart run gen:generate from the root, first run (nothing compiled yet): stdout as bytes
+exit: 0
+seconds: 0.1
+stdout:
+  | wrote {T}/fcs.He2iZg/out1
+  | cwd {T-real}/fcs.He2iZg
+stderr:
+first stdout bytes:
+0000000    w   r   o   t   e       /   v   a   r   /   f   o   l   d   e
+0000020    r   s   /   t   n   /   _   x                                
+
+### G2 a second run from the root
+-- second run
+stdout:
+  | wrote {T}/fcs.He2iZg/out2
+  | cwd {T-real}/fcs.He2iZg
+stderr:
+exit: 0
+seconds: 0.2
+
+### G3 from a directory below the root with no pubspec.yaml (a recorded invocation's files/)
+-- from files/
+stdout:
+stderr:
+  | Could not find a file named "pubspec.yaml" in "{T-real}/fcs.He2iZg/hsdd/contract/fixture/sample/invocation/case/files".
+exit: 255
+seconds: 0.1
+
+### G4 a stale resolution: the root pubspec.yaml touched after it
+-- from files/, stale
+stdout:
+stderr:
+  | Could not find a file named "pubspec.yaml" in "{T-real}/fcs.He2iZg/hsdd/contract/fixture/sample/invocation/case/files".
+exit: 255
+-- pub get --enforce-lockfile at the root
+stdout:
+  | Resolving dependencies...
+  | Downloading packages...
+  | Got dependencies!
+stderr:
+exit: 0
+-- from files/, after it
+stdout:
+stderr:
+  | Could not find a file named "pubspec.yaml" in "{T-real}/fcs.He2iZg/hsdd/contract/fixture/sample/invocation/case/files".
+exit: 255
+-- from the root, stale
+stdout:
+  | wrote {T}/fcs.He2iZg/out6
+  | cwd {T-real}/fcs.He2iZg
+stderr:
+exit: 0
+
+### G5 a package the workspace lacks
+-- dart run nosuch:generate
+stdout:
+stderr:
+  | Could not find package `nosuch` or file `nosuch:generate`
+exit: 255
+out7 exists: no
+
+### G6 an executable that does not compile
+-- dart run gen:broken
+stdout:
+stderr:
+  | Failed to build gen:broken:
+  | packages/gen/bin/broken.dart:1:15: Error: Method not found: 'undefinedName'.
+  | void main() { undefinedName(); }
+  |               ^^^^^^^^^^^^^
+exit: 255
+
+### A1 dart analyze --format=machine . from a temporary files/ directory
+-- machine format
+stdout:
+  | WARNING|STATIC_WARNING|UNUSED_IMPORT|{T-real}/fcs.He2iZg/hsdd/contract/fixture/sample/invocation/case/files/lib/a.dart|1|8|12|Unused import: 'dart:async'.
+stderr:
+exit: 2
+-- default format
+stdout:
+  | Analyzing ....
+  | 
+  | warning - lib/a.dart:1:8 - Unused import: 'dart:async'. Try removing the import directive. - unused_import
+  | 
+  | 1 issue found.
+stderr:
+exit: 2

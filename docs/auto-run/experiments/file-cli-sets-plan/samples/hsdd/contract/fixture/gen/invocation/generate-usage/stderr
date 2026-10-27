@@ -1,0 +1,1 @@
+usage: generate [--echo] [--write-then-fail] <input> <output>
