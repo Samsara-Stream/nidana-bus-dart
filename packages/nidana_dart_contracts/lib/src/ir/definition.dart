@@ -1,5 +1,6 @@
 import 'package:meta/meta.dart';
 
+import '../topic/list_equality.dart';
 import '../topic/scope.dart';
 import '../topic/topic.dart';
 import 'function_ref.dart';
@@ -42,6 +43,14 @@ final class TopicInput extends EdgeInput {
 
   final TopicRef topic;
   final Dedup? dedup;
+
+  // topic and dedup (topology-ir@v1 G7)
+  @override
+  bool operator ==(Object other) =>
+      other is TopicInput && other.topic == topic && other.dedup == dedup;
+
+  @override
+  int get hashCode => Object.hash(topic, dedup);
 }
 
 /// The values the stage edge at index [edge] of the same definition's
@@ -52,6 +61,13 @@ final class StageInput extends EdgeInput {
       super._();
 
   final int edge;
+
+  // edge (topology-ir@v1 G7)
+  @override
+  bool operator ==(Object other) => other is StageInput && other.edge == edge;
+
+  @override
+  int get hashCode => edge.hashCode;
 }
 
 /// One element of a topology's wiring other than a read (Spec §6.5): a stage
@@ -59,9 +75,6 @@ final class StageInput extends EdgeInput {
 /// are published to [output]. No public unnamed constructor.
 @immutable
 final class TransformEdge {
-  // The three factories construct through this once nidana.model.10 lands
-  // them.
-  // ignore: unused_element
   const TransformEdge._({
     required this.combinator,
     required this.inputs,
@@ -80,11 +93,53 @@ final class TransformEdge {
     FunctionRef? transformer,
     Duration? duration,
     FunctionRef? retry,
-  }) => throw UnimplementedError();
+  }) {
+    final _StageRule rule = _ruleOf(combinator);
+    if (inputs.length < rule.minInputs ||
+        (rule.maxInputs != null && inputs.length > rule.maxInputs!)) {
+      final String count = rule.maxInputs == null
+          ? 'at least ${rule.minInputs}'
+          : rule.minInputs == rule.maxInputs
+          ? 'exactly ${rule.minInputs}'
+          : '${rule.minInputs} to ${rule.maxInputs}';
+      throw ArgumentError.value(
+        inputs.length,
+        'inputs',
+        'a ${combinator.name} edge takes $count inputs',
+      );
+    }
+    _checkPresence(transformer, 'transformer', combinator, rule.transformer);
+    _checkPresence(duration, 'duration', combinator, rule.duration);
+    if (duration != null && duration.isNegative) {
+      throw ArgumentError.value(duration, 'duration', 'must not be negative');
+    }
+    if (retry != null && !rule.retry) {
+      throw ArgumentError.value(
+        retry,
+        'retry',
+        'a ${combinator.name} edge holds none',
+      );
+    }
+    return TransformEdge._(
+      combinator: combinator,
+      inputs: List<EdgeInput>.unmodifiable(inputs),
+      output: null,
+      transformer: transformer,
+      duration: duration,
+      retry: retry,
+    );
+  }
 
   /// A write: [input]'s values published to [topic] unchanged.
   factory TransformEdge.write(TopicRef topic, EdgeInput input) =>
-      throw UnimplementedError();
+      TransformEdge._(
+        combinator: null,
+        inputs: List<EdgeInput>.unmodifiable(<EdgeInput>[input]),
+        output: topic,
+        transformer: null,
+        duration: null,
+        retry: null,
+      );
 
   /// A reduceInto folding [events] into [topic] with [reducer]. Throws
   /// ArgumentError unless [topic] is a state topic.
@@ -92,7 +147,23 @@ final class TransformEdge {
     TopicRef topic,
     EdgeInput events,
     FunctionRef reducer,
-  ) => throw UnimplementedError();
+  ) {
+    if (topic.variant != TopicVariant.state) {
+      throw ArgumentError.value(
+        topic.name,
+        'topic',
+        'is not a state topic, and a reduceInto writes one',
+      );
+    }
+    return TransformEdge._(
+      combinator: CombinatorKind.reduceInto,
+      inputs: List<EdgeInput>.unmodifiable(<EdgeInput>[events]),
+      output: topic,
+      transformer: reducer,
+      duration: null,
+      retry: null,
+    );
+  }
 
   final CombinatorKind? combinator; // null exactly for a write
   final List<EdgeInput> inputs; // unmodifiable copy, in input order
@@ -100,9 +171,138 @@ final class TransformEdge {
   final FunctionRef? transformer; // the edge's function, when it holds one
   final Duration? duration; // the six time stages only
   final FunctionRef? retry; // a switchMap with a retry policy only
-  bool get isSink => throw UnimplementedError(); // output != null
-  bool get isStateBearing =>
-      throw UnimplementedError(); // Spec §3.8; the rule below
+  bool get isSink => output != null; // output != null
+  bool get isStateBearing => switch (combinator) {
+    CombinatorKind.scan || CombinatorKind.reduceInto => true,
+    CombinatorKind.debounce ||
+    CombinatorKind.delay ||
+    CombinatorKind.sample ||
+    CombinatorKind.buffer => duration! > Duration.zero,
+    _ => false,
+  }; // Spec §3.8; the rule below
+
+  // all six fields, inputs element by element (topology-ir@v1 G7)
+  @override
+  bool operator ==(Object other) =>
+      other is TransformEdge &&
+      other.combinator == combinator &&
+      elementsEqual(other.inputs, inputs) &&
+      other.output == output &&
+      other.transformer == transformer &&
+      other.duration == duration &&
+      other.retry == retry;
+
+  @override
+  int get hashCode => Object.hash(
+    combinator,
+    Object.hashAll(inputs),
+    output,
+    transformer,
+    duration,
+    retry,
+  );
+}
+
+// What a stage edge of one combinator holds (topology-ir@v1, What a stage
+// edge holds): from minInputs to maxInputs inputs (null: no upper bound); a
+// transformer and a duration exactly when required, else none; a retry
+// allowed only where optional.
+typedef _StageRule = ({
+  int minInputs,
+  int? maxInputs,
+  bool transformer,
+  bool duration,
+  bool retry,
+});
+
+_StageRule _ruleOf(CombinatorKind combinator) => switch (combinator) {
+  CombinatorKind.map ||
+  CombinatorKind.filter ||
+  CombinatorKind.scan ||
+  CombinatorKind.catchError ||
+  CombinatorKind.rawEngine => (
+    minInputs: 1,
+    maxInputs: 1,
+    transformer: true,
+    duration: false,
+    retry: false,
+  ),
+  CombinatorKind.switchMap => (
+    minInputs: 1,
+    maxInputs: 1,
+    transformer: true,
+    duration: false,
+    retry: true,
+  ),
+  CombinatorKind.combine => (
+    minInputs: 1,
+    maxInputs: null,
+    transformer: true,
+    duration: false,
+    retry: false,
+  ),
+  CombinatorKind.withLatestFrom => (
+    minInputs: 2,
+    maxInputs: 4,
+    transformer: true,
+    duration: false,
+    retry: false,
+  ),
+  CombinatorKind.merge => (
+    minInputs: 1,
+    maxInputs: null,
+    transformer: false,
+    duration: false,
+    retry: false,
+  ),
+  CombinatorKind.pairwise || CombinatorKind.distinctUntilChanged => (
+    minInputs: 1,
+    maxInputs: 1,
+    transformer: false,
+    duration: false,
+    retry: false,
+  ),
+  CombinatorKind.debounce ||
+  CombinatorKind.throttle ||
+  CombinatorKind.delay ||
+  CombinatorKind.sample ||
+  CombinatorKind.buffer ||
+  CombinatorKind.timeout => (
+    minInputs: 1,
+    maxInputs: 1,
+    transformer: false,
+    duration: true,
+    retry: false,
+  ),
+  CombinatorKind.reduceInto => throw ArgumentError.value(
+    combinator,
+    'combinator',
+    'a reduceInto edge is made by TransformEdge.reduceInto',
+  ),
+};
+
+// Throws ArgumentError when [value] is absent where [required], or present
+// where not.
+void _checkPresence(
+  Object? value,
+  String name,
+  CombinatorKind combinator,
+  bool required,
+) {
+  if (required && value == null) {
+    throw ArgumentError.value(
+      value,
+      name,
+      'a ${combinator.name} edge needs one',
+    );
+  }
+  if (!required && value != null) {
+    throw ArgumentError.value(
+      value,
+      name,
+      'a ${combinator.name} edge holds none',
+    );
+  }
 }
 
 /// The IR of one topology (Spec §6.5, Appendix A.4).
