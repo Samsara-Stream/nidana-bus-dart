@@ -1,11 +1,13 @@
 /// The replay tool's command line (ADR-001 item 9) read as a [Request]: the
 /// slugs to replay, the sets `--set` selects and the guarantees `--guarantee`
-/// restricts to.
+/// restricts to; and the restriction checked against the guarantees each
+/// slug's contract text declares.
 library;
 
 import 'package:args/args.dart';
 
 import 'ids.dart';
+import 'snapshot.dart';
 
 /// The replay tool's sets (ADR-001 item 9); `--set` names each by its enum name.
 enum CheckSet { structure, surface, reject, behavior, schema, file, cli }
@@ -102,6 +104,32 @@ ParseResult parseRequest(List<String> arguments, {required Set<String> slugs}) {
     ),
   );
 }
+
+/// The usage error of the first id of [request]'s restriction, in command order, that its slug
+/// does not declare; null when every id is declared or the request is unrestricted. [declared]
+/// holds, for each slug the restriction names, the ids its contract text declares, or null when
+/// it has no contract text.
+///
+/// [parseRequest] cannot make this check: it reads the command line alone,
+/// and the declared ids come from the contract texts, which the shell reads
+/// once the command line parses. An undeclared id is rejected rather than
+/// replayed because it would admit no case, and a restricted replay that
+/// runs nothing passes.
+String? guaranteeError(Request request, Map<String, Set<int>?> declared) =>
+    (request.restriction ?? const <GuaranteeRef>{})
+        .map(
+          (GuaranteeRef ref) => switch (declared[ref.slug]) {
+            null =>
+              "unknown guarantee '${ref.slug}/G${ref.number}': "
+                  'no contract text at ${contractPath(ref.slug)}',
+            final Set<int> ids when !ids.contains(ref.number) =>
+              "unknown guarantee '${ref.slug}/G${ref.number}': "
+                  '${contractPath(ref.slug)} declares no G${ref.number}',
+            Set<int>() => null,
+          },
+        )
+        .nonNulls
+        .firstOrNull;
 
 final ArgParser _parser = ArgParser()
   ..addFlag('all', negatable: false)

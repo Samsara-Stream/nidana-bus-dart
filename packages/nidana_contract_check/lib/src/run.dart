@@ -1,4 +1,6 @@
-/// Which sets a slug has and which of them a [Request] runs (ADR-001 item 9).
+/// Which sets a slug has, which of them a [Request] runs (ADR-001 item 9),
+/// the [SlugPlan] of each slug of a replay, and which sets read the
+/// workspace's package configuration.
 library;
 
 import 'request.dart';
@@ -30,6 +32,27 @@ List<CheckSet> plannedSets(Request request, SlugSnapshot snapshot) {
     ),
   ]);
 }
+
+/// One slug of a replay: its [snapshot] and the sets planned over it, in
+/// order.
+typedef SlugPlan = ({SlugSnapshot snapshot, List<CheckSet> sets});
+
+/// The [SlugPlan] of [snapshot] under [request]: the sets [plannedSets] runs over it.
+SlugPlan slugPlan(Request request, SlugSnapshot snapshot) =>
+    (snapshot: snapshot, sets: plannedSets(request, snapshot));
+
+/// Whether [set] reads the workspace's package configuration: surface, reject and behavior do.
+///
+/// The shell reads the configuration once per replay, and only when some
+/// planned set reads it.
+bool readsPackages(CheckSet set) => switch (set) {
+  CheckSet.surface || CheckSet.reject || CheckSet.behavior => true,
+  // nidana.model.7 moves file and cli here when they read it for PENDING.
+  CheckSet.structure ||
+  CheckSet.schema ||
+  CheckSet.file ||
+  CheckSet.cli => false,
+};
 
 /// Whether [snapshot]'s slug has [set], read from the entries directly under
 /// its fixture directory and from its schema file.

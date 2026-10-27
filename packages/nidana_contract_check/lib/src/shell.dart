@@ -1,15 +1,19 @@
 /// The replay tool's imperative shell (nidana.model D2 item 5): it finds the
-/// workspace root, reads one [SlugSnapshot] per slug, runs `dart analyze`
+/// workspace root, reads the contract texts a restriction names, one
+/// [SlugSnapshot] per slug and the package configuration, runs `dart analyze`
 /// once for the `surface` and `reject` sets of every slug, runs the planned
-/// sets and prints the report. Every decision is the pure core's; this is the
-/// only library of the tool that imports `dart:io`.
+/// sets and prints the report. Every decision is the pure core's; with
+/// `workspace.dart`, this is the only library under `lib/src/` that imports
+/// `dart:io`.
 library;
 
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:path/path.dart' as p;
 
 import 'analysis.dart';
+import 'contract.dart';
 import 'outcome.dart';
 import 'packages.dart';
 import 'reject.dart';
@@ -20,10 +24,7 @@ import 'schema.dart';
 import 'snapshot.dart';
 import 'structure.dart';
 import 'surface.dart';
-
-/// The nearest ancestor of [start], [start] included, that holds hsdd/contract/; null when none does.
-Directory? findWorkspaceRoot(Directory start) =>
-    _selfAndAncestors(_absolute(start)).where(_holdsContracts).firstOrNull;
+import 'workspace.dart';
 
 /// The names of the directories directly under hsdd/contract/fixture/, hidden ones excluded; empty
 /// when it is absent. Throws FileSystemException for a symbolic link directly under it.
@@ -34,7 +35,7 @@ Directory? findWorkspaceRoot(Directory start) =>
 /// part of the replay.
 Set<String> discoverSlugs(Directory root) {
   final Directory fixtures = Directory(
-    _workspacePath(root, 'hsdd/contract/fixture/'),
+    workspacePath(root, 'hsdd/contract/fixture/'),
   );
   if (!fixtures.existsSync()) {
     return const <String>{};
@@ -67,7 +68,7 @@ Set<String> discoverSlugs(Directory root) {
 /// dangling one throws.
 SlugSnapshot readSnapshot(Directory root, String slug) {
   final Directory fixtures = Directory(
-    _workspacePath(root, fixtureDirectory(slug)),
+    workspacePath(root, fixtureDirectory(slug)),
   );
   final List<_Entry> entries = List<_Entry>.unmodifiable(<_Entry>[
     for (final FileSystemEntity entity in fixtures.listSync(
@@ -78,8 +79,8 @@ SlugSnapshot readSnapshot(Directory root, String slug) {
           when !_isHiddenPath(path))
         (path: path, entity: entity),
   ]);
-  final File contract = File(_workspacePath(root, contractPath(slug)));
-  final File schema = File(_workspacePath(root, schemaPath(slug)));
+  final File contract = File(workspacePath(root, contractPath(slug)));
+  final File schema = File(workspacePath(root, schemaPath(slug)));
   return SlugSnapshot(
     slug: slug,
     contractText: contract.existsSync() ? contract.readAsStringSync() : null,
@@ -106,8 +107,11 @@ SlugSnapshot readSnapshot(Directory root, String slug) {
 ///
 /// Outcome lines and the summary go to [out]; a set that could not run, a
 /// usage error and an environment error go to [err]. The exit code is
-/// [exitCodeOf] the runs, [exitUsage] on a usage error, and [exitEnvironment]
-/// when no workspace root or no slug directory is found or reading fails.
+/// [exitCodeOf] the runs; [exitUsage] on a usage error, a command line
+/// [parseRequest] rejects or a restriction with an id its slug does not
+/// declare, even in a workspace with no slug directory; and
+/// [exitEnvironment] when no workspace root or no slug directory is found or
+/// reading fails.
 Future<int> runCli(
   List<String> arguments, {
   required Directory workingDirectory,
@@ -140,9 +144,17 @@ Future<int> runCli(
   }
 }
 
-/// Parses [arguments] against the slugs under [root], reads every slug of the
-/// request, runs the one analysis and every planned set, then prints each run
-/// in order and the summary.
+/// Parses [arguments] against the slugs under [root], checks the
+/// restriction, reads every slug of the request and the package
+/// configuration, runs the one analysis and every planned set, then prints
+/// each run in order and the summary.
+///
+/// The order is fixed: a usage error comes before the check for a slug
+/// directory, so a command line that does not parse exits [exitUsage] even
+/// in a workspace with no fixtures; the restriction is checked against the
+/// contract texts it names before any snapshot is read; the package
+/// configuration is read once, for every set that [readsPackages], before the
+/// analysis that needs its names.
 ///
 /// Every run is computed before the first line is printed: the analysis
 /// serves every slug, so no slug's runs are known before it completes.
@@ -153,26 +165,30 @@ Future<int> _replay(
   required StringSink err,
   required String dart,
 }) async {
-  final Set<String> slugs = discoverSlugs(root);
-  if (slugs.isEmpty) {
-    err.writeln('error: no slug directory under hsdd/contract/fixture/');
-    return exitEnvironment;
-  }
-  switch (parseRequest(arguments, slugs: slugs)) {
+  switch (parseRequest(arguments, slugs: discoverSlugs(root))) {
     case UsageError(:final String message):
-      err
-        ..writeln('error: $message')
-        ..writeln(usage);
-      return exitUsage;
+      return _usageError(message, err: err);
     case ParsedRequest(:final Request request):
+      if (request.slugs.isEmpty) {
+        err.writeln('error: no slug directory under hsdd/contract/fixture/');
+        return exitEnvironment;
+      }
+      if (guaranteeError(request, _declaredGuarantees(root, request))
+          case final String message) {
+        return _usageError(message, err: err);
+      }
       final List<SlugPlan> plans = List<SlugPlan>.unmodifiable(<SlugPlan>[
         for (final String slug in request.slugs)
-          _planOf(request, readSnapshot(root, slug)),
+          slugPlan(request, readSnapshot(root, slug)),
       ]);
-      final _Analysis analysis = await _analyze(root, plans, dart: dart);
+      final _Packages packages = _readPackages(root, plans);
+      final _Context context = (
+        packages: packages,
+        analysis: await _analyze(root, plans, packages, dart: dart),
+      );
       final List<SetRun> runs = List<SetRun>.unmodifiable(<SetRun>[
         for (final (:SlugSnapshot snapshot, :List<CheckSet> sets) in plans)
-          for (final CheckSet set in sets) _run(set, snapshot, analysis),
+          for (final CheckSet set in sets) _run(set, snapshot, context),
       ]);
       for (final SetRun run in runs) {
         _print(run, out: out, err: err);
@@ -182,10 +198,98 @@ Future<int> _replay(
   }
 }
 
-/// The [SlugPlan] of [snapshot] under [request]: the sets [plannedSets]
-/// runs over it.
-SlugPlan _planOf(Request request, SlugSnapshot snapshot) =>
-    (snapshot: snapshot, sets: plannedSets(request, snapshot));
+/// Prints the usage error [message] and the [usage] to [err]; returns [exitUsage].
+int _usageError(String message, {required StringSink err}) {
+  err
+    ..writeln('error: $message')
+    ..writeln(usage);
+  return exitUsage;
+}
+
+/// For each slug [request]'s restriction names, the ids its contract text declares, or null when
+/// it has none; empty when the request is unrestricted.
+Map<String, Set<int>?> _declaredGuarantees(Directory root, Request request) =>
+    Map<String, Set<int>?>.unmodifiable(<String, Set<int>?>{
+      for (final String slug in <String>{
+        for (final GuaranteeRef ref
+            in request.restriction ?? const <GuaranteeRef>{})
+          ref.slug,
+      })
+        slug: _declaredBy(root, slug),
+    });
+
+/// The ids the contract text of [slug] under [root] declares; null when it is absent, as
+/// [readSnapshot] reads it.
+Set<int>? _declaredBy(Directory root, String slug) {
+  final File contract = File(workspacePath(root, contractPath(slug)));
+  return contract.existsSync()
+      ? Set<int>.unmodifiable(
+          readContract(slug, contract.readAsStringSync()).guarantees,
+        )
+      : null;
+}
+
+/// What a replay reads once for all its runs: the workspace's [_Packages]
+/// and the replay's one [_Analysis].
+typedef _Context = ({_Packages packages, _Analysis analysis});
+
+/// The workspace's package names, read once per replay from
+/// [packageConfigPath], or the reason they cannot be read.
+sealed class _Packages {
+  const _Packages();
+}
+
+/// The [names] of the packages the workspace's package configuration
+/// configures.
+final class _PackageNames extends _Packages {
+  const _PackageNames(this.names);
+
+  final Set<String> names;
+}
+
+/// The workspace has no package configuration it can read: every run that
+/// needs the names is [SetUnavailable] with [reason].
+final class _NoPackages extends _Packages {
+  const _NoPackages(this.reason);
+
+  final String reason;
+}
+
+/// The package configuration under [root], for the sets of [plans] that [readsPackages].
+///
+/// When no plan holds such a set, the configuration is not read and the
+/// empty names stand in; no run consults them. The configuration is read as
+/// bytes and decoded strictly, so bytes that are not UTF-8 are a
+/// configuration that is not one, as a text [packageNamesOf] rejects is.
+_Packages _readPackages(Directory root, List<SlugPlan> plans) {
+  if (!plans.any((SlugPlan plan) => plan.sets.any(readsPackages))) {
+    return const _PackageNames(<String>{});
+  }
+  final File configuration = File(workspacePath(root, packageConfigPath));
+  if (!configuration.existsSync()) {
+    return const _NoPackages(
+      'no package configuration at $packageConfigPath; run fvm dart pub get',
+    );
+  }
+  final Set<String>? names = switch (_strictUtf8(
+    configuration.readAsBytesSync(),
+  )) {
+    final String text => packageNamesOf(text),
+    null => null,
+  };
+  return names == null
+      ? const _NoPackages('$packageConfigPath is not a package configuration')
+      : _PackageNames(names);
+}
+
+/// [bytes] decoded as UTF-8; null when they are not UTF-8.
+String? _strictUtf8(List<int> bytes) {
+  try {
+    return utf8.decode(bytes);
+  } on FormatException {
+    return null;
+  }
+}
 
 /// What the replay's one analysis gives the `surface` and `reject` runs: the
 /// diagnostics by fixture, or the reason those runs cannot run.
@@ -193,12 +297,11 @@ sealed class _Analysis {
   const _Analysis();
 }
 
-/// The workspace's [packages] and the [diagnostics] reported in each analyzed
-/// library, by its path from the workspace root.
+/// The [diagnostics] reported in each analyzed library, by its path from the
+/// workspace root.
 final class _Analyzed extends _Analysis {
-  const _Analyzed(this.packages, this.diagnostics);
+  const _Analyzed(this.diagnostics);
 
-  final Set<String> packages;
   final Map<String, List<Diagnostic>> diagnostics;
 }
 
@@ -211,37 +314,29 @@ final class _AnalysisUnavailable extends _Analysis {
 }
 
 /// The replay's one analysis, for the `surface` and `reject` runs of every
-/// plan.
+/// plan, over the [packages] [_readPackages] read.
 ///
-/// The package configuration is read only when some plan holds a set that
-/// [readsAnalysis]; otherwise the result is never consulted. With no
-/// [replayTargets], no process starts.
+/// When no plan holds a set that [readsAnalysis], the empty diagnostics stand
+/// in and no run consults them. With [_NoPackages], the analysis is
+/// unavailable for its reason. With no [replayTargets], no process starts.
 Future<_Analysis> _analyze(
   Directory root,
-  List<SlugPlan> plans, {
+  List<SlugPlan> plans,
+  _Packages packages, {
   required String dart,
 }) async {
   if (!plans.any((SlugPlan plan) => plan.sets.any(readsAnalysis))) {
-    return const _Analyzed(<String>{}, <String, List<Diagnostic>>{});
+    return const _Analyzed(<String, List<Diagnostic>>{});
   }
-  final File configuration = File(_workspacePath(root, packageConfigPath));
-  if (!configuration.existsSync()) {
-    return const _AnalysisUnavailable(
-      'no package configuration at $packageConfigPath; run fvm dart pub get',
-    );
+  switch (packages) {
+    case _NoPackages(:final String reason):
+      return _AnalysisUnavailable(reason);
+    case _PackageNames(:final Set<String> names):
+      final List<String> targets = replayTargets(plans, names);
+      return targets.isEmpty
+          ? const _Analyzed(<String, List<Diagnostic>>{})
+          : _analyzeTargets(root, targets, dart: dart);
   }
-  final Set<String>? packages = packageNamesOf(
-    configuration.readAsStringSync(),
-  );
-  if (packages == null) {
-    return const _AnalysisUnavailable(
-      '$packageConfigPath is not a package configuration',
-    );
-  }
-  final List<String> targets = replayTargets(plans, packages);
-  return targets.isEmpty
-      ? _Analyzed(packages, const <String, List<Diagnostic>>{})
-      : _analyzeTargets(root, targets, packages, dart: dart);
 }
 
 /// Runs `dart analyze` once over [targets] from [root] and has
@@ -252,15 +347,14 @@ Future<_Analysis> _analyze(
 /// resolved once, and the analyzer's output.
 Future<_Analysis> _analyzeTargets(
   Directory root,
-  List<String> targets,
-  Set<String> packages, {
+  List<String> targets, {
   required String dart,
 }) async {
   final List<AnalysisTarget> files = List<AnalysisTarget>.unmodifiable(
     <AnalysisTarget>[for (final String path in targets) _targetOf(root, path)],
   );
   final String fixtures = Directory(
-    _workspacePath(root, 'hsdd/contract/fixture/'),
+    workspacePath(root, 'hsdd/contract/fixture/'),
   ).resolveSymbolicLinksSync();
   final ProcessResult result;
   try {
@@ -281,7 +375,6 @@ Future<_Analysis> _analyzeTargets(
   }
   return switch (attributeDiagnostics(files, fixtures, reported)) {
     Attributed(:final Map<String, List<Diagnostic>> byFixture) => _Analyzed(
-      packages,
       byFixture,
     ),
     Unattributable(:final String reason) => _AnalysisUnavailable(reason),
@@ -292,7 +385,7 @@ Future<_Analysis> _analyzeTargets(
 /// path handed to `dart analyze`, and that path with symbolic links
 /// resolved.
 AnalysisTarget _targetOf(Directory root, String path) {
-  final String given = _workspacePath(root, path);
+  final String given = workspacePath(root, path);
   return (
     path: path,
     given: given,
@@ -301,18 +394,18 @@ AnalysisTarget _targetOf(Directory root, String path) {
 }
 
 /// [set] run over [snapshot], the `surface` and `reject` sets reading
-/// [analysis]. Each set this version does not implement is [SetUnavailable]
+/// [context]. Each set this version does not implement is [SetUnavailable]
 /// with the [notImplemented] reason; the phase that lands it replaces its
 /// branch.
-SetRun _run(CheckSet set, SlugSnapshot snapshot, _Analysis analysis) =>
+SetRun _run(CheckSet set, SlugSnapshot snapshot, _Context context) =>
     switch (set) {
       CheckSet.structure => SetChecked(
         set,
         snapshot.slug,
         checkStructure(snapshot),
       ),
-      CheckSet.surface => _analyzedRun(set, snapshot, analysis, checkSurface),
-      CheckSet.reject => _analyzedRun(set, snapshot, analysis, checkReject),
+      CheckSet.surface => _analyzedRun(set, snapshot, context, checkSurface),
+      CheckSet.reject => _analyzedRun(set, snapshot, context, checkReject),
       CheckSet.schema => SetChecked(set, snapshot.slug, checkSchema(snapshot)),
       // nidana.model.6 lands this.
       CheckSet.behavior => SetUnavailable(
@@ -333,28 +426,29 @@ typedef _AnalyzedCheck = List<FixtureOutcome> Function(
   required Map<String, List<Diagnostic>> diagnostics,
 });
 
-/// [set] run by [check] over [snapshot] when [analysis] ran, else
-/// [SetUnavailable] with its reason.
+/// [set] run by [check] over [snapshot] with the package names and the
+/// diagnostics of [context], else [SetUnavailable] with the reason the
+/// packages or the analysis gives.
 SetRun _analyzedRun(
   CheckSet set,
   SlugSnapshot snapshot,
-  _Analysis analysis,
+  _Context context,
   _AnalyzedCheck check,
-) => switch (analysis) {
-  _Analyzed(
-    :final Set<String> packages,
-    :final Map<String, List<Diagnostic>> diagnostics,
+) => switch (context) {
+  (packages: _NoPackages(:final String reason), analysis: _) ||
+  (
+    packages: _,
+    analysis: _AnalysisUnavailable(:final String reason),
+  ) => SetUnavailable(set, snapshot.slug, reason),
+  (
+    packages: _PackageNames(:final Set<String> names),
+    analysis: _Analyzed(:final Map<String, List<Diagnostic>> diagnostics),
   ) =>
     SetChecked(
       set,
       snapshot.slug,
-      check(snapshot, packages: packages, diagnostics: diagnostics),
+      check(snapshot, packages: names, diagnostics: diagnostics),
     ),
-  _AnalysisUnavailable(:final String reason) => SetUnavailable(
-    set,
-    snapshot.slug,
-    reason,
-  ),
 };
 
 /// Prints [run]: each outcome's line to [out], or the unavailable line to
@@ -378,26 +472,10 @@ typedef _Entry = ({String path, FileSystemEntity entity});
 /// link, which is never descended into.
 bool _isFile(FileSystemEntity entity) => entity is File || entity is Link;
 
-/// [directory] followed by each of its ancestors up to the file system root.
-Iterable<Directory> _selfAndAncestors(Directory directory) sync* {
-  yield directory;
-  final Directory parent = directory.parent;
-  if (parent.path != directory.path) {
-    yield* _selfAndAncestors(parent);
-  }
-}
-
-/// Whether [directory] holds `hsdd/contract/`.
-bool _holdsContracts(Directory directory) =>
-    Directory(_workspacePath(directory, 'hsdd/contract/')).existsSync();
-
-/// [directory] as an absolute, normalized path.
+/// [directory] as an absolute, normalized path, as [findWorkspaceRoot]
+/// starts from it.
 Directory _absolute(Directory directory) =>
     Directory(p.normalize(directory.absolute.path));
-
-/// The platform path of the `/`-separated [path] from [root].
-String _workspacePath(Directory root, String path) =>
-    p.joinAll(<String>[root.path, ...p.posix.split(path)]);
 
 /// [entity]'s path relative to [base], `/`-separated.
 String _relative(FileSystemEntity entity, Directory base) =>

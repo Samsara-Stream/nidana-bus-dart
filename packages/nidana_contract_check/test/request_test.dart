@@ -158,4 +158,83 @@ void main() {
       expect(usageError(<String>['topic-model', '--set']), contains('--set'));
     });
   });
+  test(
+    '--guarantee takes the = form, and a bare id under --all of one slug',
+    () {
+      expect(
+        parsed(<String>['topic-model', '--guarantee=G1']).restriction,
+        <GuaranteeRef>{(slug: 'topic-model', number: 1)},
+      );
+      final ParseResult one = parseRequest(
+        <String>['--all', '--guarantee', 'G1'],
+        slugs: const <String>{'sample'},
+      );
+      expect((one as ParsedRequest).request.restriction, <GuaranteeRef>{
+        (slug: 'sample', number: 1),
+      });
+      expect(
+        usageError(<String>['--all', '--guarantee', 'G1']),
+        "bare id 'G1' names no single slug: the command replays 4 slugs; write {slug}/G1",
+      );
+    },
+  );
+  group('guaranteeError', () {
+    test('null when unrestricted, and when every id is declared', () {
+      expect(
+        guaranteeError(
+          parsed(<String>['topic-model']),
+          const <String, Set<int>?>{},
+        ),
+        isNull,
+      );
+      expect(
+        guaranteeError(
+          parsed(<String>['topic-model', '--guarantee', 'G1,G2']),
+          const <String, Set<int>?>{
+            'topic-model': <int>{1, 2},
+          },
+        ),
+        isNull,
+      );
+    });
+    test('the first undeclared id in command order', () {
+      expect(
+        guaranteeError(
+          parsed(<String>['topic-model', '--guarantee', 'G1,G99,G98']),
+          const <String, Set<int>?>{
+            'topic-model': <int>{1, 2},
+          },
+        ),
+        "unknown guarantee 'topic-model/G99': hsdd/contract/topic-model.md declares no G99",
+      );
+    });
+    test('a qualified id is checked against its own slug', () {
+      const Map<String, Set<int>?> declared = <String, Set<int>?>{
+        'topology-dsl': <int>{1, 2, 3},
+      };
+      expect(
+        guaranteeError(
+          parsed(<String>['topic-model', '--guarantee', 'topology-dsl/G3']),
+          declared,
+        ),
+        isNull,
+      );
+      expect(
+        guaranteeError(
+          parsed(<String>['topic-model', '--guarantee', 'topology-dsl/G4']),
+          declared,
+        ),
+        "unknown guarantee 'topology-dsl/G4': hsdd/contract/topology-dsl.md declares no G4",
+      );
+    });
+    test('a slug without a contract text declares nothing', () {
+      expect(
+        guaranteeError(
+          parsed(<String>['bus-api', '--guarantee', 'G1']),
+          const <String, Set<int>?>{'bus-api': null},
+        ),
+        "unknown guarantee 'bus-api/G1': no contract text at hsdd/contract/bus-api.md",
+      );
+    });
+  });
 }

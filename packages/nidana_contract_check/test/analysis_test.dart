@@ -1,5 +1,6 @@
 import 'package:nidana_contract_check/src/analysis.dart';
 import 'package:nidana_contract_check/src/request.dart';
+import 'package:nidana_contract_check/src/run.dart';
 import 'package:nidana_contract_check/src/snapshot.dart';
 import 'package:test/test.dart';
 
@@ -232,6 +233,27 @@ void main() {
         CheckSet.surface,
         CheckSet.reject,
       ]);
+    });
+
+    // Beyond the brief: the replay-level reads of run.dart that would
+    // otherwise go unpinned.
+    test('readsPackages: surface, reject and behavior, no other set', () {
+      expect(CheckSet.values.where(readsPackages), <CheckSet>[
+        CheckSet.surface,
+        CheckSet.reject,
+        CheckSet.behavior,
+      ]);
+    });
+    test('slugPlan: the snapshot and the sets plannedSets runs over it', () {
+      final SlugSnapshot sample = snapshotOf('sample', sampleFiles);
+      const Request request = Request(
+        slugs: <String>['sample'],
+        sets: <CheckSet>{CheckSet.reject, CheckSet.schema},
+        restriction: null,
+      );
+      final SlugPlan plan = slugPlan(request, sample);
+      expect(plan.snapshot, same(sample));
+      expect(plan.sets, <CheckSet>[CheckSet.structure, CheckSet.reject]);
     });
     test('replayTargets: analysisTargets of every planned set of every slug, once each, ascending', () {
       final SlugSnapshot sample = snapshotOf('sample', analysisFiles);

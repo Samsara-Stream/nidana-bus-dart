@@ -6,7 +6,7 @@ library;
 
 import 'dart:io';
 
-import 'package:nidana_contract_check/src/shell.dart';
+import 'package:nidana_contract_check/src/workspace.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 

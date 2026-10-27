@@ -10,10 +10,9 @@ import 'dart:io';
 
 import 'package:json_schema/json_schema.dart' show JsonSchema;
 import 'package:matcher/expect.dart' show fail;
-import 'package:path/path.dart' as p;
 
 import 'src/json_document.dart';
-import 'src/shell.dart' show findWorkspaceRoot;
+import 'src/workspace.dart';
 
 /// One case of a conformance library (ADR-001 item 4): its `name` is a string
 /// literal that begins with the guarantee id, `'G{n} ...'`, and its `body`
@@ -38,9 +37,7 @@ void expectMatchesSchema(Object? instance, String schemaPath) {
       (throw StateError(
         'no ancestor of ${Directory.current.path} holds hsdd/contract/',
       ));
-  final File file = File(
-    p.joinAll(<String>[root.path, ...p.posix.split(schemaPath)]),
-  );
+  final File file = File(workspacePath(root, schemaPath));
   if (!file.existsSync()) {
     throw StateError('no schema at $schemaPath under ${root.path}');
   }
