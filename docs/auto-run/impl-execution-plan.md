@@ -200,6 +200,7 @@ a `Task N: complete` line; never re-dispatch them.
 | S129 | reconcile | hsdd-reconcile | nidana.model pending section (amend of .9's gate): topology-dsl@v2 Delivery, compatible within v2 | done | c08820a |
 | S130 | config | hsdd-config | nidana.model.9 re-run after the gate amend (restriction G11,G13 to G17,G30) | done | 1d0b27d |
 | S131 | code-plan | superpowers:writing-plans | nidana.model.9 plan revised to the amended gate (constraint 4, Tasks 3 to 5) | done | bf18a44 |
+| S132 | implement | superpowers:subagent-driven-development | nidana.model.9: 5 tasks, no fix rounds (one carried ruling), final review with doc fixes, one doc-only fix wave; gate exit 0, 147 tests; topology-dsl restricted 17/17 | done | 235c403 |
 
 ## Notes for the report
 
@@ -368,6 +369,16 @@ that phase's writing-plans dispatch and strikes it here when the phase's plan co
   one-sink check, stages left behind after a rejected call); the contract does not say which error wins when a
   closed builder also gets a bad argument, or what `apply` does with a list of the wrong length (the code checks
   closed first, then arguments, and throws `ArgumentError` on a wrong length). `docs/auto-run/steps/S127.json`.
+- nidana.model.11 (from S132's final review), which edits the DSL library: the builder's `"... is an replay topic"`
+  message grammar; `_checkMade` names the argument `handle` without its position (a foreign fourth handle of
+  `combine4` reads "Invalid argument (handle)"); use `combiner`, never `apply`, for `FunctionRef.of`; map a stage
+  to its edge index by identity (stages keep `Object`'s `==`, G30); expect `TopologyDefinition`'s `ArgumentError`
+  for the corner below and let it propagate from `definition`.
+- End of nidana.model, governance sweep (from S132's final review): two `StateTopic`s with one name and value
+  types that render alike (one class name from two libraries) pass `planOf` (topology-dsl@v2 G14 compares by
+  `Topic` equality, whose `valueType` is a `Type`) but break topology-ir@v1's well-formedness (`TopicRef`
+  compares the rendered string), contradicting "From a plan"'s closing sentence that every projected definition
+  is well formed; it is also a Spec §4.3 name collision the workspace scan reports.
 - nidana.tooling.codegen.6, .9, .11 and nidana.tooling.lint.4 (from S122): the first gates to run the 39 committed
   recorded invocations and topic-codegen's file replay for real (all PENDING until then); their `{files}` and
   `{root}` recordings and in-place `files/` runs are first exercised there.
