@@ -193,6 +193,7 @@ a `Task N: complete` line; never re-dispatch them.
 | S122 | implement | superpowers:subagent-driven-development | nidana.model.7: 8 tasks, a pre-review amendment on Task 3 (sealed FileEntry), a doc fix round on Task 8, final review with fixes (tests pinned governance content), one fix wave; gate exit 0, 468 tests, 102/102; --all 321: 235/3/83; the replay tool is complete | done | f4a13fd; merged into impl/nidana.model as eb033bb |
 | S123 | config | hsdd-config | nidana.model.8 (N=7, spot-check; produces topic-model@v1, last producing phase; the known excerpt-ids warning) | done | b979378 |
 | S124 | code-plan | superpowers:writing-plans | nidana.model.8 (6 tasks; dry run green: topic-model 41 behavior cases; 3 contract gaps routed) | done | 7a245e7 |
+| S125 | implement | superpowers:subagent-driven-development | nidana.model.8: 6 tasks, no fix rounds, final review with fixes (doc overclaims), one fix wave; gate exit 0, 95 tests; topic-model 31/31, 41/41 behavior cases; topic-model@v1 fully produced | done | a35f40c |
 
 ## Notes for the report
 
@@ -242,6 +243,13 @@ Findings the report must carry, written down when found so they survive context 
   .6, .7) ran 9 to 15 times. None of the 39 committed recorded invocations nor topic-codegen's file replay has
   run against a real producer (all PENDING until nidana.tooling's packages exist); a recorded invocation runs in
   place in its `files/` directory under `hsdd/`.
+
+- S125 (nidana.model.8): topic-model@v1 is fully produced (41/41 behavior cases). The owner should know before
+  signing its verification doc: Spec §2.4 is not checked out, so the worked examples are checked as G19's
+  conformance cases encode them (an Outstanding item); two phrases ("reproduce as written", "every branch of Spec
+  §2.4's table") still read as Spec comparisons beside their qualifier (parked after the one fix wave). Five
+  topic-model@v1 wording gaps are routed to the sweep (G13 NaN, G15 and G24 short renderings and re-redaction, G24
+  `1` vs `1.0`, the "value or total function" sentence).
 
 ## Routed to later phases
 
@@ -340,7 +348,15 @@ that phase's writing-plans dispatch and strikes it here when the phase's plan co
   `<redacted RedactedPayload #...>` and the payload type is lost (the surface fixture's `AuditObserver` logs exactly
   this; a rule choice for hsdd-contract); "Everything here is a value or a total function" (topic-model line 18 and
   nidana.model's Pure band, hsdd-spec) is inaccurate: the observer interfaces are neither and `Lineage.combine`
-  throws. `docs/auto-run/steps/S124.json` contract_gaps.
+  throws. `docs/auto-run/steps/S124.json` contract_gaps. Also (S125 Task 2 review): G24 says a redaction is "equal
+  for equal payloads", but the Interface's `==` compares `typeName` and `hash`, so `RedactedPayload.of(1)` and
+  `RedactedPayload.of(1.0)` differ although `1 == 1.0` and their hash codes agree. And (S125 Task 5 review): G13
+  read literally makes an envelope whose payload is NaN unequal to itself, so a `Set` of envelopes cannot find or
+  remove it; an `identical` short-circuit is the contract owner's call. And (S125 final review): `Topic`, `TopicRef`
+  and `Lineage` keep `Object.toString` (the Interface declares none), so test failures in nidana.model.9 to .14
+  print `Instance of 'TopicRef'`; compatible renderings would need the contract (D4 gives `lib/src/topic/` no later
+  owner). Also: Spec §2.4's worked examples are checked only as G19's conformance cases encode them; compare them
+  with the Specification once `ref/nidana-docs` is checked out (nidana.model.8's Outstanding).
 - nidana.tooling.codegen.6, .9, .11 and nidana.tooling.lint.4 (from S122): the first gates to run the 39 committed
   recorded invocations and topic-codegen's file replay for real (all PENDING until then); their `{files}` and
   `{root}` recordings and in-place `files/` runs are first exercised there.
