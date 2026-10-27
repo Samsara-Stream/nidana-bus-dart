@@ -1,5 +1,6 @@
-/// Seeded pub workspaces for the tests that run `dart analyze` or a binding's
-/// test runner: the seeded files beside stand-in packages, resolved offline.
+/// Seeded pub workspaces for the tests that run `dart analyze`, a binding's
+/// test runner or a generator: the seeded files beside stand-in packages,
+/// resolved offline.
 /// Inside a temporary directory `fvm` runs no `dart`, so the workspace
 /// resolves with [Platform.resolvedExecutable], the SDK's `dart` running the
 /// tests.
@@ -11,6 +12,7 @@ import 'package:nidana_contract_check/src/workspace.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
+import 'generator.dart';
 import 'seed.dart';
 
 /// `packages/sample/lib/sample.dart` of the seeded workspace.
@@ -27,11 +29,16 @@ final class Sample {
 }
 ''';
 
-/// [files] in a fresh temporary pub workspace resolved offline: its root's one member is the
-/// stand-in package `sample` unless [standIn] is false, and the fixtures' analysis options are
-/// this workspace's hsdd/contract/fixture/analysis_options.yaml. With [runners], `sample` also
-/// depends on `matcher` and dev-depends on `test`, and the stand-in members `nidana_contract_check`
-/// and `flutter_test` join the workspace, so bindings run under `dart test`.
+/// [files] in a fresh temporary pub workspace resolved offline: its members are the stand-in
+/// package `sample` unless [standIn] is false; with [runners], also the stand-in
+/// `nidana_contract_check` and `flutter_test`; with [generator], also the stand-in generator
+/// package `gen` (no dependency) whose `bin/generate.dart` is [standInGenerator].
+///
+/// The fixtures' analysis options are this workspace's
+/// hsdd/contract/fixture/analysis_options.yaml. With [runners], `sample` also
+/// depends on `matcher` and dev-depends on `test`, so bindings run under
+/// `dart test`. The root's `workspace:` list names each member the flags
+/// give, and the root has no `workspace:` key when they give none.
 ///
 /// Never start the real flutter: the pinned Flutter SDK has no engine
 /// artifacts. Replay a seeded Flutter binding that is not PENDING only with
@@ -41,6 +48,7 @@ Future<Directory> seedWorkspace(
   Map<String, String> files, {
   bool standIn = true,
   bool runners = false,
+  bool generator = false,
 }) async {
   if (runners && !standIn) {
     throw ArgumentError.value(
@@ -51,7 +59,14 @@ Future<Directory> seedWorkspace(
   }
   final Directory root = seed(<String, String>{
     ...files,
-    'pubspec.yaml': _rootPubspec(standIn: standIn, runners: runners),
+    'pubspec.yaml': _rootPubspec(<String>[
+      if (standIn) 'packages/sample',
+      if (runners) ...<String>[
+        'packages/nidana_contract_check',
+        'packages/flutter_test',
+      ],
+      if (generator) 'packages/gen',
+    ]),
     if (standIn)
       'packages/sample/pubspec.yaml': runners
           ? '$_samplePubspec$_sampleRunnerDependencies'
@@ -62,6 +77,10 @@ Future<Directory> seedWorkspace(
       'packages/nidana_contract_check/lib/fixture.dart': _toolFixture,
       'packages/flutter_test/pubspec.yaml': _flutterTestPubspec,
       'packages/flutter_test/lib/flutter_test.dart': _flutterTestLibrary,
+    },
+    if (generator) ...<String, String>{
+      'packages/gen/pubspec.yaml': _genPubspec,
+      'packages/gen/bin/generate.dart': standInGenerator,
     },
     'hsdd/contract/fixture/analysis_options.yaml': _fixtureOptions,
   });
@@ -74,21 +93,27 @@ Future<Directory> seedWorkspace(
   return root;
 }
 
-/// The seeded workspace's root `pubspec.yaml`: a pub workspace whose one
-/// member is the stand-in package when [standIn] is true, joined by the
-/// stand-in runner packages when [runners] is true.
-String _rootPubspec({required bool standIn, required bool runners}) => <String>[
+/// The seeded workspace's root `pubspec.yaml`: a pub workspace whose members
+/// are [members], each a `/`-separated path from the root, with no
+/// `workspace:` key when there is none.
+String _rootPubspec(List<String> members) => <String>[
   'name: stand_in_workspace',
   'publish_to: none',
   'environment:',
   '  sdk: ^3.13.0',
-  if (standIn) ...<String>['workspace:', '  - packages/sample'],
-  if (runners) ...<String>[
-    '  - packages/nidana_contract_check',
-    '  - packages/flutter_test',
-  ],
+  if (members.isNotEmpty) 'workspace:',
+  for (final String member in members) '  - $member',
   '',
 ].join('\n');
+
+/// `packages/gen/pubspec.yaml` of a seeded workspace with a generator.
+const String _genPubspec = '''
+name: gen
+publish_to: none
+environment:
+  sdk: ^3.13.0
+resolution: workspace
+''';
 
 /// `packages/sample/pubspec.yaml` of the seeded workspace.
 const String _samplePubspec = '''

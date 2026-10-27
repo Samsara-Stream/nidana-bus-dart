@@ -17,6 +17,7 @@ final String lib = p.join(
 /// The libraries under lib/src/ that import `dart:io`, the replay tool's
 /// imperative shell (nidana.model D2 item 5).
 const List<String> shell = <String>[
+  'command_runs.dart',
   'processes.dart',
   'runners.dart',
   'shell.dart',
@@ -70,7 +71,7 @@ List<String> sourceNames() => <String>[
 ]..sort();
 
 void main() {
-  test('no library under lib/src/ but processes.dart, runners.dart, shell.dart and workspace.dart imports dart:io', () {
+  test('no library under lib/src/ but command_runs.dart, processes.dart, runners.dart, shell.dart and workspace.dart imports dart:io', () {
     final List<String> importing = <String>[
       for (final String name in sourceNames())
         if (directivesOf(p.join(lib, 'src', name)).contains('dart:io')) name,
@@ -120,6 +121,7 @@ void main() {
       relativeClosure('src/shell.dart'),
       containsAll(<String>[
         'src/analysis.dart',
+        'src/command_runs.dart',
         'src/dart_library.dart',
         'src/dart_scanner.dart',
         'src/processes.dart',
