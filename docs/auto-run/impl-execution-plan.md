@@ -184,7 +184,8 @@ a `Task N: complete` line; never re-dispatch them.
 | S113 | implement | superpowers:subagent-driven-development | nidana.model.4: 5 tasks, 2 fix rounds (purity reader), final review with one fix wave; gate exit 0, 32 tests, 57/57 | done | ccac409; merged into impl/nidana.model as 3c147db |
 | S114 | config | hsdd-config | nidana.model.5 | done | d514fe4 |
 | S115 | code-plan | superpowers:writing-plans | nidana.model.5 (3 tasks; dry run 117/117) | done | 2088ab2 |
-| S116 | implement | superpowers:subagent-driven-development | nidana.model.5: 3 tasks, 1 doc fix round, final review ready to merge; gate exit 0, 38 tests, 117/117; end of the types band | done | 01991b3 (merge recorded in the next row) |
+| S116 | implement | superpowers:subagent-driven-development | nidana.model.5: 3 tasks, 1 doc fix round, final review ready to merge; gate exit 0, 38 tests, 117/117; end of the types band | done | 01991b3; merged into impl/nidana.model as 739c828 |
+| S117 | config | hsdd-config | nidana.model.6 | done | 631224a |
 
 ## Notes for the report
 
