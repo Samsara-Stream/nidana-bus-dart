@@ -3,7 +3,21 @@ part of 'topology.dart';
 /// Runs topology.declare once against a fresh builder and returns its plan.
 /// Throws StateError when topologyId is empty or a stage reaches no sink;
 /// an error declare throws, a builder's ArgumentError included, propagates.
-TopologyPlan planOf(Topology topology) => throw UnimplementedError();
+TopologyPlan planOf(Topology topology) {
+  final String topologyId = topology.topologyId;
+  if (topologyId.isEmpty) {
+    throw StateError(
+      'planOf: ${topology.runtimeType} has an empty topologyId (Spec §4.6).',
+    );
+  }
+  final TopologyBuilder builder = TopologyBuilder._();
+  try {
+    topology.declare(builder);
+  } finally {
+    builder._open = false;
+  }
+  return builder._plan(topologyId, topology.scope);
+}
 
 /// The executable form of one declaration (Spec §6.5).
 @immutable
@@ -28,9 +42,8 @@ final class TopologyPlan {
 /// Passes [stage] to the visitor method of its class, binding the stage's
 /// type arguments; likewise visitSink.
 V visitStage<V>(TopicStream<Object?> stage, StageVisitor<V> visitor) =>
-    throw UnimplementedError();
-V visitSink<V>(PlanSink sink, SinkVisitor<V> visitor) =>
-    throw UnimplementedError();
+    stage._accept(visitor);
+V visitSink<V>(PlanSink sink, SinkVisitor<V> visitor) => sink._accept(visitor);
 
 /// Implemented by a live implementation's interpreter, and by any reader
 /// that needs a stage's type arguments.

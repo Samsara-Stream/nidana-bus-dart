@@ -30,7 +30,7 @@ abstract base class Topology {
 
   /// The IR (Spec §6.5): planOf(this).definition.
   @nonVirtual
-  TopologyDefinition buildDefinition() => throw UnimplementedError();
+  TopologyDefinition buildDefinition() => planOf(this).definition;
 }
 
 /// The builder shorthand (Spec §6.1). Throws ArgumentError for an empty
@@ -39,7 +39,28 @@ Topology topology(
   String topologyId,
   Scope scope,
   void Function(TopologyBuilder b) declare,
-) => throw UnimplementedError();
+) {
+  if (topologyId.isEmpty) {
+    throw ArgumentError.value(topologyId, 'topologyId', 'must not be empty');
+  }
+  return _BuilderForm(topologyId, scope, declare);
+}
+
+/// The topology `topology()` returns: its body runs on each planOf call.
+final class _BuilderForm extends Topology {
+  const _BuilderForm(this.topologyId, this.scope, this._declare);
+
+  @override
+  final String topologyId;
+
+  @override
+  final Scope scope;
+
+  final void Function(TopologyBuilder b) _declare;
+
+  @override
+  void declare(TopologyBuilder b) => _declare(b);
+}
 
 /// A typed, module-local topology identifier (Spec §4.6). Equal by id.
 @immutable
@@ -47,6 +68,12 @@ final class TopologyRef {
   const TopologyRef(this.id);
 
   final String id;
+
+  @override
+  bool operator ==(Object other) => other is TopologyRef && other.id == id;
+
+  @override
+  int get hashCode => id.hashCode;
 }
 
 /// A value inside a live pipeline (Spec §3.5): its payload and the lineage
