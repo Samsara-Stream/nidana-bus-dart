@@ -1,0 +1,489 @@
+
+### S0 setup: the committed tree, resolved offline
+tree from 6dddef2 judgement: S123
+Dart SDK version: 3.13.5 (stable) (Tue Sep 29 01:00:52 2026 -0700) on "macos_arm64"
+Try `dart pub outdated` for more information.
+
+### F facts/facts.dart, two runs; the lines that differ are run-dependent
+H1 "abc".hashCode = 756227931
+H2 Object.hash("a", 1) = 502322261
+H3 Object.hash(1, 2) = 389319325
+H4 (0x1234abcd).hashCode = 81618916
+H5 (-1).hashCode = 0
+H6 null.hashCode = 2011
+H7 true.hashCode = 1231
+H8 Variant.state.hashCode = 776859466
+H9 int (the Type).hashCode = 1054059335
+H10 DateTime.utc(2026).hashCode = 104422689
+H11 Object.hashAll(["p-1", "p-2"]) = 202250779
+H12 (0x71234abcd).hashCode = 81536173
+L1 a == b (two equal lists): false
+L2 Object.hash(a) == Object.hash(b): false
+L3 Object.hashAll(a) == Object.hashAll(b): true
+L4 Object.hashAll([p-2, p-1]) == Object.hashAll(a): false
+L5 Object.hashAll([]) == Object.hashAll(const []): true
+U1 List.unmodifiable(source) after source.add: [p-1]
+U2 copy.add throws: true
+U3 const <String>[].add throws: true
+U4 identical(List.unmodifiable(copy), copy): false
+X 1234abcd -> 1234abcd
+X -1 -> ffffffff
+X ab -> 000000ab
+X 71234abcd -> 1234abcd
+X 0 -> 00000000
+O1 <String>{b, a, b}.toList() = [b, a]
+O2 [b, a, b, c].toSet().toList() = [b, a, c]
+R1 segment matches "state": true
+R2 segment matches "state\n": false
+R3 "auth.state\n".split(".") = [auth, state\n]
+R4 "".split(".") = [] (length 1)
+R5 "auth..state".split(".") = [auth, , state]
+A1 RangeError.range(1, 0, 0) is ArgumentError: true
+A2 RangeError.checkValidIndex(1, [x]) throws ArgumentError: true
+A3 RangeError.checkValidIndex(-1, [x]) throws ArgumentError: true
+T1 int String? List<int> Map<String, List<int>?>
+T2 Box<List<int>>().type == Box<List<int>>().type (separate instances): true
+T3 Box<int>().type == Box<int?>().type: false
+T4 Box<Object?>().rendered = Object?, Box<dynamic>().rendered = dynamic
+D1 utc == utc.toLocal(): false; isAtSameMomentAs: true
+D2 utc.toString() = 2026-10-27 12:00:00.000Z
+-- lines that differ between the two runs (run 1 | run 2):
+  H2 Object.hash("a", 1) = 502322261 | H2 Object.hash("a", 1) = 351808042
+  H3 Object.hash(1, 2) = 389319325 | H3 Object.hash(1, 2) = 435429515
+  H8 Variant.state.hashCode = 776859466 | H8 Variant.state.hashCode = 1021378924
+  H11 Object.hashAll(["p-1", "p-2"]) = 202250779 | H11 Object.hashAll(["p-1", "p-2"]) = 60194599
+
+### S1 the committed tree
+-- dart test packages/nidana_dart_contracts
++38: All tests passed!
+exit: 0
+-- nidana_contract_check topic-model
+PASS structure lines: 17
+PASS surface hsdd/contract/fixture/topic-model/surface/envelopes.dart
+PASS surface hsdd/contract/fixture/topic-model/surface/observers.dart
+PASS surface hsdd/contract/fixture/topic-model/surface/topics.dart
+PASS reject hsdd/contract/fixture/topic-model/reject/envelope_requires_metadata.dart
+PASS reject hsdd/contract/fixture/topic-model/reject/no_dispatcher_hint.dart
+PASS reject hsdd/contract/fixture/topic-model/reject/observer_has_no_publish_path.dart
+PASS reject hsdd/contract/fixture/topic-model/reject/only_state_topics_carry_values.dart
+PASS reject hsdd/contract/fixture/topic-model/reject/replay_buffer_is_positive.dart
+PASS reject hsdd/contract/fixture/topic-model/reject/source_family_is_closed.dart
+PASS reject hsdd/contract/fixture/topic-model/reject/state_topic_is_not_multi_writer.dart
+PASS reject hsdd/contract/fixture/topic-model/reject/state_topic_requires_initial.dart
+PASS reject hsdd/contract/fixture/topic-model/reject/topic_family_is_closed.dart
+PASS reject hsdd/contract/fixture/topic-model/reject/values_are_immutable.dart
+FAIL behavior hsdd/contract/fixture/topic-model/behavior/nidana_dart_contracts_test.dart: cases (9 passed, 32 failed, 0 skipped under dart test)
+    failed-case (G4 an envelope keeps an unmodifiable copy of its parent correlation ids)
+    failed-case (G4 a lineage keeps unmodifiable parent correlation ids)
+    failed-case (G7 topics with the same variant, name and value type are equal)
+    failed-case (G8 a topic reference carries the name, the variant and the type name)
+    failed-case (G8 topic references are equal exactly when all three fields are)
+    failed-case (G9 a constant initial value is returned as declared)
+    failed-case (G9 a computed initial value is computed on each createInitial call, never at construction)
+    failed-case (G11 well-formed topic names have two or three lowercase kebab segments)
+    failed-case (G11 other names are not well formed)
+    failed-case (G13 envelopes with equal fields are equal and hash alike)
+    failed-case (G14 a published envelope mirrors the destination topic sensitive flag)
+    failed-case (G14 a published envelope takes its metadata from its arguments and its lineage)
+    failed-case (G14 a lineage without a correlation id takes exactly one fresh id at publish)
+    failed-case (G15 a sensitive envelope renders its payload redacted)
+    failed-case (G15 redacted() replaces a sensitive payload and keeps every other field)
+    failed-case (G15 redacted() leaves a non-sensitive envelope equal to itself)
+    failed-case (G17 a source renders in the Spec 2.4 format)
+    failed-case (G17 tryParse reads back every rendered source)
+    failed-case (G17 tryParse returns null for text that is not a source)
+    failed-case (G18 a lineage caused by an envelope points at it and keeps its flow)
+    failed-case (G19 a same-correlation combine keeps the correlation and takes the trigger as cause)
+    failed-case (G19 a cross-correlation combine takes one fresh correlation and records the inputs)
+    failed-case (G19 a cross-correlation combine records each distinct input correlation once, in input order)
+    failed-case (G19 a same-correlation combine unites the inputs parent correlation ids in input order)
+    failed-case (G19 inputs without a correlation id contribute none)
+    failed-case (G19 a combine is sensitive when any input is)
+    failed-case (G19 a combine rejects an empty input list and a trigger out of range)
+    failed-case (G20 withLatestFrom keeps the primary cause and flow and unites sensitivity)
+    failed-case (G21 scopes are ordered application, module, page by lifetime)
+    failed-case (G23 observeAll admits non-sensitive envelopes only, observeSensitive sensitive ones only)
+    failed-case (G24 a redacted payload shows the runtime type and eight hex digits of the hash code)
+    failed-case (G24 equal payloads redact to equal values)
+31 fixtures: 30 passed, 1 failed, 0 pending
+exit: 1
+
+### B every fixture diagnostic before any body lands (surface, reject and behavior of every slug)
+diagnostics: 3143 in 70 libraries
+const-collection codes: 0
+
+### A0 the probe against the committed declarations (Object's ==)
+No issues found!
+
+### T1.2 Task 1's failing step: test/topic_test.dart and the G7, G8, G9 and G11 cases
+-- dart test packages/nidana_dart_contracts/test/topic_test.dart
+    Which: has length of <4>
+   Actual: Set:[
+ Expected: an object with length of <3>
+ UnimplementedError
++1 -1: G9 a nullable value type keeps a null initial value, constant or computed [E]
++1 -2: G7 G8 equal topics and references built apart are one set element and one map key [E]
++1 -3: G8 a reference names a nested value type as its type argument reads [E]
++1 -4: G11 a name with a trailing newline, a non-ASCII letter or inner white space is not well formed [E]
++1 -4: Some tests failed.
+exit: 1
+-- nidana_contract_check topic-model --set behavior --guarantee G7,G8,G9,G11
+PASS structure lines: 17
+FAIL behavior hsdd/contract/fixture/topic-model/behavior/nidana_dart_contracts_test.dart: cases (2 passed, 7 failed, 0 skipped under dart test, restricted to topic-model G7 to G9, G11)
+    failed-case (G7 topics with the same variant, name and value type are equal)
+    failed-case (G8 a topic reference carries the name, the variant and the type name)
+    failed-case (G8 topic references are equal exactly when all three fields are)
+    failed-case (G9 a constant initial value is returned as declared)
+    failed-case (G9 a computed initial value is computed on each createInitial call, never at construction)
+    failed-case (G11 well-formed topic names have two or three lowercase kebab segments)
+    failed-case (G11 other names are not well formed)
+18 fixtures: 17 passed, 1 failed, 0 pending
+exit: 1
+
+### T1.4 lib/src/topic/topic.dart
+Formatted 31 files (0 changed) in 0.03 seconds.
+format exit: 0
+-- dart test packages/nidana_dart_contracts
++43: All tests passed!
+exit: 0
+Analyzing tmvp.wL1qrI...
+No issues found!
+analyze exit: 0
+-- nidana_contract_check topic-model --set behavior --guarantee G7,G8,G9,G11
+PASS structure lines: 17
+PASS behavior hsdd/contract/fixture/topic-model/behavior/nidana_dart_contracts_test.dart: 9 passed, 0 failed, 0 skipped under dart test, restricted to topic-model G7 to G9, G11
+18 fixtures: 18 passed, 0 failed, 0 pending
+exit: 0
+
+### T2.2 Task 2's failing step: the source and redaction tests and the G17, G21, G23 and G24 cases
+-- dart test packages/nidana_dart_contracts/test/message_source_test.dart packages/nidana_dart_contracts/test/redacted_payload_test.dart
+    Which: has length of <7>
+   Actual: Set:[
+ Expected: an object with length of <5>
+ UnimplementedError
++0 -2: packages/nidana_dart_contracts/test/message_source_test.dart: G17 tryParse splits at the first colon and keeps all the rest, white space and colons included, as the field [E]
++0 -2: packages/nidana_dart_contracts/test/redacted_payload_test.dart: G24 the hash keeps the low 32 bits of a hash code wider than 32 bits [E]
++0 -4: packages/nidana_dart_contracts/test/message_source_test.dart: G17 tryParse returns null for padded, misspelt or truncated renderings [E]
++0 -4: packages/nidana_dart_contracts/test/redacted_payload_test.dart: G24 a payload of a core type redacts to its runtime type and eight lowercase hexadecimal digits [E]
++0 -5: packages/nidana_dart_contracts/test/redacted_payload_test.dart: G24 redacted payloads of equal payloads are one set element [E]
++0 -6: packages/nidana_dart_contracts/test/message_source_test.dart: G17 sources built apart are one set element per variant and field [E]
++0 -6: Some tests failed.
+exit: 1
+-- nidana_contract_check topic-model --set behavior --guarantee G17,G21,G23,G24
+PASS structure lines: 17
+FAIL behavior hsdd/contract/fixture/topic-model/behavior/nidana_dart_contracts_test.dart: cases (1 passed, 7 failed, 0 skipped under dart test, restricted to topic-model G17, G21, G23, G24)
+    failed-case (G17 a source renders in the Spec 2.4 format)
+    failed-case (G17 tryParse reads back every rendered source)
+    failed-case (G17 tryParse returns null for text that is not a source)
+    failed-case (G21 scopes are ordered application, module, page by lifetime)
+    failed-case (G23 observeAll admits non-sensitive envelopes only, observeSensitive sensitive ones only)
+    failed-case (G24 a redacted payload shows the runtime type and eight hex digits of the hash code)
+    failed-case (G24 equal payloads redact to equal values)
+18 fixtures: 17 passed, 1 failed, 0 pending
+exit: 1
+
+### T2.4 message_source.dart, scope.dart, observer.dart, redacted_payload.dart
+Formatted 33 files (0 changed) in 0.03 seconds.
+format exit: 0
+-- dart test packages/nidana_dart_contracts
++49: All tests passed!
+exit: 0
+Analyzing tmvp.wL1qrI...
+No issues found!
+analyze exit: 0
+-- nidana_contract_check topic-model --set behavior --guarantee G17,G21,G23,G24
+PASS structure lines: 17
+PASS behavior hsdd/contract/fixture/topic-model/behavior/nidana_dart_contracts_test.dart: 8 passed, 0 failed, 0 skipped under dart test, restricted to topic-model G17, G21, G23, G24
+18 fixtures: 18 passed, 0 failed, 0 pending
+exit: 0
+
+### T3.2 Task 3's failing step: test/lineage_test.dart and the G4, G18 and G20 cases
+-- dart test packages/nidana_dart_contracts/test/lineage_test.dart
+ UnimplementedError
++0 -1: G4 G18 a lineage caused by an envelope exposes unmodifiable parents [E]
++0 -2: lineages built apart are equal exactly when all four fields are, parents in order, and equal ones are one set element [E]
++0 -3: G20 withLatestFrom over several latest values is sensitive when any is, and keeps the primary causation, correlation and parents [E]
++0 -3: Some tests failed.
+exit: 1
+-- nidana_contract_check topic-model --set behavior --guarantee G4,G18,G20
+PASS structure lines: 17
+FAIL behavior hsdd/contract/fixture/topic-model/behavior/nidana_dart_contracts_test.dart: cases (1 passed, 4 failed, 0 skipped under dart test, restricted to topic-model G4, G18, G20)
+    failed-case (G4 an envelope keeps an unmodifiable copy of its parent correlation ids)
+    failed-case (G4 a lineage keeps unmodifiable parent correlation ids)
+    failed-case (G18 a lineage caused by an envelope points at it and keeps its flow)
+    failed-case (G20 withLatestFrom keeps the primary cause and flow and unites sensitivity)
+18 fixtures: 17 passed, 1 failed, 0 pending
+exit: 1
+
+### T3.4 list_equality.dart, lineage.dart without combine, envelope.dart's copy
+Formatted 35 files (0 changed) in 0.03 seconds.
+format exit: 0
+-- dart test packages/nidana_dart_contracts
++52: All tests passed!
+exit: 0
+Analyzing tmvp.wL1qrI...
+No issues found!
+analyze exit: 0
+-- nidana_contract_check topic-model --set behavior --guarantee G4,G18,G20
+PASS structure lines: 17
+FAIL behavior hsdd/contract/fixture/topic-model/behavior/nidana_dart_contracts_test.dart: cases (4 passed, 1 failed, 0 skipped under dart test, restricted to topic-model G4, G18, G20)
+    failed-case (G4 a lineage keeps unmodifiable parent correlation ids)
+18 fixtures: 17 passed, 1 failed, 0 pending
+exit: 1
+
+### T4.2 Task 4's failing step: test/lineage_property_test.dart and the G4 and G19 cases
+-- dart test packages/nidana_dart_contracts/test/lineage_property_test.dart
+ UnimplementedError
++0 -1: G19 combine calls freshCorrelationId exactly once when the correlated inputs differ, and never otherwise [E]
++0 -2: G19 combine takes the causation from the trigger and is sensitive exactly when an input is [E]
++0 -3: G4 G19 combine keeps one shared correlation with its inputs' parents united in input order, takes a fresh one over the distinct input correlations in input order, and carries none over none [E]
++1 -3: Some tests failed.
+exit: 1
+-- nidana_contract_check topic-model --set behavior --guarantee G4,G19
+PASS structure lines: 17
+FAIL behavior hsdd/contract/fixture/topic-model/behavior/nidana_dart_contracts_test.dart: cases (1 passed, 8 failed, 0 skipped under dart test, restricted to topic-model G4, G19)
+    failed-case (G4 a lineage keeps unmodifiable parent correlation ids)
+    failed-case (G19 a same-correlation combine keeps the correlation and takes the trigger as cause)
+    failed-case (G19 a cross-correlation combine takes one fresh correlation and records the inputs)
+    failed-case (G19 a cross-correlation combine records each distinct input correlation once, in input order)
+    failed-case (G19 a same-correlation combine unites the inputs parent correlation ids in input order)
+    failed-case (G19 inputs without a correlation id contribute none)
+    failed-case (G19 a combine is sensitive when any input is)
+    failed-case (G19 a combine rejects an empty input list and a trigger out of range)
+18 fixtures: 17 passed, 1 failed, 0 pending
+exit: 1
+
+### T4.4 Lineage.combine and the README
+Formatted 36 files (0 changed) in 0.04 seconds.
+format exit: 0
+-- dart test packages/nidana_dart_contracts
++56: All tests passed!
+exit: 0
+Analyzing tmvp.wL1qrI...
+No issues found!
+analyze exit: 0
+-- nidana_contract_check topic-model --set behavior --guarantee G4,G19
+PASS structure lines: 17
+PASS behavior hsdd/contract/fixture/topic-model/behavior/nidana_dart_contracts_test.dart: 9 passed, 0 failed, 0 skipped under dart test, restricted to topic-model G4, G19
+18 fixtures: 18 passed, 0 failed, 0 pending
+exit: 0
+-- the property test's run time:
++4: All tests passed!
+real 0.67
+
+### T5.2 Task 5's failing step: test/envelope_test.dart and the G13, G14 and G15 cases
+-- dart test packages/nidana_dart_contracts/test/envelope_test.dart
+             Actual: Instance o ...
+           Expected: MessageEnv ...
+    Which: does not contain 'payload: <redacted Card #078a2965>,'
+    Which: is different.
+   Actual: 'Instance of \'MessageEnvelope<Object?>\''
+   Actual: 'Instance of \'MessageEnvelope<String>\''
+   Actual: <Instance of 'MessageEnvelope<Object?>'>
+ Expected: 'MessageEnvelope(id: e-1, payload: shoes, correlationId: c-1, causationId: e-0, parentCorrelationIds: [p-1, p-2], timestamp: 2026-10-27 12:00:00.000Z, source: page:search, sensitive: false)'
+ Expected: <Instance of 'MessageEnvelope<String>'>
+ Expected: contains 'payload: <redacted Card #078a2965>,'
+ UnimplementedError
++0 -1: an envelope renders its eight fields, a payload that is not sensitive as its own rendering [E]
++0 -2: G15 a sensitive envelope, and its redacted() envelope, never render the payload, whatever the payload [E]
++0 -3: G13 envelopes of different type arguments are equal when their eight fields are, and one set element [E]
++0 -4: G4 G14 a published envelope keeps an unmodifiable copy of its lineage parents [E]
++0 -4: Some tests failed.
+exit: 1
+-- nidana_contract_check topic-model --set behavior --guarantee G13,G14,G15
+PASS structure lines: 17
+FAIL behavior hsdd/contract/fixture/topic-model/behavior/nidana_dart_contracts_test.dart: cases (1 passed, 7 failed, 0 skipped under dart test, restricted to topic-model G13 to G15)
+    failed-case (G13 envelopes with equal fields are equal and hash alike)
+    failed-case (G14 a published envelope mirrors the destination topic sensitive flag)
+    failed-case (G14 a published envelope takes its metadata from its arguments and its lineage)
+    failed-case (G14 a lineage without a correlation id takes exactly one fresh id at publish)
+    failed-case (G15 a sensitive envelope renders its payload redacted)
+    failed-case (G15 redacted() replaces a sensitive payload and keeps every other field)
+    failed-case (G15 redacted() leaves a non-sensitive envelope equal to itself)
+18 fixtures: 17 passed, 1 failed, 0 pending
+exit: 1
+
+### T5.4 envelope.dart
+Formatted 37 files (0 changed) in 0.04 seconds.
+format exit: 0
+-- dart test packages/nidana_dart_contracts
++60: All tests passed!
+exit: 0
+Analyzing tmvp.wL1qrI...
+No issues found!
+analyze exit: 0
+-- nidana_contract_check topic-model --set behavior --guarantee G13,G14,G15
+PASS structure lines: 17
+PASS behavior hsdd/contract/fixture/topic-model/behavior/nidana_dart_contracts_test.dart: 8 passed, 0 failed, 0 skipped under dart test, restricted to topic-model G13 to G15
+18 fixtures: 18 passed, 0 failed, 0 pending
+exit: 0
+-- nidana_contract_check topic-model
+PASS structure lines: 17
+PASS surface hsdd/contract/fixture/topic-model/surface/envelopes.dart
+PASS surface hsdd/contract/fixture/topic-model/surface/observers.dart
+PASS surface hsdd/contract/fixture/topic-model/surface/topics.dart
+PASS reject hsdd/contract/fixture/topic-model/reject/envelope_requires_metadata.dart
+PASS reject hsdd/contract/fixture/topic-model/reject/no_dispatcher_hint.dart
+PASS reject hsdd/contract/fixture/topic-model/reject/observer_has_no_publish_path.dart
+PASS reject hsdd/contract/fixture/topic-model/reject/only_state_topics_carry_values.dart
+PASS reject hsdd/contract/fixture/topic-model/reject/replay_buffer_is_positive.dart
+PASS reject hsdd/contract/fixture/topic-model/reject/source_family_is_closed.dart
+PASS reject hsdd/contract/fixture/topic-model/reject/state_topic_is_not_multi_writer.dart
+PASS reject hsdd/contract/fixture/topic-model/reject/state_topic_requires_initial.dart
+PASS reject hsdd/contract/fixture/topic-model/reject/topic_family_is_closed.dart
+PASS reject hsdd/contract/fixture/topic-model/reject/values_are_immutable.dart
+PASS behavior hsdd/contract/fixture/topic-model/behavior/nidana_dart_contracts_test.dart: 41 passed, 0 failed, 0 skipped under dart test
+31 fixtures: 31 passed, 0 failed, 0 pending
+exit: 0
+
+### G the phase gate, from the workspace root
+gate exit: 0
+Got dependencies!
+No issues found!
+102 fixtures: 102 passed, 0 failed, 0 pending
++60: All tests passed!
+31 fixtures: 31 passed, 0 failed, 0 pending
+87 fixtures: 87 passed, 0 failed, 0 pending
+
+### C the last task's checklist
++0: loading hsdd/contract/fixture/topic-model/behavior/nidana_dart_contracts_test.dart
++0: G19 a same-correlation combine keeps the correlation and takes the trigger as cause
++1: G19 a cross-correlation combine takes one fresh correlation and records the inputs
++2: All tests passed!
+exit: 0
++0: loading packages/nidana_dart_contracts/test/envelope_test.dart
++0: G15 a sensitive envelope, and its redacted() envelope, never render the payload, whatever the payload
++1: All tests passed!
+exit: 0
+exit: 1
+exit: 1
+exit: 1
+exit: 1
+pubspec.lock unchanged
+changed lines in lib/src/topic/envelope.dart: 65
+changed lines in lib/src/topic/lineage.dart: 78
+changed lines in lib/src/topic/list_equality.dart: 14
+changed lines in lib/src/topic/message_source.dart: 44
+changed lines in lib/src/topic/observer.dart: 2
+changed lines in lib/src/topic/redacted_payload.dart: 21
+changed lines in lib/src/topic/scope.dart: 2
+changed lines in lib/src/topic/topic.dart: 54
+changed lines in README.md: 5
+     104 packages/nidana_dart_contracts/lib/src/topic/envelope.dart
+     113 packages/nidana_dart_contracts/lib/src/topic/lineage.dart
+      14 packages/nidana_dart_contracts/lib/src/topic/list_equality.dart
+      83 packages/nidana_dart_contracts/lib/src/topic/message_source.dart
+      56 packages/nidana_dart_contracts/lib/src/topic/observer.dart
+      32 packages/nidana_dart_contracts/lib/src/topic/redacted_payload.dart
+      10 packages/nidana_dart_contracts/lib/src/topic/scope.dart
+     164 packages/nidana_dart_contracts/lib/src/topic/topic.dart
+     114 packages/nidana_dart_contracts/test/topic_test.dart
+      47 packages/nidana_dart_contracts/test/message_source_test.dart
+      53 packages/nidana_dart_contracts/test/redacted_payload_test.dart
+      84 packages/nidana_dart_contracts/test/lineage_test.dart
+     180 packages/nidana_dart_contracts/test/lineage_property_test.dart
+      84 packages/nidana_dart_contracts/test/envelope_test.dart
+    1138 total
+
+### A the probe against the drafted declarations; every fixture diagnostic again
+  error - const_collections_probe.dart:15:39 - An element in a constant set can't override the '==' operator, or 'hashCode', but the type 'TopicRef' does. Try using a different value for the element, or removing the keyword 'const' from the set. - const_set_element_not_primitive_equality
+  error - const_collections_probe.dart:18:55 - An element in a constant set can't override the '==' operator, or 'hashCode', but the type 'StateTopic<int>' does. Try using a different value for the element, or removing the keyword 'const' from the set. - const_set_element_not_primitive_equality
+  error - const_collections_probe.dart:22:3 - The type of a key in a constant map can't override the '==' operator, or 'hashCode', but the class 'ServiceSource' does. Try using a different value for the key, or removing the keyword 'const' from the map. - const_map_key_not_primitive_equality
+  error - const_collections_probe.dart:44:14 - An element in a constant set can't override the '==' operator, or 'hashCode', but the type 'TopicRef' does. Try using a different value for the element, or removing the keyword 'const' from the set. - const_set_element_not_primitive_equality
+diagnostics: 3143 in 70 libraries
+const-collection codes: 0
+-- diff before/after (none expected):
+  identical
+-- const set or map literals with elements in the package and in every fixture Dart file (text search, implicit const contexts included by eye):
+lines: 0
+
+### D seeded defects, each restored after
+-- D1 Topic without its hashCode override
+Analyzing tmvp.wL1qrI...
+
+   info - packages/nidana_dart_contracts/lib/src/topic/topic.dart:39:17 - Missing a corresponding override of 'hashCode'. Try overriding 'hashCode' or removing '=='. - hash_and_equals
+
+1 issue found.
+analyze exit: 1
+-- D2 createInitial as _constant ?? _factory!()
+-- dart test packages/nidana_dart_contracts/test/topic_test.dart
++1 -1: G9 a nullable value type keeps a null initial value, constant or computed [E]
++4 -1: Some tests failed.
+exit: 1
+-- D3 a topic name matched by one multi-line pattern
+-- dart test packages/nidana_dart_contracts/test/topic_test.dart
+   Actual: <true>
+ Expected: false
++4 -1: G11 a name with a trailing newline, a non-ASCII letter or inner white space is not well formed [E]
++4 -1: Some tests failed.
+exit: 1
+-- nidana_contract_check topic-model --set behavior --guarantee G11
+PASS structure lines: 17
+PASS behavior hsdd/contract/fixture/topic-model/behavior/nidana_dart_contracts_test.dart: 3 passed, 0 failed, 0 skipped under dart test, restricted to topic-model G11
+18 fixtures: 18 passed, 0 failed, 0 pending
+exit: 0
+-- D4 envelope hashCode over the parents list itself
+-- dart test packages/nidana_dart_contracts/test/envelope_test.dart
+   Actual: <440287520>
+ Expected: <264515913>
++2 -1: G13 envelopes of different type arguments are equal when their eight fields are, and one set element [E]
++3 -1: Some tests failed.
+exit: 1
+-- nidana_contract_check topic-model --set behavior --guarantee G13
+PASS structure lines: 17
+FAIL behavior hsdd/contract/fixture/topic-model/behavior/nidana_dart_contracts_test.dart: cases (1 passed, 1 failed, 0 skipped under dart test, restricted to topic-model G13)
+    failed-case (G13 envelopes with equal fields are equal and hash alike)
+18 fixtures: 17 passed, 1 failed, 0 pending
+exit: 1
+-- D5 combine takes a fresh id before it counts the correlations
+-- dart test packages/nidana_dart_contracts/test/lineage_property_test.dart
+    Which: has length of <1>
+   Actual: ['fresh-0-0']
+ Expected: an object with length of <0>
++0 -1: G19 combine calls freshCorrelationId exactly once when the correlated inputs differ, and never otherwise [E]
++3 -1: Some tests failed.
+exit: 1
+-- D6 combine keeps repeated parents under a shared correlation
+-- dart test packages/nidana_dart_contracts/test/lineage_property_test.dart
+   Actual: <false>
+ Expected: true
++2 -1: G4 G19 combine keeps one shared correlation with its inputs' parents united in input order, takes a fresh one over the distinct input correlations in input order, and carries none over none [E]
++3 -1: Some tests failed.
+exit: 1
+-- D7 combine takes the causation of the last input
+-- dart test packages/nidana_dart_contracts/test/lineage_property_test.dart
+             Actual: e-3
+           Expected: e-1
+    Which: is different.
+   Actual: 'e-3'
+ Expected: 'e-1'
++1 -1: G19 combine takes the causation from the trigger and is sensitive exactly when an input is [E]
++3 -1: Some tests failed.
+exit: 1
+-- D8 a sensitive envelope rendered with its payload
+-- dart test packages/nidana_dart_contracts/test/envelope_test.dart
+   Actual: 'MessageEnvelope(id: e-1, payload: Card(4242-4242), correlationId: c-1, causationId: e-0, parentCorrelationIds: [p-1, p-2], timestamp: 2026-10-27 12:00:00.000Z, source: page:search, sensitive: true)'
+ Expected: not contains '4242-4242'
++1 -1: G15 a sensitive envelope, and its redacted() envelope, never render the payload, whatever the payload [E]
++3 -1: Some tests failed.
+exit: 1
+-- dart test packages/nidana_dart_contracts
++60: All tests passed!
+exit: 0
+
+### X every Dart block of the plan is the text of a draft file or a contiguous part of one
+block 1: 114 lines, the whole of test/topic_test.dart
+block 2: 37 lines, part of lib/src/topic/topic.dart
+block 3: 47 lines, the whole of test/message_source_test.dart
+block 4: 53 lines, the whole of test/redacted_payload_test.dart
+block 5: 39 lines, part of lib/src/topic/message_source.dart
+block 6: 7 lines, part of lib/src/topic/message_source.dart
+block 7: 84 lines, the whole of test/lineage_test.dart
+block 8: 7 lines, part of lib/src/topic/lineage.dart
+block 9: 11 lines, part of lib/src/topic/envelope.dart
+block 10: 180 lines, the whole of test/lineage_property_test.dart
+block 11: 84 lines, the whole of test/envelope_test.dart
+block 12: 8 lines, part of lib/src/topic/envelope.dart
+
+### cleanup
+removed the temporary workspace
