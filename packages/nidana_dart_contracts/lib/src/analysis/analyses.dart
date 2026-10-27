@@ -252,8 +252,28 @@ int _byOwner(_Owner a, _Owner b) {
 /// Every finding: cycles, then the self-references of each topology in graph
 /// order, then writer conflicts, then scope violations.
 List<TopologyFinding> analyzeTopologyGraph(TopologyGraph graph) =>
-    throw UnimplementedError();
+    List<TopologyFinding>.unmodifiable(<TopologyFinding>[
+      ...findTopologyCycles(graph),
+      for (final TopologyDefinition topology in graph.topologies)
+        ...findSelfReferences(topology),
+      ...findWriterConflicts(graph),
+      ...findScopeViolations(graph),
+    ]);
 
+// One collision per name with two or more distinct declarations, whatever
+// their variants and types, ordered by name as String.compareTo orders it
+// (G18). [declarations] is read once, and a repeated declaration counts once.
 List<TopicNameCollision> findTopicNameCollisions(
   Iterable<TopicDeclaration> declarations,
-) => throw UnimplementedError();
+) {
+  final Map<String, Set<TopicDeclaration>> byName =
+      <String, Set<TopicDeclaration>>{};
+  for (final TopicDeclaration declaration in declarations) {
+    (byName[declaration.topic.name] ??= <TopicDeclaration>{}).add(declaration);
+  }
+  return List<TopicNameCollision>.unmodifiable(<TopicNameCollision>[
+    for (final String name in byName.keys.toList()..sort())
+      if (byName[name]!.length > 1)
+        TopicNameCollision(name: name, declarations: byName[name]!.toList()),
+  ]);
+}
