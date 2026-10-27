@@ -3,6 +3,7 @@ import 'package:meta/meta.dart';
 import '../topic/list_equality.dart';
 import '../topic/scope.dart';
 import '../topic/topic.dart';
+import 'canonical_order.dart';
 import 'function_ref.dart';
 
 /// The combinator of an edge (Spec §6.5, Appendix A.4): one value per stage
@@ -308,8 +309,6 @@ void _checkPresence(
 /// The IR of one topology (Spec §6.5, Appendix A.4).
 @immutable
 final class TopologyDefinition {
-  // The factory constructs through this once nidana.model.10 lands it.
-  // ignore: unused_element
   const TopologyDefinition._({
     required this.topologyId,
     required this.scope,
@@ -324,7 +323,31 @@ final class TopologyDefinition {
     required String topologyId,
     required Scope scope,
     required List<TransformEdge> transforms,
-  }) => throw UnimplementedError();
+  }) {
+    if (topologyId.isEmpty) {
+      throw ArgumentError.value(topologyId, 'topologyId', 'must not be empty');
+    }
+    final List<TransformEdge> edges = List<TransformEdge>.unmodifiable(
+      transforms,
+    );
+    _checkWellFormed(edges);
+    final List<TopicRef> read = <TopicRef>[
+      for (final TransformEdge edge in edges)
+        for (final EdgeInput input in edge.inputs)
+          if (input is TopicInput) input.topic,
+    ];
+    final List<TopicRef> written = <TopicRef>[
+      for (final TransformEdge edge in edges)
+        if (edge.output case final TopicRef topic) topic,
+    ];
+    return TopologyDefinition._(
+      topologyId: topologyId,
+      scope: scope,
+      reads: Set<TopicRef>.unmodifiable(sortedCopy(read, compareTopicRefs)),
+      writes: Set<TopicRef>.unmodifiable(sortedCopy(written, compareTopicRefs)),
+      transforms: edges,
+    );
+  }
 
   final String topologyId;
   final Scope scope;
@@ -333,4 +356,75 @@ final class TopologyDefinition {
   // the outputs of the sink edges; canonical order; unmodifiable
   final Set<TopicRef> writes;
   final List<TransformEdge> transforms; // unmodifiable copy
+
+  // topologyId, scope and transforms element by element (topology-ir@v1 G7)
+  @override
+  bool operator ==(Object other) =>
+      other is TopologyDefinition &&
+      other.topologyId == topologyId &&
+      other.scope == scope &&
+      elementsEqual(other.transforms, transforms);
+
+  @override
+  int get hashCode =>
+      Object.hash(topologyId, scope, Object.hashAll(transforms));
+}
+
+// Throws ArgumentError when [edges] break a rule of a well-formed definition
+// (topology-ir@v1 G6): each stage input names an earlier stage edge, no stage
+// edge follows a sink edge, every stage edge is consumed by a later edge, and
+// no state topic has a second sink edge.
+void _checkWellFormed(List<TransformEdge> edges) {
+  final Set<int> consumed = <int>{};
+  final Set<TopicRef> stateSinks = <TopicRef>{};
+  bool sinkSeen = false;
+  for (int i = 0; i < edges.length; i++) {
+    final TransformEdge edge = edges[i];
+    for (final EdgeInput input in edge.inputs) {
+      if (input case StageInput(edge: final int stage)) {
+        // A negative index is reachable only without assertions.
+        if (stage < 0 || stage >= i) {
+          throw ArgumentError.value(
+            stage,
+            'transforms',
+            'edge $i takes the output of edge $stage, which is not an '
+                'earlier edge',
+          );
+        }
+        if (edges[stage].isSink) {
+          throw ArgumentError.value(
+            stage,
+            'transforms',
+            'edge $i takes the output of edge $stage, which is a sink edge',
+          );
+        }
+        consumed.add(stage);
+      }
+    }
+    if (edge.output case final TopicRef output) {
+      sinkSeen = true;
+      if (output.variant == TopicVariant.state && !stateSinks.add(output)) {
+        throw ArgumentError.value(
+          output.name,
+          'transforms',
+          'edge $i is a second sink edge on a state topic',
+        );
+      }
+    } else if (sinkSeen) {
+      throw ArgumentError.value(
+        i,
+        'transforms',
+        'edge $i is a stage edge after a sink edge',
+      );
+    }
+  }
+  for (int i = 0; i < edges.length; i++) {
+    if (!edges[i].isSink && !consumed.contains(i)) {
+      throw ArgumentError.value(
+        i,
+        'transforms',
+        'edge $i is a stage edge that no later edge consumes',
+      );
+    }
+  }
 }
