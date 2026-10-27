@@ -219,6 +219,7 @@ a `Task N: complete` line; never re-dispatch them.
 | S148 | config | hsdd-config | nidana.model.14 (N=5, spot-check; unrestricted replay 41/43 today, the two G22 renderer cases reachable, a prototype reproduced all 14 render/ goldens) | done | 55dedf4 |
 | S149 | code-plan | superpowers:writing-plans | nidana.model.14 (3 tasks; dry run: topology-ir unrestricted 41/43 to 43/43, gate exit 0, 369 tests; 5 of 16 seeded defects caught only by package tests) | done | e817f16 |
 | S150 | implement | superpowers:subagent-driven-development | nidana.model.14: 3 tasks, 1 doc fix round (Task 3, review evidence), final review ready with one doc-line wave; gate exit 0, 371 tests; topic-model 41/41, topology-dsl 24/24, topology-ir 43/43 all unrestricted, 120/120 fixtures; topology-ir@v1 fully produced, the node's code complete | done | 4cbd957; merged into impl/nidana.model as 526fdd0 |
+| S151 | contract (inserted, sweep) | hsdd-contract | topic-model@v1 touch within v1: S106, S124, S125 wording gaps stated as the code behaves; 3 new behavior cases (44/44); S133 left; owner items: re-redaction, NaN identity, renderings, Spec §2.4 | done | 7bfc2da |
 
 ## Notes for the report
 
@@ -276,6 +277,14 @@ Findings the report must carry, written down when found so they survive context 
   topic-model@v1 wording gaps are routed to the sweep (G13 NaN, G15 and G24 short renderings and re-redaction, G24
   `1` vs `1.0`, the "value or total function" sentence).
 
+- S151 (sweep, topic-model@v1): the touch writes down the shipped behavior; four choices stay the owner's, each a
+  code change plus a guarantee amendment (cheap now, before any consumer node ships): redaction that keeps the
+  type name instead of wrapping a `RedactedPayload` again (G15), an identity short-circuit in the envelope's `==`
+  (G13; Dart records compare fields by identity first), renderings for `Topic`, `TopicRef` and `Lineage`, and the
+  Spec §2.4 comparison once `ref/nidana-docs` is checked out. The three new cases pin the first two as written,
+  so a reversal edits them too. The compile-only surface fixture's `AuditObserver` still logs
+  `envelope.redacted().toString()`, which the Redaction section now advises against.
+
 ## Routed to later phases
 
 Items a phase found that belong to a later phase's context or plan; the orchestrator carries each into
@@ -301,7 +310,7 @@ that phase's writing-plans dispatch and strikes it here when the phase's plan co
   line for long test runs.
 - Checkpoint (from S104's final review): nidana.model.1 and .2 each landed about 9 times their line estimate;
   re-baseline .6 and .7 (about 300 and 450 lines) before trusting the PE sizing.
-- End of nidana.model, governance sweep (from S106): topic-model@v1's Interface, "Message sources": the four
+- End of nidana.model, governance sweep (from S106; taken by S151): topic-model@v1's Interface, "Message sources": the four
   angle-bracket renderings (`'topology:<id>'` and the others) in a doc comment trip `unintended_html_in_doc_comment`
   when copied verbatim under the root lint set; the code puts them in backticks. A compatible hsdd-contract
   touch within v1 would put them in backticks in the contract too. Not blocking: no fixture depends on it.
@@ -367,7 +376,7 @@ that phase's writing-plans dispatch and strikes it here when the phase's plan co
   reading, nidana.model.6 decision 5 and nidana.model.7 decision 12); a duplicate Case-table row's ids are
   ignored, first row wins (a structure-list touch: item 3 says one row); `plugins: # comment` in a case's
   `files/analysis_options.yaml` reads as no plugin, which turns a PENDING case into a run (item 7 plugin note).
-- End of nidana.model, governance sweep (from S124, hsdd-contract on topic-model@v1, compatible): G15 and G24's
+- End of nidana.model, governance sweep (from S124, hsdd-contract on topic-model@v1, compatible; taken by S151, the code changes left to the owner): G15 and G24's
   "never contains the payload's own rendering" cannot hold for a very short rendering (`RedactedPayload.of('String')`
   renders `<redacted String #...>`); G15 applied to an already-redacted envelope wraps it again, so the log shows
   `<redacted RedactedPayload #...>` and the payload type is lost (the surface fixture's `AuditObserver` logs exactly
@@ -426,7 +435,7 @@ that phase's writing-plans dispatch and strikes it here when the phase's plan co
   `Topic` equality, whose `valueType` is a `Type`) but break topology-ir@v1's well-formedness (`TopicRef`
   compares the rendered string), contradicting "From a plan"'s closing sentence that every projected definition
   is well formed; it is also a Spec §4.3 name collision the workspace scan reports.
-- End of nidana.model, governance sweep (from S133, low): topic-model@v1 cites ADR-003 items in its Interface and in
+- End of nidana.model, governance sweep (from S133, low; taken by S151: left, per ADR-003's history entry of 2026-10-17): topic-model@v1 cites ADR-003 items in its Interface and in
   G12 and G25, but its Governed by omits ADR-003 and ADR-003's `affects` omits topic-model@v1, so hsdd-config leaves
   ADR-003 out of a phase that consumes topic-model@v1 without naming ADR-003 itself (impl-gate warns). Add the link
   in both places (hsdd-contract and hsdd-adr), or leave it.
