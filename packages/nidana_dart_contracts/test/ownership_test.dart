@@ -2,9 +2,9 @@
 // beyond the G15 and G16 cases of its conformance suite, which the gate
 // replays: a reduceInto as a writer, claims of one source in two scopes,
 // the canonical order of topics, every pair of scopes, the order of owners
-// by rendering and then scope with equal owners counted once, the owners
-// that never violate, a topic of the same name but another variant or type,
-// and unmodifiable results (G3).
+// by rendering and then scope with equal owners counted once, in a short
+// owner list and a long one, the owners that never violate, a topic of the
+// same name but another variant or type, and unmodifiable results (G3).
 import 'package:nidana_dart_contracts/nidana_dart_contracts.dart';
 import 'package:nidana_dart_contracts/topology_ir.dart';
 import 'package:test/test.dart';
@@ -194,6 +194,44 @@ void main() {
       violation(b, svc, mod, 'r1', app),
       violation(b, w, page, 'r1', app),
       violation(b, w, page, 'r2', mod),
+    ]);
+  });
+
+  test('G16 owners of one source come by scope however many owners a topic '
+      'has', () {
+    // The graph orders claims by source and then scope, so sorting owners by
+    // source alone keeps that order in a short list, which List.sort orders
+    // by insertion, and loses it in a list of 80 owners.
+    String name(int i) => 'svc${i.toString().padLeft(2, '0')}';
+    final TopologyGraph g = TopologyGraph(
+      topologies: <TopologyDefinition>[
+        rw(
+          'r',
+          <TopicRef>[state('long.s')],
+          <TopicRef>[event('long.out')],
+          scope: Scope.application,
+        ),
+      ],
+      claims: <ShellClaim>[
+        for (int i = 0; i < 40; i++)
+          for (final Scope scope in <Scope>[Scope.module, Scope.page])
+            ShellClaim(
+              source: ServiceSource(name(i)),
+              scope: scope,
+              writes: <TopicRef>{state('long.s')},
+            ),
+      ],
+    );
+    expect(findScopeViolations(g), <ScopeViolation>[
+      for (int i = 0; i < 40; i++)
+        for (final Scope scope in <Scope>[Scope.module, Scope.page])
+          violation(
+            state('long.s'),
+            ServiceSource(name(i)),
+            scope,
+            'r',
+            Scope.application,
+          ),
     ]);
   });
 
