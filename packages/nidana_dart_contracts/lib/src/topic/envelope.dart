@@ -13,11 +13,12 @@ final class MessageEnvelope<T> {
     required this.payload,
     required this.correlationId,
     this.causationId, // null for a root message
-    this.parentCorrelationIds = const <String>[], // copied, unmodifiable
+    // copied, unmodifiable
+    List<String> parentCorrelationIds = const <String>[],
     required this.timestamp,
     required this.source,
     required this.sensitive,
-  });
+  }) : parentCorrelationIds = List<String>.unmodifiable(parentCorrelationIds);
 
   /// The envelope a stage publishes to [topic]: causation and parents from
   /// [lineage]; correlation from [lineage], or freshCorrelationId() when the
