@@ -224,6 +224,7 @@ a `Task N: complete` line; never re-dispatch them.
 | S153 | contract (inserted, sweep) | hsdd-contract | topology-ir@v1 touch within v1, part 1: @immutable in the code blocks, From a plan's exception, G6 not-executable line, G9 extension rows, G20 narrowed to accepted encodings, owner order of scope violations, integers below 2^63 and whole-number doubles, plainer retry bullet; a const ScopeViolation surface use; schema unchanged (no bound fits json_schema 5.2.2) | done | 539a8f6 |
 | S154 | contract (inserted, sweep) | hsdd-contract | topology-ir@v1 touch within v1, part 2: 13 cases (56/56: retry on other combinators, edge-order equality, claim ties, cycle order and topics, a 20000-topology ring, dedup reads, owner order, collision order, unmodifiable analyses, extension names, 5000.0, 2^63); every_combinator and escaping extended with goldens derived independently; 35 seeded defects each caught | done | af302a3 |
 | S155 | adr (inserted, sweep) | hsdd-adr | ADR-001 amended in place: item 10's premise, item 9's structure rules and the readings the tool pins, each set's restriction/PENDING order, the pub get reason, item 7's run form and in-place files/, item 6's command span; S118's reading not adopted; owner items: the unchecked rules | done | 1c63873 |
+| S156 | spec (inserted, sweep) | hsdd-spec, hsdd-phase-plan | nidana.md, nidana.model.md, nidana.tooling.codegen.md, nidana.navigation.md: one contract per phase and the stale .5 reasons restated, D6's list a floor, the purity sentence, dated notes beside the shipped .7 and .10 cards and D4; no pending governance update, so no reconcile step | done | 53350db |
 
 ## Notes for the report
 
@@ -316,6 +317,14 @@ Findings the report must carry, written down when found so they survive context 
   and the file set's parity for a link at `{output}` (DEC-1311) stay open. Correction to S152's report: the
   `nidana-checks` replay with PENDING cases exits 1 (2 passed, 17 PENDING), as item 9 states, not 0.
 
+- S156 (sweep, specs): owner items: add the six missing tokens (`Random.secure(`, `DateTime.timestamp(`,
+  `Timer.run(`, `runZoned`, `Stream.periodic(`, `Future(`) to `purity_test.dart`'s `effects` list (it passes today);
+  `hsdd/verify/nidana.model.10.verification.md` line 70 still places G3 and G7 at nidana.model.11 (a signed-off
+  record is the owner's to annotate); `hsdd/spec/nidana.tooling.lint.md` line 190 keeps the graph label "main
+  library complete". "Noted 2026-10-27" is a new label in the tree, beside shipped text kept as written.
+  `gate.mjs --skill hsdd-phase-plan --node nidana.model` reports the three other spec files as write-set errors,
+  because it admits one spec file; the step touched four on purpose.
+
 ## Routed to later phases
 
 Items a phase found that belong to a later phase's context or plan; the orchestrator carries each into
@@ -392,7 +401,7 @@ that phase's writing-plans dispatch and strikes it here when the phase's plan co
   `files/analysis_options.yaml` enable the plugin by a path relative to `files/`); nothing detects a command that
   writes there, and `.gitignore` would hide a `.dart_tool/` or `pubspec.lock` it left. An item 7 touch can require
   a case's command to leave `files/` unchanged, or the tool can compare its listing before and after.
-- End of nidana.model, governance sweep (from S122, nidana.model.7 decisions 3 and 11; ADR-001 half taken by S155, the spec half S156's): nidana.model.7's Scope (1)
+- End of nidana.model, governance sweep (from S122, nidana.model.7 decisions 3 and 11; ADR-001 half taken by S155, the spec half by S156): nidana.model.7's Scope (1)
   (hsdd-spec; it glosses ADR-001 item 6, which says only that `## Validation` "names the generator command")
   says "the backticked span of the contract's `- file:` bullet that holds `{output}`", which names three spans of
   topic-codegen@v1's bullet, read by the tool as the one that also holds a space (an ADR-001 item 6 touch or
@@ -483,7 +492,7 @@ that phase's writing-plans dispatch and strikes it here when the phase's plan co
   (`invalid/dedup_on_event_read.json`, `typeName` minLength 1), so G20's "decoding a graph's encoding gives the
   graph back" fails for such hand-built graphs; either assert in the constructors as `StageInput` does or narrow
   G20 to graphs the decoder accepts. Plan-made definitions never hold either.
-- End of nidana.model, governance sweep (from S139): nidana.model.10's shipped Scope (spec line 361) and its
+- End of nidana.model, governance sweep (from S139; taken by S156 as notes, the verification doc's line left to the owner): nidana.model.10's shipped Scope (spec line 361) and its
   verification doc (line 70) still say G3 and G7 join the topology-ir restriction at nidana.model.11; S137 moved
   them to nidana.model.12 (shipped text was left untouched). An hsdd-phase-plan or reconcile touch, or a note.
   Also (S141 Task 2): D4's directory list gives `lib/src/topic/` to nidana.model.3 and .8 only, but nidana.model.11
@@ -528,7 +537,7 @@ that phase's writing-plans dispatch and strikes it here when the phase's plan co
 - nidana.tooling.codegen.6, .9, .11 and nidana.tooling.lint.4 (from S122): the first gates to run the 39 committed
   recorded invocations and topic-codegen's file replay for real (all PENDING until then); their `{files}` and
   `{root}` recordings and in-place `files/` runs are first exercised there.
-- End of nidana.model, governance sweep (from S121; nidana-checks@v1's sentence taken by S152, ADR-001 by S155, nidana.model.7's Scope S156's): ADR-001 item 9's `dart pub get --enforce-lockfile` does not
+- End of nidana.model, governance sweep (from S121; nidana-checks@v1's sentence taken by S152, ADR-001 by S155, nidana.model.7's Scope by S156): ADR-001 item 9's `dart pub get --enforce-lockfile` does not
   make a stale workspace fresh (pub's mtime rule; Dart 3.13.5), so its stated reason is wrong; the replay tool
   runs a `{package}:{executable}` command as `bin/{executable}.dart` of the package's root under the running
   `dart` with `--packages`, which runs either way. hsdd-adr: item 7 states the form, item 9's bullet restates its
@@ -557,13 +566,13 @@ that phase's writing-plans dispatch and strikes it here when the phase's plan co
   `surface/graphs.dart`.
 - End of nidana.model, governance sweep (from S112; taken by S153): topology-ir@v1's Interface prose (line 47) says every value
   type is `@immutable`, but its code blocks show no annotation; the code annotates as the prose says.
-- End of nidana.model, governance sweep (from S110; ADR-001 item 10 taken by S155, the spec touches S156's): hsdd-adr touch of ADR-001 item 10 (its premise that a
+- End of nidana.model, governance sweep (from S110; ADR-001 item 10 taken by S155, the spec touches by S156): hsdd-adr touch of ADR-001 item 10 (its premise that a
   contract's first producing phase lands every declaration, and its sub-bullet that nidana.model.4 lands only
   `TopologyDefinition`, now understate the split); hsdd-spec touches of `hsdd/spec/nidana.md` line 211
   (Development flow item 1) and `hsdd/spec/nidana.model.md` line 40 ("Inherited from the root"), which still
   say "one contract per phase"; stale reasons (".5 completes the main library") in
   `hsdd/spec/nidana.tooling.codegen.md` line 299 and `hsdd/spec/nidana.navigation.md` line 177, edges correct.
-- End of nidana.model, governance sweep (from S107's and S113's final reviews): nidana.model D6's purity token
+- End of nidana.model, governance sweep (from S107's and S113's final reviews; taken by S156: the list a floor, the six tokens in purity_test.dart left to the owner): nidana.model D6's purity token
   list misses `Random.secure(`, `DateTime.timestamp(` (a clock read, verified on the pinned SDK), `Timer.run(`,
   `runZoned`, `Stream.periodic(`, `Future(`; an hsdd-spec touch
   could make the list a floor ("at least").
