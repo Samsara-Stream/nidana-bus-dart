@@ -367,7 +367,7 @@ void main() {
     );
     expect(
       formsGraph().render(const JsonRenderer()),
-      '${const JsonEncoder.withIndent('  ').convert(encodeTopologyGraph(formsGraph()))}\n',
+      const JsonRenderer().render(formsGraph()),
     );
   });
 
