@@ -200,7 +200,8 @@ a `Task N: complete` line; never re-dispatch them.
 | S129 | reconcile | hsdd-reconcile | nidana.model pending section (amend of .9's gate): topology-dsl@v2 Delivery, compatible within v2 | done | c08820a |
 | S130 | config | hsdd-config | nidana.model.9 re-run after the gate amend (restriction G11,G13 to G17,G30) | done | 1d0b27d |
 | S131 | code-plan | superpowers:writing-plans | nidana.model.9 plan revised to the amended gate (constraint 4, Tasks 3 to 5) | done | bf18a44 |
-| S132 | implement | superpowers:subagent-driven-development | nidana.model.9: 5 tasks, no fix rounds (one carried ruling), final review with doc fixes, one doc-only fix wave; gate exit 0, 147 tests; topology-dsl restricted 17/17 | done | 235c403 |
+| S132 | implement | superpowers:subagent-driven-development | nidana.model.9: 5 tasks, no fix rounds (one carried ruling), final review with doc fixes, one doc-only fix wave; gate exit 0, 147 tests; topology-dsl restricted 17/17 | done | 235c403; merged into impl/nidana.model as e9f2289 |
+| S133 | config | hsdd-config | nidana.model.10 (N=7, spot-check; every restricted case passable here, checked; baseline 1/10) | done | 03f8fd8 |
 
 ## Notes for the report
 
@@ -379,6 +380,10 @@ that phase's writing-plans dispatch and strikes it here when the phase's plan co
   `Topic` equality, whose `valueType` is a `Type`) but break topology-ir@v1's well-formedness (`TopicRef`
   compares the rendered string), contradicting "From a plan"'s closing sentence that every projected definition
   is well formed; it is also a Spec §4.3 name collision the workspace scan reports.
+- End of nidana.model, governance sweep (from S133, low): topic-model@v1 cites ADR-003 items in its Interface and in
+  G12 and G25, but its Governed by omits ADR-003 and ADR-003's `affects` omits topic-model@v1, so hsdd-config leaves
+  ADR-003 out of a phase that consumes topic-model@v1 without naming ADR-003 itself (impl-gate warns). Add the link
+  in both places (hsdd-contract and hsdd-adr), or leave it.
 - nidana.tooling.codegen.6, .9, .11 and nidana.tooling.lint.4 (from S122): the first gates to run the 39 committed
   recorded invocations and topic-codegen's file replay for real (all PENDING until then); their `{files}` and
   `{root}` recordings and in-place `files/` runs are first exercised there.
