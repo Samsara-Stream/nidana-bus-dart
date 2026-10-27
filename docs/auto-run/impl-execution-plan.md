@@ -212,7 +212,10 @@ a `Task N: complete` line; never re-dispatch them.
 | S141 | implement | superpowers:subagent-driven-development | nidana.model.11: 5 tasks, no fix rounds, final review with fixes, one fix wave; gate exit 0, 235 tests; topology-dsl@v2 fully produced (24/24 unrestricted); topology-ir restricted 17/17 | done | 9119de2; merged into impl/nidana.model as c021914 |
 | S142 | config | hsdd-config | nidana.model.12 (N=6, full-review; all 31 restricted topology-ir cases reachable, 12 for .12) | done | f0160dd |
 | S143 | code-plan | superpowers:writing-plans | nidana.model.12 (5 tasks; dry run: restricted 19/31 to 31/31, 264 tests; iterative cycle search) | done | 81214fd |
-| S144 | implement | superpowers:subagent-driven-development | nidana.model.12: 5 tasks, 1 fix round (Task 4, equal-claims test), the ownership index carried (linear), final review doc-only fixes, one doc wave; gate exit 0, 270 tests; topology-ir restricted 31/31 | done | 65dc152 |
+| S144 | implement | superpowers:subagent-driven-development | nidana.model.12: 5 tasks, 1 fix round (Task 4, equal-claims test), the ownership index carried (linear), final review doc-only fixes, one doc wave; gate exit 0, 270 tests; topology-ir restricted 31/31 | done | 65dc152; merged into impl/nidana.model as 333e08a |
+| S145 | config | hsdd-config | nidana.model.13 (N=6, spot-check; all 26 restricted topology-ir cases reachable, 9 for .13) | done | 5e93f98 |
+| S146 | code-plan | superpowers:writing-plans | nidana.model.13 (4 tasks; dry run: restricted 17/26 to 26/26, 336 tests; all 38 invalid files rejected) | done | 58d4f77 |
+| S147 | implement | superpowers:subagent-driven-development | nidana.model.13: 4 tasks, 1 fix round (Task 4, the doc's D7 account), final review Ready to merge with a small test and doc wave; gate exit 0, 353 tests; topology-ir restricted 26/26 plus 46 schema documents, unrestricted 41/43 (G22's two renderer cases left for .14) | done | 75e7d70 |
 
 ## Notes for the report
 
@@ -322,7 +325,7 @@ that phase's writing-plans dispatch and strikes it here when the phase's plan co
   needs `T`, which `CombineStage<R>` does not carry, so capture a typed closure in the private constructor.
 - nidana.model.11 (from S115): remove the two `// ignore: unused_element` lines above `ShellClaim._` and
   `TopologyGraph._`.
-- nidana.model.13 (from S115): the codec adds the `dart:convert` import (not imported at nidana.model.5).
+- nidana.model.13 (from S115; taken into S146's plan, Task 1): the codec adds the `dart:convert` import (not imported at nidana.model.5).
 - Consumer nodes (from S115): ADR-001 item 4's one-code marker held for all 22 reject libraries of
   nidana.model's three contracts; the reject sets of bus-api, bus-testing, navigation-api and flutter-binding
   meet it at their producers' first gates (outside this run).
@@ -396,7 +399,7 @@ that phase's writing-plans dispatch and strikes it here when the phase's plan co
 - nidana.model.12 (from S135's final review; taken into S143's plan, Tasks 1, 2 and 4): the finding constructors keep repeated elements (G23); where the
   contract implies distinct elements (a cycle's ids and topics, a self-reference's edges) the analyses pass
   distinct values themselves.
-- nidana.model.13 (from S135's final review): the decoder checks a `StageInput` index before constructing (the
+- nidana.model.13 (from S135's final review; taken into S146's plan, Tasks 2 and 3): the decoder checks a `StageInput` index before constructing (the
   constructor's assert is an `AssertionError` under `dart test`; G21 allows only `FormatException`), converts the
   IR factories' `ArgumentError` to `FormatException`, and checks raw repeats before `reads`/`writes` Sets and
   `TopologyGraph` collapse them (`invalid/reads_repeat_topic.json`, `invalid/topologies_repeat.json`); the
@@ -459,6 +462,15 @@ that phase's writing-plans dispatch and strikes it here when the phase's plan co
 - nidana.tooling.codegen planning (from S144's final review, low): how nidana-checks picks the site for a scope
   violation whose owner's source two equal claims share (equal claims collapse to one violation; "matched in site
   order" leaves it open).
+- End of nidana.model, governance sweep (from S146, hsdd-contract on topology-ir@v1, low): the schema bounds
+  `durationMicros` and `edge` only from below (the validator accepts `1e30`) while the Dart IR cannot hold 2^63 or
+  more, so the decoder rejects such values though no stated rule names them; the text could say outright that
+  whole-number doubles count as integers; `invalid/` has no file with an empty `typeName`, a dedup on a replay
+  read, or a claim listing one topic twice (only nidana.model.13's package tests catch a decoder accepting them).
+  Also (S147's final review): `TopologyDefinition`'s second-sink message renders the document's `typeName` raw, so
+  a `typeName` holding a newline gives a two-line `FormatException` message through the decoder (topic-codegen
+  prints one `{path}: {message}` diagnostic per line; hostile documents only); and "must be a non-negative
+  integer" is the decoder's message for a whole number of 2^63 or more, which the schema accepts as one.
 - nidana.tooling.codegen.6, .9, .11 and nidana.tooling.lint.4 (from S122): the first gates to run the 39 committed
   recorded invocations and topic-codegen's file replay for real (all PENDING until then); their `{files}` and
   `{root}` recordings and in-place `files/` runs are first exercised there.

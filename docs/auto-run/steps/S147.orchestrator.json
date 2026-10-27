@@ -1,0 +1,58 @@
+{
+  "step_ref": "S147",
+  "decisions": [
+    {
+      "at": "2026-10-27T20:08:58Z",
+      "artifact": null,
+      "question": "SDD pre-flight for nidana.model.13 (spot-check): which model implements each task?",
+      "options": [
+        {
+          "label": "Sonnet for every task",
+          "consequence": "The run's rule for non-full-review phases; the plan's code and tests were dry-run."
+        },
+        {
+          "label": "Opus for Task 3 (the decoder's rules)",
+          "consequence": "More capable on the rejection rules; departs from the run's rule."
+        }
+      ],
+      "chosen": "Sonnet for every task",
+      "why": "The run's model rule; the plan's test files are copied from the dry run (docs/auto-run/experiments/json-form-plan/).",
+      "evidence": [
+        "docs/auto-run/impl-execution-plan.md How a phase runs item 3"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T21:16:40Z",
+      "artifact": null,
+      "question": "nidana.model.13's final review says Ready to merge with 0 Critical and 0 Important, and five Minors. Run the one final fix wave, and on what?",
+      "options": [
+        {
+          "label": "Small wave: the G22 test line and two doc corrections",
+          "consequence": "One test line and three doc sentences; the owner-signed verification doc states the fix rounds and the message exceptions correctly."
+        },
+        {
+          "label": "No wave, merge as is",
+          "consequence": "The doc says no fix round ran, which is false (Task 4 had one), and calls the second-sink message the only one rendering document data; one G22 expectation keeps checking the formula against itself."
+        },
+        {
+          "label": "Wider wave including the message changes",
+          "consequence": "Changing the second-sink message or the integer wording touches TopologyDefinition and pinned test texts, outside the phase's one-file scope; better routed to the topology-ir@v1 sweep."
+        }
+      ],
+      "chosen": "Small wave: the G22 test line and two doc corrections",
+      "why": "The verification doc is what the owner signs, so it must be accurate; the G22 line is a one-line test strengthening. The newline-in-typeName message and the 2^63 integer wording are routed to the end-of-node topology-ir@v1 sweep with Learnings 1 to 3.",
+      "evidence": [
+        ".superpowers/sdd/nidana.model.13/progress.md (archived as docs/auto-run/steps/S147.sdd-progress.md)",
+        "docs/auto-run/impl-execution-plan.md Routed to later phases (S146 entry, extended by S147)"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "would_upstream": false
+    }
+  ]
+}
