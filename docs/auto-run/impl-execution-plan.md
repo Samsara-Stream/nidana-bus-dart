@@ -202,6 +202,7 @@ a `Task N: complete` line; never re-dispatch them.
 | S131 | code-plan | superpowers:writing-plans | nidana.model.9 plan revised to the amended gate (constraint 4, Tasks 3 to 5) | done | bf18a44 |
 | S132 | implement | superpowers:subagent-driven-development | nidana.model.9: 5 tasks, no fix rounds (one carried ruling), final review with doc fixes, one doc-only fix wave; gate exit 0, 147 tests; topology-dsl restricted 17/17 | done | 235c403; merged into impl/nidana.model as e9f2289 |
 | S133 | config | hsdd-config | nidana.model.10 (N=7, spot-check; every restricted case passable here, checked; baseline 1/10) | done | 03f8fd8 |
+| S134 | code-plan | superpowers:writing-plans | nidana.model.10 (6 tasks; dry run: restricted replay 1/10 to 10/10; 2 low contract gaps routed) | done | 3a9e427 |
 
 ## Notes for the report
 
@@ -315,12 +316,12 @@ that phase's writing-plans dispatch and strikes it here when the phase's plan co
 - Consumer nodes (from S115): ADR-001 item 4's one-code marker held for all 22 reject libraries of
   nidana.model's three contracts; the reject sets of bus-api, bus-testing, navigation-api and flutter-binding
   meet it at their producers' first gates (outside this run).
-- nidana.model.10 and .11 (from S116's final review): D4 puts "the canonical orders" in `lib/src/ir/`, but the
+- nidana.model.10 and .11 (from S116's final review; taken into S134's plan, Tasks 3 and 5): D4 puts "the canonical orders" in `lib/src/ir/`, but the
   claim order compares `ShellClaim`, which lives in `graph/graph.dart` and imports `ir/`; a claim comparator in
   `ir/` naming `ShellClaim` makes the libraries import each other. Define the claim order over its parts
   (source, scope, writes) in `ir/`, or keep it in `graph/`. Also: the findings' constructors become
   initializer lists that sort, keeping every parameter name and field type (no call site changes).
-- nidana.model.10 (from S112): remove the two `// ignore: unused_element` on `TransformEdge._` and
+- nidana.model.10 (from S112; taken into S134's plan, Tasks 1, 2 and 4): remove the two `// ignore: unused_element` on `TransformEdge._` and
   `TopologyDefinition._`; `FunctionRef.named`'s empty-name `ArgumentError`.
 - nidana.model.7 (from S119's final review; taken into S121's plan, Tasks 1 and 5), since it edits the same shell and `structure.dart`:
   `_snapshotsOf` reads a suite slug's whole snapshot, so a read defect in topology-dsl's tree (a dangling link
@@ -384,6 +385,11 @@ that phase's writing-plans dispatch and strikes it here when the phase's plan co
   G12 and G25, but its Governed by omits ADR-003 and ADR-003's `affects` omits topic-model@v1, so hsdd-config leaves
   ADR-003 out of a phase that consumes topic-model@v1 without naming ADR-003 itself (impl-gate warns). Add the link
   in both places (hsdd-contract and hsdd-adr), or leave it.
+- End of nidana.model, governance sweep (from S134, hsdd-contract on topology-ir@v1, low): G6's rule against a
+  `StageInput` with a negative index has no fixture (a negative case needs assertions off, which `dart test` turns
+  on) and the Validation section lacks the not-executable line ADR-001 item 3 asks for; the suite misses a
+  `retry` accepted on combinators other than `map` and a definition equality that ignores edge order (seeded
+  defects D5 and D11, `docs/auto-run/experiments/ir-values-plan/`).
 - nidana.tooling.codegen.6, .9, .11 and nidana.tooling.lint.4 (from S122): the first gates to run the 39 committed
   recorded invocations and topic-codegen's file replay for real (all PENDING until then); their `{files}` and
   `{root}` recordings and in-place `files/` runs are first exercised there.
