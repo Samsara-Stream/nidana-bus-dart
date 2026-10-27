@@ -1,8 +1,9 @@
-/// Stand-in runners for the tests that run bindings: a Flutter SDK whose
-/// `flutter` runs `dart test`, and a `dart` that no Flutter SDK holds, each a
-/// shell script over the real `dart`, [Platform.resolvedExecutable]. No test
-/// starts the real flutter: this machine's Flutter SDK has no engine
-/// artifacts, and fetching them is a network action the run does not take.
+/// Stand-in runners for the tests that run bindings or commands: a Flutter
+/// SDK whose `flutter` runs `dart test`, a `dart` that no Flutter SDK holds,
+/// and one that records its calls, each a shell script over the real `dart`,
+/// [Platform.resolvedExecutable]. No test starts the real flutter: this
+/// machine's Flutter SDK has no engine artifacts, and fetching them is a
+/// network action the run does not take.
 library;
 
 import 'dart:io';
@@ -35,6 +36,29 @@ String plainDart() {
   return dart;
 }
 
+/// A script named `dart` in a fresh temporary directory, held by no Flutter SDK: it appends its
+/// arguments, one line per call, to [calls]; with [pubFails], a call whose first argument is
+/// `pub` prints the line "Unable to satisfy `pubspec.yaml` using `pubspec.lock`." to stderr and exits 65;
+/// every other call runs the real dart.
+({String dart, File calls}) recordingDart({bool pubFails = false}) {
+  final String dart = p.join(seed(const <String, String>{}).path, 'dart');
+  _writeScripts(<String, String>{
+    dart: <String>[
+      ..._recordCall,
+      if (pubFails) '[ "\$1" = pub ] && { echo $_unsatisfied >&2; exit 65; }',
+      'exec $_realDart "\$@"',
+      '',
+    ].join('\n'),
+  });
+  return (dart: dart, calls: File('$dart.calls'));
+}
+
+/// The first line `dart pub get --enforce-lockfile` writes to stderr when the lockfile lacks a
+/// dependency, quoted for `sh`.
+final String _unsatisfied = _quoted(
+  'Unable to satisfy `pubspec.yaml` using `pubspec.lock`.',
+);
+
 /// The real dart, quoted for `sh`.
 final String _realDart = _quoted(Platform.resolvedExecutable);
 
@@ -45,7 +69,7 @@ final String _dartScript = <String>[
   '',
 ].join('\n');
 
-/// The first lines of a stand-in `flutter`: it records its arguments.
+/// The first lines of a stand-in `flutter` or a recording `dart`: it records its arguments.
 const List<String> _recordCall = <String>[
   '#!/bin/sh',
   r'''printf '%s\n' "$*" >> "$0.calls"''',

@@ -240,6 +240,11 @@ typedef CommandProcess = ({String executable, List<String> arguments});
 /// A root is a directory URI ending in `/`, as a package configuration gives
 /// it. `bin/{executable}.dart` is resolved against it as two path segments,
 /// so a `#`, `?` or `%` the executable holds is part of the file name.
+///
+/// Every root of [roots] is a `file:` URI with an empty authority whose path
+/// segments, decoded, hold no `/`, as `packageRootsOf` gives one; for
+/// another, such as an `http:` root, [Uri.toFilePath] throws an
+/// UnsupportedError.
 CommandProcess? processOf(
   Command command, {
   required String dart,

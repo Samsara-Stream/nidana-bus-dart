@@ -15,6 +15,7 @@ import 'package:path/path.dart' as p;
 
 import 'dart_library.dart';
 import 'packages.dart';
+import 'report.dart';
 import 'request.dart';
 import 'run.dart';
 import 'snapshot.dart';
@@ -77,15 +78,13 @@ List<Diagnostic>? parseAnalysis(String stdout) {
 /// The reason of an analysis that printed no report.
 ///
 /// `dart analyze exited {exitCode} without a JSON report`, then
-/// `: {line}` with the first line of [stderr] that is not blank, trimmed,
-/// when there is one.
+/// `: {line}` with the [firstTextLine] of [stderr] when there is one.
 String analysisFailure(int exitCode, String stderr) {
   final String reason = 'dart analyze exited $exitCode without a JSON report';
-  final String? first = LineSplitter.split(stderr)
-      .map((String line) => line.trim())
-      .where((String line) => line.isNotEmpty)
-      .firstOrNull;
-  return first == null ? reason : '$reason: $first';
+  return switch (firstTextLine(stderr)) {
+    final String first => '$reason: $first',
+    null => reason,
+  };
 }
 
 /// Diagnostics grouped by fixture: [byFixture] maps a fixture's path from the

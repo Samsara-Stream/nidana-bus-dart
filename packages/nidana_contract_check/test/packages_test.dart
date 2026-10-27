@@ -47,6 +47,74 @@ void main() {
       );
     }
   });
+  test('packageRootsOf resolves each root against the configuration', () {
+    expect(
+      packageRootsOf(
+        '{"configVersion": 2, "packages": [{"name": "sample", "rootUri": "../packages/sample", "packageUri": "lib/"}, {"name": "path", "rootUri": "file:///cache/path-1.9.1/", "packageUri": "lib/"}]}',
+        Uri.parse('file:///w/.dart_tool/package_config.json'),
+      ),
+      <String, Uri>{
+        'sample': Uri.parse('file:///w/packages/sample/'),
+        'path': Uri.parse('file:///cache/path-1.9.1/'),
+      },
+    );
+    expect(
+      packageRootsOf(
+        'not json',
+        Uri.parse('file:///w/.dart_tool/package_config.json'),
+      ),
+      isNull,
+    );
+  });
+  // Beyond the brief: packageNamesOf is the key set of packageRootsOf, so
+  // every text one rejects the other rejects too.
+  test('packageRootsOf is null for every text packageNamesOf rejects', () {
+    for (final String text in <String>[
+      '',
+      '{}',
+      '{"configVersion": 2, "packages": [{"name": "a"}]}',
+      '{"configVersion": 2, "packages": [{"name": "a", "rootUri": "file:///a/"}, {"name": "a", "rootUri": "file:///b/"}]}',
+      '{"configVersion": 2, "packages": [{"name": "a", "rootUri": "file://[x/"}]}',
+    ]) {
+      expect(packageNamesOf(text), isNull, reason: text);
+      expect(
+        packageRootsOf(text, Uri.parse('file:///w/$packageConfigPath')),
+        isNull,
+        reason: text,
+      );
+    }
+  });
+  // Routed: a root that is no plain file: URI names no directory a process
+  // can start in, and Uri.toFilePath throws on it. The parser accepts every
+  // one of these, so the configuration is refused here, by both readers.
+  test('a configuration with a root that is no plain file: URI is no package configuration', () {
+    for (final String root in <String>[
+      'http://cache.example/a/',
+      'data:,a/',
+      'file://host/a/',
+      'file://user@/a/',
+      'file:///a%2Fb/',
+    ]) {
+      final String text =
+          '{"configVersion": 2, "packages": [{"name": "ok", "rootUri": "file:///ok/"}, {"name": "a", "rootUri": "$root"}]}';
+      expect(packageNamesOf(text), isNull, reason: root);
+      expect(
+        packageRootsOf(text, Uri.parse('file:///w/$packageConfigPath')),
+        isNull,
+        reason: root,
+      );
+    }
+    expect(
+      packageRootsOf(
+        '{"configVersion": 2, "packages": [{"name": "a", "rootUri": "file:/a"}, {"name": "b", "rootUri": "b%20c/"}]}',
+        Uri.parse('file:///w/$packageConfigPath'),
+      ),
+      <String, Uri>{
+        'a': Uri.parse('file:///a/'),
+        'b': Uri.parse('file:///w/.dart_tool/b%20c/'),
+      },
+    );
+  });
   test('absentPackages names each package an import or export names that the configuration lacks', () {
     final DartLibrary library = readDartLibrary('''
 import 'dart:async';

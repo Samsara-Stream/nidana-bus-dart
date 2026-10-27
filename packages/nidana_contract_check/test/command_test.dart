@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:nidana_contract_check/src/command.dart';
 import 'package:nidana_contract_check/src/contract.dart';
+import 'package:nidana_contract_check/src/packages.dart';
 import 'package:nidana_contract_check/src/workspace.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
@@ -545,6 +546,52 @@ void main() {
         '/sdk/dart [--packages=/w/.dart_tool/package_config.json, '
         '/w/packages/gen/bin/a#b?c%41.dart]',
       );
+    });
+
+    // Routed: the precondition on roots. Every root packageRootsOf gives
+    // reads as a file path; a configuration holding one that does not is
+    // refused there, so processOf never meets it in a replay.
+    test('the roots packageRootsOf gives read as file paths, and a root that is no plain file: URI throws', () {
+      final Map<String, Uri> read = packageRootsOf(
+        '{"configVersion": 2, "packages": [{"name": "gen", "rootUri": "../packages/gen"}, {"name": "far", "rootUri": "file:///cache/far-1.0.0"}]}',
+        Uri.parse('file:///w/.dart_tool/package_config.json'),
+      )!;
+      expect(
+        <String>[
+          for (final String package in <String>['gen', 'far'])
+            processText(
+              processOf(
+                PackageCommand(package, 'run', const <String>[]),
+                dart: '/sdk/dart',
+                flutter: null,
+                packageConfig: '/w/c.json',
+                roots: read,
+              ),
+            ),
+        ],
+        <String>[
+          '/sdk/dart [--packages=/w/c.json, /w/packages/gen/bin/run.dart]',
+          '/sdk/dart [--packages=/w/c.json, /cache/far-1.0.0/bin/run.dart]',
+        ],
+      );
+      for (final String root in <String>[
+        'http://cache.example/gen/',
+        'data:,gen/',
+        'file://host/gen/',
+        'file:///a%2Fb/',
+      ]) {
+        expect(
+          () => processOf(
+            const PackageCommand('gen', 'run', <String>[]),
+            dart: '/sdk/dart',
+            flutter: null,
+            packageConfig: '/w/c.json',
+            roots: <String, Uri>{'gen': Uri.parse(root)},
+          ),
+          throwsUnsupportedError,
+          reason: root,
+        );
+      }
     });
   });
 

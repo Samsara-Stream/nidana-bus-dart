@@ -275,6 +275,44 @@ void main() {
         <CheckSet>[CheckSet.file, CheckSet.cli],
       );
     });
+    test('the reason of a pub get that failed names its exit and the first line of its stderr', () {
+      expect(
+        pubGetFailure(
+          65,
+          'Unable to satisfy `pubspec.yaml` using `pubspec.lock`.\n\nTo update ...',
+        ),
+        'dart pub get --enforce-lockfile exited 65: Unable to satisfy `pubspec.yaml` using `pubspec.lock`.',
+      );
+      expect(pubGetFailure(1, ''), 'dart pub get --enforce-lockfile exited 1');
+      // Beyond the brief: a stderr of blank lines has no first text line.
+      expect(
+        pubGetFailure(1, ' \r\n\t\n'),
+        'dart pub get --enforce-lockfile exited 1',
+      );
+    });
+    test('surface, reject, behavior, file and cli read the package configuration; structure and schema do not', () {
+      expect(
+        <CheckSet>[
+          for (final CheckSet set in CheckSet.values)
+            if (readsPackages(set)) set,
+        ],
+        <CheckSet>[
+          CheckSet.surface,
+          CheckSet.reject,
+          CheckSet.behavior,
+          CheckSet.file,
+          CheckSet.cli,
+        ],
+      );
+    });
+    // Beyond the brief: the configuration a command set reads is the one the
+    // pub get before it leaves.
+    test('every set that runsCommands also readsPackages', () {
+      expect(
+        CheckSet.values.where(runsCommands),
+        everyElement(predicate<CheckSet>(readsPackages, 'reads packages')),
+      );
+    });
     test(
       'the first text line is the first line that is not blank, trimmed',
       () {
