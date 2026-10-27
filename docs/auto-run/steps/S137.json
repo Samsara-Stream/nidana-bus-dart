@@ -1,0 +1,374 @@
+{
+  "step_ref": "S137",
+  "skill": "hsdd-phase-plan",
+  "target": "nidana.model amend of the unshipped phases' gates (.11 to .14)",
+  "status": "completed",
+  "stop": null,
+  "artifacts": [
+    "hsdd/spec/nidana.model.md",
+    "docs/auto-run/experiments/model-gate-reach/scan.dart",
+    "docs/auto-run/experiments/model-gate-reach/run.sh",
+    "docs/auto-run/experiments/model-gate-reach/output.txt",
+    "docs/auto-run/steps/S137.json"
+  ],
+  "decisions": [
+    {
+      "at": "2026-10-27T15:50:01Z",
+      "artifact": "docs/auto-run/experiments/model-gate-reach/",
+      "question": "How is the case-by-case table built, given that the bodies of nidana.model.11 to .14 do not exist yet, so no run can tell 'not built yet' from 'cannot pass at this phase'?",
+      "options": [
+        {
+          "label": "Static scan in Dart, validated against today's replay",
+          "consequence": "scan.dart derives the stubs from the code at HEAD (every body that still throws UnimplementedError, 18, each mapped to the unshipped phase whose Scope names it), follows each case's code and the conformance library's helpers and samples transitively, parses every Gate and Dependencies line from the spec, and applies ADR-001 item 9's selection; run.sh then replays the three behavior sets unrestricted on today's code and checks that every case the scan says reaches no stub passes today (0 misses). About 600 lines of throwaway Dart, run with fvm dart, no packages."
+        },
+        {
+          "label": "grep of the case bodies only",
+          "consequence": "Cheaper, but misses calls made through helpers and through topologyIrSamples (G3's L508 reaches buildDefinition, ShellClaim and TopologyGraph only through the findings sample), and gives no check that the stub list is complete."
+        },
+        {
+          "label": "Dry-run implementations of .11 to .14 and run each gate",
+          "consequence": "The strongest evidence, but it means writing four phases of code in a planning step, far outside the write set and the step's purpose."
+        }
+      ],
+      "chosen": "Static scan in Dart, validated against today's replay",
+      "why": "The brief asks for a grep- or analyze-based script and its output. Deriving the stubs from the code makes the phase attribution complete: with nidana.model.1 to .10 merged, the 18 stubs are the only bodies left, and the only package-internal caller of a stub is buildDefinition() => planOf(this).definition, which the scan checks. The validation run confirms the reach half empirically: of 108 cases, every case that reaches no stub passes today, and every case that reaches one fails today except recording L658 (G15), which throws StateError in planOf before reaching .definition (a conservative attribution, listed). The scan reproduces S136's empirical .11 numbers exactly (21 admitted; 11 pass today; L508 and L821 the only two that need a later phase).",
+      "evidence": [
+        "docs/auto-run/experiments/model-gate-reach/output.txt sections A, S1, S4, V",
+        "docs/auto-run/steps/S136.json notes_for_orchestrator (RESTRICTION CHECK)"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T15:53:58Z",
+      "artifact": "hsdd/spec/nidana.model.md",
+      "question": "Which mode amends the unshipped phases, and what may change?",
+      "options": [
+        {
+          "label": "In place, with dated Restated 2026-10-27 notes; ids, names, tiers, sizes, edges, the table, the graph, D1 to D6 and every shipped phase byte-identical",
+          "consequence": "Phase ids, context and plan file names and every consumer edge stay valid; the first text survives in the Restated notes, as S128 (nidana.model.9), S109 (.4 and .5) and S86 and S92 did."
+        },
+        {
+          "label": "Append mode",
+          "consequence": "Append mode adds phases; it has no form for correcting a restriction list, and .11's and .13's Gates would keep commands that cannot pass."
+        }
+      ],
+      "chosen": "In place, with dated Restated 2026-10-27 notes; ids, names, tiers, sizes, edges, the table, the graph, D1 to D6 and every shipped phase byte-identical",
+      "why": "The orchestrator's ruling (S136.orchestrator.json) names an in-place amend of the unshipped phases; the skill forbids rewriting shipped phases only, and .11 to .14 have no verification doc (S136 checked hsdd/verify; .1 to .10 have theirs). A section diff against HEAD shows only '### nidana.model.11', '### nidana.model.12', '### nidana.model.13' and the pending section changed (31 sections before and after).",
+      "evidence": [
+        "docs/auto-run/steps/S136.orchestrator.json",
+        "docs/auto-run/steps/S128.json decisions[0]",
+        "hsdd/verify/ (nidana.model.1 to .10 only)"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T15:53:58Z",
+      "artifact": "hsdd/spec/nidana.model.md",
+      "question": "The brief says to check whether 'that phase or an earlier one' delivers what each case calls. nidana.model.13's restriction admits G3's L508 and G7's L821, which call analyzeTopologyGraph (nidana.model.12). .12 is numbered earlier but is not a dependency of .13: D5 says .12 and .13 run side by side and each gate restricts to its own closure, so no gate depends on merge order. Is .13's Gate defective?",
+      "options": [
+        {
+          "label": "Yes, by D5's closure: G3 and G7 leave .13's restriction",
+          "consequence": ".13's Gate becomes --guarantee G2,G4,G5,G6,G8,G9,G10,G11,G12,G19,G20,G21 (26 cases, all reachable from .11 and .13); its Scope says why, with a Restated note. G3 and G7 still replay at .12 (restricted) and .14 (unrestricted), so no coverage is lost; the graph, the lanes and D5 are untouched."
+        },
+        {
+          "label": "No, by numbered order: leave .13's Gate",
+          "consequence": "Passes in this run, which executes phases one at a time in number order (impl-execution-plan.md, Branches), but the plan text would keep a gate that fails if .13 runs before .12 merges, against its own D5 and Lanes bullet."
+        },
+        {
+          "label": "Keep G3 and G7 at .13 and add nidana.model.12 to its Dependencies",
+          "consequence": "Changes the dependency graph, the summary table row, the Lanes bullet and D5's statement that .12 and .13 run side by side; more than the defect needs."
+        }
+      ],
+      "chosen": "Yes, by D5's closure: G3 and G7 leave .13's restriction",
+      "why": "D5 is the plan's rule for what a gate may replay, and it names .12 and .13 by id as side-by-side phases restricted to their own closures; ADR-001 item 10 says 'the guarantees the node's phases have delivered so far', which for a lane is its closure. The table (section S4) marks the two cases '(numbered before .13, but not a dependency)' so the orchestrator sees the difference. The fix costs nothing: G3's and G7's cases do not exercise the codec. The signal that would change this: an orchestrator ruling that the run's serial order is the plan's order (then the third option, not the second, keeps the plan honest).",
+      "evidence": [
+        "docs/auto-run/experiments/model-gate-reach/output.txt section A, S4 '.13 JSON form'",
+        "hsdd/spec/nidana.model.md D5 third bullet and the Lanes bullet",
+        "hsdd/adr/001-executable-contract-validation.md item 10",
+        "docs/auto-run/impl-execution-plan.md, Branches"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T15:53:58Z",
+      "artifact": "hsdd/spec/nidana.model.md",
+      "question": "How far does nidana.model.11's Scope restatement go: the Gate alone, or also why G3 and G7 left, where they first replay, and what checks them at .11?",
+      "options": [
+        {
+          "label": "One sentence on why G3 and G7 leave and where they first replay (nidana.model.12, all four of their cases), one on what the package tests check for graphs and claims, and a dated note quoting the old restriction",
+          "consequence": "The Scope states what the Gate no longer checks and where it is checked, as S128 did for .9's G9 and G10; it adds no work, since the Scope already lists G3's and G7's semantics for graphs and claims."
+        },
+        {
+          "label": "Change the Gate and add only a Restated note",
+          "consequence": "Minimal, but the implementer would read 'graph equality ... (G7), unmodifiable copies (G3)' with no replay checking them and no statement that the package tests must."
+        }
+      ],
+      "chosen": "One sentence on why G3 and G7 leave and where they first replay (nidana.model.12, all four of their cases), one on what the package tests check for graphs and claims, and a dated note quoting the old restriction",
+      "why": "The orchestrator's ruling says .11's package tests still check G3's and G7's graph and claim semantics; S136 notes the restriction loses G3's reachable L539 and G7's passing L774 with them, so the package tests are the only check at .11. The sentence names graphs and claims only: the IR values' G3 and G7 were nidana.model.10's and are pinned by its tests.",
+      "evidence": [
+        "docs/auto-run/steps/S136.orchestrator.json",
+        "docs/auto-run/steps/S136.json notes_for_orchestrator (THE GAP)",
+        "docs/auto-run/steps/S128.json decisions[1]"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T15:53:58Z",
+      "artifact": "hsdd/spec/nidana.model.md",
+      "question": "Do the Verification lines of .11, .12 or .13 claim G3 or G7 is replayed, and do they change?",
+      "options": [
+        {
+          "label": "None claims it; all three stay byte-identical",
+          "consequence": "Only the Scopes and the two Gates change."
+        },
+        {
+          "label": "Add a sentence to .11's Verification that the package tests check G3 and G7",
+          "consequence": "S128 did this for .9, whose Verification claimed the inertness G10 covers; .11's Verification names only the projection (G8), which stays in the restriction, so the sentence would add a claim the line never made."
+        }
+      ],
+      "chosen": "None claims it; all three stay byte-identical",
+      "why": "The brief says to amend Verification where it claims G3 and G7 are replayed. .11's line covers buildDefinition() and projection equality (G8), .12's the findings sample's reports (G13 to G17), .13's the codec (G19 to G21); none names G3 or G7. The Scope sentence already tells the implementer and the verification-doc task what checks G3 and G7 at .11.",
+      "evidence": [
+        "hsdd/spec/nidana.model.md nidana.model.11, .12 and .13 Verification lines"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T15:53:58Z",
+      "artifact": "hsdd/spec/nidana.model.md",
+      "question": "nidana.model.12's Gate already lists G3 and G7, and .14's unrestricted Gate passes. What changes there?",
+      "options": [
+        {
+          "label": ".12: one sentence beside the G23 joins sentence, and a Restated note saying the Gate is unchanged; .14: nothing",
+          "consequence": ".12's Scope agrees with its Gate and with .11's Scope; .14 is byte-identical."
+        },
+        {
+          "label": "Nothing in .12 either",
+          "consequence": ".12's Scope would keep naming G23 alone as joining there, while its Gate is now the first to run G3 and G7."
+        }
+      ],
+      "chosen": ".12: one sentence beside the G23 joins sentence, and a Restated note saying the Gate is unchanged; .14: nothing",
+      "why": "The orchestrator's ruling names the .12 Scope amend. The table shows .12's 31 admitted cases and .14's 43 all reachable within their closures, so neither Gate changes.",
+      "evidence": [
+        "docs/auto-run/experiments/model-gate-reach/output.txt sections A and B, S4"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T15:53:58Z",
+      "artifact": "hsdd/spec/nidana.model.md",
+      "question": "nidana.model.10's Scope (shipped) says 'G3 and G7 join the restriction at nidana.model.11, because their cases also cover graphs and claims', and its verification doc (line 70) says the same. Restate them?",
+      "options": [
+        {
+          "label": "Leave both; the unshipped Scopes of .11 and .12 now say where G3 and G7 first replay",
+          "consequence": "The shipped record stays as written; a reader of .10 finds the current placement in .11's and .12's Scopes and their Restated notes."
+        },
+        {
+          "label": "Restate .10's sentence",
+          "consequence": "S136 proposed it, but the brief forbids touching a shipped phase, 'not even a sentence in a shipped phase's Scope that names a later phase', and the skill forbids rewriting a shipped phase."
+        }
+      ],
+      "chosen": "Leave both; the unshipped Scopes of .11 and .12 now say where G3 and G7 first replay",
+      "why": "The brief and the skill's append-mode rule both forbid it; the sentence was true of the plan when .10 shipped.",
+      "evidence": [
+        "hsdd/spec/nidana.model.md nidana.model.10 Scope",
+        "hsdd/verify/nidana.model.10.verification.md line 70"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T15:53:58Z",
+      "artifact": "hsdd/spec/nidana.model.md",
+      "question": "Which pending entries carry the change, and how is the Delivery sentence worded?",
+      "options": [
+        {
+          "label": "confirm topology-ir@v1 produced_by (unchanged) plus one amend in the 'but for' form the topology-dsl@v2 amend of 2026-10-27 used: '.11 ... (G8, G11, G12, and G3 and G7 but for the findings the analyses return); .12 the analyses (G3, G7, G13 to G18)'",
+          "consequence": "Same emission shape and phrasing as S128, which S129 drained; reconcile gets the exact old and new text. G23 stays where it is, explained in a sub-bullet."
+        },
+        {
+          "label": "amend also moving G23 into the same form",
+          "consequence": "More consistent prose, but the table does not move G23 (its placement was already .10 for the bodies and .12 for the case), and the brief limits the amend to G3, G7 and what the table moves."
+        },
+        {
+          "label": "amend that drops G3 and G7 from .11 and lists them under .12 alone",
+          "consequence": "Says the graph and claim bodies G3 and G7 hold for land at .12, which is false: they land at .11."
+        }
+      ],
+      "chosen": "confirm topology-ir@v1 produced_by (unchanged) plus one amend in the 'but for' form the topology-dsl@v2 amend of 2026-10-27 used: '.11 ... (G8, G11, G12, and G3 and G7 but for the findings the analyses return); .12 the analyses (G3, G7, G13 to G18)'",
+      "why": "The conventions say reconcile writes the Delivery paragraph from a producer's confirm entries and its gates' --guarantee lists, which now place G3's and G7's first replay at .12. Compatible: no declaration, guarantee, case, fixture, produced_by or edge changes, and no consumer could rely on G3 or G7 for findings the analyses return before .12, when analyzeTopologyGraph throws. .13's restriction change moves no guarantee in the paragraph (.13 still delivers G4 and G19 to G21), so it appears only in the confirm sub-bullet.",
+      "evidence": [
+        "hsdd/contract/topology-ir.md line 45",
+        "hsdd/contract/topology-dsl.md Delivery (amended 2026-10-27)",
+        "git show 5caef25 (S128's entries)",
+        "hsdd/conventions.md, Contracts"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T15:55:40Z",
+      "artifact": "hsdd/spec/nidana.model.md",
+      "question": ".11's Scope already holds a 'Restated 2026-10-27 (nidana.model.9, ...)' note from S128. How is the new note told apart, and how do .12 and .13 cite it?",
+      "options": [
+        {
+          "label": "'Restated 2026-10-27 a second time, from a finding at this phase's context switch, before any of its code', cited from .12 and .13 as '(nidana.model.11, Scope, Restated 2026-10-27 a second time)'",
+          "consequence": "One date, two notes, unambiguous citations; the existing note stays byte-identical, including its 'The gate is unchanged.', which was true of that restatement."
+        },
+        {
+          "label": "Rewrite the S128 note into one combined note",
+          "consequence": "Edits text that records an earlier restatement."
+        }
+      ],
+      "chosen": "'Restated 2026-10-27 a second time, from a finding at this phase's context switch, before any of its code', cited from .12 and .13 as '(nidana.model.11, Scope, Restated 2026-10-27 a second time)'",
+      "why": "The file's dated-restatement style keeps every earlier note as written; the opening phrase follows D1's 'Restated 2026-10-26, from a finding at nidana.model.4's phase context switch, before any of its code'.",
+      "evidence": [
+        "hsdd/spec/nidana.model.md D1, nidana.model.9 and .11 Scopes"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    }
+  ],
+  "experiments": [
+    {
+      "path": "docs/auto-run/experiments/model-gate-reach/",
+      "question": "For every behavior case each unshipped gate (.11 to .14) replays, what does the case call that is not yet delivered, which phase delivers it, and is that phase in the gate's own phase or dependency closure?",
+      "finding": "18 stubs remain at HEAD (a8baa34): TopologyPlan.definition, ShellClaim(), TopologyGraph(), TopologyGraph.render, toGraph (.11); the six analyses (.12); the four codec functions and JsonRenderer.render (.13); MermaidRenderer.render and GraphvizRenderer.render (.14); each phase's Scope names its own. Plan at HEAD: .11 CANNOT PASS (topology-ir restriction admits 21 cases, 19 reachable; L508 G3 and L821 G7 call analyzeTopologyGraph, .12); .12 can pass (31 of 31); .13 CANNOT PASS by its closure (30 admitted, 28 reachable; the same L508 and L821, .12 not in .13's closure: .13 depends on .11 alone); .14 can pass (43 of 43, unrestricted). topic-model (41 cases) and topology-dsl (24 recording cases) unrestricted are reachable at every gate (topology-dsl's six that reach .11's TopologyPlan.definition from .11 on). Amended plan: all four gates can pass (.11: 17 of 17; .12: 31 of 31; .13: 26 of 26; .14: 43 of 43). Validation against today's unrestricted replay: 37 cases fail today, every case the scan says reaches no stub passes (0 misses); one conservative attribution (recording L658 G15 passes today, throwing StateError in planOf before .definition). By guarantee (S5): G3, G7, G13 to G18 and G23 first reachable at .12; G4 and G19 to G21 at .13; G22 at .14; G8, G11, G12 at .11; G2, G5, G6, G9, G10 from .10 on."
+    }
+  ],
+  "self_check": [
+    {
+      "gate": "Phase 1 defines all shared types and contract-bounded interfaces.",
+      "status": "pass",
+      "note": "Unchanged: the types band (.3 to .5) and the replay tool phases are untouched."
+    },
+    {
+      "gate": "Phases 2..N-1 are maximally independent (parallelizable where possible).",
+      "status": "pass",
+      "note": "No lane or edge changed; .12 and .13 still run side by side, and .13's Gate now restricts to its own closure as D5 requires."
+    },
+    {
+      "gate": "Each phase has <= 8 OpenSpec tasks (split if more).",
+      "status": "pass",
+      "note": "Sizes and task ceilings unchanged (.11 <= 7, .12 <= 6, .13 <= 6, .14 <= 5)."
+    },
+    {
+      "gate": "Adjacent same-tier phases were checked against the sizing floor; every merge candidate kept separate names its reason (tier boundary, parallel lane, isolated risk).",
+      "status": "pass",
+      "note": "No phase added, removed or resized; the plan's sizing-floor note stands."
+    },
+    {
+      "gate": "Contract ids are defined before the phase that implements them.",
+      "status": "pass",
+      "note": "topology-ir@v1 stable, phase_ids final, produced_by unchanged (confirm entry)."
+    },
+    {
+      "gate": "Phase N is testable against contract fixtures even if Phase N-1 is not implemented.",
+      "status": "pass",
+      "note": "After the amend every gate admits only cases its own phase and dependency closure can turn green (experiment, section B, S4), which is this item's point; before it .11 and .13 did not."
+    },
+    {
+      "gate": "No phase couples to another phase's internals.",
+      "status": "pass",
+      "note": "Unchanged."
+    },
+    {
+      "gate": "Each phase has a concrete gate, a verification description, and a review tier.",
+      "status": "pass",
+      "note": ".11's and .13's Gates written out in full with the new restrictions; every Verification line and tier unchanged."
+    },
+    {
+      "gate": "The phase dependency graph is included as a Mermaid flowchart and matches the Dependencies fields.",
+      "status": "pass",
+      "note": "No edge moved; graph byte-identical."
+    },
+    {
+      "gate": "Summary table opens the section and matches the phase sections.",
+      "status": "pass",
+      "note": "Rows byte-identical; names, tiers, sizes, dependencies and collisions of .11 to .14 unchanged."
+    },
+    {
+      "gate": "Field blocks are bullet lists; empty lists say \"none\".",
+      "status": "pass",
+      "note": "Structure unchanged."
+    },
+    {
+      "gate": "Every contingent phase names the OQ id it waits on; no contingency without a minted OQ.",
+      "status": "n/a",
+      "note": "No contingency; no request entry."
+    },
+    {
+      "gate": "The plan names the ordering policy it followed, matching the conventions line (or `interfaces-first` when absent, `fp-progression` when only the pre-v0.10 `FP ordering:` bullet is present).",
+      "status": "pass",
+      "note": "'Ordering policy: fp-progression' line unchanged; matches hsdd/conventions.md."
+    },
+    {
+      "gate": "Every producing phase's Gate includes the contract replay for each contract it produces.",
+      "status": "pass",
+      "note": ".11 replays topology-dsl unrestricted and topology-ir restricted to G2, G5, G6, G8 to G12; .13 replays topology-ir restricted to G2, G4 to G6, G8 to G12, G19 to G21; .12 and .14 unchanged; surface, reject and schema still run in full in each topology-ir replay."
+    },
+    {
+      "gate": "In append mode: no existing id changed, no shipped phase edited, numbering continued from the highest existing id.",
+      "status": "pass",
+      "note": "In-place amend of unshipped phases: no id changed, no phase added; section diff against HEAD shows only '### nidana.model.11', '.12', '.13' and the pending section changed; .1 to .10 and .14 byte-identical."
+    },
+    {
+      "gate": "Governance Freeze: never edit hsdd/contract/, hsdd/adr/, hsdd/conventions.md, or any INDEX.md",
+      "status": "pass",
+      "note": "The Delivery change is emitted as confirm and amend entries only; git status shows hsdd/spec/nidana.model.md as the only tracked change."
+    },
+    {
+      "gate": "Orchestrator gate: node docs/auto-run/tools/gate.mjs --skill hsdd-phase-plan --node nidana.model",
+      "status": "pass",
+      "note": "4 errors, 0 warnings, 4 changed files: the four known owner-file errors (HARNESS.md, JUDGEMENT-LAYER.md, explorer/build.py, explorer/index.html), the same 4 on a baseline run at 2026-10-27T15:53:58Z before any edit. No fifth error: impl-execution-plan.md is not modified in this working tree. No em-dash and no banned phrase in the spec."
+    }
+  ],
+  "contract_gaps": [],
+  "notes_for_orchestrator": [
+    "TABLE VERDICT (docs/auto-run/experiments/model-gate-reach/output.txt). Plan at HEAD a8baa34: nidana.model.11 CANNOT PASS (topology-ir --guarantee G2,G3,G5,...,G12 admits 21 cases; L508 G3 and L821 G7 call analyzeTopologyGraph, nidana.model.12's); nidana.model.12 CAN PASS (31 of 31 admitted cases reachable from .11 and .12); nidana.model.13 CANNOT PASS by its closure (30 admitted; the same L508 and L821; .13 depends on .11 alone, and D5 runs .12 and .13 side by side; in this run's serial order it would pass after .12 merges); nidana.model.14 CAN PASS (unrestricted, 43 of 43). topic-model (41) and topology-dsl's recording suite (24) run unrestricted at every gate and are reachable at every one. After the amend all four can pass: .11 17/17, .12 31/31, .13 26/26, .14 43/43. The static scan was validated against today's unrestricted replay: 0 misses.",
+    "PENDING ENTRIES EMITTED (hsdd/spec/nidana.model.md, '## Governance updates (pending reconcile)', under the 'Reconciled 2026-10-27' line, with an emission line dated 2026-10-27): (1) confirm `topology-ir@v1` produced_by: [nidana.model.5, nidana.model.10, nidana.model.11, nidana.model.12, nidana.model.13, nidana.model.14], unchanged, with the sub-bullet giving the new .11 and .13 restrictions and that .12's Gate first runs G3's and G7's cases; (2) amend `topology-ir@v1`: in the Delivery paragraph (topology-ir.md line 45), \"nidana.model.11 the projection, `ShellClaim` and `TopologyGraph` (G3, G7, G8, G11, G12); nidana.model.12 the analyses (G13 to G18);\" reads \"nidana.model.11 the projection, `ShellClaim` and `TopologyGraph` (G8, G11, G12, and G3 and G7 but for the findings the analyses return); nidana.model.12 the analyses (G3, G7, G13 to G18);\". Sub-bullets: Compatible (no declaration, guarantee, case, fixture, produced_by or edge changes; Breaking list names no phase assignment; same shape as the 2026-10-27 topology-dsl@v2 amend), Why (the two cases and the experiment), Not moved (G4, G19 to G21, G22 where the paragraph puts them; G23 stays under .10, its case first replaying at .12 as the Scopes already say).",
+    "FOR RECONCILE (S138): no breaking amend, no request, no contingent phase, no collision expected (only this node's section is pending). The amend quotes the current sentence exactly as it stands at HEAD a8baa34 (one occurrence, checked by grep). Reconcile adds the usual 'Amended within v1, 2026-10-27' bullet to topology-ir@v1's Versioning. The registry's frontmatter projection does not change.",
+    "PLAN TEXT CHANGED: .11 Gate restriction 'G2,G3,G5,G6,G7,G8,G9,G10,G11,G12' -> 'G2,G5,G6,G8,G9,G10,G11,G12'; .11 Scope: two sentences after the topology-dsl replay sentence (G3 and G7 leave the restriction because L508 and L821 run analyzeTopologyGraph; .12's Gate first runs all four G3 and G7 cases; .11's package tests check G3 and G7 for graphs and claims: unmodifiable copies, value equality and hash codes, graph equality ignoring argument order) and a note 'Restated 2026-10-27 a second time' quoting the old restriction; S128's existing note untouched. .12 Scope: one sentence after the G23 joins sentence (G3 and G7 join here too) and a Restated note; .12 Gate unchanged. .13 Gate restriction 'G2,G3,G4,...,G12,G19,G20,G21' -> 'G2,G4,G5,G6,G8,G9,G10,G11,G12,G19,G20,G21'; .13 Scope: two sentences (why G3 and G7 are out: .12 is not in .13's closure, D5) with a Restated note. Every Verification line, .14, D1 to D6, the table, the bullets, the graph and every shipped phase are byte-identical to HEAD.",
+    "ONE CALL TO REVIEW: .13's amend rests on reading 'that phase or an earlier one' as the dependency closure (D5), not number order (decisions[2]). If the orchestrator prefers number order, revert .13's Gate and Scope hunks only (both on lines 400 and 402) and drop the '.13' clauses from the confirm and Why sub-bullets; the .11 and .12 changes and the amend's main sentence do not depend on it.",
+    "FOR THE hsdd-config RE-RUN OF nidana.model.11 (S139) AND ITS PLAN: the Gate's last command is now `fvm dart run nidana_contract_check topology-ir --guarantee G2,G5,G6,G8,G9,G10,G11,G12`, admitting 17 cases: 10 pass today (L500 G2; L581, L607, L659 G5; L687, L714 G6; L934, L945, L960 G9; L972 G10) and 7 fail today and are this phase's red-to-green (L858, L875, L923 G8; L1017, L1035, L1044 G11; L1060 G12). Compared with S136's count, G3's L539 (reachable) and G7's L774 (passes today) leave with their ids, so the package tests must pin G3 and G7 for graphs and claims (the Scope now says so). The unrestricted topology-dsl replay is unchanged: 24 cases, 5 failing today, all .11's. The Scope's Phase block text changes, so the generic context and its derivative are rewritten whole.",
+    "FOR nidana.model.13's LATER CONTEXT SWITCH: its Gate changed too (G3 and G7 out), and its Scope gained two sentences; nothing else of .13 moved.",
+    "NOT CHANGED, BY THE BRIEF: nidana.model.10's shipped Scope sentence ('G3 and G7 join the restriction at nidana.model.11, because their cases also cover graphs and claims') and hsdd/verify/nidana.model.10.verification.md line 70 still place G3 and G7 at .11; .11's and .12's Scopes now carry the current placement.",
+    "OPTIONAL CLARIFICATION NOT TAKEN (again, as in S128): D5 could state that a guarantee whose cases reach a later phase joins a restriction at the first phase whose closure delivers every body its cases call, since a restriction selects cases by id. This is the third time the plan met that rule (.9's G9 and G10, .10's G3, G7 and G23, now .11's and .13's G3 and G7). docs/auto-run/experiments/model-gate-reach/scan.dart checks it mechanically for any edited plan (pass the spec path) and could be rerun before the next config step.",
+    "ISOLATION: no sibling node spec or sibling phase plan was read; reads were this node's spec, conventions, ADR-001 items 9 and 10, topology-ir.md, topology-dsl.md, the three slugs' behavior fixtures, the package sources under packages/nidana_dart_contracts/lib (for the stub inventory), hsdd/verify/nidana.model.10.verification.md (grep for G3 and G7), docs/auto-run/impl-execution-plan.md (ordering), and the step reports S127 to S128 and S136.",
+    "TIMESTAMPS: step start 2026-10-27T15:45:10Z; experiment directory created and method chosen 15:50:01Z; baseline gate and the amend decisions 15:53:58Z, before any spec edit; first post-edit gate 15:55:23Z; the wording pass that narrowed 'definitions, graphs and claims' to 'graphs and claims' and the Restated-note naming 15:55:40Z; final experiment run and gate 15:55:51Z.",
+    "NOT COMMITTED. No git state changed. Changed files: hsdd/spec/nidana.model.md (tracked), and new docs/auto-run/experiments/model-gate-reach/ (scan.dart, run.sh, output.txt) and docs/auto-run/steps/S137.json. The experiment's replays are read-only; git status after them showed only these."
+  ]
+}
