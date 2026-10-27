@@ -218,6 +218,7 @@ a `Task N: complete` line; never re-dispatch them.
 | S147 | implement | superpowers:subagent-driven-development | nidana.model.13: 4 tasks, 1 fix round (Task 4, the doc's D7 account), final review Ready to merge with a small test and doc wave; gate exit 0, 353 tests; topology-ir restricted 26/26 plus 46 schema documents, unrestricted 41/43 (G22's two renderer cases left for .14) | done | 75e7d70; merged into impl/nidana.model as 102ff8c |
 | S148 | config | hsdd-config | nidana.model.14 (N=5, spot-check; unrestricted replay 41/43 today, the two G22 renderer cases reachable, a prototype reproduced all 14 render/ goldens) | done | 55dedf4 |
 | S149 | code-plan | superpowers:writing-plans | nidana.model.14 (3 tasks; dry run: topology-ir unrestricted 41/43 to 43/43, gate exit 0, 369 tests; 5 of 16 seeded defects caught only by package tests) | done | e817f16 |
+| S150 | implement | superpowers:subagent-driven-development | nidana.model.14: 3 tasks, 1 doc fix round (Task 3, review evidence), final review ready with one doc-line wave; gate exit 0, 371 tests; topic-model 41/41, topology-dsl 24/24, topology-ir 43/43 all unrestricted, 120/120 fixtures; topology-ir@v1 fully produced, the node's code complete | done | 4cbd957 |
 
 ## Notes for the report
 
@@ -478,7 +479,12 @@ that phase's writing-plans dispatch and strikes it here when the phase's plan co
   for two variants, or the characters `&|[]'`, so five seeded renderer defects pass G22 and only nidana.model.14's
   package tests catch them (`docs/auto-run/experiments/renderers-plan/output.txt`); the rule text settles each
   case. One more sample, or an extended one, with its goldens, and a plainer retry bullet ("an anonymous retry
-  renders `retry (anonymous)`").
+  renders `retry (anonymous)`"). Also (S150's Task 3 review): no sample holds two topics of one name and
+  variant with different `typeName`s, so a renderer keying topic ids by name and variant passes every replay; only
+  nidana.model.14's ruling test (`typeNamesGraph`) catches it. And (S150's final review): Graphviz omits an empty cluster from its
+  layout, so a topology with no edges (the `escaping` sample's `idle`) renders as the rule says but is not drawn
+  (`docs/auto-run/experiments/topology-ir-fixtures/output.txt:226`, `clusters=1`); the rule could give an empty
+  cluster an invisible point node.
 - nidana.tooling.codegen.6, .9, .11 and nidana.tooling.lint.4 (from S122): the first gates to run the 39 committed
   recorded invocations and topic-codegen's file replay for real (all PENDING until then); their `{files}` and
   `{root}` recordings and in-place `files/` runs are first exercised there.
