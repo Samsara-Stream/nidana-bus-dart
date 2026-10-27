@@ -2,6 +2,15 @@
 /// package builds on.
 library;
 
+export 'src/ir/definition.dart'
+    show
+        CombinatorKind,
+        EdgeInput,
+        StageInput,
+        TopicInput,
+        TopologyDefinition,
+        TransformEdge;
+export 'src/ir/function_ref.dart' show FunctionRef;
 export 'src/topic/envelope.dart' show MessageEnvelope;
 export 'src/topic/lineage.dart' show Lineage;
 export 'src/topic/message_source.dart'
