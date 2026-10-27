@@ -197,6 +197,7 @@ a `Task N: complete` line; never re-dispatch them.
 | S126 | config | hsdd-config | nidana.model.9 (N=7, spot-check; consumes topic-model@v1, produces topology-dsl@v2; the gate does not replay G9) | done | c286b15 |
 | S127 | code-plan | superpowers:writing-plans | nidana.model.9 (5 tasks; found the Gate's G10 restriction cannot pass before .11; governance route S128 to S131) | done | 8aa4d1b |
 | S128 | phase-plan | hsdd-phase-plan | nidana.model amend of .9's gate (G10 out of the restriction; .11 Scope names G10; one compatible Delivery amend pending) | done | 5caef25 |
+| S129 | reconcile | hsdd-reconcile | nidana.model pending section (amend of .9's gate): topology-dsl@v2 Delivery, compatible within v2 | done | c08820a |
 
 ## Notes for the report
 

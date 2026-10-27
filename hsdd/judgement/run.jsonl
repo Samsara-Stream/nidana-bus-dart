@@ -127,3 +127,4 @@
 {"step_ref":"S126","skill":"hsdd-config","target":"nidana.model.9","started":"2026-10-27T12:09:02Z","finished":"2026-10-27T12:14:41Z","commit":"c286b15","dispatches":1}
 {"step_ref":"S127","skill":"superpowers:writing-plans","target":"nidana.model.9","started":"2026-10-27T12:14:51Z","finished":"2026-10-27T12:47:14Z","commit":"8aa4d1b","dispatches":1}
 {"step_ref":"S128","skill":"hsdd-phase-plan","target":"nidana.model amend of .9's gate","started":"2026-10-27T12:47:24Z","finished":"2026-10-27T12:54:49Z","commit":"5caef25","dispatches":1}
+{"step_ref":"S129","skill":"hsdd-reconcile","target":"nidana.model pending section (amend of .9's gate)","started":"2026-10-27T12:54:58Z","finished":"2026-10-27T12:58:53Z","commit":"c08820a","dispatches":1}

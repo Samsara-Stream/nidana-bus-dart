@@ -1,0 +1,158 @@
+{
+  "step_ref": "S129",
+  "skill": "hsdd-reconcile",
+  "target": "nidana.model pending section (amend of .9's gate)",
+  "status": "completed",
+  "stop": null,
+  "artifacts": [
+    "hsdd/contract/topology-dsl.md",
+    "hsdd/spec/nidana.model.md",
+    "docs/auto-run/steps/S129.json"
+  ],
+  "decisions": [
+    {
+      "at": "2026-10-27T12:56:09Z",
+      "artifact": "hsdd/spec/nidana.model.md",
+      "question": "Does the pending section collide with any other pending entry, and does either entry conflict with another node's assumption?",
+      "options": [
+        { "label": "No collision: drain both entries", "consequence": "Both entries are applied at the root without a human arbitration; no losing plan needs an update." },
+        { "label": "Treat as a run-stop candidate", "consequence": "Would stop the run for a conflict that does not exist." }
+      ],
+      "chosen": "No collision: drain both entries",
+      "why": "Scanned hsdd/spec/*.md: the other six nodes' pending sections hold only their 'Reconciled' stamp line (3 lines after the heading each); nidana.model's section held two entries, both for topology-dsl@v2. Consumers of topology-dsl@v2 cite nidana.model.9 only for the recording builder and planOf and nidana.model.11 for buildDefinition() (nidana.navigation.md line 201 says so in as many words); no other node's gate restricts a topology-dsl replay (grep of '--guarantee' on topology-dsl finds nidana.model.9 only). No other contract's Delivery paragraph mentions G10 of topology-dsl@v2 (topology-ir.md line 168 cites it for the projection, which is nidana.model.11).",
+      "evidence": ["hsdd/spec/*.md pending sections", "hsdd/spec/nidana.navigation.md line 201", "hsdd/contract/topology-ir.md line 168"],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T12:56:09Z",
+      "artifact": "hsdd/contract/topology-dsl.md",
+      "question": "Apply the confirm entry for topology-dsl@v2 produced_by [nidana.model.4, nidana.model.9, nidana.model.11]: what does applying it change?",
+      "options": [
+        { "label": "Apply as a no-op: the frontmatter already reads produced_by [nidana.model.4, nidana.model.9, nidana.model.11], phase_ids final, status stable", "consequence": "No frontmatter edit; the registries do not change; the confirm still counts as applied and the Delivery paragraph is written from it and the plan's gates." },
+        { "label": "Rewrite the frontmatter anyway", "consequence": "Churn with no content change; risks touching consumers' lists." }
+      ],
+      "chosen": "Apply as a no-op: the frontmatter already reads produced_by [nidana.model.4, nidana.model.9, nidana.model.11], phase_ids final, status stable",
+      "why": "The entry says 'Unchanged'. Checked against the frontmatter (lines 2 to 12) and against the Gates of nidana.model.4, .9 and .11 in hsdd/spec/nidana.model.md: the three phases that replay topology-dsl are exactly those three. No consumer of this node's phases exists in the frontmatter's sense, so no consumers entry was emitted and none is applied.",
+      "evidence": ["hsdd/contract/topology-dsl.md frontmatter", "hsdd/spec/nidana.model.md nidana.model.9 and .11 Gates"],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T12:56:09Z",
+      "artifact": "hsdd/contract/topology-dsl.md",
+      "question": "Is the amend of the Delivery paragraph compatible within topology-dsl@v2, or breaking (v3 and a migration note)?",
+      "options": [
+        { "label": "Compatible: keep v2 and record the touch in Versioning", "consequence": "No consumer migrates; the Delivery paragraph and Versioning change; registries unchanged." },
+        { "label": "Breaking: create v3", "consequence": "Every consumer reference (27 phase ids) would move for a sentence that assigns a guarantee to a phase; the Breaking list names no phase assignment." },
+        { "label": "Run-stop candidate", "consequence": "Not warranted: the amend changes no declaration, guarantee, case, fixture or edge." }
+      ],
+      "chosen": "Compatible: keep v2 and record the touch in Versioning",
+      "why": "Verified against the section itself and the contract: (1) the current line 44 reads exactly the sentence the amend quotes, so the old text is as S128 recorded; (2) G10 names both planOf and buildDefinition(), and both G10 cases of hsdd/contract/fixture/topology-dsl/behavior/recording_conformance.dart (lines 308 to 350) call buildDefinition(), which the same paragraph already gave to nidana.model.11, so the old paragraph contradicted itself and no consumer can have relied on G10 being delivered at nidana.model.9; (3) the Versioning section's Breaking list names declarations, stage and sink classes, combinators, the Errors and lineage and Retry rules, and Topology members, never a phase assignment, and the earlier touch of the Delivery paragraph (the 2026-10-27 'Amended within v2' entry, S110) was recorded the same way; (4) produced_by, every consumer edge, every declaration, every guarantee text, case and fixture file is unchanged (git diff of the contract is the Delivery sentence plus one Versioning bullet). The experiment confirms the effect on the restricted replay: with G10 the restricted replay fails exactly the two G10 cases (17 passed, 2 failed), without it exits 0.",
+      "evidence": ["hsdd/contract/topology-dsl.md line 44, G9, G10, G15, Refinement 2, Versioning", "hsdd/contract/fixture/topology-dsl/behavior/recording_conformance.dart", "docs/auto-run/experiments/recording-builder-plan/output.txt T4.4 and G", "docs/auto-run/steps/S128.json decisions[4]"],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T12:57:31Z",
+      "artifact": "hsdd/contract/topology-dsl.md",
+      "question": "How much of the amend does the Delivery paragraph itself carry: only the quoted sentence change, or also the statement that buildDefinition() is planOf(this).definition from nidana.model.9 on?",
+      "options": [
+        { "label": "The sentence change as the entry quotes it; the mechanism goes in the Versioning entry", "consequence": "The paragraph stays a phase-to-guarantee map, as the conventions define it; Refinement 2 already states what buildDefinition() returns, so a reader of the paragraph plus Refinement 2 has the mechanism; the Versioning entry records why." },
+        { "label": "Also add a clause to the paragraph about what buildDefinition() throws at nidana.model.9", "consequence": "A longer paragraph that every consuming phase's context carries, for a fact Refinement 2 and G15 already fix." }
+      ],
+      "chosen": "The sentence change as the entry quotes it; the mechanism goes in the Versioning entry",
+      "why": "hsdd/conventions.md (Contracts) defines the Delivery paragraph as which phase lands the declarations, which phase a consumer's edge waits on, and which producing phase delivers which guarantees. The existing 'a body that computes throws UnimplementedError' sentence plus 'but for buildDefinition()' covers it. A reviewer who wanted the mechanism in the paragraph would have changed this.",
+      "evidence": ["hsdd/conventions.md Contracts", "hsdd/contract/topology-dsl.md Refinement 2"],
+      "blast_radius": "contract",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T12:57:31Z",
+      "artifact": "hsdd/contract/topology-dsl.md",
+      "question": "Where and in what form does the Versioning entry go?",
+      "options": [
+        { "label": "'Amended within v2, 2026-10-27, from nidana.model's amend of nidana.model.9's Gate (its Scope, Restated 2026-10-27), drained by hsdd-reconcile.' placed directly after the earlier 'Amended within v2, 2026-10-27' entry and before the 'Amended within v1' entry", "consequence": "Follows the form of the earlier entry (what the paragraph said, what it says now, Compatible: with the reason, what stays); keeps v2 entries together, newest last." },
+        { "label": "Fold the touch into the earlier 'Amended within v2, 2026-10-27' entry", "consequence": "Merges two distinct drains (S110 and S129) and loses the record of which intake produced which change." }
+      ],
+      "chosen": "'Amended within v2, 2026-10-27, from nidana.model's amend of nidana.model.9's Gate (its Scope, Restated 2026-10-27), drained by hsdd-reconcile.' placed directly after the earlier 'Amended within v2, 2026-10-27' entry and before the 'Amended within v1' entry",
+      "why": "The task names line 474's entry as the form to follow. The new entry states the reason (G10's two recording cases call buildDefinition(); a replay selects cases by guarantee id, ADR-001 item 9), the old and new sentence, the compatibility argument, the buildDefinition() = planOf(this).definition mechanism that makes G15's empty-id case pass at nidana.model.9, and the experiment evidence. No em-dash and no banned phrase in the added text (grep of the diff: 0 and 0).",
+      "evidence": ["hsdd/contract/topology-dsl.md Versioning", "docs/auto-run/experiments/recording-builder-plan/output.txt"],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T12:57:31Z",
+      "artifact": "hsdd/spec/nidana.model.md",
+      "question": "How is the drained section stamped, given it held the earlier 'Reconciled 2026-10-27' line (S110) above S128's emission line and entries?",
+      "options": [
+        { "label": "One line: '> Reconciled 2026-10-27 by hsdd-reconcile. Drained entries are in git history.' (the earlier stamp's text, dated today), with S128's emission line and both entries removed", "consequence": "Matches the skill's step 11 and S110's result byte for byte (git show 87b473a); the stale emission line is not left to be re-drained." },
+        { "label": "Keep the emission line beside the stamp", "consequence": "A stale 'do not apply by hand' notice would sit under a stamp saying it is drained; a later reader could re-drain it." }
+      ],
+      "chosen": "One line: '> Reconciled 2026-10-27 by hsdd-reconcile. Drained entries are in git history.' (the earlier stamp's text, dated today), with S128's emission line and both entries removed",
+      "why": "The skill says to replace a drained section's entries with one stamp line. The date is today's UTC date (date -u 2026-10-27), which is also the date of the stamp already in the section, so the line stays as it was. The diff of nidana.model.md is deletions only, 11 lines, all inside the section.",
+      "evidence": ["hsdd-reconcile step 11", "git show 87b473a -- hsdd/spec/nidana.model.md"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T12:57:31Z",
+      "artifact": null,
+      "question": "Does anything else need updating: the plan text of nidana.model.9 or .11, the registries, an open question, a draft contract, a grandfather mark?",
+      "options": [
+        { "label": "Nothing else: no losing plan (no collision), registries regenerated and unchanged, no OQ resolved, no draft contract, no grandfather or retirement step named", "consequence": "Write set stays at the two governance files, the registries (no diff) and this report." },
+        { "label": "Edit the plan text of .9 or .11 to match", "consequence": "Outside the write set; S128 already restated both phases, and the Delivery paragraph now agrees with them." }
+      ],
+      "chosen": "Nothing else: no losing plan (no collision), registries regenerated and unchanged, no OQ resolved, no draft contract, no grandfather or retirement step named",
+      "why": "node hsdd/scripts/gen-registry.mjs ran after the last contract edit and printed 'contract: 9' and 'adr: 3' with no diff in either INDEX.md (git status lists only the two edited files), because the frontmatter did not change. All nine contracts are status stable and phase_ids final. The pending entries resolved no open question (OQ-M2 was already answered). Checked the Delivery paragraph against S128's restated Gate and Scope: .9 restricts to G11, G13 to G17, G30; .11 replays unrestricted; the paragraph says the same.",
+      "evidence": ["node hsdd/scripts/gen-registry.mjs output", "hsdd/spec/nidana.model.md nidana.model.9 and .11", "grep of status and phase_ids over hsdd/contract/*.md"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    }
+  ],
+  "experiments": [],
+  "self_check": [
+    { "gate": "Every pending section drained, or explicitly deferred with a reason.", "status": "pass", "note": "nidana.model's section drained and stamped; the other six nodes' sections already held only their stamp line." },
+    { "gate": "No contract with both sides fully planned remains `phase_ids: provisional`; none with `phase_ids: final`, no open request and an existing validation artifact remains `status: draft`; none was flipped without its artifact.", "status": "pass", "note": "All nine contracts: status stable, phase_ids final (grep over hsdd/contract/*.md). No flip made by this step." },
+    { "gate": "Grandfather marks were added only to pre-existing fixtureless `stable` contracts named by the plan step (the upgrade step or one carrying it forward), none re-marked after a discharge, and removed wherever the artifact now exists.", "status": "n/a", "note": "No grandfather step named; no `validation:` key touched or present in any contract." },
+    { "gate": "No contract was retired while a consumer or external consumer still names it.", "status": "n/a", "note": "No retirement step named." },
+    { "gate": "Every collision was decided by the human, and the losing plan was updated to match.", "status": "n/a", "note": "No collision: one pending section, two entries, both for topology-dsl@v2 and consistent with each other and with every consumer's citation of nidana.model.9 and .11." },
+    { "gate": "Contract edits follow hsdd-contract versioning (breaking change = new version + migration note).", "status": "pass", "note": "The amend is compatible (no declaration, guarantee, case, fixture, produced_by or edge changes; the Breaking list names no phase assignment), so v2 stays and a Versioning entry records the touch in the form of the earlier 'Amended within v2, 2026-10-27' entry." },
+    { "gate": "`node hsdd/scripts/gen-registry.mjs` ran after the last contract edit.", "status": "pass", "note": "Ran after both topology-dsl.md edits and the stamp; output 'contract: 9 -> contract/INDEX.md', 'adr: 3 -> adr/INDEX.md'; no INDEX.md diff." },
+    { "gate": "No artifact still cites a resolved OQ as open; sweep locations reported.", "status": "n/a", "note": "The drained entries resolved no open question; nothing to sweep." },
+    { "gate": "Orchestrator gate: node docs/auto-run/tools/gate.mjs --skill hsdd-reconcile", "status": "pass", "note": "4 errors, 0 warnings, the four known owner-file errors (docs/auto-run/HARNESS.md, JUDGEMENT-LAYER.md, explorer/build.py, explorer/index.html); no fifth error; 2 changed files (the two governance files)." },
+    { "gate": "Optional: node docs/auto-run/tools/gate.mjs --final", "status": "pass", "note": "Same 4 owner-file errors; 44 warnings, all 'N reference(s) to <contract>@vK, not the current version' (superseded-version citations in prose that name v1 on purpose); none from this step's text." }
+  ],
+  "contract_gaps": [],
+  "notes_for_orchestrator": [
+    "DRAINED: hsdd/spec/nidana.model.md '## Governance updates (pending reconcile)' now holds one line, '> Reconciled 2026-10-27 by hsdd-reconcile. Drained entries are in git history.' S128's emission line and both entries are gone (11 deleted lines, nothing else in that file changed).",
+    "APPLIED: (1) confirm topology-dsl@v2 produced_by [nidana.model.4, nidana.model.9, nidana.model.11]: no-op, the frontmatter already read so. (2) amend topology-dsl@v2: Delivery paragraph (line 44) now reads 'nidana.model.9 delivers recording, `planOf`, the stages, sinks and visitors (G11, G13 to G17, and G9 and G10 but for `buildDefinition()`); nidana.model.11 delivers `buildDefinition()` and `TopologyPlan.definition` (G9, G10, G12).' Compatible within v2: version stays v2; a new 'Amended within v2, 2026-10-27, from nidana.model's amend of nidana.model.9's Gate' bullet in Versioning records it, after the S110 entry.",
+    "CONTRACT STATE: topology-dsl@v2 stays status stable, phase_ids final; frontmatter byte-identical; both INDEX.md files regenerated with no diff. Every contract stays stable and final.",
+    "FOR S130 (hsdd-config re-run of nidana.model.9) AND S131 (plan revision): the Delivery paragraph the context carries now agrees with .9's restated Gate (topology-dsl --guarantee G11,G13,G14,G15,G16,G17,G30). S128's notes_for_orchestrator list what the plan must change (docs/superpowers/plans/nidana.model.9.md Known contract gap, the five-failing-cases paragraph, Task 5's alternatives).",
+    "NOT TOUCHED: S127's contract_gaps[1] (recording suite misses seeded defects D1 to D9) and [2] (StateError precedence on a closed builder, apply with a wrong-length list) are hsdd-contract matters, outside this step's write set; they do not block nidana.model.9.",
+    "GATE: --skill hsdd-reconcile gave exactly the four known owner-file errors and no fifth (docs/auto-run/impl-execution-plan.md was not reported as changed). --final gave the same four errors and 44 superseded-version warnings, all pre-existing prose citations of v1 versions.",
+    "NOT COMMITTED. No git state changed. Changed files: hsdd/contract/topology-dsl.md, hsdd/spec/nidana.model.md and this report. No experiment written (S127's recording-builder-plan covers the runtime fact; its output was re-read for the 17 passed, 2 failed and exit 0 figures).",
+    "TIMESTAMPS: 12:56:09Z was taken after reading the preamble, the skill, S127 and S128 and scanning the pending sections, before any edit; 12:57:31Z was taken after the edits, the registry run and both gate runs, and stamps the decisions taken while editing."
+  ]
+}
