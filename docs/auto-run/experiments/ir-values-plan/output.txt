@@ -1,0 +1,459 @@
+
+### S0 setup: the committed tree, resolved offline
+tree from 06d90bc judgement: S133
+Dart SDK version: 3.13.5 (stable) (Tue Sep 29 01:00:52 2026 -0700) on "macos_arm64"
+Try `dart pub outdated` for more information.
+definition.t2.dart: 331 lines
+
+### F1 facts/facts.dart, first run
+### H hashing
+H1 [1,2] == [1,2] (two lists): false
+H2 Object.hash(0, a) == Object.hash(0, b): false
+H3 Object.hash(0, Object.hashAll(a)) == Object.hash(0, Object.hashAll(b)): true
+H4 Object.hashAll([1, 2]) == Object.hashAll([2, 1]): false
+H5 Duration(ms: 5) == Duration(us: 5000), hashes equal: true, true
+H6 values printed to compare between runs (F1 against F2):
+   Object.hash("a", 1) = 323028150
+   Object.hashAll(["a", 1]) = 323028150
+   "a".hashCode = 170824770
+   Variant.event.hashCode = 83711909
+   null.hashCode = 2011
+   Object.hash(Variant.state, null) = 138741142
+### U unmodifiable copies
+U1 Set.unmodifiable(["c","a","b","a"]) iterates: [c, a, b]
+U2 later change to the source reaches it: false; the list copy: false
+U3 Set.unmodifiable add: UnsupportedError (Cannot change an unmodifiable set)
+U4 List.unmodifiable clear: UnsupportedError (Cannot clear an unmodifiable list)
+U5 runtimeType of the set: UnmodifiableSetView<String>; of the list: List<String>
+U6 two unmodifiable sets with equal elements ==: false
+### R FunctionRef.of rule
+R top-level                             | Closure: (int) => int from Function 'topLevel': static.         | topLevel
+R private top-level                     | Closure: (int) => int from Function '_private@21481238': static.| _private@21481238
+R static                                | Closure: (int, int) => int from Function 'reduce': static.      | reduce
+R private static                        | Closure: (int, int) => int from Function '_hidden@21481238': static.| _hidden@21481238
+R instance tear-off                     | Closure: (int) => String from Function 'label':.                | label
+R generic uninstantiated                | Closure: <Y0>(Y0) => Y0 from Function 'identity': static.       | identity
+R generic instantiated                  | Closure: (int) => int from Function 'identity': static.         | identity
+R constructor tear-off                  | Closure: (int) => Box from Function 'Box.': static.             | Box.
+R named constructor tear-off            | Closure: (int) => Box from Function 'Box.named': static.        | Box.named
+R implicit call tear-off                | Closure: (int) => int from Function 'call':.                    | call
+R extension tear-off                    | Closure: () => int                                              | null
+R inline closure                        | Closure: (int) => int                                           | null
+R closure in a variable                 | Closure: (int) => int                                           | null
+R local function                        | Closure: (int) => int                                           | null
+R closure from a static method          | Closure: (int) => int                                           | null
+R closure calling a top-level function  | Closure: (int) => int                                           | null
+R implicit call via Function-typed parameter | call
+R toString of a tear-off taken twice equal: true
+### S sort
+S1 String.compareTo order of [b, B, a, A, b]: [A, B, a, b, b]
+S2 'String'.compareTo('int'): -1
+
+### F2 facts/facts.dart, second run: the lines that differ from F1
+8,9c8,9
+<    Object.hash("a", 1) = 323028150
+<    Object.hashAll(["a", 1]) = 323028150
+---
+>    Object.hash("a", 1) = 410161578
+>    Object.hashAll(["a", 1]) = 410161578
+11c11
+<    Variant.event.hashCode = 83711909
+---
+>    Variant.event.hashCode = 1069603650
+13c13
+<    Object.hash(Variant.state, null) = 138741142
+---
+>    Object.hash(Variant.state, null) = 215189028
+diff exit: 1
+
+### S1 the committed tree
+-- dart test packages/nidana_dart_contracts
++147: All tests passed!
+exit: 0
+-- nidana_contract_check topology-ir --guarantee G2,G5,G6,G9,G10
+PASS structure lines: 9
+FAIL behavior hsdd/contract/fixture/topology-ir/behavior/nidana_dart_contracts_test.dart: cases (1 passed, 9 failed, 0 skipped under dart test, restricted to topology-ir G2, G5, G6, G9, G10)
+    failed-case (G5 a stage edge takes the input count its combinator allows)
+    failed-case (G5 a stage edge carries a transformer, a duration and a retry exactly where its combinator holds one)
+    failed-case (G5 a write and a reduceInto are sink edges; a reduceInto targets a state topic)
+    failed-case (G6 a definition derives reads and writes from its edges, in canonical order)
+    failed-case (G6 a definition rejects an empty id and ill-formed edges)
+    failed-case (G9 FunctionRef.of names a top-level function, a static method and a method tear-off, as the VM renders them)
+    failed-case (G9 FunctionRef.of is anonymous for a closure and a local function, and never calls the function)
+    failed-case (G9 FunctionRef.of names a private function and a private static method as the VM renders them, the name followed by @ and the library key, unequal to the name as written)
+    failed-case (G10 scan and reduceInto bear state; debounce, delay, sample and buffer bear it only with a positive duration; nothing else does)
+61 fixtures: 60 passed, 1 failed, 0 pending
+exit: 1
+-- nidana_contract_check topology-ir --set behavior
+PASS structure lines: 9
+FAIL behavior hsdd/contract/fixture/topology-ir/behavior/nidana_dart_contracts_test.dart: cases (1 passed, 42 failed, 0 skipped under dart test)
+    failed-case (G3 every collection the IR, graphs, claims and findings expose is unmodifiable)
+    failed-case (G3 the IR copies the lists it is given; later changes to them do not reach it)
+    failed-case (G4 every definition a plan projects to is pure data: it encodes to JSON and decodes back equal)
+    failed-case (G5 a stage edge takes the input count its combinator allows)
+    failed-case (G5 a stage edge carries a transformer, a duration and a retry exactly where its combinator holds one)
+    failed-case (G5 a write and a reduceInto are sink edges; a reduceInto targets a state topic)
+    failed-case (G6 a definition derives reads and writes from its edges, in canonical order)
+    failed-case (G6 a definition rejects an empty id and ill-formed edges)
+    failed-case (G7 IR values are equal, with equal hash codes, exactly when their fields are)
+    failed-case (G7 graphs, claims, declarations and findings are equal, with equal hash codes, exactly when their fields are)
+    failed-case (G8 a plan projects one stage edge per non-read stage, in stage order, then one sink edge per sink, in sink order)
+    failed-case (G8 every combinator projects to its kind, its inputs in input order, its function, duration and retry)
+    failed-case (G8 recording one declaration twice projects equal definitions, inline closures included)
+    failed-case (G9 FunctionRef.of names a top-level function, a static method and a method tear-off, as the VM renders them)
+    failed-case (G9 FunctionRef.of is anonymous for a closure and a local function, and never calls the function)
+    failed-case (G9 FunctionRef.of names a private function and a private static method as the VM renders them, the name followed by @ and the library key, unequal to the name as written)
+    failed-case (G10 scan and reduceInto bear state; debounce, delay, sample and buffer bear it only with a positive duration; nothing else does)
+    failed-case (G11 a graph orders its topologies by id, keeps one of equal duplicates and lists every topic in canonical order)
+    failed-case (G11 a graph rejects two different definitions with one id)
+    failed-case (G11 a graph orders its claims by source, scope and topics, and keeps equal claims as separate claimants)
+    failed-case (G12 a shell claim takes a service, page or executor source, application scope by default, and one or more state topics)
+    failed-case (G13 findTopologyCycles reports each strongly connected set of two or more topologies, with the topics between them)
+    failed-case (G13 shell claims take no part in cycles, and a graph without feedback has none)
+    failed-case (G14 findSelfReferences reports a self-written topic read through no state-bearing edge, with every edge on such a path)
+    failed-case (G14 a self-read mediated by scan, reduceInto or a positive time stage, or never reaching its write, is not reported)
+    failed-case (G15 findWriterConflicts reports each state topic with two or more writers, topologies and claims alike)
+    failed-case (G16 findScopeViolations reports each owner of a state topic that a longer-lived topology reads)
+    failed-case (G17 analyzeTopologyGraph lists cycles, then self-references by topology, then writer conflicts, then scope violations)
+    failed-case (G17 a graph with no finding stays without one when topologies or claims are removed)
+    failed-case (G18 findTopicNameCollisions reports each name with two or more distinct declarations, whatever their types)
+    failed-case (G19 the encoding of every sample graph matches the schema and equals its valid/ file)
+    failed-case (G19 a definition encodes to the object its graph document lists)
+    failed-case (G20 every valid/ file decodes and re-encodes to an equal JSON value)
+    failed-case (G20 decoding the encoding of a graph gives the graph back)
+    failed-case (G20 the decoder accepts topologies, claims, reads, writes and claimed topics in any order)
+    failed-case (G21 every invalid/ file fails the schema and the decoder rejects it with a FormatException)
+    failed-case (G21 the decoder rejects a schema-valid document that breaks a rule the schema cannot state)
+    failed-case (G21 the decoder rejects any other value with a FormatException and no other error)
+    failed-case (G22 the Mermaid and Graphviz renderings of every sample equal its render/ files)
+    failed-case (G22 the JSON rendering of every sample is its valid/ file, byte for byte)
+    failed-case (G22 render passes the graph to the renderer, and renderers are pure)
+    failed-case (G23 finding and collision constructors put the lists they are given in the orders the Interface names)
+10 fixtures: 9 passed, 1 failed, 0 pending
+exit: 1
+-- nidana_contract_check topic-model
+PASS structure lines: 17
+PASS behavior hsdd/contract/fixture/topic-model/behavior/nidana_dart_contracts_test.dart: 41 passed, 0 failed, 0 skipped under dart test
+31 fixtures: 31 passed, 0 failed, 0 pending
+exit: 0
+-- nidana_contract_check topology-dsl --set structure,surface,reject
+PASS structure lines: 16
+27 fixtures: 27 passed, 0 failed, 0 pending
+exit: 0
+
+### B every fixture diagnostic before any body lands (surface, reject and behavior of every slug)
+diagnostics: 3143 in 70 libraries
+
+### T1.2 Task 1's failing step: test/function_ref_test.dart and the G9 cases
+-- dart test packages/nidana_dart_contracts/test/function_ref_test.dart
++0 -1: G9 FunctionRef.of names a constructor tear-off, a generic function and a call tear-off as the VM renders them [E]
++0 -2: G9 FunctionRef.of keeps the library key after a private class, constructor and method name [E]
++0 -3: G9 FunctionRef.of is anonymous for an extension method tear-off, a closure a static method returns, and a closure that calls a named function [E]
++0 -4: G9 FunctionRef.of and FunctionRef.named agree on a public name [E]
++0 -5: G9 FunctionRef.named keeps any non-empty name and throws ArgumentError naming the argument for an empty one [E]
++0 -6: G7 function references are equal, with equal hash codes, exactly when their names are [E]
++0 -6: Some tests failed.
+exit: 1
+   1   Expected: <Instance of 'FunctionRef'>
+   1   Expected: throws <Instance of 'ArgumentError'> with `name`: 'name'
+   4   UnimplementedError
+-- nidana_contract_check topology-ir --set behavior --guarantee G9
+PASS structure lines: 9
+FAIL behavior hsdd/contract/fixture/topology-ir/behavior/nidana_dart_contracts_test.dart: cases (0 passed, 3 failed, 0 skipped under dart test, restricted to topology-ir G9)
+    failed-case (G9 FunctionRef.of names a top-level function, a static method and a method tear-off, as the VM renders them)
+    failed-case (G9 FunctionRef.of is anonymous for a closure and a local function, and never calls the function)
+    failed-case (G9 FunctionRef.of names a private function and a private static method as the VM renders them, the name followed by @ and the library key, unequal to the name as written)
+10 fixtures: 9 passed, 1 failed, 0 pending
+exit: 1
+
+### T1.4 Task 1's library: FunctionRef
+Formatted 42 files (0 changed) in 0.12 seconds.
+-- dart test packages/nidana_dart_contracts
++153: All tests passed!
+exit: 0
+Analyzing ivp.D9Fikl...
+No issues found!
+analyze exit: 0
+-- nidana_contract_check topology-ir --set behavior --guarantee G9
+PASS structure lines: 9
+PASS behavior hsdd/contract/fixture/topology-ir/behavior/nidana_dart_contracts_test.dart: 3 passed, 0 failed, 0 skipped under dart test, restricted to topology-ir G9
+10 fixtures: 10 passed, 0 failed, 0 pending
+exit: 0
+
+### T2.2 Task 2's failing step: test/transform_edge_test.dart and the G5 and G10 cases
+-- dart test packages/nidana_dart_contracts/test/transform_edge_test.dart
++0 -1: G5 every combinator but reduceInto takes the input counts, transformer, duration and retry the table allows, and rejects the others naming the argument [E]
++0 -2: G5 a negative duration names the duration and reduceInto names the combinator [E]
++0 -3: G5 a stage edge holds what it was given and no output [E]
++0 -4: G5 a write takes a topic of any variant; a reduceInto holds its reducer and nothing else [E]
++0 -5: G3 an edge keeps an unmodifiable copy of its inputs [E]
++0 -6: G7 edge inputs are equal, with equal hash codes, exactly when their fields are [E]
++0 -7: G7 edges are equal, with equal hash codes, exactly when all six fields are, inputs element by element [E]
++0 -7: Some tests failed.
+exit: 1
+   1   Expected: <Instance of 'TopicInput'>
+   1   Expected: throws <Instance of 'ArgumentError'> with `name`: 'duration'
+   1   Expected: throws <Instance of 'ArgumentError'> with `name`: 'inputs'
+   4   UnimplementedError
+-- nidana_contract_check topology-ir --set behavior --guarantee G5,G10
+PASS structure lines: 9
+FAIL behavior hsdd/contract/fixture/topology-ir/behavior/nidana_dart_contracts_test.dart: cases (0 passed, 4 failed, 0 skipped under dart test, restricted to topology-ir G5, G10)
+    failed-case (G5 a stage edge takes the input count its combinator allows)
+    failed-case (G5 a stage edge carries a transformer, a duration and a retry exactly where its combinator holds one)
+    failed-case (G5 a write and a reduceInto are sink edges; a reduceInto targets a state topic)
+    failed-case (G10 scan and reduceInto bear state; debounce, delay, sample and buffer bear it only with a positive duration; nothing else does)
+10 fixtures: 9 passed, 1 failed, 0 pending
+exit: 1
+
+### T2.4 Task 2's library: edge inputs and TransformEdge
+Formatted 43 files (0 changed) in 0.12 seconds.
+-- dart test packages/nidana_dart_contracts
++160: All tests passed!
+exit: 0
+Analyzing ivp.D9Fikl...
+No issues found!
+analyze exit: 0
+-- nidana_contract_check topology-ir --set behavior --guarantee G5,G10
+PASS structure lines: 9
+PASS behavior hsdd/contract/fixture/topology-ir/behavior/nidana_dart_contracts_test.dart: 4 passed, 0 failed, 0 skipped under dart test, restricted to topology-ir G5, G10
+10 fixtures: 10 passed, 0 failed, 0 pending
+exit: 0
+ignore lines under lib/src/ir: 1
+
+### T3.2 Task 3's failing step: test/canonical_order_test.dart
+-- dart test packages/nidana_dart_contracts/test/canonical_order_test.dart
++0 -1: loading packages/nidana_dart_contracts/test/canonical_order_test.dart [E]
++0 -1: Some tests failed.
+exit: 1
+   1   packages/nidana_dart_contracts/test/canonical_order_test.dart:109:7: Error: Method not found: 'compareClaimKeys'.
+   1   packages/nidana_dart_contracts/test/canonical_order_test.dart:116:7: Error: Method not found: 'compareClaimKeys'.
+   1   packages/nidana_dart_contracts/test/canonical_order_test.dart:123:7: Error: Method not found: 'compareClaimKeys'.
+   1   packages/nidana_dart_contracts/test/canonical_order_test.dart:134:30: Error: Method not found: 'sortedCopy'.
+   1   packages/nidana_dart_contracts/test/canonical_order_test.dart:33:12: Error: Method not found: 'sortedCopy'.
+   1   packages/nidana_dart_contracts/test/canonical_order_test.dart:33:29: Error: Undefined name 'compareTopicRefs'.
+   1   packages/nidana_dart_contracts/test/canonical_order_test.dart:41:12: Error: Method not found: 'compareTopicRefs'.
+   1   packages/nidana_dart_contracts/test/canonical_order_test.dart:43:7: Error: Method not found: 'compareTopicRefs'.
+
+### T3.4 Task 3's library: the canonical orders
+Formatted 45 files (0 changed) in 0.12 seconds.
+-- dart test packages/nidana_dart_contracts
++166: All tests passed!
+exit: 0
+Analyzing ivp.D9Fikl...
+No issues found!
+analyze exit: 0
+
+### T4.2 Task 4's failing step: test/topology_definition_test.dart and the G6 cases
+-- dart test packages/nidana_dart_contracts/test/topology_definition_test.dart
++0 -1: G6 reads hold each topic read once, whatever its dedup argument and the edge that reads it, and writes each sink topic once, both in canonical order [E]
++0 -2: G6 one stage edge may feed several later edges, and one edge may take a stage twice [E]
++0 -3: G6 a state topic and an event topic of one name are two topics, each with its sink [E]
++0 -4: G6 two state topics whose value types render alike are one topic to the IR, so a sink on each throws [E]
++0 -5: G6 an empty id names the topologyId and an ill-formed edge list names the transforms [E]
++0 -6: G6 a negative stage input, which only code run without assertions can build, is rejected [E]
++0 -7: G3 a definition keeps an unmodifiable copy of its edges, and its reads and writes are unmodifiable [E]
++0 -8: G7 definitions are equal, with equal hash codes, exactly when their id, scope and edges, element by element, are [E]
++0 -8: Some tests failed.
+exit: 1
+   1   Expected: ''
+   1   Expected: throws <Instance of 'ArgumentError'> with `name`: 'topologyId'
+   1   Expected: throws <Instance of 'ArgumentError'> with `name`: 'transforms'
+   5   UnimplementedError
+-- nidana_contract_check topology-ir --set behavior --guarantee G6
+PASS structure lines: 9
+FAIL behavior hsdd/contract/fixture/topology-ir/behavior/nidana_dart_contracts_test.dart: cases (0 passed, 2 failed, 0 skipped under dart test, restricted to topology-ir G6)
+    failed-case (G6 a definition derives reads and writes from its edges, in canonical order)
+    failed-case (G6 a definition rejects an empty id and ill-formed edges)
+10 fixtures: 9 passed, 1 failed, 0 pending
+exit: 1
+
+### T4.4 Task 4's library: TopologyDefinition
+Formatted 47 files (0 changed) in 0.13 seconds.
+-- dart test packages/nidana_dart_contracts
++174: All tests passed!
+exit: 0
+Analyzing ivp.D9Fikl...
+No issues found!
+analyze exit: 0
+-- nidana_contract_check topology-ir --set behavior --guarantee G6
+PASS structure lines: 9
+PASS behavior hsdd/contract/fixture/topology-ir/behavior/nidana_dart_contracts_test.dart: 2 passed, 0 failed, 0 skipped under dart test, restricted to topology-ir G6
+10 fixtures: 10 passed, 0 failed, 0 pending
+exit: 0
+
+### T5.2 Task 5's failing step: test/findings_test.dart
+-- dart test packages/nidana_dart_contracts/test/findings_test.dart
++0 -1: G23 a cycle sorts its ids and its topics in canonical order, repeated elements kept [E]
++0 -2: G23 a self-reference sorts its edges ascending, repeated indices kept [E]
++0 -3: G23 a writer conflict sorts its writers by rendering, equal sources repeated [E]
++0 -4: G23 a collision sorts its declarations by site, then topic in canonical order, repeated declarations kept [E]
++0 -5: G23 findings and collisions built in any order are equal, with equal hash codes [E]
++0 -6: G7 findings, declarations and collisions are unequal when any field the Interface names differs [E]
++0 -7: G3 findings and collisions keep unmodifiable copies of their lists [E]
++1 -7: Some tests failed.
+exit: 1
+   2   Expected: [
+   1   Expected: ['a', 'b']
+   1   Expected: ['B', 'a', 'a', 'b']
+   1   Expected: [0, 2, 2, 10]
+   1   Expected: <Instance of 'ScopeViolation'>
+   1   Expected: <Instance of 'TopologyCycle'>
+
+### T5.4 Task 5's library: the findings' value semantics
+Formatted 48 files (0 changed) in 0.13 seconds.
+-- dart test packages/nidana_dart_contracts
++182: All tests passed!
+exit: 0
+Analyzing ivp.D9Fikl...
+No issues found!
+analyze exit: 0
+
+### X the workspace's library and test files against draft/ (formatter-stable)
+same: lib/src/ir/function_ref.dart
+same: lib/src/ir/definition.dart
+same: lib/src/ir/canonical_order.dart
+same: lib/src/analysis/findings.dart
+same: test/function_ref_test.dart
+same: test/transform_edge_test.dart
+same: test/canonical_order_test.dart
+same: test/topology_definition_test.dart
+same: test/src/cart_elsewhere.dart
+same: test/findings_test.dart
+
+### G the phase gate, exactly as the phase context writes it
+gate exit: 0
+Got dependencies!
+No issues found!
+102 fixtures: 102 passed, 0 failed, 0 pending
++182: All tests passed!
+PASS behavior hsdd/contract/fixture/topic-model/behavior/nidana_dart_contracts_test.dart: 41 passed, 0 failed, 0 skipped under dart test
+31 fixtures: 31 passed, 0 failed, 0 pending
+27 fixtures: 27 passed, 0 failed, 0 pending
+PASS behavior hsdd/contract/fixture/topology-ir/behavior/nidana_dart_contracts_test.dart: 10 passed, 0 failed, 0 skipped under dart test, restricted to topology-ir G2, G5, G6, G9, G10
+61 fixtures: 61 passed, 0 failed, 0 pending
+
+### U the topology-ir behavior set, unrestricted
+-- nidana_contract_check topology-ir --set behavior
+PASS structure lines: 9
+FAIL behavior hsdd/contract/fixture/topology-ir/behavior/nidana_dart_contracts_test.dart: cases (11 passed, 32 failed, 0 skipped under dart test)
+    failed-case (G3 every collection the IR, graphs, claims and findings expose is unmodifiable)
+    failed-case (G3 the IR copies the lists it is given; later changes to them do not reach it)
+    failed-case (G4 every definition a plan projects to is pure data: it encodes to JSON and decodes back equal)
+    failed-case (G7 graphs, claims, declarations and findings are equal, with equal hash codes, exactly when their fields are)
+    failed-case (G8 a plan projects one stage edge per non-read stage, in stage order, then one sink edge per sink, in sink order)
+    failed-case (G8 every combinator projects to its kind, its inputs in input order, its function, duration and retry)
+    failed-case (G8 recording one declaration twice projects equal definitions, inline closures included)
+    failed-case (G11 a graph orders its topologies by id, keeps one of equal duplicates and lists every topic in canonical order)
+    failed-case (G11 a graph rejects two different definitions with one id)
+    failed-case (G11 a graph orders its claims by source, scope and topics, and keeps equal claims as separate claimants)
+    failed-case (G12 a shell claim takes a service, page or executor source, application scope by default, and one or more state topics)
+    failed-case (G13 findTopologyCycles reports each strongly connected set of two or more topologies, with the topics between them)
+    failed-case (G13 shell claims take no part in cycles, and a graph without feedback has none)
+    failed-case (G14 findSelfReferences reports a self-written topic read through no state-bearing edge, with every edge on such a path)
+    failed-case (G14 a self-read mediated by scan, reduceInto or a positive time stage, or never reaching its write, is not reported)
+    failed-case (G15 findWriterConflicts reports each state topic with two or more writers, topologies and claims alike)
+    failed-case (G16 findScopeViolations reports each owner of a state topic that a longer-lived topology reads)
+    failed-case (G17 analyzeTopologyGraph lists cycles, then self-references by topology, then writer conflicts, then scope violations)
+    failed-case (G17 a graph with no finding stays without one when topologies or claims are removed)
+    failed-case (G18 findTopicNameCollisions reports each name with two or more distinct declarations, whatever their types)
+    failed-case (G19 the encoding of every sample graph matches the schema and equals its valid/ file)
+    failed-case (G19 a definition encodes to the object its graph document lists)
+    failed-case (G20 every valid/ file decodes and re-encodes to an equal JSON value)
+    failed-case (G20 decoding the encoding of a graph gives the graph back)
+    failed-case (G20 the decoder accepts topologies, claims, reads, writes and claimed topics in any order)
+    failed-case (G21 every invalid/ file fails the schema and the decoder rejects it with a FormatException)
+    failed-case (G21 the decoder rejects a schema-valid document that breaks a rule the schema cannot state)
+    failed-case (G21 the decoder rejects any other value with a FormatException and no other error)
+    failed-case (G22 the Mermaid and Graphviz renderings of every sample equal its render/ files)
+    failed-case (G22 the JSON rendering of every sample is its valid/ file, byte for byte)
+    failed-case (G22 render passes the graph to the renderer, and renderers are pure)
+    failed-case (G23 finding and collision constructors put the lists they are given in the orders the Interface names)
+10 fixtures: 9 passed, 1 failed, 0 pending
+exit: 1
+
+### C the last task's checklist
++0: G9 FunctionRef.of names a constructor tear-off, a generic function and a call tear-off as the VM renders them
++1: G9 FunctionRef.of keeps the library key after a private class, constructor and method name
++2: G9 FunctionRef.of is anonymous for an extension method tear-off, a closure a static method returns, and a closure that calls a named function
++3: G9 FunctionRef.of and FunctionRef.named agree on a public name
++4: G9 FunctionRef.named keeps any non-empty name and throws ArgumentError naming the argument for an empty one
++5: G7 function references are equal, with equal hash codes, exactly when their names are
++6: All tests passed!
+exit: 0
++0: G9 FunctionRef.of names a top-level function, a static method and a method tear-off, as the VM renders them
++1: G9 FunctionRef.of is anonymous for a closure and a local function, and never calls the function
++2: G9 FunctionRef.of names a private function and a private static method as the VM renders them, the name followed by @ and the library key, unequal to the name as written
++3: All tests passed!
+exit: 0
++0: packages/nidana_dart_contracts/test/transform_edge_test.dart: G5 every combinator but reduceInto takes the input counts, transformer, duration and retry the table allows, and rejects the others naming the argument
++1: packages/nidana_dart_contracts/test/transform_edge_test.dart: G5 a negative duration names the duration and reduceInto names the combinator
++2: packages/nidana_dart_contracts/test/transform_edge_test.dart: G5 a stage edge holds what it was given and no output
++3: packages/nidana_dart_contracts/test/transform_edge_test.dart: G5 a write takes a topic of any variant; a reduceInto holds its reducer and nothing else
++4: packages/nidana_dart_contracts/test/topology_definition_test.dart: G6 reads hold each topic read once, whatever its dedup argument and the edge that reads it, and writes each sink topic once, both in canonical order
++5: packages/nidana_dart_contracts/test/topology_definition_test.dart: G6 one stage edge may feed several later edges, and one edge may take a stage twice
++6: packages/nidana_dart_contracts/test/topology_definition_test.dart: G6 a state topic and an event topic of one name are two topics, each with its sink
++7: packages/nidana_dart_contracts/test/topology_definition_test.dart: G6 two state topics whose value types render alike are one topic to the IR, so a sink on each throws
++8: packages/nidana_dart_contracts/test/topology_definition_test.dart: G6 an empty id names the topologyId and an ill-formed edge list names the transforms
++9: packages/nidana_dart_contracts/test/topology_definition_test.dart: G6 a negative stage input, which only code run without assertions can build, is rejected
++10: All tests passed!
+exit: 0
+exit: 1
+exit: 1
+exit: 1
+-- lines: library, then tests
+     701 total
+    1054 total
+function_ref: 17 at HEAD, 44 after
+definition: 136 at HEAD, 427 after
+canonical_order: 0 at HEAD, 63 after
+findings: 83 at HEAD, 167 after
+
+### A every fixture diagnostic after this phase's bodies, compared with B
+diagnostics: 3143 in 70 libraries
+same as B
+const-collection codes: 0
+const sets or maps in the new test files:
+grep exit: 1
+
+### D seeded defects, each restored after
+-- D1 FunctionRef.of drops the library key
+   gate replay: cases (9 passed, 1 failed, 0 skipped under dart test, restricted to topology-ir G2, G5, G6, G9, G10) | G9 FunctionRef.of names a private function and a private static method as the VM renders them, the name followed by @ and the library key, unequal to the name as written)
+   package tests: +181 -1: Some tests failed.; failing: G9 FunctionRef.of keeps the library key after a private class, constructor and method name;
+-- D2 an edge hashes its inputs list by identity (Object.hash of the list)
+   gate replay: PASS behavior hsdd/contract/fixture/topology-ir/behavior/nidana_dart_contracts_test.dart: 10 passed, 0 failed, 0 skipped under dart test, restricted to topology-ir G2, G5, G6, G9, G10
+   package tests: +180 -2: Some tests failed.; failing: G7 definitions are equal, with equal hash codes, exactly when their id, scope and edges, element by element, are;G7 edges are equal, with equal hash codes, exactly when all six fields are, inputs element by element;
+-- D3 topic references sort their variants by name (event, replay, state)
+   gate replay: cases (9 passed, 1 failed, 0 skipped under dart test, restricted to topology-ir G2, G5, G6, G9, G10) | G6 a definition derives reads and writes from its edges, in canonical order)
+   package tests: +177 -5: Some tests failed.; failing: G23 a collision sorts its declarations by site, then topic in canonical order, repeated declarations kept;G23 a cycle sorts its ids and its topics in canonical order, repeated elements kept;G6 a state topic and an event topic of one name are two topics, each with its sink;G6 reads hold each topic read once, whatever its dedup argument and the edge that reads it, and writes each sink topic once, bo
+-- D4 a definition accepts a negative stage input when assertions are off
+   gate replay: PASS behavior hsdd/contract/fixture/topology-ir/behavior/nidana_dart_contracts_test.dart: 10 passed, 0 failed, 0 skipped under dart test, restricted to topology-ir G2, G5, G6, G9, G10
+   package tests: +181 -1: Some tests failed.; failing: G6 a negative stage input, which only code run without assertions can build, is rejected;
+-- D5 combine takes a retry
+   gate replay: PASS behavior hsdd/contract/fixture/topology-ir/behavior/nidana_dart_contracts_test.dart: 10 passed, 0 failed, 0 skipped under dart test, restricted to topology-ir G2, G5, G6, G9, G10
+   package tests: +181 -1: Some tests failed.; failing: G5 every combinator but reduceInto takes the input counts, transformer, duration and retry the table allows, and rejects the others naming the argument;
+-- D6 a writer conflict keeps the order it is given
+   gate replay: PASS behavior hsdd/contract/fixture/topology-ir/behavior/nidana_dart_contracts_test.dart: 10 passed, 0 failed, 0 skipped under dart test, restricted to topology-ir G2, G5, G6, G9, G10
+   package tests: +180 -2: Some tests failed.; failing: G23 a writer conflict sorts its writers by rendering, equal sources repeated;G23 findings and collisions built in any order are equal, with equal hash codes;
+-- D7 a topic input ignores its dedup in equality
+   gate replay: PASS behavior hsdd/contract/fixture/topology-ir/behavior/nidana_dart_contracts_test.dart: 10 passed, 0 failed, 0 skipped under dart test, restricted to topology-ir G2, G5, G6, G9, G10
+   package tests: +181 -1: Some tests failed.; failing: G7 edge inputs are equal, with equal hash codes, exactly when their fields are;
+-- D8 an edge keeps the list it is given
+   gate replay: PASS behavior hsdd/contract/fixture/topology-ir/behavior/nidana_dart_contracts_test.dart: 10 passed, 0 failed, 0 skipped under dart test, restricted to topology-ir G2, G5, G6, G9, G10
+   package tests: +181 -1: Some tests failed.; failing: G3 an edge keeps an unmodifiable copy of its inputs;
+-- D9 the claim order puts a longer list first
+   gate replay: PASS behavior hsdd/contract/fixture/topology-ir/behavior/nidana_dart_contracts_test.dart: 10 passed, 0 failed, 0 skipped under dart test, restricted to topology-ir G2, G5, G6, G9, G10
+   package tests: +181 -1: Some tests failed.; failing: claims sort by source, then scope, then writes element by element in canonical order, a prefix first;
+-- D10 the claim order compares writes in the order given
+   gate replay: PASS behavior hsdd/contract/fixture/topology-ir/behavior/nidana_dart_contracts_test.dart: 10 passed, 0 failed, 0 skipped under dart test, restricted to topology-ir G2, G5, G6, G9, G10
+   package tests: +181 -1: Some tests failed.; failing: claims sort by source, then scope, then writes element by element in canonical order, a prefix first;
+-- D11 a definition's equality ignores the order of its edges
+   gate replay: PASS behavior hsdd/contract/fixture/topology-ir/behavior/nidana_dart_contracts_test.dart: 10 passed, 0 failed, 0 skipped under dart test, restricted to topology-ir G2, G5, G6, G9, G10
+   package tests: +181 -1: Some tests failed.; failing: G7 definitions are equal, with equal hash codes, exactly when their id, scope and edges, element by element, are;
+-- D12 a collision orders its declarations by site only
+   gate replay: PASS behavior hsdd/contract/fixture/topology-ir/behavior/nidana_dart_contracts_test.dart: 10 passed, 0 failed, 0 skipped under dart test, restricted to topology-ir G2, G5, G6, G9, G10
+   package tests: +181 -1: Some tests failed.; failing: G23 a collision sorts its declarations by site, then topic in canonical order, repeated declarations kept;
+-- D13 FunctionRef.named accepts an empty name
+   gate replay: cases (9 passed, 1 failed, 0 skipped under dart test, restricted to topology-ir G2, G5, G6, G9, G10) | G9 FunctionRef.of is anonymous for a closure and a local function, and never calls the function)
+   package tests: +181 -1: Some tests failed.; failing: G9 FunctionRef.named keeps any non-empty name and throws ArgumentError naming the argument for an empty one;
+
+done
