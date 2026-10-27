@@ -13,6 +13,14 @@ final class Card {
   String toString() => 'Card($number)';
 }
 
+/// A payload that fails the test of whoever renders it, so a rendering that
+/// reaches the payload's own `toString` throws.
+final class Unrenderable {
+  const Unrenderable();
+  @override
+  String toString() => throw StateError('the payload was rendered');
+}
+
 MessageEnvelope<T> envelope<T>(T payload, {bool sensitive = false}) =>
     MessageEnvelope<T>(
       id: 'e-1',
@@ -56,6 +64,23 @@ void main() {
       );
       expect(secret.redacted().toString(), isNot(contains('4242-4242')));
     }
+  });
+
+  test('G15 rendering a sensitive envelope, its redacted() envelope or '
+      'RedactedPayload.of never calls the payload\'s own toString', () {
+    expect(
+      envelope<Unrenderable>(const Unrenderable()).toString,
+      throwsStateError,
+      reason: 'the sentinel throws when an envelope renders it',
+    );
+    final MessageEnvelope<Unrenderable> secret = envelope<Unrenderable>(
+      const Unrenderable(),
+      sensitive: true,
+    );
+    expect(secret.toString, returnsNormally);
+    expect(secret.redacted, returnsNormally);
+    expect(secret.redacted().toString, returnsNormally);
+    expect(() => RedactedPayload.of(const Unrenderable()), returnsNormally);
   });
 
   test('G13 envelopes of different type arguments are equal when their '
