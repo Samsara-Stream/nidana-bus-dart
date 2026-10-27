@@ -32,6 +32,12 @@ final List<String Function(List<int>)> joins = <String Function(List<int>)>[
 Topology declared(void Function(TopologyBuilder b) body) =>
     topology('rec-combining', Scope.page, body);
 
+/// An ArgumentError that is not a RangeError: the length check of apply
+/// rejected the call, rather than a read past the end of the value list.
+final Matcher rejectedByLengthCheck = throwsA(
+  allOf(isA<ArgumentError>(), isNot(isA<RangeError>())),
+);
+
 /// How many timers, periodic timers and microtasks [body] makes.
 int scheduledBy(void Function() body) {
   int scheduled = 0;
@@ -195,6 +201,21 @@ void main() {
       throwsArgumentError,
     );
     expect(() => combine.apply(<Object?>['a', 1]), throwsA(isA<TypeError>()));
+    // Too few values are rejected by the length check itself.
+    expect(() => combine.apply(<Object?>[1]), rejectedByLengthCheck);
+    expect(
+      () => (all as CombineStage<String>).apply(<Object?>[1]),
+      rejectedByLengthCheck,
+    );
+    expect(
+      () => (w1 as WithLatestFromStage<int, String>).apply(1, <Object?>[]),
+      rejectedByLengthCheck,
+    );
+    // The right length applies the combiner at its declared types.
+    expect(
+      (w1 as WithLatestFromStage<int, String>).apply(1, <Object?>['a']),
+      '1a',
+    );
   });
 
   test('G14 an empty input list throws ArgumentError at the call and adds no '
