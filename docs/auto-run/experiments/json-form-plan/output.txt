@@ -1,0 +1,522 @@
+
+### S0 setup: the committed tree, resolved offline
+tree from ec540de judgement: S145
+Dart SDK version: 3.13.5 (stable) (Tue Sep 29 01:00:52 2026 -0700) on "macos_arm64"
+Try `dart pub outdated` for more information.
+variants: codec.t1.dart, codec.t2.dart, json_support.t1.dart written
+codec.t1.dart is formatter-stable
+codec.t2.dart is formatter-stable
+json_support.t1.dart is formatter-stable
+
+### S1 the committed tree
+-- dart test packages/nidana_dart_contracts
++270: All tests passed!
+exit: 0
+-- nidana_contract_check topic-model topology-dsl
+PASS structure lines: 33; PASS schema lines: 0
+PASS behavior hsdd/contract/fixture/topic-model/behavior/nidana_dart_contracts_test.dart: 41 passed, 0 failed, 0 skipped under dart test
+PASS behavior hsdd/contract/fixture/topology-dsl/behavior/topology_builder_test.dart: 24 passed, 0 failed, 0 skipped under dart test
+59 fixtures: 59 passed, 0 failed, 0 pending
+exit: 0
+-- nidana_contract_check topology-ir --guarantee G2,G4,G5,G6,G8,G9,G10,G11,G12,G19,G20,G21
+PASS structure lines: 9; PASS schema lines: 46
+FAIL behavior hsdd/contract/fixture/topology-ir/behavior/nidana_dart_contracts_test.dart: cases (17 passed, 9 failed, 0 skipped under dart test, restricted to topology-ir G2, G4 to G6, G8 to G12, G19 to G21)
+    failed-case (G4 every definition a plan projects to is pure data: it encodes to JSON and decodes back equal)
+    failed-case (G19 the encoding of every sample graph matches the schema and equals its valid/ file)
+    failed-case (G19 a definition encodes to the object its graph document lists)
+    failed-case (G20 every valid/ file decodes and re-encodes to an equal JSON value)
+    failed-case (G20 decoding the encoding of a graph gives the graph back)
+    failed-case (G20 the decoder accepts topologies, claims, reads, writes and claimed topics in any order)
+    failed-case (G21 every invalid/ file fails the schema and the decoder rejects it with a FormatException)
+    failed-case (G21 the decoder rejects a schema-valid document that breaks a rule the schema cannot state)
+    failed-case (G21 the decoder rejects any other value with a FormatException and no other error)
+61 fixtures: 60 passed, 1 failed, 0 pending
+exit: 1
+stubs left under lib/src/json/: 5
+
+### F1 F2 dart:convert on the pinned SDK
+F1.1 layout of nested maps and lists, empty ones included:
+{
+  "format": "topology-ir@v1",
+  "topologies": [],
+  "claims": [
+    {
+      "a": {},
+      "b": [
+        1,
+        null,
+        true
+      ],
+      "c": {
+        "name": null
+      }
+    }
+  ]
+}
+F1.2 the output ends without a newline: false
+F1.3 escapes: [
+  "odd \"quoted\" #1 <tag> back\\slash café",
+  "odd.café\nline",
+  "to$Label",
+  "\u0000\u001f "
+]
+F1.4 keys keep insertion order: {"z":1,"a":2,"m":3}
+F1.5 a map literal is a LinkedHashMap: _Map<String, Object?>
+F2.1 numbers the encoder can meet:
+  Duration(microseconds: 1500).inMicroseconds: 1500
+  Duration(seconds: 2).inMicroseconds: 2000000
+  Duration(days: 365000).inMicroseconds: 31536000000000000
+  Duration(microseconds: 9223372036854775807).inMicroseconds: 9223372036854775807
+  5000.0 (a double): 5000.0
+  (Duration.inMicroseconds is int)
+F2.2 what jsonDecode returns for the number forms a document can hold:
+  5000 -> int 5000
+  5000.0 -> double 5000.0
+  5e3 -> double 5000.0
+  -1 -> int -1
+  1.5 -> double 1.5
+  -0 -> int 0
+  -0.0 -> double -0.0
+  9223372036854775807 -> int 9223372036854775807
+  9223372036854775808 -> double 9223372036854776000.0
+  123456789012345678901234567890 -> double 1.2345678901234568e+29
+  1e400 -> double Infinity
+F2.3 a double that is a whole number, turned into an int:
+  5000.0: truncateToDouble()==d true, toInt() 5000
+  1000000000000000000.0: truncateToDouble()==d true, toInt() 1000000000000000000
+  9300000000000000000.0: truncateToDouble()==d true, toInt() 9223372036854775807
+  1e+30: truncateToDouble()==d true, toInt() 9223372036854775807
+F2.4 what an enum lookup by an unknown name does:
+  values.byName throws ArgumentError
+  values.asNameMap()["session"] is null
+F2.5 jsonDecode types: _Map<String, dynamic>, List<dynamic>; is Map<String, Object?>: true
+  <Object?, Object?>{"a": 1} is Map<String, Object?>: false
+  <String, int>{"a": 1} is Map<String, Object?>: true
+F2.6 what ArgumentError.value renders as:
+  Invalid argument (inputs): a map edge takes exactly 1 input: 2
+  message: m, name: inputs
+F2.7 FormatException renders as: FormatException: $.topologies[0].scope: is "session", not one of application, module, page
+
+### F3 the replay tool's validator on documents the governance does not settle in words
+VALID   forms as it is
+VALID   durationMicros 5000.0 (a double)
+VALID   durationMicros 1e30 (a double)
+VALID   durationMicros 0
+VALID   edge 1.0 (a double)
+VALID   a topic name that is empty
+VALID   a typeName of one space
+INVALID a claim listing one topic twice: /claims/0/writes: uniqueItems violated: [{name: forms.claimed, variant: state, typeName: int}, {name: forms.claimed, variant: state, typeName: int}] [0]==[1]
+VALID   two equal claims
+VALID   a claim source "service:a:b"
+INVALID a claim source "service:": /claims/0/source: pattern violated (service: vs RegExp: pattern=^(service|page|executor):[\s\S]+$ flags=u)
+INVALID a claim source "Service:x": /claims/0/source: pattern violated (Service:x vs RegExp: pattern=^(service|page|executor):[\s\S]+$ flags=u)
+INVALID a dedup on a replay read: /topologies/0/transforms/0: #/$defs/transformEdge/oneOf: violated No element
+INVALID a reduceInto whose combinator is absent (a write with a transformer): /topologies/0/transforms/5: #/$defs/transformEdge/oneOf: violated No element
+INVALID a write with "combinator": null: /topologies/0/transforms/4: #/$defs/transformEdge/oneOf: violated No element
+VALID   a topologyId of one space
+VALID   an input edge index beyond the transforms
+
+### T1.2 Task 1's failing step: test/src/json_support.dart (Task 1's part), test/json_encode_test.dart and the G19 cases
+-- dart test packages/nidana_dart_contracts/test/json_encode_test.dart
++0 -1: G19 the forms sample encodes to valid/forms.json, every key in the schema's order [E]
++0 -10: G22 JsonRenderer writes the encoding indented by two spaces, then a newline, and the forms sample as valid/forms.json byte for byte [E]
++0 -10: Some tests failed.
++0 -2: G19 the Interface's example graph encodes to the document the contract shows, every key in order [E]
++0 -3: G19 an edge carries combinator, inputs, output, transformer, durationMicros and retry in that order, each only where it has one; a combinator is its CombinatorKind name [E]
++0 -4: G19 an input is {topic} with dedup only when the read gave one, Dedup.equality included, or {edge} [E]
++0 -5: G19 a duration is durationMicros, a whole number of microseconds written as an int [E]
++0 -6: G19 a function reference is {"name": name}, null when anonymous [E]
++0 -7: G19 a claim is its source's rendering, its scope by name and its writes in canonical order, given in any order [E]
++0 -8: G19 a graph built from its parts in any order encodes the same, topologies by id and claims in canonical order [E]
++0 -9: G19 the encoding is a JSON value: JSON text gives it back equal, and each call returns a new value [E]
+exit: 1
+  10   UnimplementedError
+-- nidana_contract_check topology-ir --set behavior --guarantee G19
+PASS structure lines: 9; PASS schema lines: 0
+FAIL behavior hsdd/contract/fixture/topology-ir/behavior/nidana_dart_contracts_test.dart: cases (0 passed, 2 failed, 0 skipped under dart test, restricted to topology-ir G19)
+    failed-case (G19 the encoding of every sample graph matches the schema and equals its valid/ file)
+    failed-case (G19 a definition encodes to the object its graph document lists)
+10 fixtures: 9 passed, 1 failed, 0 pending
+exit: 1
+
+### T1.4 Task 1's library: the encoder and JsonRenderer
+Formatted 60 files (0 changed) in 0.20 seconds.
+-- dart test packages/nidana_dart_contracts
++280: All tests passed!
+exit: 0
+Analyzing jfp.kmY6o3...
+No issues found!
+analyze exit: 0
+-- nidana_contract_check topology-ir --set behavior --guarantee G19
+PASS structure lines: 9; PASS schema lines: 0
+PASS behavior hsdd/contract/fixture/topology-ir/behavior/nidana_dart_contracts_test.dart: 2 passed, 0 failed, 0 skipped under dart test, restricted to topology-ir G19
+10 fixtures: 10 passed, 0 failed, 0 pending
+exit: 0
+
+### T2.2 Task 2's failing step: test/src/json_support.dart (whole), test/json_decode_test.dart and the G4, G20 and G21 cases
+-- dart test packages/nidana_dart_contracts/test/json_decode_test.dart
++0 -1: G20 every valid/ file decodes, and JsonRenderer renders the graph back byte for byte [E]
++0 -2: G20 the Interface's example decodes to the graph it describes [E]
++0 -3: G20 the decoder accepts what the schema allows and no sample holds: an empty topic name, a zero duration and index, a whole-number double, two equal claims, a source name holding a colon [E]
++0 -4: G20 the decoder reads Dart maps and lists that jsonDecode does not make: Object? keys and unmodifiable collections [E]
++0 -5: G21 a value of the wrong shape is rejected with a FormatException that names its JSONPath and what must be there [E]
++0 -6: G20 a generated graph decodes from its JSON text equal, and its encoding is that text again [E]
++0 -7: G4 G20 every generated definition decodes from its JSON text equal [E]
++0 -8: G20 the decoder accepts the topologies, claims, reads, writes and claimed topics of a generated graph's document in any order [E]
++1 -9: G22 encoding, decoding and rendering create no timer and schedule no microtask [E]
++1 -9: Some tests failed.
+exit: 1
+   9   UnimplementedError
+-- nidana_contract_check topology-ir --set behavior --guarantee G4,G20,G21
+PASS structure lines: 9; PASS schema lines: 0
+FAIL behavior hsdd/contract/fixture/topology-ir/behavior/nidana_dart_contracts_test.dart: cases (0 passed, 7 failed, 0 skipped under dart test, restricted to topology-ir G4, G20, G21)
+    failed-case (G4 every definition a plan projects to is pure data: it encodes to JSON and decodes back equal)
+    failed-case (G20 every valid/ file decodes and re-encodes to an equal JSON value)
+    failed-case (G20 decoding the encoding of a graph gives the graph back)
+    failed-case (G20 the decoder accepts topologies, claims, reads, writes and claimed topics in any order)
+    failed-case (G21 every invalid/ file fails the schema and the decoder rejects it with a FormatException)
+    failed-case (G21 the decoder rejects a schema-valid document that breaks a rule the schema cannot state)
+    failed-case (G21 the decoder rejects any other value with a FormatException and no other error)
+10 fixtures: 9 passed, 1 failed, 0 pending
+exit: 1
+
+### T2.4 Task 2's library: the decoder reads every document of the right shape
+Formatted 61 files (0 changed) in 0.21 seconds.
+-- dart test packages/nidana_dart_contracts
++290: All tests passed!
+exit: 0
+Analyzing jfp.kmY6o3...
+No issues found!
+analyze exit: 0
+-- nidana_contract_check topology-ir --set behavior --guarantee G4,G20,G21
+PASS structure lines: 9; PASS schema lines: 0
+FAIL behavior hsdd/contract/fixture/topology-ir/behavior/nidana_dart_contracts_test.dart: cases (5 passed, 2 failed, 0 skipped under dart test, restricted to topology-ir G4, G20, G21)
+    failed-case (G21 every invalid/ file fails the schema and the decoder rejects it with a FormatException)
+    failed-case (G21 the decoder rejects a schema-valid document that breaks a rule the schema cannot state)
+10 fixtures: 9 passed, 1 failed, 0 pending
+exit: 1
+
+### T3.2 Task 3's failing step: test/json_reject_test.dart and the G21 cases
+-- dart test packages/nidana_dart_contracts/test/json_reject_test.dart
++1 -1: G21 invalid/claim_event_topic.json is rejected with a FormatException at the place it breaks a rule [E]
++10 -16: G21 invalid/retry_on_map.json is rejected with a FormatException at the place it breaks a rule [E]
++12 -17: G21 invalid/time_stage_without_duration.json is rejected with a FormatException at the place it breaks a rule [E]
++15 -18: G21 invalid/topologies_repeat.json is rejected with a FormatException at the place it breaks a rule [E]
++15 -19: G21 invalid/topology_id_empty.json is rejected with a FormatException at the place it breaks a rule [E]
++16 -20: G21 invalid/with_latest_from_five_inputs.json is rejected with a FormatException at the place it breaks a rule [E]
++16 -21: G21 invalid/with_latest_from_one_input.json is rejected with a FormatException at the place it breaks a rule [E]
++18 -22: G21 a schema-valid document that breaks a rule the schema cannot state is rejected at the definition that breaks it [E]
++18 -23: G21 an edge index below zero is rejected before StageInput would assert it [E]
++18 -24: G21 a dedup on an event or a replay read and an empty typeName are rejected, although TopicInput and TopicRef accept them [E]
++18 -25: G21 a repeated topic in reads, writes or a claim, and a repeated topology id, are rejected before a Set or the graph collapses them [E]
++18 -26: G21 a Dart value that is no JSON value of the form is rejected with a FormatException, one that contains itself included [E]
++18 -27: G21 a mutated graph document, or definition object, decodes and then round-trips, or is rejected with a FormatException, and nothing else [E]
++19 -27: Some tests failed.
++2 -2: G21 invalid/claim_topology_source.json is rejected with a FormatException at the place it breaks a rule [E]
++2 -3: G21 invalid/claim_unknown_source.json is rejected with a FormatException at the place it breaks a rule [E]
++2 -4: G21 invalid/claim_without_writes.json is rejected with a FormatException at the place it breaks a rule [E]
++4 -5: G21 invalid/dedup_on_event_read.json is rejected with a FormatException at the place it breaks a rule [E]
++5 -6: G21 invalid/duration_fractional.json is rejected with a FormatException at the place it breaks a rule [E]
++5 -7: G21 invalid/duration_negative.json is rejected with a FormatException at the place it breaks a rule [E]
++7 -8: G21 invalid/function_ref_empty_name.json is rejected with a FormatException at the place it breaks a rule [E]
++8 -9: G21 invalid/input_edge_negative.json is rejected with a FormatException at the place it breaks a rule [E]
++9 -10: G21 invalid/map_with_two_inputs.json is rejected with a FormatException at the place it breaks a rule [E]
++9 -11: G21 invalid/map_without_transformer.json is rejected with a FormatException at the place it breaks a rule [E]
++9 -12: G21 invalid/merge_with_transformer.json is rejected with a FormatException at the place it breaks a rule [E]
++9 -13: G21 invalid/merge_without_inputs.json is rejected with a FormatException at the place it breaks a rule [E]
++9 -14: G21 invalid/reads_repeat_topic.json is rejected with a FormatException at the place it breaks a rule [E]
++9 -15: G21 invalid/reduce_into_event_output.json is rejected with a FormatException at the place it breaks a rule [E]
+exit: 1
+   2   Expected: '$.topologies[0].transforms[3].durationMicros: must be a non-negative integer'
+   1   Expected: (<Instance of 'TopologyDefinition'> or <Instance of 'FormatException'>)
+   1   Invalid argument (duration): a debounce edge needs one: null
+   1   Invalid argument (duration): must not be negative: Instance of 'Duration'
+   1   Invalid argument (inputs): a map edge takes exactly 1 input: 2
+   1   Invalid argument (inputs): a merge edge takes at least 1 input: 0
+   1   Invalid argument (inputs): a withLatestFrom edge takes 2 to 4 inputs: 1
+   1   Invalid argument (inputs): a withLatestFrom edge takes 2 to 4 inputs: 5
+   1   Invalid argument (name): must not be empty: ""
+   1   Invalid argument (retry): a map edge holds none: Instance of 'FunctionRef'
+   1   Invalid argument (source): is not a service, page or executor source: Instance of 'TopologySource'
+   1   Invalid argument (source): is not a service, page or executor source: Instance of 'UnknownSource'
+   1   Invalid argument (topic): is not a state topic, and a reduceInto writes one: "x.y"
+   1   Invalid argument (topologyId): must not be empty: ""
+   1   Invalid argument (transformer): a map edge needs one: null
+   1   Invalid argument (transformer): a merge edge holds none: Instance of 'FunctionRef'
+-- nidana_contract_check topology-ir --set behavior --guarantee G21
+PASS structure lines: 9; PASS schema lines: 0
+FAIL behavior hsdd/contract/fixture/topology-ir/behavior/nidana_dart_contracts_test.dart: cases (1 passed, 2 failed, 0 skipped under dart test, restricted to topology-ir G21)
+    failed-case (G21 every invalid/ file fails the schema and the decoder rejects it with a FormatException)
+    failed-case (G21 the decoder rejects a schema-valid document that breaks a rule the schema cannot state)
+10 fixtures: 9 passed, 1 failed, 0 pending
+exit: 1
+-- F4 against Task 2's codec
+F4 mutated documents: {FormatException: 446, decoded: 32, ArgumentError: 22}
+F4 mutated definition objects: {ArgumentError: 51, FormatException: 859, decoded: 63, _AssertionError: 1}
+F4 arbitrary values: {FormatException: 500}
+F4 seeds whose document throws something else: 22, the first [50, 54, 73, 74, 98]
+F4 generated: 500 graphs, 974 topologies, 5760 edges, 708 claims
++1: All tests passed!
+
+### T3.4 Task 3's library: the decoder's rules
+Formatted 62 files (0 changed) in 0.22 seconds.
+-- dart test packages/nidana_dart_contracts
++336: All tests passed!
+exit: 0
+Analyzing jfp.kmY6o3...
+No issues found!
+analyze exit: 0
+-- nidana_contract_check topology-ir --set behavior --guarantee G21
+PASS structure lines: 9; PASS schema lines: 0
+PASS behavior hsdd/contract/fixture/topology-ir/behavior/nidana_dart_contracts_test.dart: 3 passed, 0 failed, 0 skipped under dart test, restricted to topology-ir G21
+10 fixtures: 10 passed, 0 failed, 0 pending
+exit: 0
+-- nidana_contract_check topology-ir --guarantee G2,G4,G5,G6,G8,G9,G10,G11,G12,G19,G20,G21
+PASS structure lines: 9; PASS schema lines: 46
+PASS behavior hsdd/contract/fixture/topology-ir/behavior/nidana_dart_contracts_test.dart: 26 passed, 0 failed, 0 skipped under dart test, restricted to topology-ir G2, G4 to G6, G8 to G12, G19 to G21
+61 fixtures: 61 passed, 0 failed, 0 pending
+exit: 0
+stubs left under lib/src/json/: 0
+
+### I the final draft against every valid/ and invalid/ file, one by one
+I1 valid/: schema verdict; decode; re-render byte for byte
+  checkout.json: schema valid; decoded 4 topologies, 2 claims; render == file: true; decode(encode(g)) == g: true
+  claims_only.json: schema valid; decoded 0 topologies, 5 claims; render == file: true; decode(encode(g)) == g: true
+  empty.json: schema valid; decoded 0 topologies, 0 claims; render == file: true; decode(encode(g)) == g: true
+  escaping.json: schema valid; decoded 2 topologies, 1 claims; render == file: true; decode(encode(g)) == g: true
+  every_combinator.json: schema valid; decoded 1 topologies, 0 claims; render == file: true; decode(encode(g)) == g: true
+  findings.json: schema valid; decoded 8 topologies, 2 claims; render == file: true; decode(encode(g)) == g: true
+  forms.json: schema valid; decoded 1 topologies, 1 claims; render == file: true; decode(encode(g)) == g: true
+I2 invalid/: schema verdict; what the decoder throws
+  claim_event_topic.json: schema rejects; FormatException: $.claims[0]: writes: names a topic that is not a state topic
+  claim_scope_missing.json: schema rejects; FormatException: $.claims[0].scope: is missing
+  claim_topology_source.json: schema rejects; FormatException: $.claims[0].source: must be "service:", "page:" or "executor:" followed by a name
+  claim_unknown_source.json: schema rejects; FormatException: $.claims[0].source: must be "service:", "page:" or "executor:" followed by a name
+  claim_without_writes.json: schema rejects; FormatException: $.claims[0]: writes: must not be empty
+  claims_missing.json: schema rejects; FormatException: $.claims: is missing
+  combinator_unknown.json: schema rejects; FormatException: $.topologies[0].transforms[0].combinator: must be one of map, filter, combine, withLatestFrom, merge, switchMap, scan, pairwise, distinctUntilChanged, debounce, throttle, delay, sample, buffer, timeout, catchError, rawEngine, reduceInto
+  dedup_on_event_read.json: schema rejects; FormatException: $.topologies[0].transforms[2].inputs[1].dedup: may be given only on a read of a state topic
+  dedup_unknown.json: schema rejects; FormatException: $.topologies[0].transforms[1].inputs[1].dedup: must be one of equality, none
+  duration_fractional.json: schema rejects; FormatException: $.topologies[0].transforms[3].durationMicros: must be a non-negative integer
+  duration_negative.json: schema rejects; FormatException: $.topologies[0].transforms[3].durationMicros: must be a non-negative integer
+  format_missing.json: schema rejects; FormatException: $.format: is missing
+  format_v2.json: schema rejects; FormatException: $.format: must be "topology-ir@v1"
+  function_ref_empty_name.json: schema rejects; FormatException: $.topologies[0].transforms[0].transformer.name: must be a non-empty string or null
+  function_ref_missing_name.json: schema rejects; FormatException: $.topologies[0].transforms[0].transformer.name: is missing
+  input_edge_negative.json: schema rejects; FormatException: $.topologies[0].transforms[3].inputs[0].edge: must be a non-negative integer
+  input_topic_and_edge.json: schema rejects; FormatException: $.topologies[0].transforms[0].inputs[0]: must not have the key "topic"
+  map_with_two_inputs.json: schema rejects; FormatException: $.topologies[0].transforms[0]: inputs: a map edge takes exactly 1 input
+  map_without_transformer.json: schema rejects; FormatException: $.topologies[0].transforms[0]: transformer: a map edge needs one
+  merge_with_transformer.json: schema rejects; FormatException: $.topologies[0].transforms[2]: transformer: a merge edge holds none
+  merge_without_inputs.json: schema rejects; FormatException: $.topologies[0].transforms[2]: inputs: a merge edge takes at least 1 input
+  reads_repeat_topic.json: schema rejects; FormatException: $.topologies[0].reads[2]: repeats $.topologies[0].reads[0]
+  reduce_into_event_output.json: schema rejects; FormatException: $.topologies[0].transforms[5]: topic: is not a state topic, and a reduceInto writes one
+  reduce_into_without_transformer.json: schema rejects; FormatException: $.topologies[0].transforms[5].transformer: is missing
+  retry_on_map.json: schema rejects; FormatException: $.topologies[0].transforms[0]: retry: a map edge holds none
+  scope_unknown.json: schema rejects; FormatException: $.topologies[0].scope: must be one of application, module, page
+  stage_with_output.json: schema rejects; FormatException: $.topologies[0].transforms[0]: must not have the key "output"
+  time_stage_without_duration.json: schema rejects; FormatException: $.topologies[0].transforms[3]: duration: a debounce edge needs one
+  topic_ref_extra_key.json: schema rejects; FormatException: $.topologies[0].reads[0]: must not have the key "sensitive"
+  topic_ref_without_type_name.json: schema rejects; FormatException: $.topologies[0].reads[0].typeName: is missing
+  topic_variant_unknown.json: schema rejects; FormatException: $.topologies[0].reads[0].variant: must be one of state, event, replay
+  topologies_repeat.json: schema rejects; FormatException: $.topologies[1].topologyId: repeats the id of $.topologies[0]
+  topology_id_empty.json: schema rejects; FormatException: $.topologies[0]: topologyId: must not be empty
+  unknown_top_level_key.json: schema rejects; FormatException: $: must not have the key "generatedAt"
+  with_latest_from_five_inputs.json: schema rejects; FormatException: $.topologies[0].transforms[1]: inputs: a withLatestFrom edge takes 2 to 4 inputs
+  with_latest_from_one_input.json: schema rejects; FormatException: $.topologies[0].transforms[1]: inputs: a withLatestFrom edge takes 2 to 4 inputs
+  write_with_transformer.json: schema rejects; FormatException: $.topologies[0].transforms[4]: must not have the key "transformer"
+  write_without_output.json: schema rejects; FormatException: $.topologies[0].transforms[4].output: is missing
+I3 38 invalid files, 38 rejected with a FormatException
+
+### F4 what the property tests' generators reach, against the final draft
+-- F4 against the final codec
+F4 mutated documents: {FormatException: 481, decoded: 19}
+F4 mutated definition objects: {FormatException: 950, decoded: 24}
+F4 arbitrary values: {FormatException: 500}
+F4 seeds whose document throws something else: 0
+F4 generated: 500 graphs, 974 topologies, 5760 edges, 708 claims
++1: All tests passed!
+
+### F5 how long the new test files take
++66: All tests passed!
+real 1.04
++336: All tests passed!
+real 1.80
+
+### X the new files against draft/ after the formatter
+lib/src/json/codec.dart equals draft/lib/src/json/codec.dart
+test/src/json_support.dart equals draft/test/src/json_support.dart
+test/json_encode_test.dart equals draft/test/json_encode_test.dart
+test/json_decode_test.dart equals draft/test/json_decode_test.dart
+test/json_reject_test.dart equals draft/test/json_reject_test.dart
+json_encode_test.dart: +10: All tests passed!
+json_decode_test.dart: +10: All tests passed!
+json_reject_test.dart: +46: All tests passed!
+
+### G the phase gate, exactly as the phase context writes it
+gate exit: 0
+Got dependencies!
+No issues found!
+102 fixtures: 102 passed, 0 failed, 0 pending
++336: All tests passed!
+PASS behavior hsdd/contract/fixture/topic-model/behavior/nidana_dart_contracts_test.dart: 41 passed, 0 failed, 0 skipped under dart test
+PASS behavior hsdd/contract/fixture/topology-dsl/behavior/topology_builder_test.dart: 24 passed, 0 failed, 0 skipped under dart test
+59 fixtures: 59 passed, 0 failed, 0 pending
+PASS behavior hsdd/contract/fixture/topology-ir/behavior/nidana_dart_contracts_test.dart: 26 passed, 0 failed, 0 skipped under dart test, restricted to topology-ir G2, G4 to G6, G8 to G12, G19 to G21
+61 fixtures: 61 passed, 0 failed, 0 pending
+PASS schema lines in the gate: 46
+
+### U the topology-ir behavior set unrestricted
+-- nidana_contract_check topology-ir --set behavior
+PASS structure lines: 9; PASS schema lines: 0
+FAIL behavior hsdd/contract/fixture/topology-ir/behavior/nidana_dart_contracts_test.dart: cases (41 passed, 2 failed, 0 skipped under dart test)
+    failed-case (G22 the Mermaid and Graphviz renderings of every sample equal its render/ files)
+    failed-case (G22 render passes the graph to the renderer, and renderers are pure)
+10 fixtures: 9 passed, 1 failed, 0 pending
+exit: 1
+
+### C the last task's checklist
++0: G4 every definition a plan projects to is pure data: it encodes to JSON and decodes back equal
++1: G19 the encoding of every sample graph matches the schema and equals its valid/ file
++2: G19 a definition encodes to the object its graph document lists
++3: G20 every valid/ file decodes and re-encodes to an equal JSON value
++4: G20 decoding the encoding of a graph gives the graph back
++5: G20 the decoder accepts topologies, claims, reads, writes and claimed topics in any order
++6: G21 every invalid/ file fails the schema and the decoder rejects it with a FormatException
++7: G21 the decoder rejects a schema-valid document that breaks a rule the schema cannot state
++8: G21 the decoder rejects any other value with a FormatException and no other error
++9: All tests passed!
++66: All tests passed!
+exit: 1
+exit: 1
+packages/nidana_dart_contracts/lib/src/json/codec.dart:1:import 'dart:convert';
+packages/nidana_dart_contracts/lib/src/json/codec.dart:3:import '../graph/graph.dart';
+packages/nidana_dart_contracts/lib/src/json/codec.dart:4:import '../ir/definition.dart';
+packages/nidana_dart_contracts/lib/src/json/codec.dart:5:import '../ir/function_ref.dart';
+packages/nidana_dart_contracts/lib/src/json/codec.dart:6:import '../topic/message_source.dart';
+packages/nidana_dart_contracts/lib/src/json/codec.dart:7:import '../topic/scope.dart';
+packages/nidana_dart_contracts/lib/src/json/codec.dart:8:import '../topic/topic.dart';
+codec.dart lines: 468
+     429 packages/nidana_dart_contracts/test/json_decode_test.dart
+     361 packages/nidana_dart_contracts/test/json_encode_test.dart
+     528 packages/nidana_dart_contracts/test/json_reject_test.dart
+     312 packages/nidana_dart_contracts/test/src/json_support.dart
+    1630 total
+
+### D seeded defects: which check catches each
+-- D1 the encoder writes dedup as null when the read gave none
+   package tests: +327 -9: Some tests failed.
+   failing: packages/nidana_dart_contracts/test/json_decode_test.dart: G20 a generated graph decodes from its JSON text equal, and its encoding is that text again
+   failing: packages/nidana_dart_contracts/test/json_decode_test.dart: G20 every valid/ file decodes, and JsonRenderer renders the graph back byte for byte
+   failing: packages/nidana_dart_contracts/test/json_decode_test.dart: G20 the decoder accepts the topologies, claims, reads, writes and claimed topics of a generated graph's document in any order
+   failing: packages/nidana_dart_contracts/test/json_decode_test.dart: G22 encoding, decoding and rendering create no timer and schedule no microtask
+   failing: packages/nidana_dart_contracts/test/json_decode_test.dart: G4 G20 every generated definition decodes from its JSON text equal
+   failing: packages/nidana_dart_contracts/test/json_encode_test.dart: G19 an input is {topic} with dedup only when the read gave one, Dedup.equality included, or {edge}
+   failing: packages/nidana_dart_contracts/test/json_encode_test.dart: G19 the forms sample encodes to valid/forms.json, every key in the schema's order
+   failing: packages/nidana_dart_contracts/test/json_encode_test.dart: G22 JsonRenderer writes the encoding indented by two spaces, then a newline, and the forms sample as valid/forms.json byte for byte
+   failing: packages/nidana_dart_contracts/test/json_reject_test.dart: G21 a mutated graph document, or definition object, decodes and then round-trips, or is rejected with a FormatException, and nothing else
+   gate topology-ir replay: cases (21 passed, 5 failed, 0 skipped under dart test, restricted to topology-ir G2, G4 to G6, G8 to G12, G19 to G21) | G4 every definition a plan projects to is pure data: it encodes to JSON and decodes back equal) | G19 the encoding of every sample graph matches the schema and equals its valid/ file) | G20 every valid/ file decodes and re-encodes to an equal JSON value) | G20 decoding the encodi
+-- D2 the encoder writes an edge's transformer before its output
+   package tests: +332 -4: Some tests failed.
+   failing: packages/nidana_dart_contracts/test/json_decode_test.dart: G20 every valid/ file decodes, and JsonRenderer renders the graph back byte for byte
+   failing: packages/nidana_dart_contracts/test/json_encode_test.dart: G19 an edge carries combinator, inputs, output, transformer, durationMicros and retry in that order, each only where it has one; a combinator is its 
+   failing: packages/nidana_dart_contracts/test/json_encode_test.dart: G19 the forms sample encodes to valid/forms.json, every key in the schema's order
+   failing: packages/nidana_dart_contracts/test/json_encode_test.dart: G22 JsonRenderer writes the encoding indented by two spaces, then a newline, and the forms sample as valid/forms.json byte for byte
+   gate topology-ir replay: 26 passed, 0 failed, 0 skipped under dart test, restricted to topology-ir G2, G4 to G6, G8 to G12, G19 to G21
+-- D3 JsonRenderer ends without a newline
+   package tests: +334 -2: Some tests failed.
+   failing: packages/nidana_dart_contracts/test/json_decode_test.dart: G20 every valid/ file decodes, and JsonRenderer renders the graph back byte for byte
+   failing: packages/nidana_dart_contracts/test/json_encode_test.dart: G22 JsonRenderer writes the encoding indented by two spaces, then a newline, and the forms sample as valid/forms.json byte for byte
+   gate topology-ir replay: 26 passed, 0 failed, 0 skipped under dart test, restricted to topology-ir G2, G4 to G6, G8 to G12, G19 to G21
+-- D4 JsonRenderer indents by four spaces
+   package tests: +334 -2: Some tests failed.
+   failing: packages/nidana_dart_contracts/test/json_decode_test.dart: G20 every valid/ file decodes, and JsonRenderer renders the graph back byte for byte
+   failing: packages/nidana_dart_contracts/test/json_encode_test.dart: G22 JsonRenderer writes the encoding indented by two spaces, then a newline, and the forms sample as valid/forms.json byte for byte
+   gate topology-ir replay: 26 passed, 0 failed, 0 skipped under dart test, restricted to topology-ir G2, G4 to G6, G8 to G12, G19 to G21
+-- D5 the encoder writes durations in milliseconds
+   package tests: +327 -9: Some tests failed.
+   failing: packages/nidana_dart_contracts/test/json_decode_test.dart: G20 a generated graph decodes from its JSON text equal, and its encoding is that text again
+   failing: packages/nidana_dart_contracts/test/json_decode_test.dart: G20 every valid/ file decodes, and JsonRenderer renders the graph back byte for byte
+   failing: packages/nidana_dart_contracts/test/json_decode_test.dart: G20 the decoder accepts the topologies, claims, reads, writes and claimed topics of a generated graph's document in any order
+   failing: packages/nidana_dart_contracts/test/json_decode_test.dart: G4 G20 every generated definition decodes from its JSON text equal
+   failing: packages/nidana_dart_contracts/test/json_encode_test.dart: G19 a duration is durationMicros, a whole number of microseconds written as an int
+   failing: packages/nidana_dart_contracts/test/json_encode_test.dart: G19 the forms sample encodes to valid/forms.json, every key in the schema's order
+   failing: packages/nidana_dart_contracts/test/json_encode_test.dart: G19 the Interface's example graph encodes to the document the contract shows, every key in order
+   failing: packages/nidana_dart_contracts/test/json_encode_test.dart: G22 JsonRenderer writes the encoding indented by two spaces, then a newline, and the forms sample as valid/forms.json byte for byte
+   failing: packages/nidana_dart_contracts/test/json_reject_test.dart: G21 a mutated graph document, or definition object, decodes and then round-trips, or is rejected with a FormatException, and nothing else
+   gate topology-ir replay: cases (22 passed, 4 failed, 0 skipped under dart test, restricted to topology-ir G2, G4 to G6, G8 to G12, G19 to G21) | G4 every definition a plan projects to is pure data: it encodes to JSON and decodes back equal) | G19 the encoding of every sample graph matches the schema and equals its valid/ file) | G20 every valid/ file decodes and re-encodes to an equal JSON value) | G20 decoding the encodi
+-- D6 the decoder lets a repeated topology id collapse
+   package tests: +334 -2: Some tests failed.
+   failing: packages/nidana_dart_contracts/test/json_reject_test.dart: G21 a repeated topic in reads, writes or a claim, and a repeated topology id, are rejected before a Set or the graph collapses them
+   failing: packages/nidana_dart_contracts/test/json_reject_test.dart: G21 invalid/topologies_repeat.json is rejected with a FormatException at the place it breaks a rule
+   gate topology-ir replay: cases (25 passed, 1 failed, 0 skipped under dart test, restricted to topology-ir G2, G4 to G6, G8 to G12, G19 to G21) | G21 every invalid/ file fails the schema and the decoder rejects it with a FormatException)
+-- D7 the decoder lets repeated topics collapse in reads, writes and claims
+   package tests: +334 -2: Some tests failed.
+   failing: packages/nidana_dart_contracts/test/json_reject_test.dart: G21 a repeated topic in reads, writes or a claim, and a repeated topology id, are rejected before a Set or the graph collapses them
+   failing: packages/nidana_dart_contracts/test/json_reject_test.dart: G21 invalid/reads_repeat_topic.json is rejected with a FormatException at the place it breaks a rule
+   gate topology-ir replay: 26 passed, 0 failed, 0 skipped under dart test, restricted to topology-ir G2, G4 to G6, G8 to G12, G19 to G21
+-- D8 the decoder lets a claim's repeated topics collapse
+   package tests: +335 -1: Some tests failed.
+   failing: packages/nidana_dart_contracts/test/json_reject_test.dart: G21 a repeated topic in reads, writes or a claim, and a repeated topology id, are rejected before a Set or the graph collapses them
+   gate topology-ir replay: 26 passed, 0 failed, 0 skipped under dart test, restricted to topology-ir G2, G4 to G6, G8 to G12, G19 to G21
+-- D9 the decoder does not compare reads with the edges
+   package tests: +335 -1: Some tests failed.
+   failing: packages/nidana_dart_contracts/test/json_reject_test.dart: G21 a schema-valid document that breaks a rule the schema cannot state is rejected at the definition that breaks it
+   gate topology-ir replay: cases (25 passed, 1 failed, 0 skipped under dart test, restricted to topology-ir G2, G4 to G6, G8 to G12, G19 to G21) | G21 the decoder rejects a schema-valid document that breaks a rule the schema cannot state)
+-- D10 the decoder accepts a dedup on a replay read
+   package tests: +335 -1: Some tests failed.
+   failing: packages/nidana_dart_contracts/test/json_reject_test.dart: G21 a dedup on an event or a replay read and an empty typeName are rejected, although TopicInput and TopicRef accept them
+   gate topology-ir replay: 26 passed, 0 failed, 0 skipped under dart test, restricted to topology-ir G2, G4 to G6, G8 to G12, G19 to G21
+-- D11 the decoder accepts an empty typeName
+   package tests: +335 -1: Some tests failed.
+   failing: packages/nidana_dart_contracts/test/json_reject_test.dart: G21 a dedup on an event or a replay read and an empty typeName are rejected, although TopicInput and TopicRef accept them
+   gate topology-ir replay: 26 passed, 0 failed, 0 skipped under dart test, restricted to topology-ir G2, G4 to G6, G8 to G12, G19 to G21
+-- D12 a negative index reaches StageInput's assert
+   package tests: +332 -4: Some tests failed.
+   failing: packages/nidana_dart_contracts/test/json_reject_test.dart: G21 a mutated graph document, or definition object, decodes and then round-trips, or is rejected with a FormatException, and nothing else
+   failing: packages/nidana_dart_contracts/test/json_reject_test.dart: G21 an edge index below zero is rejected before StageInput would assert it
+   failing: packages/nidana_dart_contracts/test/json_reject_test.dart: G21 invalid/duration_negative.json is rejected with a FormatException at the place it breaks a rule
+   failing: packages/nidana_dart_contracts/test/json_reject_test.dart: G21 invalid/input_edge_negative.json is rejected with a FormatException at the place it breaks a rule
+   gate topology-ir replay: cases (25 passed, 1 failed, 0 skipped under dart test, restricted to topology-ir G2, G4 to G6, G8 to G12, G19 to G21) | G21 every invalid/ file fails the schema and the decoder rejects it with a FormatException)
+-- D13 the decoder rejects a whole-number double
+   package tests: +335 -1: Some tests failed.
+   failing: packages/nidana_dart_contracts/test/json_decode_test.dart: G20 the decoder accepts what the schema allows and no sample holds: an empty topic name, a zero duration and index, a whole-number double, two equal 
+   gate topology-ir replay: 26 passed, 0 failed, 0 skipped under dart test, restricted to topology-ir G2, G4 to G6, G8 to G12, G19 to G21
+-- D14 the factories' ArgumentError leaks
+   package tests: +322 -14: Some tests failed.
+   failing: packages/nidana_dart_contracts/test/json_reject_test.dart: G21 a mutated graph document, or definition object, decodes and then round-trips, or is rejected with a FormatException, and nothing else
+   failing: packages/nidana_dart_contracts/test/json_reject_test.dart: G21 a schema-valid document that breaks a rule the schema cannot state is rejected at the definition that breaks it
+   failing: packages/nidana_dart_contracts/test/json_reject_test.dart: G21 invalid/claim_event_topic.json is rejected with a FormatException at the place it breaks a rule
+   failing: packages/nidana_dart_contracts/test/json_reject_test.dart: G21 invalid/claim_without_writes.json is rejected with a FormatException at the place it breaks a rule
+   failing: packages/nidana_dart_contracts/test/json_reject_test.dart: G21 invalid/map_with_two_inputs.json is rejected with a FormatException at the place it breaks a rule
+   failing: packages/nidana_dart_contracts/test/json_reject_test.dart: G21 invalid/map_without_transformer.json is rejected with a FormatException at the place it breaks a rule
+   failing: packages/nidana_dart_contracts/test/json_reject_test.dart: G21 invalid/merge_with_transformer.json is rejected with a FormatException at the place it breaks a rule
+   failing: packages/nidana_dart_contracts/test/json_reject_test.dart: G21 invalid/merge_without_inputs.json is rejected with a FormatException at the place it breaks a rule
+   failing: packages/nidana_dart_contracts/test/json_reject_test.dart: G21 invalid/reduce_into_event_output.json is rejected with a FormatException at the place it breaks a rule
+   failing: packages/nidana_dart_contracts/test/json_reject_test.dart: G21 invalid/retry_on_map.json is rejected with a FormatException at the place it breaks a rule
+   failing: packages/nidana_dart_contracts/test/json_reject_test.dart: G21 invalid/time_stage_without_duration.json is rejected with a FormatException at the place it breaks a rule
+   failing: packages/nidana_dart_contracts/test/json_reject_test.dart: G21 invalid/topology_id_empty.json is rejected with a FormatException at the place it breaks a rule
+   failing: packages/nidana_dart_contracts/test/json_reject_test.dart: G21 invalid/with_latest_from_five_inputs.json is rejected with a FormatException at the place it breaks a rule
+   failing: packages/nidana_dart_contracts/test/json_reject_test.dart: G21 invalid/with_latest_from_one_input.json is rejected with a FormatException at the place it breaks a rule
+   gate topology-ir replay: cases (24 passed, 2 failed, 0 skipped under dart test, restricted to topology-ir G2, G4 to G6, G8 to G12, G19 to G21) | G21 every invalid/ file fails the schema and the decoder rejects it with a FormatException) | G21 the decoder rejects a schema-valid document that breaks a rule the schema cannot state)
+-- D15 an unknown enum name throws ArgumentError (values.byName)
+   package tests: +330 -6: Some tests failed.
+   failing: packages/nidana_dart_contracts/test/json_decode_test.dart: G21 a value of the wrong shape is rejected with a FormatException that names its JSONPath and what must be there
+   failing: packages/nidana_dart_contracts/test/json_reject_test.dart: G21 a mutated graph document, or definition object, decodes and then round-trips, or is rejected with a FormatException, and nothing else
+   failing: packages/nidana_dart_contracts/test/json_reject_test.dart: G21 invalid/combinator_unknown.json is rejected with a FormatException at the place it breaks a rule
+   failing: packages/nidana_dart_contracts/test/json_reject_test.dart: G21 invalid/dedup_unknown.json is rejected with a FormatException at the place it breaks a rule
+   failing: packages/nidana_dart_contracts/test/json_reject_test.dart: G21 invalid/scope_unknown.json is rejected with a FormatException at the place it breaks a rule
+   failing: packages/nidana_dart_contracts/test/json_reject_test.dart: G21 invalid/topic_variant_unknown.json is rejected with a FormatException at the place it breaks a rule
+   gate topology-ir replay: cases (25 passed, 1 failed, 0 skipped under dart test, restricted to topology-ir G2, G4 to G6, G8 to G12, G19 to G21) | G21 every invalid/ file fails the schema and the decoder rejects it with a FormatException)
+-- D16 a message renders the value with jsonEncode
+   package tests: +334 -2: Some tests failed.
+   failing: packages/nidana_dart_contracts/test/json_decode_test.dart: G21 a value of the wrong shape is rejected with a FormatException that names its JSONPath and what must be there
+   failing: packages/nidana_dart_contracts/test/json_reject_test.dart: G21 a Dart value that is no JSON value of the form is rejected with a FormatException, one that contains itself included
+   gate topology-ir replay: 26 passed, 0 failed, 0 skipped under dart test, restricted to topology-ir G2, G4 to G6, G8 to G12, G19 to G21
+-- D17 the decoder merges equal claims
+   package tests: +332 -4: Some tests failed.
+   failing: packages/nidana_dart_contracts/test/json_decode_test.dart: G20 a generated graph decodes from its JSON text equal, and its encoding is that text again
+   failing: packages/nidana_dart_contracts/test/json_decode_test.dart: G20 every valid/ file decodes, and JsonRenderer renders the graph back byte for byte
+   failing: packages/nidana_dart_contracts/test/json_decode_test.dart: G20 the decoder accepts the topologies, claims, reads, writes and claimed topics of a generated graph's document in any order
+   failing: packages/nidana_dart_contracts/test/json_decode_test.dart: G20 the decoder accepts what the schema allows and no sample holds: an empty topic name, a zero duration and index, a whole-number double, two equal 
+   gate topology-ir replay: cases (24 passed, 2 failed, 0 skipped under dart test, restricted to topology-ir G2, G4 to G6, G8 to G12, G19 to G21) | G20 every valid/ file decodes and re-encodes to an equal JSON value) | G20 decoding the encoding of a graph gives the graph back)
