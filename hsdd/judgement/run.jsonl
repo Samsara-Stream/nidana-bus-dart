@@ -153,3 +153,4 @@
 {"step_ref":"S152","skill":"hsdd-contract","target":"topology-dsl@v2, nidana-checks@v1","started":"2026-10-27T22:31:20Z","finished":"2026-10-27T22:46:14Z","commit":"2614631","dispatches":1}
 {"step_ref":"S153","skill":"hsdd-contract","target":"topology-ir@v1","started":"2026-10-27T22:47:00Z","finished":"2026-10-27T23:06:50Z","commit":"539a8f6","dispatches":1}
 {"step_ref":"S154","skill":"hsdd-contract","target":"topology-ir@v1","started":"2026-10-27T23:07:25Z","finished":"2026-10-27T23:26:25Z","commit":"af302a3","dispatches":1}
+{"step_ref":"S155","skill":"hsdd-adr","target":"ADR-001","started":"2026-10-27T23:27:05Z","finished":"2026-10-27T23:47:08Z","commit":"1c63873","dispatches":1}
