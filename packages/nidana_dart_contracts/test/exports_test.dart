@@ -1,6 +1,6 @@
-// The two public libraries nidana.model.4 completes export exactly the names
-// their contracts place in them (topology-dsl@v2 G2; nidana.model D4), so a
-// declaration cannot leak from one library into the other.
+// The three public libraries export exactly the names their contracts place
+// in them (topology-dsl@v2 G2; topology-ir@v1's Libraries; nidana.model D4),
+// so a declaration cannot leak from one library into another.
 import 'dart:io';
 
 import 'package:test/test.dart';
@@ -78,6 +78,24 @@ void main() {
       'TimeoutStage',
       'CatchErrorStage',
       'RawEngineStage',
+    });
+  });
+
+  test('topology_ir.dart exports exactly the declarations under '
+      "topology-ir@v1's Graphs, Renderers, The JSON form and Analyses", () {
+    expect(shownBy('topology_ir.dart'), <String>{
+      // Graphs
+      'ShellClaim', 'TopologyGraph', 'TopologyDefinitionGraph',
+      // Renderers
+      'GraphRenderer', 'MermaidRenderer', 'GraphvizRenderer', 'JsonRenderer',
+      // The JSON form
+      'encodeTopologyGraph', 'decodeTopologyGraph',
+      'encodeTopologyDefinition', 'decodeTopologyDefinition',
+      // Analyses
+      'TopologyFinding', 'TopologyCycle', 'SelfReference', 'WriterConflict',
+      'ScopeViolation', 'findTopologyCycles', 'findSelfReferences',
+      'findWriterConflicts', 'findScopeViolations', 'analyzeTopologyGraph',
+      'TopicDeclaration', 'TopicNameCollision', 'findTopicNameCollisions',
     });
   });
 

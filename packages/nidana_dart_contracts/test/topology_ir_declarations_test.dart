@@ -24,6 +24,14 @@ String variantOf(TopologyFinding f) => switch (f) {
   ScopeViolation() => 'scope violation',
 };
 
+/// A renderer an application writes.
+final class ClaimCount implements GraphRenderer {
+  const ClaimCount();
+
+  @override
+  String render(TopologyGraph graph) => '${graph.claims.length}';
+}
+
 void main() {
   test('findings keep the lists they are given in the orders the '
       'Interface names, equal writers repeated', () {
@@ -117,6 +125,22 @@ void main() {
       'self-reference',
       'writer conflict',
       'scope violation',
+    ]);
+  });
+
+  test('the three renderers are const GraphRenderers, beside one an '
+      'application writes', () {
+    const List<GraphRenderer> renderers = <GraphRenderer>[
+      MermaidRenderer(),
+      GraphvizRenderer(),
+      JsonRenderer(),
+      ClaimCount(),
+    ];
+    expect(renderers.map((GraphRenderer r) => r.runtimeType), <Type>[
+      MermaidRenderer,
+      GraphvizRenderer,
+      JsonRenderer,
+      ClaimCount,
     ]);
   });
 }
