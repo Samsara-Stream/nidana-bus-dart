@@ -1,9 +1,11 @@
 // topology-ir@v1's TopologyGraph, beyond the G11 cases of its conformance
 // suite, which the gate replays: the canonical orders on inputs the suite
 // does not build, unequal definitions with one id in any order, topics read
-// in several places, unmodifiable copies (G3) and value equality that
-// ignores the order of the arguments (G7), whose graph and claim cases
-// first replay at nidana.model.12, toGraph() and render.
+// in several places, unmodifiable copies (G3), value equality that ignores
+// the order of the arguments (G7), toGraph() and render. The gate replays
+// toGraph() now, in the suite's G11 case. The graph and claim cases of G3 and
+// G7 first replay at nidana.model.12, and the G22 render case waits for
+// nidana.model.14's Mermaid renderer.
 import 'package:nidana_dart_contracts/nidana_dart_contracts.dart';
 import 'package:nidana_dart_contracts/topology_ir.dart';
 import 'package:test/test.dart';

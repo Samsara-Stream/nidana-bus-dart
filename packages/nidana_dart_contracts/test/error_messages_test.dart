@@ -427,4 +427,40 @@ void main() {
       ),
     );
   });
+
+  test('G6 a state topic repeated as the same topic says that a state topic '
+      'takes one sink edge, without blaming the value types', () {
+    final TopicRef cart = TopicRef(
+      name: 'shop.cart',
+      variant: TopicVariant.state,
+      typeName: 'Cart',
+    );
+    expect(
+      () => TopologyDefinition(
+        topologyId: 'twice',
+        scope: Scope.page,
+        transforms: <TransformEdge>[
+          TransformEdge.write(cart, TopicInput(taps.ref)),
+          TransformEdge.write(cart, TopicInput(taps.ref)),
+        ],
+      ),
+      throwsA(
+        isA<ArgumentError>()
+            .having((ArgumentError e) => e.name, 'name', 'transforms')
+            .having(
+              (ArgumentError e) => e.invalidValue,
+              'invalidValue',
+              'shop.cart',
+            )
+            .having(
+              (ArgumentError e) => '${e.message}',
+              'message',
+              'edge 1 is a second sink edge on this state topic, of type '
+                  'Cart; a state topic takes one sink edge in the IR, and two '
+                  'state topics of one name whose value types render alike '
+                  'count as one',
+            ),
+      ),
+    );
+  });
 }

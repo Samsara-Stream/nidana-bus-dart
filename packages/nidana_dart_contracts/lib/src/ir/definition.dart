@@ -411,9 +411,9 @@ void _checkWellFormed(List<TransformEdge> edges) {
           output.name,
           'transforms',
           'edge $i is a second sink edge on this state topic, of type '
-              '${output.typeName}; two state topics of one name whose value '
-              'types render alike, one class name in two libraries, are one '
-              'topic in the IR',
+              '${output.typeName}; a state topic takes one sink edge in the '
+              'IR, and two state topics of one name whose value types render '
+              'alike count as one',
         );
       }
     } else if (sinkSeen) {
