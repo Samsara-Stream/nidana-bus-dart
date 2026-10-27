@@ -158,6 +158,15 @@ final class Labeler {
   String label(int v) => _called('label');
 }
 
+// The extension forms the VM names with the extension's name (G9).
+extension Doubling on int {
+  static int helper(int v) => _called('Doubling.helper');
+}
+
+extension type Cents(int value) {
+  Cents.whole(int units) : value = units * 100;
+}
+
 // ------------------------------------------------------------ topics
 
 abstract final class CheckoutTopics {
@@ -208,6 +217,11 @@ const EventTopic<int> _everySizes = EventTopic<int>(name: 'every.sizes');
 const StateTopic<String> _everyLabel = StateTopic<String>(name: 'every.label', initial: '');
 const StateTopic<int> _everyTotal = StateTopic<int>(name: 'every.total', initial: 0);
 const EventTopic<String> _everyNames = EventTopic<String>(name: 'every.names');
+// One name under two variants, and one name and variant under two value
+// types: distinct topics, each its own node in a rendering.
+const EventTopic<int> _everyCountEvents = EventTopic<int>(name: 'every.count');
+const EventTopic<int> _everyRetried = EventTopic<int>(name: 'every.retried');
+const EventTopic<String> _everyRetriedText = EventTopic<String>(name: 'every.retried');
 
 const EventTopic<int> _loopA = EventTopic<int>(name: 'loop.a');
 const EventTopic<int> _loopB = EventTopic<int>(name: 'loop.b');
@@ -227,6 +241,7 @@ const EventTopic<({int a, String b})> _oddRecord =
     EventTopic<({int a, String b})>(name: 'odd.<record>');
 const StateTopic<int?> _oddNullable = StateTopic<int?>(name: 'odd.café\nline', initial: null);
 const EventTopic<String> _oddLabels = EventTopic<String>(name: r'odd.back\slash');
+const EventTopic<String> _oddMarks = EventTopic<String>(name: "odd.it's [a|b] & c");
 
 const StateTopic<int> _formsState = StateTopic<int>(name: 'forms.state', initial: 0);
 const EventTopic<int> _formsEvent = EventTopic<int>(name: 'forms.event');
@@ -291,9 +306,11 @@ final Topology _paymentFlow = topology(
   ),
 );
 
-/// Every combinator once, every input form, a retry, an anonymous closure,
-/// durations of zero, of whole seconds and of sub-millisecond precision, a
-/// write of a read, and self-reads mediated by reduceInto.
+/// Every combinator, every input form, a named and an anonymous retry, an
+/// anonymous closure, durations of zero, of whole seconds, of whole
+/// milliseconds above a second and of sub-millisecond precision, a repeated
+/// input, a write of a read, self-reads mediated by reduceInto, one topic
+/// name under two variants, and one name and variant under two value types.
 final Topology _everyCombinator = topology(
   'every-combinator',
   Scope.page,
@@ -328,6 +345,13 @@ final Topology _everyCombinator = topology(
     b.reduceInto(_everyTotal, b.merge(<TopicStream<int>>[b.read(_everyTotal), taps]),
         Reducers.reduceTotal);
     b.write(_everyLog, b.read(_everyTaps));
+    final TopicStream<int> counted = b.read(_everyCountEvents);
+    final TopicStream<int> retried = b
+        .merge(<TopicStream<int>>[counted, counted])
+        .switchMap(ticks, retry: (Object error, int attempt) => null)
+        .throttle(const Duration(milliseconds: 1500));
+    b.write(_everyRetried, retried);
+    b.write(_everyRetriedText, retried.map(const Labeler().label));
   },
 );
 
@@ -366,15 +390,17 @@ final Topology _forms = topology('forms', Scope.page, (TopologyBuilder b) {
   b.reduceInto(_formsTotal, event, reduceCount);
 });
 
-/// Text the renderers escape; the escaping sample adds a topology with no
-/// edges.
+/// Text the renderers escape, and characters they leave as they are; the
+/// escaping sample adds a topology with no edges.
 final Topology _escaping = topology(
   'odd "quoted" #1 <tag> back\\slash café',
   Scope.module,
   (TopologyBuilder b) {
-    b.write(_oddLabels, b.read(_oddTable).map(to$Label));
+    final TopicStream<String> labels = b.read(_oddTable).map(to$Label);
+    b.write(_oddLabels, labels);
     b.write(_oddRecord, b.read(_oddRecord).filter((({int a, String b}) r) => r.a > 0));
     b.write(_oddNullable, b.read(_oddNullable, dedup: Dedup.equality));
+    b.write(_oddMarks, labels);
   },
 );
 
@@ -561,6 +587,34 @@ final List<ConformanceCase<TopologyIrHarness>> topologyIrConformance =
       expect(g.claims.single.writes, <TopicRef>{_state('c')});
     },
   ),
+  (
+    name: 'G3 every analysis returns an unmodifiable list, empty or not',
+    body: (TopologyIrHarness h) async {
+      final TopologyGraph found = topologyIrSamples['findings']!();
+      final TopologyGraph clean = topologyIrSamples['checkout']!();
+      final TopologyDefinition echo =
+          found.topologies.firstWhere((TopologyDefinition d) => d.topologyId == 'echo');
+      final List<TopicDeclaration> colliding = <TopicDeclaration>[
+        TopicDeclaration(topic: _ref('n'), site: 'lib/a.dart:1'),
+        TopicDeclaration(topic: _state('n'), site: 'lib/b.dart:1'),
+      ];
+      void unmodifiable<T>(String what, List<T> some, List<T> none) {
+        expect(some, isNotEmpty, reason: what);
+        expect(none, isEmpty, reason: what);
+        expect(() => some.clear(), throwsUnsupportedError, reason: what);
+        expect(() => none.add(some.first), throwsUnsupportedError, reason: what);
+      }
+
+      await h.settle();
+      unmodifiable('cycles', findTopologyCycles(found), findTopologyCycles(clean));
+      unmodifiable('self-references', findSelfReferences(echo),
+          findSelfReferences(clean.topologies.first));
+      unmodifiable('writer conflicts', findWriterConflicts(found), findWriterConflicts(clean));
+      unmodifiable('scope violations', findScopeViolations(found), findScopeViolations(clean));
+      unmodifiable('collisions', findTopicNameCollisions(colliding),
+          findTopicNameCollisions(const <TopicDeclaration>[]));
+    },
+  ),
   // ------------------------------------------------------------ G4
   (
     name: 'G4 every definition a plan projects to is pure data: it encodes to JSON and decodes back equal',
@@ -653,6 +707,48 @@ final List<ConformanceCase<TopologyIrHarness>> topologyIrConformance =
           throwsArgumentError);
       expect(() => TransformEdge.stage(CombinatorKind.reduceInto, one, transformer: _f),
           throwsArgumentError);
+    },
+  ),
+  (
+    name: 'G5 a retry is accepted on a switchMap alone: every other combinator rejects one',
+    body: (TopologyIrHarness h) async {
+      final List<EdgeInput> one = <EdgeInput>[TopicInput(_ref('a'))];
+      final List<EdgeInput> two = <EdgeInput>[TopicInput(_ref('a')), TopicInput(_ref('b'))];
+      final Set<CombinatorKind> timed = <CombinatorKind>{
+        CombinatorKind.debounce,
+        CombinatorKind.throttle,
+        CombinatorKind.delay,
+        CombinatorKind.sample,
+        CombinatorKind.buffer,
+        CombinatorKind.timeout,
+      };
+      final Set<CombinatorKind> plain = <CombinatorKind>{
+        CombinatorKind.merge,
+        CombinatorKind.pairwise,
+        CombinatorKind.distinctUntilChanged,
+      };
+      await h.settle();
+      for (final CombinatorKind k in CombinatorKind.values) {
+        if (k == CombinatorKind.switchMap || k == CombinatorKind.reduceInto) {
+          continue;
+        }
+        final List<EdgeInput> inputs = k == CombinatorKind.withLatestFrom ? two : one;
+        final FunctionRef? transformer = timed.contains(k) || plain.contains(k) ? null : _f;
+        final Duration? duration = timed.contains(k) ? const Duration(milliseconds: 5) : null;
+        // Without the retry the edge is well formed, so the retry alone is rejected.
+        expect(TransformEdge.stage(k, inputs, transformer: transformer, duration: duration).retry,
+            isNull, reason: k.name);
+        expect(
+            () => TransformEdge.stage(k, inputs,
+                transformer: transformer, duration: duration, retry: _f),
+            throwsArgumentError,
+            reason: k.name);
+      }
+      expect(
+          TransformEdge.stage(CombinatorKind.switchMap, one,
+                  transformer: _f, retry: const FunctionRef.anonymous())
+              .retry,
+          const FunctionRef.anonymous());
     },
   ),
   (
@@ -818,6 +914,29 @@ final List<ConformanceCase<TopologyIrHarness>> topologyIrConformance =
     },
   ),
   (
+    name: "G7 a definition's equality follows the order of its edges, and an edge's the order of its inputs",
+    body: (TopologyIrHarness h) async {
+      final List<TransformEdge> edges = <TransformEdge>[
+        TransformEdge.write(_ref('x'), TopicInput(_ref('a'))),
+        TransformEdge.write(_ref('y'), TopicInput(_ref('b'))),
+      ];
+      final TopologyDefinition inOrder = _def('order', Scope.page, edges);
+      final TopologyDefinition reversed = _def('order', Scope.page, edges.reversed.toList());
+      final TransformEdge ab = TransformEdge.stage(
+          CombinatorKind.merge, <EdgeInput>[TopicInput(_ref('a')), TopicInput(_ref('b'))]);
+      final TransformEdge ba = TransformEdge.stage(
+          CombinatorKind.merge, <EdgeInput>[TopicInput(_ref('b')), TopicInput(_ref('a'))]);
+      await h.settle();
+      expect(reversed.reads, inOrder.reads);
+      expect(reversed.writes, inOrder.writes);
+      expect(inOrder, _def('order', Scope.page, edges));
+      expect(inOrder, isNot(reversed));
+      expect(reversed, isNot(inOrder));
+      expect(ab, isNot(ba));
+      expect(ba, isNot(ab));
+    },
+  ),
+  (
     name: 'G7 graphs, claims, declarations and findings are equal, with equal hash codes, exactly when their fields are',
     body: (TopologyIrHarness h) async {
       final TopologyGraph a = topologyIrSamples['findings']!();
@@ -909,6 +1028,12 @@ final List<ConformanceCase<TopologyIrHarness>> topologyIrConformance =
         one(CombinatorKind.map, const StageInput(8), f: n('describePair')), // 19
         one(CombinatorKind.map, t(_everyCount), f: n('label')), // 20
         TransformEdge.stage(CombinatorKind.merge, <EdgeInput>[t(_everyTotal), t(_everyTaps)]), // 21
+        TransformEdge.stage(CombinatorKind.merge,
+            <EdgeInput>[t(_everyCountEvents), t(_everyCountEvents)]), // 22
+        TransformEdge.stage(CombinatorKind.switchMap, const <EdgeInput>[StageInput(22)],
+            transformer: n('ticks'), retry: const FunctionRef.anonymous()), // 23
+        one(CombinatorKind.throttle, const StageInput(23), d: const Duration(milliseconds: 1500)), // 24
+        one(CombinatorKind.map, const StageInput(24), f: n('label')), // 25
         TransformEdge.write(_everyOut.ref, const StageInput(17)),
         TransformEdge.write(_everySizes.ref, const StageInput(18)),
         TransformEdge.write(_everyLabel.ref, const StageInput(19)),
@@ -916,6 +1041,8 @@ final List<ConformanceCase<TopologyIrHarness>> topologyIrConformance =
         TransformEdge.reduceInto(_everyCount.ref, t(_everyTaps), n('reduceCount')),
         TransformEdge.reduceInto(_everyTotal.ref, const StageInput(21), n('reduceTotal')),
         TransformEdge.write(_everyLog.ref, t(_everyTaps)),
+        TransformEdge.write(_everyRetried.ref, const StageInput(24)),
+        TransformEdge.write(_everyRetriedText.ref, const StageInput(25)),
       ]);
     },
   ),
@@ -965,6 +1092,16 @@ final List<ConformanceCase<TopologyIrHarness>> topologyIrConformance =
       expect(FunctionRef.of(Reducers._reduceQuietly).name, matches(RegExp(r'^_reduceQuietly@.+$')));
       expect(FunctionRef.of(_privateTwice), FunctionRef.of(_privateTwice));
       expect(FunctionRef.of(_privateTwice), isNot(FunctionRef.named('_privateTwice')));
+    },
+  ),
+  (
+    name: "G9 FunctionRef.of names a static method of an extension, an extension type's constructor tear-offs and a class's, as the VM renders them",
+    body: (TopologyIrHarness h) async {
+      await h.settle();
+      expect(FunctionRef.of(Doubling.helper).name, 'Doubling|helper');
+      expect(FunctionRef.of(Cents.new).name, 'Cents|constructor#_#new#tearOff');
+      expect(FunctionRef.of(Cents.whole).name, 'Cents|constructor#_#whole#tearOff');
+      expect(FunctionRef.of(Labeler.new).name, 'Labeler.');
     },
   ),
   // ------------------------------------------------------------ G10
@@ -1055,6 +1192,20 @@ final List<ConformanceCase<TopologyIrHarness>> topologyIrConformance =
       expect(g.claims.first.writes.toList(), <TopicRef>[_currentRoute.ref, _navDepth.ref]);
     },
   ),
+  (
+    name: 'G11 claims that tie on source and scope are ordered by their writes element by element, a shorter list first when it is a prefix of the other',
+    body: (TopologyIrHarness h) async {
+      ShellClaim claim(Set<TopicRef> writes) =>
+          ShellClaim(source: const ServiceSource('tie'), scope: Scope.module, writes: writes);
+      final ShellClaim a = claim(<TopicRef>{_state('t.a')});
+      final ShellClaim ab = claim(<TopicRef>{_state('t.b'), _state('t.a')});
+      final ShellClaim ac = claim(<TopicRef>{_state('t.c'), _state('t.a')});
+      final ShellClaim b = claim(<TopicRef>{_state('t.b')});
+      await h.settle();
+      expect(TopologyGraph(claims: <ShellClaim>[b, ac, ab, a]).claims, <ShellClaim>[a, ab, ac, b]);
+      expect(TopologyGraph(claims: <ShellClaim>[ab, b, a, ac]).claims, <ShellClaim>[a, ab, ac, b]);
+    },
+  ),
   // ------------------------------------------------------------ G12
   (
     name: 'G12 a shell claim takes a service, page or executor source, application scope by default, and one or more state topics',
@@ -1107,6 +1258,55 @@ final List<ConformanceCase<TopologyIrHarness>> topologyIrConformance =
       expect(findTopologyCycles(topologyIrSamples['checkout']!()), isEmpty);
     },
   ),
+  (
+    name: 'G13 cycles come in the order of their first ids, whichever cycle a search from the first topology completes first',
+    body: (TopologyIrHarness h) async {
+      // a reaches c, so a search from a completes {c, d} before {a, b}.
+      final TopologyGraph g = TopologyGraph(topologies: <TopologyDefinition>[
+        _rw('d', Scope.page, <TopicRef>[_ref('z.cd')], <TopicRef>[_ref('z.dc')]),
+        _rw('c', Scope.page, <TopicRef>[_ref('x.ac'), _ref('z.dc')], <TopicRef>[_ref('z.cd')]),
+        _rw('b', Scope.page, <TopicRef>[_ref('x.ab')], <TopicRef>[_ref('y.ba')]),
+        _rw('a', Scope.page, <TopicRef>[_ref('y.ba')], <TopicRef>[_ref('x.ab'), _ref('x.ac')]),
+      ]);
+      await h.settle();
+      expect(findTopologyCycles(g), <TopologyCycle>[
+        TopologyCycle(topologyIds: <String>['a', 'b'], topics: <TopicRef>[_ref('x.ab'), _ref('y.ba')]),
+        TopologyCycle(topologyIds: <String>['c', 'd'], topics: <TopicRef>[_ref('z.cd'), _ref('z.dc')]),
+      ]);
+    },
+  ),
+  (
+    name: "G13 a cycle lists each topic one member writes and another member reads once, and not a member's own self-read",
+    body: (TopologyIrHarness h) async {
+      // x runs from a to both b and c, y from both b and c to a.
+      final TopologyGraph g = TopologyGraph(topologies: <TopologyDefinition>[
+        _rw('a', Scope.page, <TopicRef>[_ref('y'), _ref('self')], <TopicRef>[_ref('x'), _ref('self')]),
+        _rw('b', Scope.page, <TopicRef>[_ref('x')], <TopicRef>[_ref('y')]),
+        _rw('c', Scope.page, <TopicRef>[_ref('x')], <TopicRef>[_ref('y')]),
+      ]);
+      await h.settle();
+      expect(findTopologyCycles(g), <TopologyCycle>[
+        TopologyCycle(topologyIds: <String>['a', 'b', 'c'], topics: <TopicRef>[_ref('x'), _ref('y')]),
+      ]);
+    },
+  ),
+  (
+    name: 'G13 a ring of 20000 topologies, deeper than a recursive search can go, is one cycle of every id and every topic',
+    body: (TopologyIrHarness h) async {
+      const int n = 20000;
+      String id(int i) => 'ring.${i.toString().padLeft(5, '0')}';
+      TopicRef link(int i) => _ref('link.${i.toString().padLeft(5, '0')}');
+      final TopologyGraph g = TopologyGraph(topologies: <TopologyDefinition>[
+        for (int i = 0; i < n; i++)
+          _rw(id(i), Scope.page, <TopicRef>[link(i)], <TopicRef>[link((i + 1) % n)]),
+      ]);
+      await h.settle();
+      final List<TopologyCycle> cycles = findTopologyCycles(g);
+      expect(cycles, hasLength(1));
+      expect(cycles.single.topologyIds, <String>[for (int i = 0; i < n; i++) id(i)]);
+      expect(cycles.single.topics, <TopicRef>[for (int i = 0; i < n; i++) link(i)]);
+    },
+  ),
   // ------------------------------------------------------------ G14
   (
     name: 'G14 findSelfReferences reports a self-written topic read through no state-bearing edge, with every edge on such a path',
@@ -1143,6 +1343,23 @@ final List<ConformanceCase<TopologyIrHarness>> topologyIrConformance =
       await h.settle();
       expect(findSelfReferences(mediated), isEmpty);
       expect(findSelfReferences(_everyCombinator.buildDefinition()), isEmpty);
+    },
+  ),
+  (
+    name: 'G14 a read with a dedup argument is a read of its topic',
+    body: (TopologyIrHarness h) async {
+      final TopologyDefinition mapped = _def('mapped', Scope.page, <TransformEdge>[
+        _map(TopicInput(_state('m'), dedup: Dedup.none)),
+        TransformEdge.write(_state('m'), const StageInput(0)),
+      ]);
+      final TopologyDefinition direct = _def('direct', Scope.page, <TransformEdge>[
+        TransformEdge.write(_state('d'), TopicInput(_state('d'), dedup: Dedup.equality)),
+      ]);
+      await h.settle();
+      expect(findSelfReferences(mapped),
+          <SelfReference>[SelfReference(topologyId: 'mapped', topic: _state('m'), edges: <int>[0, 1])]);
+      expect(findSelfReferences(direct),
+          <SelfReference>[SelfReference(topologyId: 'direct', topic: _state('d'), edges: <int>[0])]);
     },
   ),
   // ------------------------------------------------------------ G15
@@ -1211,6 +1428,39 @@ final List<ConformanceCase<TopologyIrHarness>> topologyIrConformance =
       expect(findScopeViolations(topologyIrSamples['checkout']!()), isEmpty);
     },
   ),
+  (
+    name: "G16 one topic's violations come by owner, by its source's rendering and then its scope, so every claim before every topology owner, then by reader in graph order",
+    body: (TopologyIrHarness h) async {
+      final TopologyGraph g = TopologyGraph(
+        topologies: <TopologyDefinition>[
+          _rw('w', Scope.page, <TopicRef>[_ref('in')], <TopicRef>[_state('s')]),
+          _rw('r2', Scope.module, <TopicRef>[_state('s')], <TopicRef>[_ref('o2')]),
+          _rw('r1', Scope.application, <TopicRef>[_state('s')], <TopicRef>[_ref('o1')]),
+        ],
+        claims: <ShellClaim>[
+          ShellClaim(source: const ServiceSource('svc'), scope: Scope.page, writes: <TopicRef>{_state('s')}),
+          ShellClaim(source: const PageSource('p'), scope: Scope.module, writes: <TopicRef>{_state('s')}),
+          ShellClaim(source: const ServiceSource('svc'), scope: Scope.module, writes: <TopicRef>{_state('s')}),
+        ],
+      );
+      ScopeViolation v(MessageSource owner, Scope ownerScope, String readerId, Scope readerScope) =>
+          ScopeViolation(
+              topic: _state('s'),
+              owner: owner,
+              ownerScope: ownerScope,
+              readerId: readerId,
+              readerScope: readerScope);
+      await h.settle();
+      expect(findScopeViolations(g), <ScopeViolation>[
+        v(const PageSource('p'), Scope.module, 'r1', Scope.application),
+        v(const ServiceSource('svc'), Scope.module, 'r1', Scope.application),
+        v(const ServiceSource('svc'), Scope.page, 'r1', Scope.application),
+        v(const ServiceSource('svc'), Scope.page, 'r2', Scope.module),
+        v(const TopologySource('w'), Scope.page, 'r1', Scope.application),
+        v(const TopologySource('w'), Scope.page, 'r2', Scope.module),
+      ]);
+    },
+  ),
   // ------------------------------------------------------------ G17
   (
     name: 'G17 analyzeTopologyGraph lists cycles, then self-references by topology, then writer conflicts, then scope violations',
@@ -1272,6 +1522,23 @@ final List<ConformanceCase<TopologyIrHarness>> topologyIrConformance =
       ]);
       expect(findTopicNameCollisions(<TopicDeclaration>[b1, b1, c1]), isEmpty);
       expect(findTopicNameCollisions(const <TopicDeclaration>[]), isEmpty);
+    },
+  ),
+  (
+    name: 'G18 collisions come in name order, whatever order the declarations came in',
+    body: (TopologyIrHarness h) async {
+      final TopicDeclaration z1 = TopicDeclaration(topic: _ref('z.n'), site: 'lib/z.dart:1');
+      final TopicDeclaration z2 = TopicDeclaration(topic: _state('z.n'), site: 'lib/z.dart:2');
+      final TopicDeclaration m1 = TopicDeclaration(topic: _ref('m.n'), site: 'lib/m.dart:1');
+      final TopicDeclaration m2 = TopicDeclaration(topic: _ref('m.n', TopicVariant.event, 'String'), site: 'lib/m.dart:2');
+      final TopicDeclaration a1 = TopicDeclaration(topic: _ref('a.n'), site: 'lib/a.dart:1');
+      final TopicDeclaration a2 = TopicDeclaration(topic: _state('a.n'), site: 'lib/a.dart:2');
+      await h.settle();
+      expect(findTopicNameCollisions(<TopicDeclaration>[z1, m1, a1, z2, m2, a2]), <TopicNameCollision>[
+        TopicNameCollision(name: 'a.n', declarations: <TopicDeclaration>[a1, a2]),
+        TopicNameCollision(name: 'm.n', declarations: <TopicDeclaration>[m1, m2]),
+        TopicNameCollision(name: 'z.n', declarations: <TopicDeclaration>[z1, z2]),
+      ]);
     },
   ),
   // ------------------------------------------------------------ G19
@@ -1346,6 +1613,22 @@ final List<ConformanceCase<TopologyIrHarness>> topologyIrConformance =
       expectMatchesSchema(shuffled, _schema);
       expect(decodeTopologyGraph(shuffled), decodeTopologyGraph(doc));
       expect(encodeTopologyGraph(decodeTopologyGraph(shuffled)), doc);
+    },
+  ),
+  (
+    name: 'G20 an integer is a JSON number with no fractional part: a duration of 5000.0 decodes as 5000 and re-encodes as 5000',
+    body: (TopologyIrHarness h) async {
+      final Object? doc = _json('valid', 'forms');
+      // forms is one topology: a map, a withLatestFrom, a merge and a
+      // debounce of 5000us (edge 3), then a write and a reduceInto.
+      final Object? asDouble = _edited(doc, (Map<String, Object?> d) {
+        (_transforms(d, 0)[3]! as Map<String, Object?>)['durationMicros'] = 5000.0;
+      });
+      await h.settle();
+      expectMatchesSchema(asDouble, _schema);
+      final TopologyGraph g = decodeTopologyGraph(asDouble);
+      expect(g, decodeTopologyGraph(doc));
+      expect(jsonEncode(encodeTopologyGraph(g)), jsonEncode(doc));
     },
   ),
   // ------------------------------------------------------------ G21
@@ -1442,6 +1725,26 @@ final List<ConformanceCase<TopologyIrHarness>> topologyIrConformance =
         expect(() => decodeTopologyGraph(b), _throwsFormat, reason: '$b');
       }
       expect(() => decodeTopologyDefinition(<String, Object?>{'topologyId': 'x'}), _throwsFormat);
+    },
+  ),
+  (
+    name: 'G21 the decoder rejects an integer of 2^63 or more, which the schema accepts, and decodes 2^63 - 1',
+    body: (TopologyIrHarness h) async {
+      final Object? doc = _json('valid', 'forms');
+      // Edge 3 of forms is a debounce (see the G20 case on 5000.0).
+      Object? withDuration(Object? micros) => _edited(doc, (Map<String, Object?> d) {
+            (_transforms(d, 0)[3]! as Map<String, Object?>)['durationMicros'] = micros;
+          });
+      final int largest = jsonDecode('9223372036854775807') as int;
+      final Object? largestDoc = withDuration(largest);
+      final Object? beyondDoc = withDuration(jsonDecode('9223372036854775808'));
+      await h.settle();
+      expectMatchesSchema(largestDoc, _schema);
+      expectMatchesSchema(beyondDoc, _schema);
+      expect(decodeTopologyGraph(largestDoc).topologies.single.transforms[3].duration,
+          Duration(microseconds: largest));
+      expect(() => decodeTopologyGraph(beyondDoc), _throwsFormat);
+      expect(() => decodeTopologyGraph(withDuration(1e30)), _throwsFormat);
     },
   ),
   // ------------------------------------------------------------ G22

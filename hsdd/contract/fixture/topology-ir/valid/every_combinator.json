@@ -11,6 +11,11 @@
           "typeName": "int"
         },
         {
+          "name": "every.count",
+          "variant": "event",
+          "typeName": "int"
+        },
+        {
           "name": "every.flag",
           "variant": "state",
           "typeName": "bool"
@@ -54,6 +59,16 @@
         },
         {
           "name": "every.out",
+          "variant": "event",
+          "typeName": "int"
+        },
+        {
+          "name": "every.retried",
+          "variant": "event",
+          "typeName": "String"
+        },
+        {
+          "name": "every.retried",
           "variant": "event",
           "typeName": "int"
         },
@@ -353,6 +368,59 @@
           ]
         },
         {
+          "combinator": "merge",
+          "inputs": [
+            {
+              "topic": {
+                "name": "every.count",
+                "variant": "event",
+                "typeName": "int"
+              }
+            },
+            {
+              "topic": {
+                "name": "every.count",
+                "variant": "event",
+                "typeName": "int"
+              }
+            }
+          ]
+        },
+        {
+          "combinator": "switchMap",
+          "inputs": [
+            {
+              "edge": 22
+            }
+          ],
+          "transformer": {
+            "name": "ticks"
+          },
+          "retry": {
+            "name": null
+          }
+        },
+        {
+          "combinator": "throttle",
+          "inputs": [
+            {
+              "edge": 23
+            }
+          ],
+          "durationMicros": 1500000
+        },
+        {
+          "combinator": "map",
+          "inputs": [
+            {
+              "edge": 24
+            }
+          ],
+          "transformer": {
+            "name": "label"
+          }
+        },
+        {
           "inputs": [
             {
               "edge": 17
@@ -450,6 +518,30 @@
             "name": "every.log",
             "variant": "replay",
             "typeName": "int"
+          }
+        },
+        {
+          "inputs": [
+            {
+              "edge": 24
+            }
+          ],
+          "output": {
+            "name": "every.retried",
+            "variant": "event",
+            "typeName": "int"
+          }
+        },
+        {
+          "inputs": [
+            {
+              "edge": 25
+            }
+          ],
+          "output": {
+            "name": "every.retried",
+            "variant": "event",
+            "typeName": "String"
           }
         }
       ]

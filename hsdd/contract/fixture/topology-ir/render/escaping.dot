@@ -3,7 +3,8 @@ digraph topologies {
   t0 [shape=ellipse, label="odd.<record>\nevent ({int a, String b})"];
   t1 [shape=ellipse, label="odd.back\\slash\nevent String"];
   t2 [shape=ellipse, label="odd.café\nline\nstate int?"];
-  t3 [shape=ellipse, label="odd.table \"x\" #1\nstate List<Map<String, int>>"];
+  t3 [shape=ellipse, label="odd.it's [a|b] & c\nevent String"];
+  t4 [shape=ellipse, label="odd.table \"x\" #1\nstate List<Map<String, int>>"];
   subgraph cluster_p0 {
     label="idle\npage";
   }
@@ -14,9 +15,10 @@ digraph topologies {
     p1e2 [shape=box, label="write"];
     p1e3 [shape=box, label="write"];
     p1e4 [shape=box, label="write"];
+    p1e5 [shape=box, label="write"];
   }
   s0 [shape=box, style=rounded, label="page:checkout/cart?step=\"2\"\nmodule"];
-  t3 -> p1e0;
+  t4 -> p1e0;
   t0 -> p1e1;
   p1e0 -> p1e2;
   p1e2 -> t1;
@@ -24,5 +26,7 @@ digraph topologies {
   p1e3 -> t0;
   t2 -> p1e4 [label="dedup equality"];
   p1e4 -> t2;
-  s0 -> t3;
+  p1e0 -> p1e5;
+  p1e5 -> t3;
+  s0 -> t4;
 }
