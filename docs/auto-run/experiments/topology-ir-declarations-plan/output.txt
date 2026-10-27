@@ -1,0 +1,425 @@
+
+### S0 setup: the committed tree, resolved offline
+tree from d302aab judgement: S114
+Dart SDK version: 3.13.5 (stable) (Tue Sep 29 01:00:52 2026 -0700) on "macos_arm64"
+Try `dart pub outdated` for more information.
+
+### S1 before any declaration of this phase
+00:00 +13: packages/nidana_dart_contracts/test/purity_test.dart: G25 no library reads a clock, schedules work, generates an id or reaches a zone
+00:00 +14: packages/nidana_dart_contracts/test/purity_test.dart: G25 no library reads a clock, schedules work, generates an id or reaches a zone
+00:00 +15: packages/nidana_dart_contracts/test/ir_declarations_test.dart: CombinatorKind has eighteen values, in combinator-table order
+00:00 +16: packages/nidana_dart_contracts/test/ir_declarations_test.dart: CombinatorKind has eighteen values, in combinator-table order
+00:00 +17: packages/nidana_dart_contracts/test/ir_declarations_test.dart: CombinatorKind has eighteen values, in combinator-table order
+00:00 +18: packages/nidana_dart_contracts/test/ir_declarations_test.dart: CombinatorKind has eighteen values, in combinator-table order
+00:00 +19: packages/nidana_dart_contracts/test/ir_declarations_test.dart: CombinatorKind has eighteen values, in combinator-table order
+00:00 +20: packages/nidana_dart_contracts/test/ir_declarations_test.dart: CombinatorKind has eighteen values, in combinator-table order
+00:00 +21: packages/nidana_dart_contracts/test/ir_declarations_test.dart: CombinatorKind has eighteen values, in combinator-table order
+00:00 +22: packages/nidana_dart_contracts/test/ir_declarations_test.dart: CombinatorKind has eighteen values, in combinator-table order
+00:00 +23: packages/nidana_dart_contracts/test/ir_declarations_test.dart: CombinatorKind has eighteen values, in combinator-table order
+00:00 +24: packages/nidana_dart_contracts/test/ir_declarations_test.dart: CombinatorKind has eighteen values, in combinator-table order
+00:00 +25: packages/nidana_dart_contracts/test/ir_declarations_test.dart: CombinatorKind has eighteen values, in combinator-table order
+00:00 +26: packages/nidana_dart_contracts/test/ir_declarations_test.dart: CombinatorKind has eighteen values, in combinator-table order
+00:00 +27: packages/nidana_dart_contracts/test/ir_declarations_test.dart: CombinatorKind has eighteen values, in combinator-table order
+00:00 +28: packages/nidana_dart_contracts/test/ir_declarations_test.dart: CombinatorKind has eighteen values, in combinator-table order
+00:00 +29: packages/nidana_dart_contracts/test/ir_declarations_test.dart: a TopicInput keeps its topic, and its dedup, null by default
+00:00 +30: packages/nidana_dart_contracts/test/ir_declarations_test.dart: a StageInput keeps its index; a negative one fails an assertion
+00:00 +31: packages/nidana_dart_contracts/test/ir_declarations_test.dart: FunctionRef.named keeps its name, and an anonymous one has none
+00:00 +32: All tests passed!
+exit: 0
+-- topology-ir --set surface,reject
+PASS structure lines: 9, PASS schema lines: 0
+PASS surface hsdd/contract/fixture/topology-ir/surface/definitions.dart
+FAIL surface hsdd/contract/fixture/topology-ir/surface/graphs.dart: diagnostic (line 8: ERROR uri_does_not_exist: Target of URI doesn't exist: 'package:nidana_dart_contracts/topology_ir.dart'.); diagnostic (line 13: ERROR undefined_class: Undefined class 'Shel
+FAIL reject hsdd/contract/fixture/topology-ir/reject/ir_families_are_closed.dart: unexpected-diagnostic (line 8: ERROR uri_does_not_exist: Target of URI doesn't exist: 'package:nidana_dart_contracts/topology_ir.dart'.); missing-diagnostic (line 26: invalid_use
+PASS reject hsdd/contract/fixture/topology-ir/reject/ir_holds_no_function.dart
+FAIL reject hsdd/contract/fixture/topology-ir/reject/ir_values_are_immutable.dart: unexpected-diagnostic (line 6: ERROR uri_does_not_exist: Target of URI doesn't exist: 'package:nidana_dart_contracts/topology_ir.dart'.); unexpected-diagnostic (line 14: ERROR u
+14 fixtures: 11 passed, 3 failed, 0 pending
+exit: 1
+-- topic-model topology-dsl topology-ir --set structure,surface,reject,schema
+PASS structure lines: 42, PASS schema lines: 46
+PASS surface hsdd/contract/fixture/topic-model/surface/envelopes.dart
+PASS surface hsdd/contract/fixture/topic-model/surface/observers.dart
+PASS surface hsdd/contract/fixture/topic-model/surface/topics.dart
+PASS reject hsdd/contract/fixture/topic-model/reject/envelope_requires_metadata.dart
+PASS reject hsdd/contract/fixture/topic-model/reject/no_dispatcher_hint.dart
+PASS reject hsdd/contract/fixture/topic-model/reject/observer_has_no_publish_path.dart
+PASS reject hsdd/contract/fixture/topic-model/reject/only_state_topics_carry_values.dart
+PASS reject hsdd/contract/fixture/topic-model/reject/replay_buffer_is_positive.dart
+PASS reject hsdd/contract/fixture/topic-model/reject/source_family_is_closed.dart
+PASS reject hsdd/contract/fixture/topic-model/reject/state_topic_is_not_multi_writer.dart
+PASS reject hsdd/contract/fixture/topic-model/reject/state_topic_requires_initial.dart
+PASS reject hsdd/contract/fixture/topic-model/reject/topic_family_is_closed.dart
+PASS reject hsdd/contract/fixture/topic-model/reject/values_are_immutable.dart
+PASS surface hsdd/contract/fixture/topology-dsl/surface/plan.dart
+PASS surface hsdd/contract/fixture/topology-dsl/surface/topologies.dart
+PASS reject hsdd/contract/fixture/topology-dsl/reject/dsl_types_are_closed.dart
+PASS reject hsdd/contract/fixture/topology-dsl/reject/handle_is_opaque.dart
+PASS reject hsdd/contract/fixture/topology-dsl/reject/plan_is_a_separate_library.dart
+PASS reject hsdd/contract/fixture/topology-dsl/reject/reduce_into_targets_state.dart
+PASS reject hsdd/contract/fixture/topology-dsl/reject/time_takes_duration.dart
+PASS reject hsdd/contract/fixture/topology-dsl/reject/topology_declares_id_and_scope.dart
+PASS reject hsdd/contract/fixture/topology-dsl/reject/topology_is_a_base_class.dart
+PASS reject hsdd/contract/fixture/topology-dsl/reject/transformers_see_payloads.dart
+PASS reject hsdd/contract/fixture/topology-dsl/reject/write_type_checks.dart
+PASS surface hsdd/contract/fixture/topology-ir/surface/definitions.dart
+FAIL surface hsdd/contract/fixture/topology-ir/surface/graphs.dart: diagnostic (line 8: ERROR uri_does_not_exist: Target of URI doesn't exist: 'package:nidana_dart_contracts/topology_ir.dart'.); diagnostic (line 13: ERROR undefined_class: Undefined class 'Shel
+FAIL reject hsdd/contract/fixture/topology-ir/reject/ir_families_are_closed.dart: unexpected-diagnostic (line 8: ERROR uri_does_not_exist: Target of URI doesn't exist: 'package:nidana_dart_contracts/topology_ir.dart'.); missing-diagnostic (line 26: invalid_use
+PASS reject hsdd/contract/fixture/topology-ir/reject/ir_holds_no_function.dart
+FAIL reject hsdd/contract/fixture/topology-ir/reject/ir_values_are_immutable.dart: unexpected-diagnostic (line 6: ERROR uri_does_not_exist: Target of URI doesn't exist: 'package:nidana_dart_contracts/topology_ir.dart'.); unexpected-diagnostic (line 14: ERROR u
+117 fixtures: 114 passed, 3 failed, 0 pending
+exit: 1
+
+### F the formatter on the Interface's trailing comments kept trailing (a scratch copy, removed after)
+diff -r fprobe/before/src/analysis/findings.dart fprobe/packages/nidana_dart_contracts/lib/src/analysis/findings.dart
+43c43,44
+<   final List<MessageSource> writers; // canonical order, one per writer, equal sources repeated
+---
+>   final List<MessageSource>
+>   writers; // canonical order, one per writer, equal sources repeated
+80c81,82
+<   final List<TopicDeclaration> declarations; // by site, then topic in canonical order
+---
+>   final List<TopicDeclaration>
+>   declarations; // by site, then topic in canonical order
+diff -r fprobe/before/src/graph/graph.dart fprobe/packages/nidana_dart_contracts/lib/src/graph/graph.dart
+53,55c53,58
+<   final List<TopologyDefinition> topologies; // by topologyId, distinct ids; unmodifiable
+<   final List<ShellClaim> claims; // canonical order, equal claims kept; unmodifiable
+<   final List<TopicRef> topics; // every topic read or written, canonical order; unmodifiable
+---
+>   final List<TopologyDefinition>
+>   topologies; // by topologyId, distinct ids; unmodifiable
+>   final List<ShellClaim>
+>   claims; // canonical order, equal claims kept; unmodifiable
+>   final List<TopicRef>
+>   topics; // every topic read or written, canonical order; unmodifiable
+
+### T1.2 the declarations test, before lib/topology_ir.dart exists
+  packages/nidana_dart_contracts/test/topology_ir_declarations_test.dart:35:32: Error: Method not found: 'SelfReference'.
+  packages/nidana_dart_contracts/test/topology_ir_declarations_test.dart:40:11: Error: 'WriterConflict' isn't a type.
+  packages/nidana_dart_contracts/test/topology_ir_declarations_test.dart:40:37: Error: Method not found: 'WriterConflict'.
+  packages/nidana_dart_contracts/test/topology_ir_declarations_test.dart:58:11: Error: 'ScopeViolation' isn't a type.
+  packages/nidana_dart_contracts/test/topology_ir_declarations_test.dart:58:38: Error: Method not found: 'ScopeViolation'.
+  packages/nidana_dart_contracts/test/topology_ir_declarations_test.dart:74:11: Error: 'TopicDeclaration' isn't a type.
+  packages/nidana_dart_contracts/test/topology_ir_declarations_test.dart:74:36: Error: Method not found: 'TopicDeclaration'.
+  packages/nidana_dart_contracts/test/topology_ir_declarations_test.dart:78:11: Error: 'TopicDeclaration' isn't a type.
+  packages/nidana_dart_contracts/test/topology_ir_declarations_test.dart:78:37: Error: Method not found: 'TopicDeclaration'.
+  packages/nidana_dart_contracts/test/topology_ir_declarations_test.dart:86:11: Error: 'TopicNameCollision' isn't a type.
+  packages/nidana_dart_contracts/test/topology_ir_declarations_test.dart:88:22: Error: 'TopicDeclaration' isn't a type.
+  packages/nidana_dart_contracts/test/topology_ir_declarations_test.dart:86:42: Error: Method not found: 'TopicNameCollision'.
+  packages/nidana_dart_contracts/test/topology_ir_declarations_test.dart:93:37: Error: 'TopicDeclaration' isn't a type.
+  packages/nidana_dart_contracts/test/topology_ir_declarations_test.dart:97:16: Error: 'TopologyFinding' isn't a type.
+  packages/nidana_dart_contracts/test/topology_ir_declarations_test.dart:97:45: Error: 'TopologyFinding' isn't a type.
+  packages/nidana_dart_contracts/test/topology_ir_declarations_test.dart:98:7: Error: Method not found: 'TopologyCycle'.
+  packages/nidana_dart_contracts/test/topology_ir_declarations_test.dart:99:7: Error: Method not found: 'SelfReference'.
+  packages/nidana_dart_contracts/test/topology_ir_declarations_test.dart:100:7: Error: Method not found: 'WriterConflict'.
+  packages/nidana_dart_contracts/test/topology_ir_declarations_test.dart:107:13: Error: Couldn't find constructor 'ScopeViolation'.
+00:00 +0 -1: Some tests failed.
+exit: 1
+-- its first three error lines:
+  packages/nidana_dart_contracts/test/topology_ir_declarations_test.dart:5:8: Error: Error when reading 'packages/nidana_dart_contracts/lib/topology_ir.dart': No such file or directory
+  packages/nidana_dart_contracts/test/topology_ir_declarations_test.dart:20:18: Error: Type 'TopologyFinding' not found.
+  packages/nidana_dart_contracts/test/topology_ir_declarations_test.dart:20:18: Error: 'TopologyFinding' isn't a type.
+-- topology-ir --set surface,reject
+PASS structure lines: 9, PASS schema lines: 0
+PASS surface hsdd/contract/fixture/topology-ir/surface/definitions.dart
+FAIL surface hsdd/contract/fixture/topology-ir/surface/graphs.dart: diagnostic (line 8: ERROR uri_does_not_exist: Target of URI doesn't exist: 'package:nidana_dart_contracts/topology_ir.dart'.); diagnostic (line 13: ERROR undefined_class: Undefined class 'Shel
+FAIL reject hsdd/contract/fixture/topology-ir/reject/ir_families_are_closed.dart: unexpected-diagnostic (line 8: ERROR uri_does_not_exist: Target of URI doesn't exist: 'package:nidana_dart_contracts/topology_ir.dart'.); missing-diagnostic (line 26: invalid_use
+PASS reject hsdd/contract/fixture/topology-ir/reject/ir_holds_no_function.dart
+FAIL reject hsdd/contract/fixture/topology-ir/reject/ir_values_are_immutable.dart: unexpected-diagnostic (line 6: ERROR uri_does_not_exist: Target of URI doesn't exist: 'package:nidana_dart_contracts/topology_ir.dart'.); unexpected-diagnostic (line 14: ERROR u
+14 fixtures: 11 passed, 3 failed, 0 pending
+exit: 1
+
+### T1.4 lib/src/graph/graph.dart, lib/src/analysis/findings.dart and their two export directives
+Formatted 27 files (0 changed) in 0.03 seconds.
+format exit: 0
+00:00 +17: packages/nidana_dart_contracts/test/purity_test.dart: G25 no library reads a clock, schedules work, generates an id or reaches a zone
+00:00 +18: packages/nidana_dart_contracts/test/declarations_test.dart: G18 Lineage.root has no causation and no parents, and the correlation and sensitivity it is given, null and false by default
+00:00 +19: packages/nidana_dart_contracts/test/purity_test.dart: the directive reader reads every URI of every directive form
+00:00 +20: packages/nidana_dart_contracts/test/purity_test.dart: the directive reader sees through comments inside a directive
+00:00 +21: packages/nidana_dart_contracts/test/purity_test.dart: the directive reader keeps comment marks inside a string and skips a directive inside a comment
+00:00 +22: packages/nidana_dart_contracts/test/purity_test.dart: the directive reader reads a triple-quoted URI, whose first line break Dart drops
+00:00 +23: packages/nidana_dart_contracts/test/purity_test.dart: the directive reader keeps a string with an escaped quote whole, so a comment mark in it opens no comment
+00:00 +24: packages/nidana_dart_contracts/test/purity_test.dart: the directive reader ends a directive at a semicolon outside a string
+00:00 +25: packages/nidana_dart_contracts/test/purity_test.dart: the directive reader skips a directive word that no string literal follows
+00:00 +26: packages/nidana_dart_contracts/test/purity_test.dart: the directive reader reads a directive word that a string literal follows on the same line or the next
+00:00 +27: packages/nidana_dart_contracts/test/purity_test.dart: the directive reader hands a library that is not a .dart file to allowedUri, which refuses it
+00:00 +28: packages/nidana_dart_contracts/test/purity_test.dart: allowedUri admits the SDK but four libraries, meta, this package and lib/, and nothing else
+00:00 +29: packages/nidana_dart_contracts/test/purity_test.dart: allowedUri refuses a relative URI with a query, a fragment or an authority, and does not throw
+00:00 +30: packages/nidana_dart_contracts/test/purity_test.dart: the effects scan finds every listed token, in a comment too
+00:00 +31: packages/nidana_dart_contracts/test/purity_test.dart: the pubspec reader sees every key of a section
+00:00 +32: packages/nidana_dart_contracts/test/ir_declarations_test.dart: CombinatorKind has eighteen values, in combinator-table order
+00:00 +33: packages/nidana_dart_contracts/test/ir_declarations_test.dart: a TopicInput keeps its topic, and its dedup, null by default
+00:00 +34: packages/nidana_dart_contracts/test/ir_declarations_test.dart: a StageInput keeps its index; a negative one fails an assertion
+00:00 +35: packages/nidana_dart_contracts/test/ir_declarations_test.dart: FunctionRef.named keeps its name, and an anonymous one has none
+00:00 +36: All tests passed!
+exit: 0
+Analyzing tird.dOws9O...
+No issues found!
+exit: 0
+-- topology-ir --set surface,reject
+PASS structure lines: 9, PASS schema lines: 0
+PASS surface hsdd/contract/fixture/topology-ir/surface/definitions.dart
+FAIL surface hsdd/contract/fixture/topology-ir/surface/graphs.dart: diagnostic (line 55: ERROR creation_with_non_type: The name 'MermaidRenderer' isn't a class.); diagnostic (line 56: ERROR creation_with_non_type: The name 'GraphvizRenderer' isn't a class.); d
+PASS reject hsdd/contract/fixture/topology-ir/reject/ir_families_are_closed.dart
+PASS reject hsdd/contract/fixture/topology-ir/reject/ir_holds_no_function.dart
+PASS reject hsdd/contract/fixture/topology-ir/reject/ir_values_are_immutable.dart
+14 fixtures: 13 passed, 1 failed, 0 pending
+exit: 1
+-- surface/graphs.dart's diagnostics, one per line:
+  (line 55: ERROR creation_with_non_type: The name 'MermaidRenderer' isn't a class.)
+  (line 56: ERROR creation_with_non_type: The name 'GraphvizRenderer' isn't a class.)
+  (line 57: ERROR creation_with_non_type: The name 'JsonRenderer' isn't a class.)
+  (line 59: ERROR creation_with_non_type: The name 'MermaidRenderer' isn't a class.)
+  (line 63: ERROR undefined_function: The function 'encodeTopologyGraph' isn't defined.)
+  (line 64: ERROR undefined_function: The function 'decodeTopologyGraph' isn't defined.)
+  (line 65: ERROR undefined_function: The function 'encodeTopologyDefinition' isn't defined.)
+  (line 66: ERROR undefined_function: The function 'decodeTopologyDefinition' isn't defined.)
+  (line 70: ERROR undefined_function: The function 'findTopologyCycles' isn't defined.)
+  (line 72: ERROR undefined_function: The function 'findSelfReferences' isn't defined.)
+  (line 74: ERROR undefined_function: The function 'findWriterConflicts' isn't defined.)
+  (line 75: ERROR undefined_function: The function 'findScopeViolations' isn't defined.)
+  (line 76: ERROR undefined_function: The function 'analyzeTopologyGraph' isn't defined.)
+  (line 116: ERROR undefined_function: The function 'findTopicNameCollisions' isn't defined.)
+-- topic-model topology-dsl topology-ir --set structure,surface,reject,schema
+PASS structure lines: 42, PASS schema lines: 46
+PASS surface hsdd/contract/fixture/topic-model/surface/envelopes.dart
+PASS surface hsdd/contract/fixture/topic-model/surface/observers.dart
+PASS surface hsdd/contract/fixture/topic-model/surface/topics.dart
+PASS reject hsdd/contract/fixture/topic-model/reject/envelope_requires_metadata.dart
+PASS reject hsdd/contract/fixture/topic-model/reject/no_dispatcher_hint.dart
+PASS reject hsdd/contract/fixture/topic-model/reject/observer_has_no_publish_path.dart
+PASS reject hsdd/contract/fixture/topic-model/reject/only_state_topics_carry_values.dart
+PASS reject hsdd/contract/fixture/topic-model/reject/replay_buffer_is_positive.dart
+PASS reject hsdd/contract/fixture/topic-model/reject/source_family_is_closed.dart
+PASS reject hsdd/contract/fixture/topic-model/reject/state_topic_is_not_multi_writer.dart
+PASS reject hsdd/contract/fixture/topic-model/reject/state_topic_requires_initial.dart
+PASS reject hsdd/contract/fixture/topic-model/reject/topic_family_is_closed.dart
+PASS reject hsdd/contract/fixture/topic-model/reject/values_are_immutable.dart
+PASS surface hsdd/contract/fixture/topology-dsl/surface/plan.dart
+PASS surface hsdd/contract/fixture/topology-dsl/surface/topologies.dart
+PASS reject hsdd/contract/fixture/topology-dsl/reject/dsl_types_are_closed.dart
+PASS reject hsdd/contract/fixture/topology-dsl/reject/handle_is_opaque.dart
+PASS reject hsdd/contract/fixture/topology-dsl/reject/plan_is_a_separate_library.dart
+PASS reject hsdd/contract/fixture/topology-dsl/reject/reduce_into_targets_state.dart
+PASS reject hsdd/contract/fixture/topology-dsl/reject/time_takes_duration.dart
+PASS reject hsdd/contract/fixture/topology-dsl/reject/topology_declares_id_and_scope.dart
+PASS reject hsdd/contract/fixture/topology-dsl/reject/topology_is_a_base_class.dart
+PASS reject hsdd/contract/fixture/topology-dsl/reject/transformers_see_payloads.dart
+PASS reject hsdd/contract/fixture/topology-dsl/reject/write_type_checks.dart
+PASS surface hsdd/contract/fixture/topology-ir/surface/definitions.dart
+FAIL surface hsdd/contract/fixture/topology-ir/surface/graphs.dart: diagnostic (line 55: ERROR creation_with_non_type: The name 'MermaidRenderer' isn't a class.); diagnostic (line 56: ERROR creation_with_non_type: The name 'GraphvizRenderer' isn't a class.); d
+PASS reject hsdd/contract/fixture/topology-ir/reject/ir_families_are_closed.dart
+PASS reject hsdd/contract/fixture/topology-ir/reject/ir_holds_no_function.dart
+PASS reject hsdd/contract/fixture/topology-ir/reject/ir_values_are_immutable.dart
+117 fixtures: 116 passed, 1 failed, 0 pending
+exit: 1
+
+### T2.2 the exports test and the renderer test, before the rest of lib/topology_ir.dart
+00:00 +0: loading packages/nidana_dart_contracts/test/topology_ir_declarations_test.dart
+00:00 +0 -1: loading packages/nidana_dart_contracts/test/topology_ir_declarations_test.dart [E]
+  packages/nidana_dart_contracts/test/topology_ir_declarations_test.dart:134:7: Error: Method not found: 'MermaidRenderer'.
+  packages/nidana_dart_contracts/test/topology_ir_declarations_test.dart:135:7: Error: Method not found: 'GraphvizRenderer'.
+  packages/nidana_dart_contracts/test/topology_ir_declarations_test.dart:136:7: Error: Method not found: 'JsonRenderer'.
+  packages/nidana_dart_contracts/test/topology_ir_declarations_test.dart:142:7: Error: Undefined name 'JsonRenderer'.
+  packages/nidana_dart_contracts/test/topology_ir_declarations_test.dart:141:7: Error: Undefined name 'GraphvizRenderer'.
+  packages/nidana_dart_contracts/test/topology_ir_declarations_test.dart:140:7: Error: Undefined name 'MermaidRenderer'.
+00:00 +0 -1: Some tests failed.
+exit: 1
+00:00 +0: loading packages/nidana_dart_contracts/test/exports_test.dart
+00:00 +0: the main library exports exactly the declarations topic-model@v1, topology-dsl@v2 and topology-ir@v1 place in it
+00:00 +1: G2 topology_plan.dart exports exactly the declarations under topology-dsl@v2's The plan
+00:00 +2: topology_ir.dart exports exactly the declarations under topology-ir@v1's Graphs, Renderers, The JSON form and Analyses
+00:00 +2 -1: topology_ir.dart exports exactly the declarations under topology-ir@v1's Graphs, Renderers, The JSON form and Analyses [E]
+  Expected: Set:[
+    Actual: Set:[
+     Which: does not contain 'MermaidRenderer'
+00:00 +2 -1: the export reader sees show lists and exports without one
+00:00 +3 -1: Some tests failed.
+exit: 1
+
+### T2.4 lib/src/analysis/analyses.dart, lib/src/json/codec.dart, lib/src/render/renderers.dart and lib/topology_ir.dart
+Formatted 30 files (0 changed) in 0.03 seconds.
+format exit: 0
+00:00 +19: packages/nidana_dart_contracts/test/declarations_test.dart: G10 a non-const replay topic below one value fails an assertion
+00:00 +20: packages/nidana_dart_contracts/test/declarations_test.dart: G10 a non-const replay topic below one value fails an assertion
+00:00 +21: packages/nidana_dart_contracts/test/purity_test.dart: the directive reader reads a triple-quoted URI, whose first line break Dart drops
+00:00 +22: packages/nidana_dart_contracts/test/declarations_test.dart: a source with an empty field fails an assertion
+00:00 +23: packages/nidana_dart_contracts/test/purity_test.dart: the directive reader keeps a string with an escaped quote whole, so a comment mark in it opens no comment
+00:00 +24: packages/nidana_dart_contracts/test/declarations_test.dart: an envelope keeps the fields it is given, with no causation and no parents by default
+00:00 +25: packages/nidana_dart_contracts/test/declarations_test.dart: an envelope keeps the fields it is given, with no causation and no parents by default
+00:00 +26: packages/nidana_dart_contracts/test/declarations_test.dart: an envelope keeps the fields it is given, with no causation and no parents by default
+00:00 +27: packages/nidana_dart_contracts/test/declarations_test.dart: an envelope keeps the fields it is given, with no causation and no parents by default
+00:00 +28: packages/nidana_dart_contracts/test/declarations_test.dart: an envelope keeps the fields it is given, with no causation and no parents by default
+00:00 +29: packages/nidana_dart_contracts/test/purity_test.dart: allowedUri admits the SDK but four libraries, meta, this package and lib/, and nothing else
+00:00 +30: packages/nidana_dart_contracts/test/declarations_test.dart: G18 Lineage.root has no causation and no parents, and the correlation and sensitivity it is given, null and false by default
+00:00 +31: packages/nidana_dart_contracts/test/purity_test.dart: allowedUri refuses a relative URI with a query, a fragment or an authority, and does not throw
+00:00 +32: packages/nidana_dart_contracts/test/purity_test.dart: the effects scan finds every listed token, in a comment too
+00:00 +33: packages/nidana_dart_contracts/test/purity_test.dart: the pubspec reader sees every key of a section
+00:00 +34: packages/nidana_dart_contracts/test/ir_declarations_test.dart: CombinatorKind has eighteen values, in combinator-table order
+00:00 +35: packages/nidana_dart_contracts/test/ir_declarations_test.dart: a TopicInput keeps its topic, and its dedup, null by default
+00:00 +36: packages/nidana_dart_contracts/test/ir_declarations_test.dart: a StageInput keeps its index; a negative one fails an assertion
+00:00 +37: packages/nidana_dart_contracts/test/ir_declarations_test.dart: FunctionRef.named keeps its name, and an anonymous one has none
+00:00 +38: All tests passed!
+exit: 0
+Analyzing tird.dOws9O...
+No issues found!
+exit: 0
+-- topology-ir --set surface,reject
+PASS structure lines: 9, PASS schema lines: 0
+PASS surface hsdd/contract/fixture/topology-ir/surface/definitions.dart
+PASS surface hsdd/contract/fixture/topology-ir/surface/graphs.dart
+PASS reject hsdd/contract/fixture/topology-ir/reject/ir_families_are_closed.dart
+PASS reject hsdd/contract/fixture/topology-ir/reject/ir_holds_no_function.dart
+PASS reject hsdd/contract/fixture/topology-ir/reject/ir_values_are_immutable.dart
+14 fixtures: 14 passed, 0 failed, 0 pending
+exit: 0
+-- topic-model topology-dsl topology-ir --set structure,surface,reject,schema
+PASS structure lines: 42, PASS schema lines: 46
+PASS surface hsdd/contract/fixture/topic-model/surface/envelopes.dart
+PASS surface hsdd/contract/fixture/topic-model/surface/observers.dart
+PASS surface hsdd/contract/fixture/topic-model/surface/topics.dart
+PASS reject hsdd/contract/fixture/topic-model/reject/envelope_requires_metadata.dart
+PASS reject hsdd/contract/fixture/topic-model/reject/no_dispatcher_hint.dart
+PASS reject hsdd/contract/fixture/topic-model/reject/observer_has_no_publish_path.dart
+PASS reject hsdd/contract/fixture/topic-model/reject/only_state_topics_carry_values.dart
+PASS reject hsdd/contract/fixture/topic-model/reject/replay_buffer_is_positive.dart
+PASS reject hsdd/contract/fixture/topic-model/reject/source_family_is_closed.dart
+PASS reject hsdd/contract/fixture/topic-model/reject/state_topic_is_not_multi_writer.dart
+PASS reject hsdd/contract/fixture/topic-model/reject/state_topic_requires_initial.dart
+PASS reject hsdd/contract/fixture/topic-model/reject/topic_family_is_closed.dart
+PASS reject hsdd/contract/fixture/topic-model/reject/values_are_immutable.dart
+PASS surface hsdd/contract/fixture/topology-dsl/surface/plan.dart
+PASS surface hsdd/contract/fixture/topology-dsl/surface/topologies.dart
+PASS reject hsdd/contract/fixture/topology-dsl/reject/dsl_types_are_closed.dart
+PASS reject hsdd/contract/fixture/topology-dsl/reject/handle_is_opaque.dart
+PASS reject hsdd/contract/fixture/topology-dsl/reject/plan_is_a_separate_library.dart
+PASS reject hsdd/contract/fixture/topology-dsl/reject/reduce_into_targets_state.dart
+PASS reject hsdd/contract/fixture/topology-dsl/reject/time_takes_duration.dart
+PASS reject hsdd/contract/fixture/topology-dsl/reject/topology_declares_id_and_scope.dart
+PASS reject hsdd/contract/fixture/topology-dsl/reject/topology_is_a_base_class.dart
+PASS reject hsdd/contract/fixture/topology-dsl/reject/transformers_see_payloads.dart
+PASS reject hsdd/contract/fixture/topology-dsl/reject/write_type_checks.dart
+PASS surface hsdd/contract/fixture/topology-ir/surface/definitions.dart
+PASS surface hsdd/contract/fixture/topology-ir/surface/graphs.dart
+PASS reject hsdd/contract/fixture/topology-ir/reject/ir_families_are_closed.dart
+PASS reject hsdd/contract/fixture/topology-ir/reject/ir_holds_no_function.dart
+PASS reject hsdd/contract/fixture/topology-ir/reject/ir_values_are_immutable.dart
+117 fixtures: 117 passed, 0 failed, 0 pending
+exit: 0
+
+### G the phase gate, from the workspace root
+gate exit: 0
+Got dependencies!
+No issues found!
+102 fixtures: 102 passed, 0 failed, 0 pending
+00:00 +38: All tests passed!
+117 fixtures: 117 passed, 0 failed, 0 pending
+
+### G2 the final task's checklist
+exit: 1
+exit: 1
+packages/nidana_dart_contracts/lib/topology_ir.dart:5:export 'src/analysis/analyses.dart'
+packages/nidana_dart_contracts/lib/topology_ir.dart:13:export 'src/analysis/findings.dart'
+packages/nidana_dart_contracts/lib/topology_ir.dart:22:export 'src/graph/graph.dart'
+packages/nidana_dart_contracts/lib/topology_ir.dart:24:export 'src/json/codec.dart'
+packages/nidana_dart_contracts/lib/topology_ir.dart:31:export 'src/render/renderers.dart' show GraphvizRenderer, MermaidRenderer;
+packages/nidana_dart_contracts/lib/src/graph/graph.dart:1:import 'package:meta/meta.dart';
+packages/nidana_dart_contracts/lib/src/graph/graph.dart:3:import '../ir/definition.dart';
+packages/nidana_dart_contracts/lib/src/graph/graph.dart:4:import '../topic/message_source.dart';
+packages/nidana_dart_contracts/lib/src/graph/graph.dart:5:import '../topic/scope.dart';
+packages/nidana_dart_contracts/lib/src/graph/graph.dart:6:import '../topic/topic.dart';
+packages/nidana_dart_contracts/lib/src/analysis/analyses.dart:1:import '../graph/graph.dart';
+packages/nidana_dart_contracts/lib/src/analysis/analyses.dart:2:import '../ir/definition.dart';
+packages/nidana_dart_contracts/lib/src/analysis/analyses.dart:3:import 'findings.dart';
+packages/nidana_dart_contracts/lib/src/analysis/findings.dart:1:import 'package:meta/meta.dart';
+packages/nidana_dart_contracts/lib/src/analysis/findings.dart:3:import '../topic/message_source.dart';
+packages/nidana_dart_contracts/lib/src/analysis/findings.dart:4:import '../topic/scope.dart';
+packages/nidana_dart_contracts/lib/src/analysis/findings.dart:5:import '../topic/topic.dart';
+packages/nidana_dart_contracts/lib/src/json/codec.dart:1:import '../graph/graph.dart';
+packages/nidana_dart_contracts/lib/src/json/codec.dart:2:import '../ir/definition.dart';
+packages/nidana_dart_contracts/lib/src/render/renderers.dart:1:import '../graph/graph.dart';
+packages/nidana_dart_contracts/lib/src/ir/definition.dart:2
+packages/nidana_dart_contracts/lib/src/graph/graph.dart:2
+packages/nidana_dart_contracts/lib/src/topic/redacted_payload.dart:1
+pubspec.lock unchanged
+      31 packages/nidana_dart_contracts/lib/topology_ir.dart
+      73 packages/nidana_dart_contracts/lib/src/graph/graph.dart
+      21 packages/nidana_dart_contracts/lib/src/analysis/analyses.dart
+      83 packages/nidana_dart_contracts/lib/src/analysis/findings.dart
+      26 packages/nidana_dart_contracts/lib/src/json/codec.dart
+      15 packages/nidana_dart_contracts/lib/src/render/renderers.dart
+     146 packages/nidana_dart_contracts/test/topology_ir_declarations_test.dart
+     395 total
+exports_test.dart changed lines: 24
+
+### R every (line, code) pair reported in each reject library of nidana.model's three contracts; a line with two codes is flagged
+topic-model/reject/envelope_requires_metadata.dart 8 diagnostics, one code per line
+topic-model/reject/no_dispatcher_hint.dart 3 diagnostics, one code per line
+topic-model/reject/observer_has_no_publish_path.dart 5 diagnostics, one code per line
+topic-model/reject/only_state_topics_carry_values.dart 8 diagnostics, one code per line
+topic-model/reject/replay_buffer_is_positive.dart 1 diagnostics, one code per line
+topic-model/reject/source_family_is_closed.dart 3 diagnostics, one code per line
+topic-model/reject/state_topic_is_not_multi_writer.dart 5 diagnostics, one code per line
+topic-model/reject/state_topic_requires_initial.dart 4 diagnostics, one code per line
+topic-model/reject/topic_family_is_closed.dart 5 diagnostics, one code per line
+topic-model/reject/values_are_immutable.dart 8 diagnostics, one code per line
+topology-dsl/reject/dsl_types_are_closed.dart 7 diagnostics, one code per line
+topology-dsl/reject/handle_is_opaque.dart 7 diagnostics, one code per line
+topology-dsl/reject/plan_is_a_separate_library.dart 3 diagnostics, one code per line
+topology-dsl/reject/reduce_into_targets_state.dart 4 diagnostics, one code per line
+topology-dsl/reject/time_takes_duration.dart 7 diagnostics, one code per line
+topology-dsl/reject/topology_declares_id_and_scope.dart 5 diagnostics, one code per line
+topology-dsl/reject/topology_is_a_base_class.dart 4 diagnostics, one code per line
+topology-dsl/reject/transformers_see_payloads.dart 6 diagnostics, one code per line
+topology-dsl/reject/write_type_checks.dart 3 diagnostics, one code per line
+topology-ir/reject/ir_families_are_closed.dart 12 diagnostics, one code per line
+topology-ir/reject/ir_holds_no_function.dart 5 diagnostics, one code per line
+topology-ir/reject/ir_values_are_immutable.dart 10 diagnostics, one code per line
+libraries: 22 lines with two codes: 0
+
+### D seeded defects, each restored after
+-- D1 topology_ir.dart also re-exports the main library
+Analyzing tird.dOws9O...
+
+   info - packages/nidana_dart_contracts/test/topology_ir_declarations_test.dart:4:8 - The import of 'package:nidana_dart_contracts/nidana_dart_contracts.dart' is unnecessary because all of the used elements are also provided by the import of 'package:nidana_d
+
+1 issue found.
+exit: 1
+14 fixtures: 11 passed, 3 failed, 0 pending
+exit: 1
+     Which: is not Iterable
+00:00 +2 -1: the export reader sees show lists and exports without one
+00:00 +3 -1: Some tests failed.
+exit: 1
+-- D2 ShellClaim.scope a getter over a private field
+FAIL reject hsdd/contract/fixture/topology-ir/reject/ir_values_are_immutable.dart: missing-diagnostic (line 35: assignment_to_final, named by the marker on line 34, not reported); unexpected-diagnostic (line 35: ERROR assignment_to_final_no_setter: There isn't
+14 fixtures: 13 passed, 1 failed, 0 pending
+-- D3 ScopeViolation's constructor not const
+14 fixtures: 14 passed, 0 failed, 0 pending
+exit: 0
+  packages/nidana_dart_contracts/test/topology_ir_declarations_test.dart:115:13: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
+00:00 +0 -1: Some tests failed.
+exit: 1
+-- D4 TopologyFinding not sealed but abstract
+FAIL surface hsdd/contract/fixture/topology-ir/surface/graphs.dart: diagnostic (line 83: ERROR non_exhaustive_switch_expression: The type 'TopologyFinding' isn't exhaustively matched by the switch cas
+FAIL reject hsdd/contract/fixture/topology-ir/reject/ir_families_are_closed.dart: missing-diagnostic (line 32: invalid_use_of_type_outside_library, named by the marker on line 31, not reported)
+14 fixtures: 12 passed, 2 failed, 0 pending
+exit: 0
+
+### X every Dart block of the plan is the text of a draft file or a contiguous part of one
+block 1: 122 lines, the whole of test/topology_ir_declarations_test.t1.dart
+block 2: 73 lines, the whole of lib/src/graph/graph.dart
+block 3: 83 lines, the whole of lib/src/analysis/findings.dart
+block 4: 15 lines, the whole of lib/topology_ir.t1.dart
+block 5: 7 lines, part of test/topology_ir_declarations_test.dart
+block 6: 15 lines, part of test/topology_ir_declarations_test.dart
+block 7: 3 lines, part of test/exports_test.dart
+block 8: 17 lines, part of test/exports_test.dart
+block 9: 21 lines, the whole of lib/src/analysis/analyses.dart
+block 10: 26 lines, the whole of lib/src/json/codec.dart
+block 11: 15 lines, the whole of lib/src/render/renderers.dart
+block 12: 31 lines, the whole of lib/topology_ir.dart
+
+### cleanup
+removed the temporary workspace

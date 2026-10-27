@@ -181,7 +181,10 @@ a `Task N: complete` line; never re-dispatch them.
 | S110 | reconcile (inserted) | hsdd-reconcile | nidana.model pending section: three Delivery amends within version, conventions fp-progression | done | 87b473a |
 | S111 | config | hsdd-config | nidana.model.4 re-run after the re-plan (N 6) | done | a78d464 |
 | S112 | code-plan | superpowers:writing-plans | nidana.model.4 (5 tasks; dry run 57/57; purity hardening routed in) | done | d3c8f85 |
-| S113 | implement | superpowers:subagent-driven-development | nidana.model.4: 5 tasks, 2 fix rounds (purity reader), final review with one fix wave; gate exit 0, 32 tests, 57/57 | done | ccac409 (merge recorded in the next row) |
+| S113 | implement | superpowers:subagent-driven-development | nidana.model.4: 5 tasks, 2 fix rounds (purity reader), final review with one fix wave; gate exit 0, 32 tests, 57/57 | done | ccac409; merged into impl/nidana.model as 3c147db |
+| S114 | config | hsdd-config | nidana.model.5 | done | d514fe4 |
+| S115 | code-plan | superpowers:writing-plans | nidana.model.5 (3 tasks; dry run 117/117) | done | 2088ab2 |
+| S116 | implement | superpowers:subagent-driven-development | nidana.model.5: 3 tasks, 1 doc fix round, final review ready to merge; gate exit 0, 38 tests, 117/117; end of the types band | done | 01991b3 (merge recorded in the next row) |
 
 ## Notes for the report
 
@@ -264,8 +267,24 @@ that phase's writing-plans dispatch and strikes it here when the phase's plan co
 - nidana.model.9 (from S113's final review): G14's "a handle another builder made" check needs a
   handle-to-builder link (a private constructor argument or an Expando); `CombineStage.apply` for `combineAll`
   needs `T`, which `CombineStage<R>` does not carry, so capture a typed closure in the private constructor.
+- nidana.model.11 (from S115): remove the two `// ignore: unused_element` lines above `ShellClaim._` and
+  `TopologyGraph._`.
+- nidana.model.13 (from S115): the codec adds the `dart:convert` import (not imported at nidana.model.5).
+- Consumer nodes (from S115): ADR-001 item 4's one-code marker held for all 22 reject libraries of
+  nidana.model's three contracts; the reject sets of bus-api, bus-testing, navigation-api and flutter-binding
+  meet it at their producers' first gates (outside this run).
+- nidana.model.10 and .11 (from S116's final review): D4 puts "the canonical orders" in `lib/src/ir/`, but the
+  claim order compares `ShellClaim`, which lives in `graph/graph.dart` and imports `ir/`; a claim comparator in
+  `ir/` naming `ShellClaim` makes the libraries import each other. Define the claim order over its parts
+  (source, scope, writes) in `ir/`, or keep it in `graph/`. Also: the findings' constructors become
+  initializer lists that sort, keeping every parameter name and field type (no call site changes).
 - nidana.model.10 (from S112): remove the two `// ignore: unused_element` on `TransformEdge._` and
   `TopologyDefinition._`; `FunctionRef.named`'s empty-name `ArgumentError`.
+- End of nidana.model, governance sweep (from S115's dry run): topology-ir@v1's surface fixtures never build
+  `ScopeViolation` with `const` (`surface/graphs.dart:105`), so a non-const constructor passes the replay; only
+  the package's own test pins it (`TopicDeclaration` is built `const` at `graphs.dart:122`, so the replay pins
+  that one; corrected after S116's Task 3 review). A compatible hsdd-contract touch could add a const use to
+  `surface/graphs.dart`.
 - End of nidana.model, governance sweep (from S112): topology-ir@v1's Interface prose (line 47) says every value
   type is `@immutable`, but its code blocks show no annotation; the code annotates as the prose says.
 - End of nidana.model, governance sweep (from S110): hsdd-adr touch of ADR-001 item 10 (its premise that a
