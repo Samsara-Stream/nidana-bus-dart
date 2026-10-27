@@ -207,6 +207,7 @@ a `Task N: complete` line; never re-dispatch them.
 | S136 | config | hsdd-config | nidana.model.11 (N=7, spot-check; found the topology-ir restriction's G3 and G7 cases call analyzeTopologyGraph, .12's; governance route S137 to S139) | done | 6bd67bf |
 | S137 | phase-plan | hsdd-phase-plan | nidana.model amend of the unshipped gates (.11 and .13 without G3, G7; reach table over .11 to .14: all pass after) | done | 1c49c76 |
 | S138 | reconcile | hsdd-reconcile | nidana.model pending section (amend of .11 and .13 gates): topology-ir@v1 Delivery, compatible within v1 | done | 708e7df |
+| S139 | config | hsdd-config | nidana.model.11 re-run after the gate amend (topology-ir G2,G5,G6,G8 to G12: 17 cases, 7 for .11) | done | d68ad72 |
 
 ## Notes for the report
 
@@ -417,6 +418,9 @@ that phase's writing-plans dispatch and strikes it here when the phase's plan co
   (`invalid/dedup_on_event_read.json`, `typeName` minLength 1), so G20's "decoding a graph's encoding gives the
   graph back" fails for such hand-built graphs; either assert in the constructors as `StageInput` does or narrow
   G20 to graphs the decoder accepts. Plan-made definitions never hold either.
+- End of nidana.model, governance sweep (from S139): nidana.model.10's shipped Scope (spec line 361) and its
+  verification doc (line 70) still say G3 and G7 join the topology-ir restriction at nidana.model.11; S137 moved
+  them to nidana.model.12 (shipped text was left untouched). An hsdd-phase-plan or reconcile touch, or a note.
 - nidana.tooling.codegen.6, .9, .11 and nidana.tooling.lint.4 (from S122): the first gates to run the 39 committed
   recorded invocations and topic-codegen's file replay for real (all PENDING until then); their `{files}` and
   `{root}` recordings and in-place `files/` runs are first exercised there.
