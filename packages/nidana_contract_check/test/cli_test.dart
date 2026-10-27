@@ -1,7 +1,9 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:nidana_contract_check/src/request.dart' show usage;
 import 'package:nidana_contract_check/src/shell.dart';
+import 'package:nidana_contract_check/src/snapshot.dart';
 import 'package:test/test.dart';
 
 import 'support/sample.dart';
@@ -9,6 +11,8 @@ import 'support/seed.dart';
 import 'support/workspace.dart';
 
 const String s = 'hsdd/contract/fixture/sample/';
+const String t = 'hsdd/contract/fixture/tool/';
+const String h = 'hsdd/contract/fixture/host/';
 const List<String> cleanLines = <String>[
   'PASS structure hsdd/contract/sample.md',
   'PASS structure hsdd/contract/fixture/sample/',
@@ -153,6 +157,144 @@ void main() {
       ),
     );
     expect(r.stderr as String, isEmpty);
+  });
+  test("readSnapshot keeps the bytes of a recorded invocation's files and no other's", () {
+    final Directory root = seed(<String, String>{
+      ...toolFiles,
+      '${t}invocation/generate-usage/stdout': 'out\n',
+      '${t}invocation/generate-usage/stderr': 'err\n',
+      '${t}invocation/generate-usage/files/analysis_options.yaml': 'plugins:\n',
+      '${t}invocation/generate-usage/files/in.txt': 'x\n',
+      '${t}invocation/generate-usage/expected/out.txt': 'y\n',
+    });
+    final Map<String, List<int>> records = readSnapshot(root, 'tool').records;
+    expect(records.keys.toSet(), <String>{
+      'invocation/generate-usage/args',
+      'invocation/generate-usage/exit_code',
+      'invocation/generate-usage/stdout',
+      'invocation/generate-usage/stderr',
+      'invocation/generate-usage/files/analysis_options.yaml',
+    });
+    expect(
+      utf8.decode(records['invocation/generate-usage/args']!),
+      'tool:generate\n--frob\n',
+    );
+  });
+  test('a record is read through a link, a dangling one throws, and a hidden case holds none', () {
+    const String c = '${t}invocation/generate-usage/';
+    final Directory root = seed(<String, String>{
+      ...toolFiles,
+      'elsewhere/stdout': 'linked\n',
+      '${t}invocation/.hidden/args': 'dart\n',
+    });
+    Link('${root.path}/${c}stdout').createSync('${root.path}/elsewhere/stdout');
+    final Map<String, List<int>> records = readSnapshot(root, 'tool').records;
+    expect(records.keys.toSet(), <String>{
+      'invocation/generate-usage/args',
+      'invocation/generate-usage/exit_code',
+      'invocation/generate-usage/stdout',
+    });
+    expect(
+      utf8.decode(records['invocation/generate-usage/stdout']!),
+      'linked\n',
+    );
+    Link('${root.path}/${c}stderr').createSync('${root.path}/nowhere');
+    expect(
+      () => readSnapshot(root, 'tool'),
+      throwsA(
+        isA<FileSystemException>().having(
+          (FileSystemException e) => e.path,
+          'path',
+          endsWith('${c}stderr'),
+        ),
+      ),
+    );
+  });
+  test('snapshotOf reads the contract text and the records as readSnapshot reads them', () {
+    final Map<String, String> files = <String, String>{
+      ...toolFiles,
+      '${t}invocation/generate-usage/stdout': 'out\n',
+      '${t}invocation/generate-usage/files/analysis_options.yaml': 'plugins:\n',
+      '${t}invocation/generate-usage/files/in.txt': 'x\n',
+    };
+    final Directory root = seed(files);
+    File('${root.path}/hsdd/contract/tool.md')
+        .writeAsBytesSync(const <int>[0x23, 0xff]);
+    final SlugSnapshot read = readSnapshot(root, 'tool');
+    final SlugSnapshot seeded = snapshotOf(
+      'tool',
+      files,
+      bytes: const <String, List<int>>{
+        'hsdd/contract/tool.md': <int>[0x23, 0xff],
+      },
+    );
+    expect(read.contractText, isNull);
+    expect(
+      read.contractUndecodable,
+      'not UTF-8: Invalid UTF-8 byte (at offset 1)',
+    );
+    expect(seeded.contractText, read.contractText);
+    expect(seeded.contractUndecodable, read.contractUndecodable);
+    expect(seeded.records, read.records);
+  });
+  test('a contract text that is not UTF-8 fails structure (1), and a restriction still reads its ids', () async {
+    final Directory root = seed(sampleFiles);
+    File('${root.path}/hsdd/contract/sample.md')
+        .writeAsBytesSync(<int>[0xff, ...utf8.encode(sampleContract)]);
+    for (final List<String> arguments in <List<String>>[
+      <String>['sample', '--set', 'structure'],
+      <String>['sample', '--set', 'structure', '--guarantee', 'G1'],
+    ]) {
+      final ProcessResult r = await runTool(arguments, workingDirectory: root);
+      expect(r.exitCode, 1, reason: '$arguments\n${all(r)}');
+      expect(lines(r), <String>[
+        'FAIL structure hsdd/contract/sample.md: contract-text (not UTF-8: Invalid UTF-8 byte (at offset 0))',
+        '1 fixture: 0 passed, 1 failed, 0 pending',
+      ], reason: '$arguments');
+    }
+  });
+  test("a read defect in another slug's tree outside its suite stops no binding's replay", () async {
+    final Directory root = await seedWorkspace(<String, String>{
+      ...behaviorFiles,
+      ...hostFiles,
+    });
+    Link('${root.path}/hsdd/contract/fixture/sample/surface/broken.dart')
+        .createSync('${root.path}/nowhere.dart');
+    final ProcessResult r = await runTool(<String>[
+      'host',
+      '--set',
+      'behavior',
+    ], workingDirectory: root);
+    expect(r.exitCode, 1, reason: all(r));
+    expect(r.stderr as String, isNot(contains('error:')));
+    expect(
+      lines(r),
+      contains(
+        'PENDING behavior ${h}behavior/host_impl_test.dart: packages matcher, nidana_contract_check, test are absent from .dart_tool/package_config.json',
+      ),
+    );
+  });
+  test('a suite file that is a dangling link fails its binding, not the replay', () async {
+    final Directory root = await seedWorkspace(<String, String>{
+      ...behaviorFiles,
+      ...hostFiles,
+    });
+    const String suite =
+        'hsdd/contract/fixture/sample/behavior/sample_conformance.dart';
+    File('${root.path}/$suite').deleteSync();
+    Link('${root.path}/$suite').createSync('${root.path}/nowhere.dart');
+    final ProcessResult r = await runTool(<String>[
+      'host',
+      '--set',
+      'behavior',
+    ], workingDirectory: root);
+    expect(r.exitCode, 1, reason: all(r));
+    expect(
+      lines(r),
+      contains(
+        'FAIL behavior ${h}behavior/host_impl_test.dart: suite ($suite does not exist)',
+      ),
+    );
   });
   group('the surface and reject sets over a seeded workspace, one dart analyze', () {
     late ProcessResult r;

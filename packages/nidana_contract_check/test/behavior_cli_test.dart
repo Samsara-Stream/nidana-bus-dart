@@ -325,26 +325,55 @@ void main() {
     ]);
     expect(unreported.out, everyElement(isNot(startsWith('PASS behavior'))));
   });
-  test("another slug's suite is read from that slug's snapshot, only for a replay that runs the behavior set", () async {
-    final Directory seeded = seed(<String, String>{
+  test("another slug's suite file is read alone, only for a replay that runs the behavior set", () async {
+    final Directory seeded = await seedWorkspace(<String, String>{
       ...behaviorFiles,
       ...hostFiles,
     });
+    // Defects of the suite's slug outside its suite file: none is read.
     Link('${seeded.path}/${s}reject/gone.dart')
         .createSync('${seeded.path}/gone');
-    final Replay structure = await replay(
-      <String>['host', '--set', 'structure'],
-      from: seeded,
-      dart: plainDart(),
-    );
+    File('${seeded.path}/hsdd/contract/sample.md')
+        .writeAsBytesSync(const <int>[0xff]);
+    final File suite = File(
+      '${seeded.path}/${s}behavior/sample_conformance.dart',
+    )..writeAsBytesSync(const <int>[0x2f, 0x2f, 0xff, 0x0a]);
+    final ProcessResult chmod = Process.runSync('chmod', <String>[
+      '000',
+      suite.path,
+    ]);
+    expect(chmod.exitCode, 0, reason: all(chmod));
+    Future<Replay> host(String set) =>
+        replay(<String>['host', '--set', set], from: seeded, dart: plainDart());
+
+    final Replay structure = await host('structure');
     expect(structure.code, 0, reason: told(structure));
-    final Replay behavior = await replay(
-      <String>['host', '--set', 'behavior'],
-      from: seeded,
-      dart: plainDart(),
+    // A suite file that exists and cannot be read stops the replay, as a
+    // source of the replayed slug does.
+    final Replay unreadable = await host('behavior');
+    expect(unreadable.code, 2, reason: told(unreadable));
+    expect(
+      unreadable.err.single,
+      allOf(
+        startsWith('error: '),
+        contains('${s}behavior/sample_conformance.dart'),
+      ),
     );
-    expect(behavior.code, 2, reason: told(behavior));
-    expect(behavior.err.single, contains('${s}reject/gone.dart'));
+    expect(unreadable.out, isEmpty);
+    final ProcessResult readable = Process.runSync('chmod', <String>[
+      '644',
+      suite.path,
+    ]);
+    expect(readable.exitCode, 0, reason: all(readable));
+    final Replay undecodable = await host('behavior');
+    expect(undecodable.code, 1, reason: told(undecodable));
+    expect(
+      undecodable.out,
+      contains(
+        'FAIL behavior ${h}behavior/host_impl_test.dart: suite (${s}behavior/sample_conformance.dart: not UTF-8: Invalid UTF-8 byte (at offset 2))',
+      ),
+    );
+    expect(undecodable.err, isEmpty);
   });
   test("a binding of another slug's suite is PENDING on the suite's absent packages too", () async {
     final Replay r = await replay(

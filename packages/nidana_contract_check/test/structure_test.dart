@@ -2,6 +2,8 @@
 import 'dart:convert';
 
 import 'package:nidana_contract_check/src/outcome.dart';
+import 'package:nidana_contract_check/src/report.dart';
+import 'package:nidana_contract_check/src/request.dart';
 import 'package:nidana_contract_check/src/snapshot.dart';
 import 'package:nidana_contract_check/src/structure.dart';
 import 'package:test/test.dart';
@@ -372,6 +374,47 @@ void main() {
       ]) {
         expect(isBindingPath(path), isFalse, reason: path);
       }
+    });
+    test('holdsRecord accepts a recorded invocation\'s four files and its files/analysis_options.yaml alone', () {
+      for (final String path in <String>[
+        'invocation/c/args',
+        'invocation/c/exit_code',
+        'invocation/c/stdout',
+        'invocation/c/stderr',
+        'invocation/c/files/analysis_options.yaml',
+      ]) {
+        expect(holdsRecord(path), isTrue, reason: path);
+      }
+      for (final String path in <String>[
+        'invocation/args',
+        'invocation/c/args.txt',
+        'invocation/c/files/args',
+        'invocation/c/expected/stdout',
+        'invocation/c/files/lib/analysis_options.yaml',
+        'input/args',
+      ]) {
+        expect(holdsRecord(path), isFalse, reason: path);
+      }
+    });
+    test('a contract text that is not UTF-8 fails at its path, alone', () {
+      final List<FixtureOutcome> o = checkStructure(
+        snapshotOf(
+          'sample',
+          sampleFiles,
+          bytes: <String, List<int>>{
+            'hsdd/contract/sample.md': <int>[
+              0xff,
+              ...utf8.encode(sampleContract),
+            ],
+          },
+        ),
+      );
+      expect(
+        o.map((FixtureOutcome x) => outcomeLine(CheckSet.structure, x)),
+        <String>[
+          'FAIL structure hsdd/contract/sample.md: contract-text (not UTF-8: Invalid UTF-8 byte (at offset 0))',
+        ],
+      );
     });
     test('isConformancePath accepts behavior/{name}_conformance.dart directly under behavior/ alone', () {
       for (final String path in <String>[

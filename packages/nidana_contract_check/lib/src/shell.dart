@@ -1,10 +1,11 @@
 /// The replay tool's imperative shell (nidana.model D2 item 5): it finds the
 /// workspace root, reads the contract texts a restriction names, one
-/// [SlugSnapshot] per slug of the request and per slug whose suite a binding
-/// imports, and the package configuration, runs `dart analyze` once for the
-/// `surface` and `reject` sets of every slug, runs one test runner per
-/// binding the `behavior` set runs (through `runners.dart`), runs the planned
-/// sets and prints the report. Every decision is the pure core's. With
+/// [SlugSnapshot] per slug of the request, one holding the suite files alone
+/// per other slug whose suite a binding imports, and the package
+/// configuration, runs `dart analyze` once for the `surface` and `reject`
+/// sets of every slug, runs one test runner per binding the `behavior` set
+/// runs (through `runners.dart`), runs the planned sets and prints the
+/// report. Every decision is the pure core's. With
 /// `runners.dart` and `workspace.dart`, it is one of the three libraries
 /// under `lib/src/` that import `dart:io`.
 library;
@@ -61,18 +62,20 @@ Set<String> discoverSlugs(Directory root) {
 ///
 /// Every other directory and file below `hsdd/contract/fixture/{slug}/` is
 /// recorded by its `/`-separated path relative to that directory, a file with
-/// its source only when [holdsSource] says so, and with its bytes as a
-/// document only when [holdsDocument] says so. The schema file is read as
-/// bytes when it exists. A source is read as bytes and decoded by
-/// [decodeSource], so a source that is not UTF-8 has a null source and its
-/// reason in [SlugSnapshot.undecodable], that source's defect for the
-/// structure set to report. A document's bytes are never decoded here, so a
-/// document that is not UTF-8 is that document's defect for the schema set
-/// to report. A symbolic link is never descended into, so no tree outside
-/// the fixture directory joins the snapshot: it is recorded as a file, the
-/// layout check sees it as one, and when [holdsSource] or [holdsDocument]
-/// says so it is read through the link, so a linked library or document is
-/// replayed and a dangling one throws.
+/// its source only when [holdsSource] says so, with its bytes as a document
+/// only when [holdsDocument] says so, and with its bytes as a record only
+/// when [holdsRecord] says so. The schema file is read as bytes when it
+/// exists. The contract text and each source are read as bytes and decoded
+/// by [decodeSource], so one that is not UTF-8 has a null text and its
+/// reason in [SlugSnapshot.contractUndecodable] or
+/// [SlugSnapshot.undecodable], its defect for the structure set to report. A
+/// document's and a record's bytes are never decoded here, so one that is not
+/// UTF-8 is its own set's defect to report. A symbolic link is never
+/// descended into, so no tree outside the fixture directory joins the
+/// snapshot: it is recorded as a file, the layout check sees it as one, and
+/// when [holdsSource], [holdsDocument] or [holdsRecord] says so it is read
+/// through the link, so a linked library, document or record is replayed and
+/// a dangling one throws.
 SlugSnapshot readSnapshot(Directory root, String slug) {
   final Directory fixtures = Directory(
     workspacePath(root, fixtureDirectory(slug)),
@@ -93,10 +96,14 @@ SlugSnapshot readSnapshot(Directory root, String slug) {
             path: decodeSource(File(entity.path).readAsBytesSync()),
       });
   final File contract = File(workspacePath(root, contractPath(slug)));
+  final SourceDecoding? contractDecoding = contract.existsSync()
+      ? decodeSource(contract.readAsBytesSync())
+      : null;
   final File schema = File(workspacePath(root, schemaPath(slug)));
   return SlugSnapshot(
     slug: slug,
-    contractText: contract.existsSync() ? contract.readAsStringSync() : null,
+    contractText: _textOf(contractDecoding),
+    contractUndecodable: _reasonOf(contractDecoding),
     schemaBytes: schema.existsSync() ? schema.readAsBytesSync() : null,
     directories: Set<String>.unmodifiable(<String>{
       for (final (:String path, :FileSystemEntity entity) in entries)
@@ -104,27 +111,82 @@ SlugSnapshot readSnapshot(Directory root, String slug) {
     }),
     files: Map<String, String?>.unmodifiable(<String, String?>{
       for (final (:String path, :FileSystemEntity entity) in entries)
-        if (_isFile(entity))
-          path: switch (sources[path]) {
-            SourceText(:final String text) => text,
-            SourceNotUtf8() || null => null,
-          },
+        if (_isFile(entity)) path: _textOf(sources[path]),
     }),
     documents: Map<String, List<int>>.unmodifiable(<String, List<int>>{
       for (final (:String path, :FileSystemEntity entity) in entries)
         if (_isFile(entity) && holdsDocument(path))
           path: File(entity.path).readAsBytesSync(),
     }),
-    undecodable: Map<String, String>.unmodifiable(<String, String>{
+    undecodable: _undecodable(sources),
+    records: Map<String, List<int>>.unmodifiable(<String, List<int>>{
+      for (final (:String path, :FileSystemEntity entity) in entries)
+        if (_isFile(entity) && holdsRecord(path))
+          path: File(entity.path).readAsBytesSync(),
+    }),
+  );
+}
+
+/// The snapshot of [slug] under [root] that holds the suite files at [paths] alone, each a
+/// `/`-separated path from the workspace root below the slug's fixture directory.
+///
+/// Nothing else of the slug is read, so a defect elsewhere in its tree
+/// stops no binding's replay. A suite file that `File.existsSync` does not
+/// find, absent or a dangling link, is not in the snapshot, and the planner
+/// fails a binding of it as a suite that does not exist; one it finds is
+/// read through a link, as [readSnapshot] reads a source, and decoded by
+/// [decodeSource].
+SlugSnapshot _readSuites(Directory root, String slug, Iterable<String> paths) {
+  final String directory = fixtureDirectory(slug);
+  final Map<String, SourceDecoding> sources =
+      Map<String, SourceDecoding>.unmodifiable(<String, SourceDecoding>{
+        for (final String path in paths)
+          if (File(workspacePath(root, path)) case final File file
+              when file.existsSync())
+            path.substring(directory.length): decodeSource(
+              file.readAsBytesSync(),
+            ),
+      });
+  return SlugSnapshot(
+    slug: slug,
+    contractText: null,
+    schemaBytes: null,
+    directories: const <String>{},
+    files: Map<String, String?>.unmodifiable(<String, String?>{
       for (final MapEntry<String, SourceDecoding>(
             key: String path,
             value: SourceDecoding decoding,
           )
           in sources.entries)
-        if (decoding case SourceNotUtf8(:final String reason)) path: reason,
+        path: _textOf(decoding),
     }),
+    documents: const <String, List<int>>{},
+    undecodable: _undecodable(sources),
   );
 }
+
+/// The text of [decoding]; null when there is none or it is not UTF-8.
+String? _textOf(SourceDecoding? decoding) => switch (decoding) {
+  SourceText(:final String text) => text,
+  SourceNotUtf8() || null => null,
+};
+
+/// Why [decoding] is not UTF-8; null when there is none or it is UTF-8.
+String? _reasonOf(SourceDecoding? decoding) => switch (decoding) {
+  SourceNotUtf8(:final String reason) => reason,
+  SourceText() || null => null,
+};
+
+/// Each source of [sources] that is not UTF-8, with its reason.
+Map<String, String> _undecodable(Map<String, SourceDecoding> sources) =>
+    Map<String, String>.unmodifiable(<String, String>{
+      for (final MapEntry<String, SourceDecoding>(
+            key: String path,
+            value: SourceDecoding decoding,
+          )
+          in sources.entries)
+        if (_reasonOf(decoding) case final String reason) path: reason,
+    });
 
 /// Parses, replays, prints one line per fixture to [out] and errors to [err]; returns the exit code.
 /// [dart] runs `dart analyze` and `dart test`, and the flutter of its Flutter SDK runs
@@ -261,21 +323,29 @@ Map<String, Set<int>?> _declaredGuarantees(Directory root, Request request) =>
 
 /// The ids the contract text of [slug] under [root] declares; null when it is absent, as
 /// [readSnapshot] reads it.
+///
+/// The text is decoded by [lenientUtf8], so a contract text that is not
+/// UTF-8 still declares its ids and a restricted replay of its slug reaches
+/// the structure set, which fails it.
 Set<int>? _declaredBy(Directory root, String slug) {
   final File contract = File(workspacePath(root, contractPath(slug)));
   return contract.existsSync()
       ? Set<int>.unmodifiable(
-          readContract(slug, contract.readAsStringSync()).guarantees,
+          readContract(
+            slug,
+            lenientUtf8.decode(contract.readAsBytesSync()),
+          ).guarantees,
         )
       : null;
 }
 
 /// What a replay reads once for all its runs: the workspace [root], its
 /// [_Packages] and the replay's one [_Analysis]; the [snapshots] of every
-/// slug read, the request's and the slugs of the suites its bindings import;
-/// the request's [restriction]; the [dart] running the tool and the
-/// [flutter] beside it, null when its Flutter SDK holds none; and the
-/// [progress] sink, `err`, that a line goes to before each runner starts.
+/// slug read, the request's and, holding their suite files alone, the other
+/// slugs of the suites its bindings import; the request's [restriction]; the
+/// [dart] running the tool and the [flutter] beside it, null when its
+/// Flutter SDK holds none; and the [progress] sink, `err`, that a line goes
+/// to before each runner starts.
 typedef _Context = ({
   Directory root,
   _Packages packages,
@@ -287,11 +357,13 @@ typedef _Context = ({
   StringSink progress,
 });
 
-/// The snapshot of each slug of [plans], and of each slug that [discovered] holds whose suite a
-/// binding of a plan with the `behavior` set imports, read once each, in ascending order.
+/// The snapshot of each slug of [plans]; and, for each other slug that [discovered] holds whose
+/// suite a binding of a plan with the `behavior` set imports, one holding those suite files
+/// alone ([_readSuites]), in ascending order of slug.
 ///
 /// A suite's slug that has no fixture directory is not read: the planner
-/// fails a binding of it as a suite that does not exist.
+/// fails a binding of it as a suite that does not exist. A requested slug's
+/// suites are read from its own snapshot.
 Map<String, SlugSnapshot> _snapshotsOf(
   Directory root,
   List<SlugPlan> plans,
@@ -300,17 +372,30 @@ Map<String, SlugSnapshot> _snapshotsOf(
   final Map<String, SlugSnapshot> requested = <String, SlugSnapshot>{
     for (final SlugPlan plan in plans) plan.snapshot.slug: plan.snapshot,
   };
-  final List<String> suites = <String>{
+  final Set<String> suites = <String>{
     for (final SlugPlan plan in plans)
-      if (plan.sets.contains(CheckSet.behavior)) ...suiteSlugs(plan.snapshot),
+      if (plan.sets.contains(CheckSet.behavior)) ...suitePaths(plan.snapshot),
+  };
+  final List<String> slugs = <String>{
+    for (final String path in suites)
+      if (_suiteSlug(path) case final String slug
+          when discovered.contains(slug) && !requested.containsKey(slug))
+        slug,
   }.toList()..sort();
   return Map<String, SlugSnapshot>.unmodifiable(<String, SlugSnapshot>{
     ...requested,
-    for (final String slug in suites)
-      if (discovered.contains(slug) && !requested.containsKey(slug))
-        slug: readSnapshot(root, slug),
+    for (final String slug in slugs)
+      slug: _readSuites(
+        root,
+        slug,
+        suites.where((String path) => _suiteSlug(path) == slug),
+      ),
   });
 }
+
+/// The slug of the suite at [path], a path [suitePaths] gives: its fourth segment, `{slug}` of
+/// `hsdd/contract/fixture/{slug}/behavior/{name}_conformance.dart`.
+String _suiteSlug(String path) => path.split('/')[3];
 
 /// The flutter of the Flutter SDK that holds [dart], [flutterBeside] it, when that file exists;
 /// else null.

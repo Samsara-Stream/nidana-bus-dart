@@ -301,11 +301,15 @@ void main() {
       ],
     );
   });
-  test('suiteSlugs names the slugs whose suites the bindings import', () {
-    expect(suiteSlugs(host), <String>{'sample'});
-    expect(suiteSlugs(sample), <String>{'sample'});
+  test("suitePaths names the suite files the bindings import, another slug's included", () {
+    expect(suitePaths(host), <String>{
+      'hsdd/contract/fixture/sample/behavior/sample_conformance.dart',
+    });
+    expect(suitePaths(sample), <String>{
+      'hsdd/contract/fixture/sample/behavior/sample_conformance.dart',
+    });
     expect(
-      suiteSlugs(
+      suitePaths(
         snapshotOf(
           'host',
           hostFiles,

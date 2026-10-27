@@ -1,11 +1,17 @@
 /// The pure core's input: what the shell reads from the workspace for one
 /// slug, its contract text, its schema file and its fixture tree (ADR-001
-/// item 2), with each Dart source decoded from its bytes by [decodeSource].
+/// item 2), with the contract text and each Dart source decoded from its
+/// bytes by [decodeSource].
 library;
 
 import 'dart:convert';
 
 /// What the shell reads for one slug: the pure core's whole input.
+///
+/// The shell reads another slug whose conformance libraries a binding
+/// imports as a snapshot that holds those libraries alone, in [files] or
+/// [undecodable]: no contract text, no schema file, no directory, no document
+/// and no record.
 final class SlugSnapshot {
   const SlugSnapshot({
     required this.slug,
@@ -15,13 +21,20 @@ final class SlugSnapshot {
     required this.files,
     required this.documents,
     this.undecodable = const <String, String>{},
+    this.contractUndecodable,
+    this.records = const <String, List<int>>{},
   });
 
   /// The slug: the name of its fixture directory and of its contract text.
   final String slug;
 
-  /// The text of `hsdd/contract/{slug}.md`; null when it is absent.
+  /// The text of `hsdd/contract/{slug}.md`; null when it is absent or not
+  /// UTF-8.
   final String? contractText;
+
+  /// Why the contract text is not UTF-8, as [decodeSource] words it; null when it is UTF-8 or
+  /// absent. [contractText] is null when this is not.
+  final String? contractUndecodable;
 
   /// [schemaPath] of [slug] as read; null when it is absent.
   final List<int>? schemaBytes;
@@ -45,6 +58,9 @@ final class SlugSnapshot {
   /// Each file [holdsDocument] accepts, by its relative `/`-separated path,
   /// as read.
   final Map<String, List<int>> documents;
+
+  /// Each file [holdsRecord] accepts, by its relative `/`-separated path, as read.
+  final Map<String, List<int>> records;
 }
 
 /// A Dart source's bytes read as UTF-8: [SourceText], or [SourceNotUtf8] with the reason.
@@ -112,6 +128,12 @@ bool holdsDocument(String relativePath) => switch (relativePath.split('/')) {
   _ => false,
 };
 
+/// Whether the shell reads a file's bytes as part of a recorded invocation (ADR-001 item 7):
+/// `invocation/{case}/args`, `exit_code`, `stdout` or `stderr`, or
+/// `invocation/{case}/files/analysis_options.yaml`, by its `/`-separated path relative to its
+/// slug's fixture directory.
+bool holdsRecord(String relativePath) => _recordPath.hasMatch(relativePath);
+
 /// The path of [slug]'s contract text from the workspace root.
 String contractPath(String slug) => 'hsdd/contract/$slug.md';
 
@@ -133,3 +155,7 @@ const Set<String> _documentDirectories = <String>{'valid', 'invalid'};
 final RegExp _bindingPath = RegExp(r'^behavior/[^/]+_test\.dart$');
 
 final RegExp _conformancePath = RegExp(r'^behavior/[^/]+_conformance\.dart$');
+
+final RegExp _recordPath = RegExp(
+  r'^invocation/[^/]+/(?:args|exit_code|stdout|stderr|files/analysis_options\.yaml)$',
+);
