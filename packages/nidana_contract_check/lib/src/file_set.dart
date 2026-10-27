@@ -105,18 +105,20 @@ List<String> generatorArguments(
     ),
 ]);
 
-/// The outcome of [run]: [Passed] when [generator] and [format] exited 0 and the trees are
-/// equal; else [Failed] with an `exit` problem, a `format` problem, then [treeProblems], each
-/// that applies, in that order.
+/// The outcome of [run]: [Passed] when [generator] exited 0, [format] exited 0 or did not run,
+/// and the trees are equal; else [Failed] with an `exit` problem, a `format` problem, then
+/// [treeProblems], each that applies, in that order.
 ///
-/// The `exit` detail is `the generator exited {code}` and the `format`
-/// detail `dart format exited {code}`, each followed by `: {line}` with the
-/// [firstTextLine] of the process's stderr when there is one (design
-/// decisions 5 and 6).
+/// [format] is null when `dart format` did not run, because what the
+/// generator left at `{output}` is not a directory, a link to one included;
+/// the trees then decide. The `exit` detail is `the generator exited {code}`
+/// and the `format` detail `dart format exited {code}`, each followed by
+/// `: {line}` with the [firstTextLine] of the process's stderr when there is
+/// one (design decisions 5 and 6).
 FixtureOutcome fileOutcome(
   FileRun run, {
   required ProcessExit generator,
-  required ProcessExit format,
+  required ProcessExit? format,
   required FileTree expected,
   required FileTree actual,
 }) {
@@ -126,10 +128,10 @@ FixtureOutcome fileOutcome(
         CommandRule.exit,
         _exited('the generator exited ${generator.code}', generator),
       ),
-    if (format.code != 0)
+    if (format case final ProcessExit ran when ran.code != 0)
       Problem(
         CommandRule.format,
-        _exited('dart format exited ${format.code}', format),
+        _exited('dart format exited ${ran.code}', ran),
       ),
     ...treeProblems(expected, actual),
   ]);

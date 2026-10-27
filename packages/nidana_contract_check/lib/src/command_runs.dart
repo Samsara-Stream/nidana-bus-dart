@@ -64,10 +64,13 @@ FileTree readTree(Directory directory) =>
 /// empty; `{input}` is the slug's `input` directory under [root]. Both
 /// processes start from [root], and the generator's output is not printed:
 /// [fileOutcome] judges its exit code, the format's, the slug's `expected`
-/// tree and the tree at `{output}`, each read by [readTree]. The deletion of
-/// `{t}` is as far as it can go: a tree the generator left that cannot be
-/// deleted stays in the system temporary directory, a line `could not delete
-/// {t}: {reason}` goes to [progress], and the outcome stands.
+/// tree and the tree at `{output}`, each read by [readTree]. `dart format`
+/// runs only when a directory, not a link, is at `{output}` after the
+/// generator ran, as the cli set formats: it follows a link it is given, and
+/// would rewrite a tree outside `{t}`. The deletion of `{t}` is as far as it
+/// can go: a tree the generator left that cannot be deleted stays in the
+/// system temporary directory, a line `could not delete {t}: {reason}` goes
+/// to [progress], and the outcome stands.
 Future<SetRun> runFileSet(
   String slug,
   FilePlan plan, {
@@ -112,22 +115,22 @@ Future<SetRun> _runGenerator(
         slug,
         reason,
       ),
-      Exited(exit: final ProcessExit generator) => switch (await runProcess(
-        dart,
-        <String>['format', output.path],
-        workingDirectory: root.path,
+      Exited(exit: final ProcessExit generator) => switch (await _formatOutput(
+        output.path,
+        root: root,
+        dart: dart,
       )) {
         NotStarted(:final String reason) => SetUnavailable(
           CheckSet.file,
           slug,
           reason,
         ),
-        Exited(exit: final ProcessExit format) => _fileChecked(
+        final Exited? format => _fileChecked(
           slug,
           fileOutcome(
             run,
             generator: generator,
-            format: format,
+            format: format?.exit,
             expected: readTree(Directory(workspacePath(root, run.expected))),
             actual: readTree(output),
           ),
@@ -138,6 +141,20 @@ Future<SetRun> _runGenerator(
     _deleteTemporary(temporary, progress);
   }
 }
+
+/// `{dart} format {output}` from [root], [output] the file replay's `{output}`; null, with no
+/// process started, when what is at [output] is not a directory, a link to one included.
+Future<ProcessRun?> _formatOutput(
+  String output, {
+  required Directory root,
+  required String dart,
+}) async => switch (_typeOf(output, followLinks: false)) {
+  FileSystemEntityType.directory => await runProcess(dart, <String>[
+    'format',
+    output,
+  ], workingDirectory: root.path),
+  _ => null,
+};
 
 /// The file set of [slug], checked with its one [outcome].
 SetChecked _fileChecked(String slug, FixtureOutcome outcome) => SetChecked(
@@ -168,15 +185,15 @@ SetChecked _fileChecked(String slug, FixtureOutcome outcome) => SetChecked(
 /// argument and resolved as `{t}` resolved and `output`, since nothing may be
 /// there after the run; `{files}`, only for a case with `files/`; `{root}`.
 /// After the run, a directory at `{output}` is an [OutputTree] read by
-/// [readTree], a file or a link an [OutputFile], and nothing a [NoOutput];
-/// `{dart} format {output}` runs from [root] only over a directory and only
-/// for a case with `expected/`, whose tree [readTree] reads after the run.
-/// The process's output is not printed: [invocationOutcome] compares it. A
-/// `{t}` that cannot be deleted, as when the command left a directory there
-/// that cannot be listed, stays in the system temporary directory, a line
-/// `could not delete {t}: {reason}` goes to [progress], and the outcome
-/// stands. Throws FileSystemException when the root or a case's `files/`
-/// cannot be resolved.
+/// [readTree], any other entry, a link included, an [OutputFile], and
+/// nothing a [NoOutput]; `{dart} format {output}` runs from [root] only over
+/// a directory and only for a case with `expected/`, whose tree [readTree]
+/// reads after the run. The process's output is not printed:
+/// [invocationOutcome] compares it. A `{t}` that cannot be deleted, as when
+/// the command left a directory there that cannot be listed, stays in the
+/// system temporary directory, a line `could not delete {t}: {reason}` goes
+/// to [progress], and the outcome stands. Throws FileSystemException when
+/// the root or a case's `files/` cannot be resolved.
 Future<SetRun> runCliSet(
   String slug,
   List<InvocationPlan> plans, {

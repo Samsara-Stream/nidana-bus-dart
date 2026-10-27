@@ -4,7 +4,9 @@ import 'dart:io';
 
 import 'package:nidana_contract_check/src/cli_set.dart';
 import 'package:nidana_contract_check/src/command.dart';
+import 'package:nidana_contract_check/src/contract.dart';
 import 'package:nidana_contract_check/src/outcome.dart';
+import 'package:nidana_contract_check/src/packages.dart';
 import 'package:nidana_contract_check/src/report.dart';
 import 'package:nidana_contract_check/src/request.dart';
 import 'package:nidana_contract_check/src/shell.dart';
@@ -86,6 +88,20 @@ InvocationRun runOf(String name) =>
           restriction: null,
         ).singleWhere((InvocationPlan plan) => plan.path == '$i$name/')
         as InvocationRun;
+
+/// What [plan] does with its case: `run`, `pending`, `not run`, or the report line of any other
+/// outcome, a fixture defect.
+String verdictOf(InvocationPlan plan) => switch (plan) {
+  InvocationRun() => 'run',
+  InvocationSettled(outcome: Pending()) => 'pending',
+  InvocationSettled(outcome: Passed(:final String detail))
+      when detail.startsWith('not run: ') =>
+    'not run',
+  InvocationSettled(:final FixtureOutcome outcome) => outcomeLine(
+    CheckSet.cli,
+    outcome,
+  ),
+};
 
 /// The restriction id G{number} of `gen`.
 GuaranteeRef g(int number) => (slug: 'gen', number: number);
@@ -490,65 +506,59 @@ void main() {
         'not UTF-8: Invalid UTF-8 byte (at offset 1)); command (no args file)',
       );
     });
-    test('every committed case plans as PENDING on nidana_dart_codegen or nidana_dart_lint', () {
+    // The committed cases are governance that hsdd-contract amends, and
+    // another node's gate runs this suite: a property of whatever is
+    // committed, never its counts or packages.
+    test('every committed case plans without a fixture defect: as a run, PENDING, or not run', () {
       final Directory root = findWorkspaceRoot(Directory.current)!;
-      SlugSnapshot committed(String slug) => readSnapshot(root, slug);
-      List<String> caseNames(String slug) =>
-          Directory(workspacePath(root, '${fixtureDirectory(slug)}invocation'))
-              .listSync()
-              .whereType<Directory>()
-              .map((Directory directory) => p.basename(directory.path))
-              .toList()
-            ..sort();
-      String pending(String slug, String name, String package) =>
-          'PENDING cli ${invocationPath(slug, name)}: '
-          'package $package is absent from .dart_tool/package_config.json';
-
-      final List<String> codegen = caseNames('topic-codegen');
-      final List<String> checks = caseNames('nidana-checks');
-      expect(codegen, hasLength(22));
-      expect(checks, hasLength(17));
-      expect(
-        plans(committed('topic-codegen'), packages: const <String>{}),
-        <String>[
-          for (final String name in codegen)
-            pending('topic-codegen', name, 'nidana_dart_codegen'),
-        ],
-      );
-      expect(
-        plans(committed('nidana-checks'), packages: const <String>{}),
-        <String>[
-          for (final String name in checks)
-            pending(
-              'nidana-checks',
-              name,
-              name.startsWith('analyze-')
-                  ? 'nidana_dart_lint'
-                  : 'nidana_dart_codegen',
-            ),
-        ],
-      );
-      // nidana.tooling.lint's gate before nidana_dart_codegen exists
-      // (decision 12): its analyze-* cases wait on its own package alone.
-      expect(
-        plans(
-          committed('nidana-checks'),
-          packages: const <String>{},
-          restriction: <GuaranteeRef>{
-            for (int number = 1; number <= 8; number += 1)
-              (slug: 'nidana-checks', number: number),
-          },
-        ),
-        <Object>[
-          for (final String name in checks)
-            name.startsWith('analyze-')
-                ? pending('nidana-checks', name, 'nidana_dart_lint')
-                : startsWith(
-                    'PASS cli ${invocationPath('nidana-checks', name)}: '
-                    'not run: the restriction does not admit all of ',
-                  ),
-        ],
-      );
+      final Map<String, Set<String>> packageSets = <String, Set<String>>{
+        'no package': const <String>{},
+        'the workspace packages': packageNamesOf(
+          File(workspacePath(root, packageConfigPath)).readAsStringSync(),
+        )!,
+      };
+      final List<SlugSnapshot> snapshots = <SlugSnapshot>[
+        for (final FileSystemEntity slug in Directory(
+          workspacePath(root, 'hsdd/contract/fixture'),
+        ).listSync())
+          if (Directory(p.join(slug.path, 'invocation')).existsSync())
+            readSnapshot(root, p.basename(slug.path)),
+      ];
+      final List<(String, String)> verdicts = <(String, String)>[
+        for (final SlugSnapshot snapshot in snapshots)
+          for (final Set<GuaranteeRef>? restriction in <Set<GuaranteeRef>?>[
+            null,
+            if (snapshot.contractText case final String text)
+              for (final int number in readContract(
+                snapshot.slug,
+                text,
+              ).guarantees)
+                <GuaranteeRef>{(slug: snapshot.slug, number: number)},
+          ])
+            for (final MapEntry<String, Set<String>>(
+                  key: String named,
+                  value: Set<String> packages,
+                )
+                in packageSets.entries)
+              for (final InvocationPlan plan in planInvocations(
+                snapshot,
+                packages: packages,
+                restriction: restriction,
+              ))
+                (
+                  '${plan.path} with $named, '
+                      'restricted to ${restriction ?? 'nothing'}',
+                  verdictOf(plan),
+                ),
+      ];
+      expect(verdicts, isNotEmpty);
+      for (final (String context, String verdict) in verdicts) {
+        expect(
+          verdict,
+          isIn(const <String>['run', 'pending', 'not run']),
+          reason: context,
+        );
+      }
     });
   });
 
@@ -739,7 +749,7 @@ void main() {
       expect(
         outcome(run, fromFilesExit, const OutputFile(), expected: e),
         'FAIL cli ${i}generate-from-files/: '
-        'output ({output} is a file, expected the tree of expected/)',
+        'output ({output} is not a directory, expected the tree of expected/)',
       );
     });
     test('a case without expected/ fails on anything left at {output}', () {
@@ -767,7 +777,7 @@ void main() {
       expect(
         outcome(run, usageExit, const OutputFile()),
         'FAIL cli ${i}generate-usage/: '
-        'output ({output} is a file, expected nothing there)',
+        'output ({output} is not a directory, expected nothing there)',
       );
     });
 

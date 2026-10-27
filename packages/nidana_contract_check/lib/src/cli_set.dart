@@ -145,7 +145,8 @@ final class NoOutput extends OutputState {
   const NoOutput();
 }
 
-/// A file, or a link, is at `{output}`.
+/// An entry that is not a directory is at `{output}`: a file, a named pipe, a socket, or a link,
+/// even one to a directory.
 final class OutputFile extends OutputState {
   const OutputFile();
 }
@@ -477,9 +478,10 @@ String _lineText(String? line) =>
 /// The problems of what is at `{output}`, [output], for a case whose `expected` directory is
 /// [expectedDirectory] and whose expected tree is [expected].
 ///
-/// Without `expected/`, nothing must be there: a file, or a directory with
-/// the files below it ascending, is an `output` problem. With it, a tree
-/// must be there: its `format` problem, then [treeProblems].
+/// Without `expected/`, nothing must be there: an entry that is not a
+/// directory, or a directory with the files below it ascending, is an
+/// `output` problem. With it, a directory must be there: its `format`
+/// problem, then [treeProblems].
 List<Problem> _outputProblems(
   String? expectedDirectory,
   OutputState output,
@@ -487,7 +489,10 @@ List<Problem> _outputProblems(
 ) => switch ((expectedDirectory, output)) {
   (null, NoOutput()) => const <Problem>[],
   (null, OutputFile()) => const <Problem>[
-    Problem(CommandRule.output, '{output} is a file, expected nothing there'),
+    Problem(
+      CommandRule.output,
+      '{output} is not a directory, expected nothing there',
+    ),
   ],
   (null, OutputTree(:final FileTree tree, :final ProcessExit? format)) =>
     <Problem>[?_formatProblem(format), _leftAtOutput(tree)],
@@ -500,7 +505,7 @@ List<Problem> _outputProblems(
   (String(), OutputFile()) => const <Problem>[
     Problem(
       CommandRule.output,
-      '{output} is a file, expected the tree of expected/',
+      '{output} is not a directory, expected the tree of expected/',
     ),
   ],
   (String(), OutputTree(:final FileTree tree, :final ProcessExit? format)) =>

@@ -14,7 +14,9 @@ import 'outcome.dart';
 
 /// The rules of the sets that run commands, `file` and `cli`.
 enum CommandRule implements Rule {
-  /// The generator command, or a recorded invocation's `args`, can be read.
+  /// The generator command, or a recorded invocation's `args`, can be read,
+  /// and so can the slug's contract text: one that is absent or not UTF-8 is
+  /// a `command` problem of the file replay and of every recorded invocation.
   command('command'),
 
   /// A recorded invocation's `exit_code` can be read.

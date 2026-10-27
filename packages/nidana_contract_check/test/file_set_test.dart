@@ -311,7 +311,7 @@ void main() {
 
     String outcome({
       ProcessExit generator = ok,
-      ProcessExit format = ok,
+      ProcessExit? format = ok,
       FileTree? actual,
     }) => outcomeLine(
       CheckSet.file,
@@ -344,6 +344,22 @@ void main() {
         outcome(format: unparsed),
         'FAIL file hsdd/contract/fixture/gen/expected/: format (dart format '
         'exited 65: Could not format because the source could not be parsed:)',
+      );
+    });
+    test('a format that did not run adds no problem: the trees decide', () {
+      expect(
+        outcome(format: null),
+        'PASS file hsdd/contract/fixture/gen/expected/',
+      );
+      expect(
+        outcome(
+          generator: failedAfterWriting,
+          format: null,
+          actual: changedNotes,
+        ),
+        'FAIL file hsdd/contract/fixture/gen/expected/: '
+        'exit (the generator exited 1: failed after writing); '
+        'changed-file (notes.txt: first difference at byte 5)',
       );
     });
     test('trees that differ fail by treeProblems', () {

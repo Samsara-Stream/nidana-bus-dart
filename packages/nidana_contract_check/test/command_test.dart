@@ -1,4 +1,5 @@
 // packages/nidana_contract_check/test/command_test.dart
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:nidana_contract_check/src/command.dart';
@@ -8,6 +9,7 @@ import 'package:nidana_contract_check/src/workspace.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
+import 'support/committed.dart';
 import 'support/generator.dart';
 
 /// [r] as text: a [CommandRead] by [commandText], a [CommandUnreadable] as
@@ -157,23 +159,23 @@ void main() {
       );
     });
 
-    // Beyond the brief: the committed topic-codegen@v1 text, read end to end.
-    test('the committed topic-codegen generator command reads as dart run of nidana_dart_codegen', () {
-      final CommandReading reading = readGeneratorCommand(
-        readContract(
-          'topic-codegen',
-          File(p.join(root, 'hsdd', 'contract', 'topic-codegen.md'))
-              .readAsStringSync(),
-        ).generatorCommands,
-      );
-      expect(
-        read(reading),
-        'dart [run, nidana_dart_codegen:generate, --graph, '
-        '{input}/topology-graph.json, {input}/topics.yaml, {output}]',
-      );
-      expect(commandPackages((reading as CommandRead).command), <String>{
-        'nidana_dart_codegen',
-      });
+    // Beyond the brief: the committed contracts read end to end, as a
+    // property, since hsdd-contract amends them and another node's gate runs
+    // this suite.
+    test('the generator command of each committed contract with a - file: bullet reads', () {
+      final Map<String, ContractText> contracts = committedFileContracts();
+      expect(contracts, isNotEmpty);
+      for (final MapEntry<String, ContractText>(
+            key: String slug,
+            value: ContractText contract,
+          )
+          in contracts.entries) {
+        expect(
+          readGeneratorCommand(contract.generatorCommands),
+          isA<CommandRead>(),
+          reason: slug,
+        );
+      }
     });
   });
 
@@ -256,15 +258,6 @@ void main() {
           reason: file.path,
         );
       }
-      expect(
-        <String>{
-          for (final File file in args)
-            ...commandPackages(
-              (readArgs(file.readAsStringSync()) as CommandRead).command,
-            ),
-        },
-        <String>{'nidana_dart_codegen'},
-      );
     });
   });
 
@@ -418,22 +411,23 @@ void main() {
       },
     );
 
-    // Beyond the brief: every committed recording that configures the analyzer
-    // enables the one plugin its cases test.
-    test(
-      'every committed files/analysis_options.yaml enables nidana_dart_lint',
-      () {
-        final List<File> options = committedRecords(
-          'files/analysis_options.yaml',
+    // Beyond the brief: every committed recording that configures the
+    // analyzer reads, decoded as the cli set decodes it.
+    test('every committed files/analysis_options.yaml gives a set of plugin package names', () {
+      final List<File> options = committedRecords(
+        'files/analysis_options.yaml',
+      );
+      expect(options, isNotEmpty);
+      for (final File file in options) {
+        expect(
+          () => pluginPackages(
+            utf8.decode(file.readAsBytesSync(), allowMalformed: true),
+          ),
+          returnsNormally,
+          reason: file.path,
         );
-        expect(options, isNotEmpty);
-        for (final File file in options) {
-          expect(pluginPackages(file.readAsStringSync()), <String>{
-            'nidana_dart_lint',
-          }, reason: file.path);
-        }
-      },
-    );
+      }
+    });
   });
 
   group('withOutput', () {

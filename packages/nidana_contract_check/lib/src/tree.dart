@@ -75,7 +75,8 @@ List<Problem> _fileProblems(
 ];
 
 /// The `missing-file`, `extra-file` or `changed-file` problem of the file at [path]; null when
-/// both trees hold the same bytes there, or when either entry cannot be read.
+/// both trees hold the same bytes there, or when both hold an entry there and either cannot be
+/// read. An entry one tree alone holds is `missing-file` or `extra-file`, read or not.
 Problem? _comparison(String path, FileEntry? expected, FileEntry? actual) =>
     switch ((expected, actual)) {
       (_, null) => Problem(CommandRule.missingFile, path),

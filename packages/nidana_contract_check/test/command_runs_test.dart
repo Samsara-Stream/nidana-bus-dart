@@ -283,6 +283,53 @@ void main() {
       expect(calls[3], '$resolvedRoot|format $output');
       expect(Directory(p.dirname(output)).existsSync(), isFalse);
     });
+    test('a generator that replaces {output} with a link to a directory outside {t} fails the replay, and dart format writes nothing there', () async {
+      final Directory root = await genWorkspace();
+      const String unformatted = "void   main( ) {print(  'hello' ) ;}\n";
+      final Directory outside = seed(const <String, String>{
+        'out.dart': unformatted,
+        'notes.txt': genNotes,
+      });
+      Map<String, List<int>> filesOutside() => <String, List<int>>{
+        for (final FileSystemEntity entity in outside.listSync())
+          p.basename(entity.path): File(entity.path).readAsBytesSync(),
+      };
+      final Map<String, List<int>> before = filesOutside();
+      final String dart = scriptDart(<String>[
+        r'''printf '%s\n' "$*" >> "$0.calls"''',
+        r'if [ "$1" = run ]; then',
+        r'  for last; do :; done',
+        '  rmdir "\$last" && ln -s ${quoted(outside.path)} "\$last"',
+        r'  exit $?',
+        'fi',
+        'exec ${quoted(Platform.resolvedExecutable)} "\$@"',
+      ]);
+      final StringBuffer out = StringBuffer();
+      final StringBuffer err = StringBuffer();
+      expect(
+        await runCli(
+          <String>['gen', '--set', 'file'],
+          workingDirectory: root,
+          out: out,
+          err: err,
+          dart: dart,
+        ),
+        1,
+        reason: '$out$err',
+      );
+      expect(out.toString().trimRight().split('\n'), <String>[
+        ...genStructure,
+        'FAIL file ${g}expected/: changed-file (out.dart: first difference at byte 5)',
+        '3 fixtures: 2 passed, 1 failed, 0 pending',
+      ]);
+      expect(filesOutside(), before);
+      expect(
+        File('$dart.calls')
+            .readAsLinesSync()
+            .map((String call) => call.split(' ').first),
+        <String>['pub', 'run'],
+      );
+    });
     test('a generator that writes Dart that does not parse fails on dart format, beside the trees', () async {
       final ProcessResult r = await runTool(
         <String>['gen', '--set', 'file'],
@@ -784,26 +831,36 @@ void main() {
         '${outputs[2]} is absent',
       ]);
     });
-    test('what is at {output} after the run: a file or a link is a file, and nothing is nothing', () async {
+    test('what is at {output} after the run: a file, a link, even one to the right tree, or a named pipe is not a directory, and nothing is nothing', () async {
       final Directory root = await genWorkspace(<String, String?>{
         'hsdd/contract/gen.md': withRows(<String>[
           row('write-file', 'dart write-file {output}', 0, 'G2'),
           row('write-link', 'dart write-link {output}', 0, 'G2'),
+          row('write-link-tree', 'dart write-link-tree {output}', 0, 'G1'),
           row('write-nothing', 'dart write-nothing {output}', 0, 'G1'),
+          row('write-pipe', 'dart write-pipe {output}', 0, 'G2'),
         ]),
         '${i}write-file/args': 'dart\nwrite-file\n{output}\n',
         '${i}write-file/exit_code': '0\n',
         '${i}write-link/args': 'dart\nwrite-link\n{output}\n',
         '${i}write-link/exit_code': '0\n',
+        '${i}write-link-tree/args': 'dart\nwrite-link-tree\n{output}\n',
+        '${i}write-link-tree/exit_code': '0\n',
+        '${i}write-link-tree/expected/out.dart': genOutDart,
+        '${i}write-link-tree/expected/notes.txt': genNotes,
         '${i}write-nothing/args': 'dart\nwrite-nothing\n{output}\n',
         '${i}write-nothing/exit_code': '0\n',
         '${i}write-nothing/expected/out.dart': genOutDart,
+        '${i}write-pipe/args': 'dart\nwrite-pipe\n{output}\n',
+        '${i}write-pipe/exit_code': '0\n',
       });
       final String dart = scriptDart(<String>[
         r'case "$1" in',
         r'  write-file) echo x > "$2"; exit 0 ;;',
         r'  write-link) ln -s "$PWD" "$2"; exit 0 ;;',
+        '  write-link-tree) ln -s "\$PWD/${i}write-link-tree/expected" "\$2"; exit 0 ;;',
         '  write-nothing) exit 0 ;;',
+        r'  write-pipe) mkfifo "$2"; exit 0 ;;',
         'esac',
         'exec ${quoted(Platform.resolvedExecutable)} "\$@"',
       ]);
@@ -823,10 +880,12 @@ void main() {
       expect(out.toString().trimRight().split('\n'), <String>[
         ...genStructure,
         ...passes,
-        'FAIL cli ${i}write-file/: output ({output} is a file, expected nothing there)',
-        'FAIL cli ${i}write-link/: output ({output} is a file, expected nothing there)',
+        'FAIL cli ${i}write-file/: output ({output} is not a directory, expected nothing there)',
+        'FAIL cli ${i}write-link/: output ({output} is not a directory, expected nothing there)',
+        'FAIL cli ${i}write-link-tree/: output ({output} is not a directory, expected the tree of expected/)',
         'FAIL cli ${i}write-nothing/: output (nothing at {output}, expected the tree of expected/)',
-        '9 fixtures: 6 passed, 3 failed, 0 pending',
+        'FAIL cli ${i}write-pipe/: output ({output} is not a directory, expected nothing there)',
+        '11 fixtures: 6 passed, 5 failed, 0 pending',
       ]);
     });
     test('a command that cannot start makes the slug\'s cli set unavailable (2), and no case after it starts', () async {

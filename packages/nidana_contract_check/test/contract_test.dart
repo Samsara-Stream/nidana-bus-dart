@@ -1,9 +1,8 @@
 // packages/nidana_contract_check/test/contract_test.dart
-import 'dart:io';
-
 import 'package:nidana_contract_check/src/contract.dart';
-import 'package:nidana_contract_check/src/workspace.dart';
 import 'package:test/test.dart';
+
+import 'support/committed.dart';
 
 /// A `gen` contract whose generator spans sit among spans that name no command.
 const String genText = '''
@@ -213,17 +212,18 @@ void main() {
       'dart run gen:other {output}',
     ]);
   });
-  test('the committed topic-codegen text names one generator command', () {
-    final String root = findWorkspaceRoot(Directory.current)!.path;
-    expect(
-      readContract(
-        'topic-codegen',
-        File('$root/hsdd/contract/topic-codegen.md').readAsStringSync(),
-      ).generatorCommands,
-      <String>[
-        'fvm dart run nidana_dart_codegen:generate --graph {input}/topology-graph.json {input}/topics.yaml {output}',
-      ],
-    );
+  // The committed contracts are governance that hsdd-contract amends, and
+  // another node's gate runs this suite: a property, never the command.
+  test('each committed contract with a - file: bullet names exactly one generator command', () {
+    final Map<String, ContractText> contracts = committedFileContracts();
+    expect(contracts, isNotEmpty);
+    for (final MapEntry<String, ContractText>(
+          key: String slug,
+          value: ContractText contract,
+        )
+        in contracts.entries) {
+      expect(contract.generatorCommands, hasLength(1), reason: slug);
+    }
   });
 
   // Beyond the brief: CRLF text reads alike; a span needs both {output} and
