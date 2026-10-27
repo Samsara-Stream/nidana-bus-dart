@@ -1,7 +1,9 @@
 import 'package:meta/meta.dart';
 
 import 'lineage.dart';
+import 'list_equality.dart';
 import 'message_source.dart';
+import 'redacted_payload.dart';
 import 'topic.dart';
 
 /// The carrier of every value published to a topic (Spec §2.4). The fields
@@ -31,7 +33,16 @@ final class MessageEnvelope<T> {
     required String Function() freshCorrelationId,
     required DateTime timestamp,
     required MessageSource source,
-  }) => throw UnimplementedError();
+  }) => MessageEnvelope<T>(
+    id: id,
+    payload: payload,
+    correlationId: lineage.correlationId ?? freshCorrelationId(),
+    causationId: lineage.causationId,
+    parentCorrelationIds: lineage.parentCorrelationIds,
+    timestamp: timestamp,
+    source: source,
+    sensitive: topic.sensitive,
+  );
 
   final String id;
   final T payload;
@@ -44,5 +55,50 @@ final class MessageEnvelope<T> {
 
   /// This envelope with a sensitive payload replaced by
   /// RedactedPayload.of(payload); this envelope itself when not sensitive.
-  MessageEnvelope<Object?> redacted() => throw UnimplementedError();
+  MessageEnvelope<Object?> redacted() => sensitive
+      ? MessageEnvelope<Object?>(
+          id: id,
+          payload: RedactedPayload.of(payload),
+          correlationId: correlationId,
+          causationId: causationId,
+          parentCorrelationIds: parentCorrelationIds,
+          timestamp: timestamp,
+          source: source,
+          sensitive: sensitive,
+        )
+      : this;
+
+  // all eight fields; parents element-wise
+  @override
+  bool operator ==(Object other) =>
+      other is MessageEnvelope<Object?> &&
+      other.id == id &&
+      other.payload == payload &&
+      other.correlationId == correlationId &&
+      other.causationId == causationId &&
+      elementsEqual(other.parentCorrelationIds, parentCorrelationIds) &&
+      other.timestamp == timestamp &&
+      other.source == source &&
+      other.sensitive == sensitive;
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    payload,
+    correlationId,
+    causationId,
+    Object.hashAll(parentCorrelationIds),
+    timestamp,
+    source,
+    sensitive,
+  );
+
+  /// Renders a sensitive payload redacted (G15).
+  @override
+  String toString() =>
+      'MessageEnvelope(id: $id, '
+      'payload: ${sensitive ? RedactedPayload.of(payload) : payload}, '
+      'correlationId: $correlationId, causationId: $causationId, '
+      'parentCorrelationIds: $parentCorrelationIds, timestamp: $timestamp, '
+      'source: $source, sensitive: $sensitive)';
 }
