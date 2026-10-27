@@ -142,6 +142,22 @@ void main() {
     );
   });
 
+  test('G6 two state topics of one name whose value types differ are two '
+      'topics, each with its sink', () {
+    const StateTopic<int> count = StateTopic<int>(name: 'shop.n', initial: 0);
+    const StateTopic<String> label = StateTopic<String>(
+      name: 'shop.n',
+      initial: '',
+    );
+    expect(count.ref, isNot(label.ref));
+    final TopologyDefinition d = define(<TransformEdge>[
+      TransformEdge.write(count.ref, TopicInput(ref('a'))),
+      TransformEdge.write(label.ref, TopicInput(ref('b'))),
+    ]);
+    expect(d.writes, hasLength(2));
+    expect(d.writes, containsAll(<TopicRef>[count.ref, label.ref]));
+  });
+
   test('G6 an empty id names the topologyId and an ill-formed edge list names '
       'the transforms', () {
     expect(
