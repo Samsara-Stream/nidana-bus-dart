@@ -226,4 +226,67 @@ void main() {
       );
     });
   });
+
+  group('admission', () {
+    const Set<GuaranteeRef> r = <GuaranteeRef>{
+      (slug: 'gen', number: 1),
+      (slug: 'gen', number: 3),
+      (slug: 'other', number: 2),
+    };
+    test('an unrestricted replay admits every replay, one that covers nothing included', () {
+      expect(admitsAll(null, 'gen', const <int>{}), isTrue);
+      expect(admitsAll(null, 'gen', const <int>{1}), isTrue);
+    });
+    test('a restriction admits a replay only when every id it covers is a restriction id of its slug', () {
+      expect(admitsAll(r, 'gen', const <int>{1, 3}), isTrue);
+      expect(admitsAll(r, 'gen', const <int>{1}), isTrue);
+      expect(admitsAll(r, 'gen', const <int>{1, 2}), isFalse);
+      expect(admitsAll(r, 'gen', const <int>{}), isFalse);
+      expect(admitsAll(r, 'other', const <int>{1}), isFalse);
+    });
+    // Beyond the brief: an id of the slug's own admits it under a restriction
+    // that also names other slugs, and the empty restriction admits nothing.
+    test(
+      'the restriction ids of other slugs neither admit nor bar a replay',
+      () {
+        expect(admitsAll(r, 'other', const <int>{2}), isTrue);
+        expect(
+          admitsAll(const <GuaranteeRef>{}, 'gen', const <int>{1}),
+          isFalse,
+        );
+      },
+    );
+    test('the detail of a replay not admitted names its ids, or that it covers none', () {
+      expect(
+        notAdmitted(const <int>{3, 1}),
+        'not run: the restriction does not admit all of G1, G3',
+      );
+      expect(
+        notAdmitted(const <int>{}),
+        'not run: it covers no declared guarantee, and the replay is restricted',
+      );
+    });
+    test('file and cli run commands, and no other set does', () {
+      expect(
+        <CheckSet>[
+          for (final CheckSet set in CheckSet.values)
+            if (runsCommands(set)) set,
+        ],
+        <CheckSet>[CheckSet.file, CheckSet.cli],
+      );
+    });
+    test(
+      'the first text line is the first line that is not blank, trimmed',
+      () {
+        expect(firstTextLine('\n  \n  boom  \nnext'), 'boom');
+        expect(firstTextLine(' \n'), isNull);
+        expect(firstTextLine(''), isNull);
+      },
+    );
+    // Beyond the brief: the line ends a line splitter reads.
+    test('a first text line ends at a carriage return, alone or before a line feed', () {
+      expect(firstTextLine('\r\n  boom\r\nnext'), 'boom');
+      expect(firstTextLine('boom\rnext'), 'boom');
+    });
+  });
 }

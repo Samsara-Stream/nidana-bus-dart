@@ -1,8 +1,10 @@
 /// Which sets a slug has, which of them a [Request] runs (ADR-001 item 9),
-/// the [SlugPlan] of each slug of a replay, and which sets read the
-/// workspace's package configuration.
+/// the [SlugPlan] of each slug of a replay, which sets read the workspace's
+/// package configuration and which run commands, and which file replays and
+/// recorded invocations a `--guarantee` restriction admits.
 library;
 
+import 'ids.dart';
 import 'request.dart';
 import 'snapshot.dart';
 
@@ -53,6 +55,43 @@ bool readsPackages(CheckSet set) => switch (set) {
   CheckSet.file ||
   CheckSet.cli => false,
 };
+
+/// Whether [set] runs commands, before which the replay runs `dart pub get --enforce-lockfile`
+/// once: file and cli do.
+bool runsCommands(CheckSet set) => switch (set) {
+  CheckSet.file || CheckSet.cli => true,
+  CheckSet.structure ||
+  CheckSet.surface ||
+  CheckSet.reject ||
+  CheckSet.behavior ||
+  CheckSet.schema => false,
+};
+
+/// Whether a file replay or recorded invocation of [slug] that covers [ids] runs under
+/// [restriction] (ADR-001 item 9): unrestricted, or [ids] is not empty and each is a restriction
+/// id of [slug].
+///
+/// A replay that covers no id runs only unrestricted: a slug with no id of
+/// its own in the restriction runs none of them (design decision 13). The
+/// restriction ids of other slugs neither admit nor bar it.
+bool admitsAll(Set<GuaranteeRef>? restriction, String slug, Set<int> ids) =>
+    switch (restriction) {
+      null => true,
+      final Set<GuaranteeRef> restricted =>
+        ids.isNotEmpty &&
+            ids.every(
+              (int number) => restricted.contains((slug: slug, number: number)),
+            ),
+    };
+
+/// The detail of a replay [admitsAll] does not admit.
+///
+/// `not run: the restriction does not admit all of {ids}` names [ids] as
+/// [formatIds] gives them; `not run: it covers no declared guarantee, and the
+/// replay is restricted` stands for no id.
+String notAdmitted(Set<int> ids) => ids.isEmpty
+    ? 'not run: it covers no declared guarantee, and the replay is restricted'
+    : 'not run: the restriction does not admit all of ${formatIds(ids)}';
 
 /// Whether [snapshot]'s slug has [set], read from the entries directly under
 /// its fixture directory and from its schema file.

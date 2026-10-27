@@ -2,6 +2,8 @@
 /// per fixture, a summary line, and the exit code.
 library;
 
+import 'dart:convert';
+
 import 'outcome.dart';
 import 'packages.dart';
 import 'request.dart';
@@ -93,6 +95,16 @@ int exitCodeOf(List<SetRun> runs) =>
       (false, true) => exitFailed,
       (false, false) => exitPassed,
     };
+
+/// The first line of [text] that is not blank, trimmed; null when there is none.
+///
+/// A line ends at `\n`, `\r\n` or `\r`, as [LineSplitter] splits it. A
+/// reason quotes it from a process's stderr.
+String? firstTextLine(String text) =>
+    LineSplitter.split(text)
+        .map((String line) => line.trim())
+        .where((String line) => line.isNotEmpty)
+        .firstOrNull;
 
 /// `{rule} ({detail})`.
 String _problemText(Problem problem) =>
