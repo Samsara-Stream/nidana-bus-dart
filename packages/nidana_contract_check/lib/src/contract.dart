@@ -102,6 +102,7 @@ final class ContractText {
     required this.listedDirectories,
     required this.coversClauses,
     required this.unclosedCovers,
+    required this.generatorCommands,
     required this.invocationRows,
     required this.notExecutable,
   });
@@ -131,6 +132,10 @@ final class ContractText {
   /// The `- schema:` and `- file:` bullets that hold `covers ` but do not end
   /// with `covers {text}.`, whole, in order.
   final List<String> unclosedCovers;
+
+  /// The backticked spans of the `- file:` bullets that hold `{output}` and a space, in order:
+  /// the generator commands they name (ADR-001 item 6).
+  final List<String> generatorCommands;
 
   /// The rows of the recorded-invocation table, in order.
   final List<InvocationRow> invocationRows;
@@ -183,6 +188,12 @@ ContractText readContract(String slug, String text) {
       for (final String line in validation)
         if (_isUnclosedCovers(line)) line,
     ]),
+    generatorCommands: List<String>.unmodifiable(<String>[
+      for (final String line in validation)
+        if (line.startsWith('- file: '))
+          for (final String span in _spans(line))
+            if (span.contains('{output}') && span.contains(' ')) span,
+    ]),
     invocationRows: List<InvocationRow>.unmodifiable(
       _invocationRows(validation),
     ),
@@ -198,6 +209,7 @@ final RegExp _binding = RegExp(r'^- binding: `([^`]+)`');
 final RegExp _coversBullet = RegExp(r'^- (schema|file): ');
 final RegExp _covers = RegExp(r'\bcovers ([^.]*)\.$');
 final RegExp _coversWord = RegExp(r'\bcovers ');
+final RegExp _span = RegExp('`([^`]+)`');
 final RegExp _tableHeader = RegExp(r'^\|\s*Case\s*\|');
 final RegExp _caseName = RegExp(r'^`([^`]+)`$');
 final RegExp _notExecutableHead = RegExp(
@@ -267,6 +279,10 @@ CoversClause? _coversClause(String line) {
           ids: _unmodifiable(parseIdList(text)),
         );
 }
+
+/// The texts of [line]'s backticked spans, in order.
+Iterable<String> _spans(String line) =>
+    _span.allMatches(line).map((RegExpMatch match) => match.group(1)!);
 
 /// Whether [line] is a `- schema:` or `- file:` bullet that holds `covers `
 /// but gives no [CoversClause].
