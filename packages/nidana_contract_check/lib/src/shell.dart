@@ -59,13 +59,16 @@ Set<String> discoverSlugs(Directory root) {
 /// recorded by its `/`-separated path relative to that directory, a file with
 /// its source only when [holdsSource] says so, and with its bytes as a
 /// document only when [holdsDocument] says so. The schema file is read as
-/// bytes when it exists. Bytes are never decoded here, so a document that is
-/// not UTF-8 is that document's defect for the schema set to report. A
-/// symbolic link is never descended into, so no tree outside the fixture
-/// directory joins the snapshot: it is recorded as a file, the layout check
-/// sees it as one, and when [holdsSource] or [holdsDocument] says so it is
-/// read through the link, so a linked library or document is replayed and a
-/// dangling one throws.
+/// bytes when it exists. A source is read as bytes and decoded by
+/// [decodeSource], so a source that is not UTF-8 has a null source and its
+/// reason in [SlugSnapshot.undecodable], that source's defect for the
+/// structure set to report. A document's bytes are never decoded here, so a
+/// document that is not UTF-8 is that document's defect for the schema set
+/// to report. A symbolic link is never descended into, so no tree outside
+/// the fixture directory joins the snapshot: it is recorded as a file, the
+/// layout check sees it as one, and when [holdsSource] or [holdsDocument]
+/// says so it is read through the link, so a linked library or document is
+/// replayed and a dangling one throws.
 SlugSnapshot readSnapshot(Directory root, String slug) {
   final Directory fixtures = Directory(
     workspacePath(root, fixtureDirectory(slug)),
@@ -79,6 +82,12 @@ SlugSnapshot readSnapshot(Directory root, String slug) {
           when !_isHiddenPath(path))
         (path: path, entity: entity),
   ]);
+  final Map<String, SourceDecoding> sources =
+      Map<String, SourceDecoding>.unmodifiable(<String, SourceDecoding>{
+        for (final (:String path, :FileSystemEntity entity) in entries)
+          if (_isFile(entity) && holdsSource(path))
+            path: decodeSource(File(entity.path).readAsBytesSync()),
+      });
   final File contract = File(workspacePath(root, contractPath(slug)));
   final File schema = File(workspacePath(root, schemaPath(slug)));
   return SlugSnapshot(
@@ -92,12 +101,23 @@ SlugSnapshot readSnapshot(Directory root, String slug) {
     files: Map<String, String?>.unmodifiable(<String, String?>{
       for (final (:String path, :FileSystemEntity entity) in entries)
         if (_isFile(entity))
-          path: holdsSource(path) ? File(entity.path).readAsStringSync() : null,
+          path: switch (sources[path]) {
+            SourceText(:final String text) => text,
+            SourceNotUtf8() || null => null,
+          },
     }),
     documents: Map<String, List<int>>.unmodifiable(<String, List<int>>{
       for (final (:String path, :FileSystemEntity entity) in entries)
         if (_isFile(entity) && holdsDocument(path))
           path: File(entity.path).readAsBytesSync(),
+    }),
+    undecodable: Map<String, String>.unmodifiable(<String, String>{
+      for (final MapEntry<String, SourceDecoding>(
+            key: String path,
+            value: SourceDecoding decoding,
+          )
+          in sources.entries)
+        if (decoding case SourceNotUtf8(:final String reason)) path: reason,
     }),
   );
 }

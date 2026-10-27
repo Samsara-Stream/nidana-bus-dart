@@ -283,7 +283,9 @@ Map<String, String> changed(
 /// [files], keyed by path from the workspace root.
 ///
 /// [bytes] are files given as raw bytes, keyed by path from the workspace
-/// root; a path in both maps takes its bytes.
+/// root; a path in both maps takes its bytes. A source [holdsSource] accepts
+/// is decoded by [decodeSource], as the shell decodes it: one that is not
+/// UTF-8 has a null source and its reason in [SlugSnapshot.undecodable].
 SlugSnapshot snapshotOf(
   String slug,
   Map<String, String> files, {
@@ -303,6 +305,11 @@ SlugSnapshot snapshotOf(
     for (final String path in <String>{...files.keys, ...bytes.keys})
       if (path.startsWith(fixtures)) path.substring(fixtures.length),
   ];
+  final Map<String, SourceDecoding> sources =
+      Map<String, SourceDecoding>.unmodifiable(<String, SourceDecoding>{
+        for (final String path in below)
+          if (holdsSource(path)) path: decodeSource(bytesAt('$fixtures$path')!),
+      });
   return SlugSnapshot(
     slug: slug,
     contractText: textAt(contractPath(slug)),
@@ -312,11 +319,22 @@ SlugSnapshot snapshotOf(
     }),
     files: Map<String, String?>.unmodifiable(<String, String?>{
       for (final String path in below)
-        path: holdsSource(path) ? textAt('$fixtures$path') : null,
+        path: switch (sources[path]) {
+          SourceText(:final String text) => text,
+          SourceNotUtf8() || null => null,
+        },
     }),
     documents: Map<String, List<int>>.unmodifiable(<String, List<int>>{
       for (final String path in below)
         if (holdsDocument(path)) path: bytesAt('$fixtures$path')!,
+    }),
+    undecodable: Map<String, String>.unmodifiable(<String, String>{
+      for (final MapEntry<String, SourceDecoding>(
+            key: String path,
+            value: SourceDecoding decoding,
+          )
+          in sources.entries)
+        if (decoding case SourceNotUtf8(:final String reason)) path: reason,
     }),
   );
 }

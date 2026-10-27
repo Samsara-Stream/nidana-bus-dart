@@ -1,4 +1,6 @@
 // packages/nidana_contract_check/test/structure_test.dart
+import 'dart:convert';
+
 import 'package:nidana_contract_check/src/outcome.dart';
 import 'package:nidana_contract_check/src/snapshot.dart';
 import 'package:nidana_contract_check/src/structure.dart';
@@ -372,6 +374,142 @@ void main() {
         ),
         <String>['src-import (package:sample/src/sample_base.dart)'],
       );
+    });
+  });
+  group('Dart sources that are not UTF-8', () {
+    test('decodeSource reads UTF-8 and names the first malformed byte', () {
+      expect(
+        (decodeSource(utf8.encode('// é\n')) as SourceText).text,
+        '// é\n',
+      );
+      expect(
+        (decodeSource(<int>[
+          0x2f,
+          0x2f,
+          0x20,
+          0xff,
+          0x0a,
+        ]) as SourceNotUtf8).reason,
+        'not UTF-8: Invalid UTF-8 byte (at offset 3)',
+      );
+    });
+    test(
+      'one fails structure at its path with the reason, and is no library',
+      () {
+        final SlugSnapshot snapshot = snapshotOf(
+          'sample',
+          sampleFiles,
+          bytes: <String, List<int>>{
+            '${s}reject/latin1.dart': <int>[0x2f, 0x2f, 0x20, 0xff, 0x0a],
+          },
+        );
+        expect(snapshot.files['reject/latin1.dart'], isNull);
+        expect(snapshot.undecodable, <String, String>{
+          'reject/latin1.dart': 'not UTF-8: Invalid UTF-8 byte (at offset 3)',
+        });
+        expect(at(checkStructure(snapshot), '${s}reject/latin1.dart'), <String>[
+          'encoding (not UTF-8: Invalid UTF-8 byte (at offset 3))',
+        ]);
+      },
+    );
+    test('a listed binding that is not UTF-8 is present, sorts among the paths, and fails on its encoding alone', () {
+      final List<FixtureOutcome> o = checkStructure(
+        snapshotOf(
+          'sample',
+          sampleFiles,
+          bytes: <String, List<int>>{
+            '${s}behavior/sample_impl_test.dart': <int>[0x2f, 0x2f, 0xc3, 0x28],
+          },
+        ),
+      );
+      expect(o.map((FixtureOutcome x) => x.path), <String>[
+        'hsdd/contract/sample.md',
+        s,
+        '${s}behavior/sample_conformance.dart',
+        '${s}behavior/sample_impl_test.dart',
+        '${s}reject/sample_is_closed.dart',
+        '${s}surface/use.dart',
+      ]);
+      expect(at(o, '${s}behavior/sample_impl_test.dart'), <String>[
+        'encoding (not UTF-8: Missing extension byte (at offset 3))',
+      ]);
+      expect(
+        o.where(
+          (FixtureOutcome x) => x.path != '${s}behavior/sample_impl_test.dart',
+        ),
+        everyElement(isA<Passed>()),
+      );
+    });
+    test('a conformance library that is not UTF-8 cites nothing', () {
+      final List<FixtureOutcome> o = checkStructure(
+        snapshotOf(
+          'sample',
+          sampleFiles,
+          bytes: <String, List<int>>{
+            '${s}behavior/sample_conformance.dart': <int>[0xff],
+          },
+        ),
+      );
+      expect(at(o, '${s}behavior/sample_conformance.dart'), <String>[
+        'encoding (not UTF-8: Invalid UTF-8 byte (at offset 0))',
+      ]);
+      expect(at(o, s), <String>['coverage (G2, G3 uncovered)']);
+    });
+  });
+  group('conformance-import', () {
+    test('a conformance library that imports package:test or exports package:flutter_test fails', () {
+      final List<FixtureOutcome> o = check(<String, String?>{
+        '${s}behavior/sample_conformance.dart': conformanceWith(
+          "import 'package:matcher/expect.dart';\n",
+          "import 'package:matcher/expect.dart';\n"
+              "import 'package:test/test.dart';\n"
+              "export 'package:flutter_test/flutter_test.dart';\n",
+        ),
+      });
+      expect(at(o, '${s}behavior/sample_conformance.dart'), <String>[
+        'conformance-import (package:test/test.dart)',
+        'conformance-import (package:flutter_test/flutter_test.dart)',
+      ]);
+    });
+    test('a binding may import them, and package:test_api is neither', () {
+      final List<FixtureOutcome> o = check(<String, String?>{
+        '${s}behavior/sample_conformance.dart': conformanceWith(
+          "import 'package:matcher/expect.dart';\n",
+          "import 'package:matcher/expect.dart';\nimport 'package:test_api/scaffolding.dart';\n",
+        ),
+      });
+      expect(o, everyElement(isA<Passed>()));
+    });
+    test('a package whose name only begins with test or flutter_test is neither, and no other library is a conformance library', () {
+      final String use = sampleFiles['${s}surface/use.dart']!;
+      final List<FixtureOutcome> o = check(<String, String?>{
+        '${s}behavior/sample_conformance.dart': conformanceWith(
+          "import 'package:matcher/expect.dart';\n",
+          "import 'package:matcher/expect.dart';\n"
+              "import 'package:testing/testing.dart';\n"
+              "import 'package:flutter_test_extras/extras.dart';\n",
+        ),
+        '${s}surface/use.dart': "import 'package:test/test.dart';\n$use",
+        '${s}behavior/nested/more_conformance.dart':
+            "import 'package:flutter_test/flutter_test.dart';\n",
+      });
+      expect(o, everyElement(isA<Passed>()));
+    });
+    test('after the src-import and case-name problems, in directive order', () {
+      final List<FixtureOutcome> o = check(<String, String?>{
+        '${s}behavior/sample_conformance.dart': conformanceWith(
+          "import 'package:matcher/expect.dart';\n",
+          "export 'package:flutter_test/flutter_test.dart';\n"
+              "import 'package:sample/src/sample_base.dart';\n"
+              "import 'package:test/test.dart';\n",
+        ).replaceFirst("'G3 a", "'g3 a"),
+      });
+      expect(at(o, '${s}behavior/sample_conformance.dart'), <String>[
+        'src-import (package:sample/src/sample_base.dart)',
+        'case-name (line 20: case name does not begin with G{n} and a space: g3 a sample value is redacted)',
+        'conformance-import (package:flutter_test/flutter_test.dart)',
+        'conformance-import (package:test/test.dart)',
+      ]);
     });
   });
   group('Validation forms', () {

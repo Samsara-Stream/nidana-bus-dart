@@ -115,6 +115,15 @@ void main() {
             },
             'FAIL structure ${s}surface/use.dart: src-import (package:sample/src/sample_base.dart)',
           ),
+          (
+            'a conformance library that imports package:test',
+            <String, String?>{
+              '${s}behavior/sample_conformance.dart':
+                  "import 'package:test/test.dart';\n"
+                  '${sampleFiles['${s}behavior/sample_conformance.dart']!}',
+            },
+            'FAIL structure ${s}behavior/sample_conformance.dart: conformance-import (package:test/test.dart)',
+          ),
         ]) {
       test(name, () async {
         final ProcessResult r = await runTool(<String>[
@@ -126,6 +135,24 @@ void main() {
         expect(lines(r), contains(line));
       });
     }
+  });
+  test('a Dart fixture that is not UTF-8 fails structure (1), never an environment error', () async {
+    final Directory root = seed(sampleFiles);
+    File('${root.path}/${s}reject/latin1.dart')
+        .writeAsBytesSync(<int>[0x2f, 0x2f, 0x20, 0xff, 0x0a]);
+    final ProcessResult r = await runTool(<String>[
+      'sample',
+      '--set',
+      'structure',
+    ], workingDirectory: root);
+    expect(r.exitCode, 1, reason: all(r));
+    expect(
+      lines(r),
+      contains(
+        'FAIL structure ${s}reject/latin1.dart: encoding (not UTF-8: Invalid UTF-8 byte (at offset 3))',
+      ),
+    );
+    expect(r.stderr as String, isEmpty);
   });
   group('the surface and reject sets over a seeded workspace, one dart analyze', () {
     late ProcessResult r;

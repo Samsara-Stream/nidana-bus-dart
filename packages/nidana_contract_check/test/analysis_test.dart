@@ -226,6 +226,26 @@ void main() {
         <String>['${s}surface/more/core.dart'],
       );
     });
+    test('a source that is not UTF-8 is no library of surface/ or reject/', () {
+      final SlugSnapshot undecodable = snapshotOf(
+        'sample',
+        sampleFiles,
+        bytes: <String, List<int>>{
+          '${s}surface/latin1.dart': <int>[0xff],
+          '${s}reject/latin1.dart': <int>[0xff],
+        },
+      );
+      expect(
+        setLibraries(undecodable, CheckSet.surface, const <String>{
+          'sample',
+        }).map((SetLibrary l) => l.path),
+        <String>['${s}surface/use.dart'],
+      );
+      expect(
+        analysisTargets(undecodable, CheckSet.reject, const <String>{'sample'}),
+        <String>['${s}reject/sample_is_closed.dart'],
+      );
+    });
   });
   group('the replay\'s one analysis', () {
     test('readsAnalysis: surface and reject, no other set', () {
