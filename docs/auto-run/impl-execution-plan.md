@@ -212,7 +212,8 @@ a `Task N: complete` line; never re-dispatch them.
 | S141 | implement | superpowers:subagent-driven-development | nidana.model.11: 5 tasks, no fix rounds, final review with fixes, one fix wave; gate exit 0, 235 tests; topology-dsl@v2 fully produced (24/24 unrestricted); topology-ir restricted 17/17 | done | 9119de2; merged into impl/nidana.model as c021914 |
 | S142 | config | hsdd-config | nidana.model.12 (N=6, full-review; all 31 restricted topology-ir cases reachable, 12 for .12) | done | f0160dd |
 | S143 | code-plan | superpowers:writing-plans | nidana.model.12 (5 tasks; dry run: restricted 19/31 to 31/31, 264 tests; iterative cycle search) | done | 81214fd |
-| S144 | implement | superpowers:subagent-driven-development | nidana.model.12: 5 tasks, 1 fix round (Task 4, equal-claims test), the ownership index carried (linear), final review doc-only fixes, one doc wave; gate exit 0, 270 tests; topology-ir restricted 31/31 | done | 65dc152 |
+| S144 | implement | superpowers:subagent-driven-development | nidana.model.12: 5 tasks, 1 fix round (Task 4, equal-claims test), the ownership index carried (linear), final review doc-only fixes, one doc wave; gate exit 0, 270 tests; topology-ir restricted 31/31 | done | 65dc152; merged into impl/nidana.model as 333e08a |
+| S145 | config | hsdd-config | nidana.model.13 (N=6, spot-check; all 26 restricted topology-ir cases reachable, 9 for .13) | done | 5e93f98 |
 
 ## Notes for the report
 
