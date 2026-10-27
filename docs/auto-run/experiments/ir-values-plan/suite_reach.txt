@@ -1,0 +1,33 @@
+-- the final draft (the G3 cases and G7's second case build graphs, nidana.model.11's)
+cases (6 passed, 3 failed, 0 skipped under dart test, restricted to topology-ir G3, G5 to G7)
+    failed-case (G3 every collection the IR, graphs, claims and findings expose is unmodifiable)
+    failed-case (G3 the IR copies the lists it is given; later changes to them do not reach it)
+    failed-case (G7 graphs, claims, declarations and findings are equal, with equal hash codes, exactly when their fields are)
+-- D2 an edge hashes its inputs list by identity
+cases (5 passed, 4 failed, 0 skipped under dart test, restricted to topology-ir G3, G5 to G7)
+    failed-case (G3 every collection the IR, graphs, claims and findings expose is unmodifiable)
+    failed-case (G3 the IR copies the lists it is given; later changes to them do not reach it)
+    failed-case (G7 IR values are equal, with equal hash codes, exactly when their fields are)
+    failed-case (G7 graphs, claims, declarations and findings are equal, with equal hash codes, exactly when their fields are)
+-- D5 combine takes a retry
+cases (6 passed, 3 failed, 0 skipped under dart test, restricted to topology-ir G3, G5 to G7)
+    failed-case (G3 every collection the IR, graphs, claims and findings expose is unmodifiable)
+    failed-case (G3 the IR copies the lists it is given; later changes to them do not reach it)
+    failed-case (G7 graphs, claims, declarations and findings are equal, with equal hash codes, exactly when their fields are)
+-- D7 a topic input ignores its dedup in equality
+cases (5 passed, 4 failed, 0 skipped under dart test, restricted to topology-ir G3, G5 to G7)
+    failed-case (G3 every collection the IR, graphs, claims and findings expose is unmodifiable)
+    failed-case (G3 the IR copies the lists it is given; later changes to them do not reach it)
+    failed-case (G7 IR values are equal, with equal hash codes, exactly when their fields are)
+    failed-case (G7 graphs, claims, declarations and findings are equal, with equal hash codes, exactly when their fields are)
+-- D8 an edge keeps the list it is given
+cases (6 passed, 3 failed, 0 skipped under dart test, restricted to topology-ir G3, G5 to G7)
+    failed-case (G3 every collection the IR, graphs, claims and findings expose is unmodifiable)
+    failed-case (G3 the IR copies the lists it is given; later changes to them do not reach it)
+    failed-case (G7 graphs, claims, declarations and findings are equal, with equal hash codes, exactly when their fields are)
+-- D11 a definition's equality ignores the order of its edges
+cases (6 passed, 3 failed, 0 skipped under dart test, restricted to topology-ir G3, G5 to G7)
+    failed-case (G3 every collection the IR, graphs, claims and findings expose is unmodifiable)
+    failed-case (G3 the IR copies the lists it is given; later changes to them do not reach it)
+    failed-case (G7 graphs, claims, declarations and findings are equal, with equal hash codes, exactly when their fields are)
+done

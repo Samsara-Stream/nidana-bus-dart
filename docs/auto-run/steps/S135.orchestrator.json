@@ -1,0 +1,77 @@
+{
+  "step_ref": "S135",
+  "decisions": [
+    {
+      "at": "2026-10-27T14:38:49Z",
+      "artifact": null,
+      "question": "SDD pre-flight for nidana.model.10 (spot-check): which model implements each task?",
+      "options": [
+        {
+          "label": "Sonnet for every task",
+          "consequence": "The run's rule for non-full-review phases; the plan's code was dry-run."
+        },
+        {
+          "label": "Opus for Task 3 (canonical orders)",
+          "consequence": "More capable on the cross-library ordering; departs from the run's rule."
+        }
+      ],
+      "chosen": "Sonnet for every task",
+      "why": "The run's model rule and nidana.model.8 and .9's precedent; every Dart block was dry-run (docs/auto-run/experiments/ir-values-plan/).",
+      "evidence": [
+        "docs/auto-run/impl-execution-plan.md How a phase runs item 3"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T15:34:00Z",
+      "artifact": "packages/nidana_dart_contracts/test/topology_definition_test.dart",
+      "question": "nidana.model.10 Task 4's review found that a state-sink check by name only would pass every test (two state sinks of one name and variant but different typeName are two TopicRefs). Carry a test into Task 5 though it edits Task 4's file?",
+      "options": [
+        {
+          "label": "Carry it into Task 5 by ruling (one test, its own commit)",
+          "consequence": "The mutant is killed before the final review; one sanctioned deviation in the doc."
+        },
+        {
+          "label": "Leave it to the final review",
+          "consequence": "A code-adjacent change in the final wave and a gate re-run."
+        }
+      ],
+      "chosen": "Carry it into Task 5 by ruling (one test, its own commit)",
+      "why": "Same pattern as nidana.model.9 Task 4; the final wave stayed doc-only.",
+      "evidence": [
+        "docs/auto-run/steps/S135.sdd-progress.md (Task 4, Task 5)"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T15:34:01Z",
+      "artifact": "hsdd/verify/nidana.model.10.verification.md",
+      "question": "nidana.model.10's final review said Ready to merge: Yes, with three wording points in the verification doc (an inaccurate 'Not in the gate', a routing record labelled a deviation, an awkward sentence). Fix before merge?",
+      "options": [
+        {
+          "label": "One doc-only fix wave; the controller re-reviews the 3-line diff itself",
+          "consequence": "The owner signs accurate evidence; one cheap dispatch."
+        },
+        {
+          "label": "Merge as is",
+          "consequence": "The owner signs 'Not in the gate' for guarantees whose package tests the gate runs."
+        }
+      ],
+      "chosen": "One doc-only fix wave; the controller re-reviews the 3-line diff itself",
+      "why": "The doc is owner-signed evidence; the wave changes nothing under packages/, so no gate re-run.",
+      "evidence": [
+        "docs/auto-run/steps/S135.sdd-progress.md (final review, final fix wave)"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "would_upstream": false
+    }
+  ]
+}

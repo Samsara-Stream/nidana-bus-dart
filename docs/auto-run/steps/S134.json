@@ -1,0 +1,554 @@
+{
+  "step_ref": "S134",
+  "skill": "superpowers:writing-plans",
+  "target": "nidana.model.10",
+  "status": "completed",
+  "stop": null,
+  "artifacts": [
+    "docs/superpowers/plans/nidana.model.10.md",
+    "docs/auto-run/experiments/ir-values-plan/"
+  ],
+  "decisions": [
+    {
+      "at": "2026-10-27T14:21:00Z",
+      "artifact": "docs/superpowers/plans/nidana.model.10.md",
+      "question": "How many tasks, and where do the four canonical orders go in the task sequence?",
+      "options": [
+        {
+          "label": "6 tasks: FunctionRef, inputs and edges, canonical orders, definition, findings, verification",
+          "consequence": "Each library change is one reviewable unit; the claim-order design (a routed item) gets its own review; the definition task stays focused on well-formedness."
+        },
+        {
+          "label": "5 tasks: the canonical orders folded into the definition task",
+          "consequence": "One task fewer; the definition task carries a second design decision (the claim order) that nothing in it uses."
+        },
+        {
+          "label": "4 tasks: edges and definition together",
+          "consequence": "Fewer reviews, but one task would turn six cases green and mix two rule sets."
+        }
+      ],
+      "chosen": "6 tasks: FunctionRef, inputs and edges, canonical orders, definition, findings, verification",
+      "why": "writing-plans splits where a reviewer could reject one task and approve its neighbour; the comparators (the routed claim-order question) and the definition's rules are separable, and 6 is within the cap of 7. The dry run ran exactly this sequence and each task's failing and passing steps behaved as the plan states.",
+      "evidence": [
+        "docs/auto-run/experiments/ir-values-plan/output.txt T1.2 to T5.4",
+        "hsdd-context/superpowers/nidana.model.10.md constraint 3"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T14:21:35Z",
+      "artifact": "docs/superpowers/plans/nidana.model.10.md",
+      "question": "D4 puts the canonical orders in lib/src/ir/, but the claim order compares ShellClaim, which lib/src/graph/graph.dart declares and which imports lib/src/ir/ (routed from S116). Where does the claim order live?",
+      "options": [
+        {
+          "label": "in lib/src/ir/ over the claim's parts (a ClaimKey record of source, scope, writes)",
+          "consequence": "All four orders sit together where D4 puts them; ir/ never imports graph/; nidana.model.11 passes each claim's three fields."
+        },
+        {
+          "label": "in lib/src/graph/ beside ShellClaim",
+          "consequence": "No record type, but the four orders are split across two libraries against D4's wording, and this phase could not test the claim order before nidana.model.11."
+        },
+        {
+          "label": "in lib/src/ir/ naming ShellClaim",
+          "consequence": "Makes ir/ and graph/ import each other (legal in Dart, but the routed item asks to avoid it)."
+        }
+      ],
+      "chosen": "in lib/src/ir/ over the claim's parts (a ClaimKey record of source, scope, writes)",
+      "why": "Keeps D4's placement and the import direction graph/ -> ir/, and lets this phase pin the claim order with tests now. A test reads lib/src/ir/ for import or export directives naming graph/ so the boundary stays pinned.",
+      "evidence": [
+        "docs/superpowers/plans/nidana.model.10.md Task 3",
+        "hsdd/spec/nidana.model.md D4",
+        "docs/auto-run/impl-execution-plan.md Routed to later phases (S116)"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T14:21:35Z",
+      "artifact": "docs/superpowers/plans/nidana.model.10.md",
+      "question": "Does compareClaimKeys trust that each claim's writes iterate in canonical order (ShellClaim keeps them so), or sort copies itself?",
+      "options": [
+        {
+          "label": "sort copies of both writes",
+          "consequence": "Correct for any Iterable a caller passes; costs a sort per comparison over small sets."
+        },
+        {
+          "label": "compare in iteration order",
+          "consequence": "Cheaper, but a comparator over parts would depend on a caller's precondition; dry run D10 shows the difference."
+        }
+      ],
+      "chosen": "sort copies of both writes",
+      "why": "The comparator takes parts, not a ShellClaim, so it should not rely on the caller having sorted them; claims hold few topics, and the Interface's 'element by element in canonical order' then holds whatever the iterable. Pinned by a test that compares {x, y} with [y, x].",
+      "evidence": [
+        "docs/auto-run/experiments/ir-values-plan/draft/lib/src/ir/canonical_order.dart",
+        "docs/auto-run/experiments/ir-values-plan/output.txt D10"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T14:21:35Z",
+      "artifact": "docs/superpowers/plans/nidana.model.10.md",
+      "question": "The topology order is 'by topologyId'. Is the shared comparator over TopologyDefinition or over ids?",
+      "options": [
+        {
+          "label": "over ids: compareTopologyIds(String, String)",
+          "consequence": "canonical_order.dart does not import definition.dart (which imports it), and TopologyCycle.topologyIds sorts by the same comparator."
+        },
+        {
+          "label": "over definitions: compareTopologies(TopologyDefinition, TopologyDefinition)",
+          "consequence": "Reads better at the graph's call site, but makes definition.dart and canonical_order.dart import each other."
+        }
+      ],
+      "chosen": "over ids: compareTopologyIds(String, String)",
+      "why": "Same reasoning as the claim order: comparators over parts keep the imports one-way, and one comparator then serves both the graph's topologies (nidana.model.11) and a cycle's ids.",
+      "evidence": [
+        "docs/auto-run/experiments/ir-values-plan/draft/lib/src/ir/canonical_order.dart"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T14:21:35Z",
+      "artifact": "docs/superpowers/plans/nidana.model.10.md",
+      "question": "Where do the comparators and the sorted-copy helper live, and are they public within the package?",
+      "options": [
+        {
+          "label": "new internal library lib/src/ir/canonical_order.dart, top-level functions, exported by no public library",
+          "consequence": "One file per responsibility; package tests import it from src as lineage_test.dart already does; exports_test.dart is unchanged."
+        },
+        {
+          "label": "private functions inside definition.dart",
+          "consequence": "No new file, but findings.dart and graph.dart could not reach them."
+        }
+      ],
+      "chosen": "new internal library lib/src/ir/canonical_order.dart, top-level functions, exported by no public library",
+      "why": "D4 names lib/src/ir/ for the canonical orders and three libraries use them; top-level public names in a src library are not public API (no public library exports them), and the analyzer's unused_element does not apply to them, so compareClaimKeys can land before its first caller in nidana.model.11.",
+      "evidence": [
+        "docs/auto-run/experiments/ir-values-plan/output.txt T3.4",
+        "packages/nidana_dart_contracts/test/lineage_test.dart (imports src)"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T14:26:15Z",
+      "artifact": "docs/superpowers/plans/nidana.model.10.md",
+      "question": "Do the package tests pin which argument an ArgumentError names, beyond the suite's throwsArgumentError?",
+      "options": [
+        {
+          "label": "pin ArgumentError.name for every rejection",
+          "consequence": "Each rejection is attributed to its argument (inputs, transformer, duration, retry, combinator, topic, topologyId, transforms, name); a check made in the wrong place fails a test."
+        },
+        {
+          "label": "only throwsArgumentError, as the suite does",
+          "consequence": "Shorter tests; a factory that rejects for the wrong reason passes."
+        }
+      ],
+      "chosen": "pin ArgumentError.name for every rejection",
+      "why": "The contract says only ArgumentError; naming the argument costs nothing and is what a person debugging a misbuilt edge needs. It also fixes the check order for single-fault inputs. Messages stay free, except the S132 rule against 'an {variant}'.",
+      "evidence": [
+        "docs/superpowers/plans/nidana.model.10.md Global Constraints, Errors",
+        "docs/auto-run/experiments/ir-values-plan/draft/test/transform_edge_test.dart"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T14:29:13Z",
+      "artifact": "docs/superpowers/plans/nidana.model.10.md",
+      "question": "How is the stage-edge table encoded in TransformEdge.stage?",
+      "options": [
+        {
+          "label": "a private record per combinator (_StageRule) from one exhaustive switch, then generic checks",
+          "consequence": "The table reads like the contract's table and the switch fails to compile when a CombinatorKind is added."
+        },
+        {
+          "label": "per-combinator if-chains in the factory",
+          "consequence": "No extra types, but the table is spread over branches and harder to review against the contract."
+        }
+      ],
+      "chosen": "a private record per combinator (_StageRule) from one exhaustive switch, then generic checks",
+      "why": "Declarative over imperative (owner's preference); the switch is exhaustive over CombinatorKind, and reduceInto's arm throws, which is how stage rejects it. Checks run combinator, inputs, transformer, duration presence, duration sign, retry.",
+      "evidence": [
+        "docs/auto-run/experiments/ir-values-plan/draft/lib/src/ir/definition.dart",
+        "hsdd/contract/topology-ir.md What a stage edge holds"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T14:21:28Z",
+      "artifact": "docs/superpowers/plans/nidana.model.10.md",
+      "question": "FunctionRef.of when the rendering has the marker but no closing quote; and how is the name read?",
+      "options": [
+        {
+          "label": "anonymous; String.indexOf, no RegExp",
+          "consequence": "Matches 'anonymous when that text is absent or empty'; unreachable on the VM; no allocation of a pattern."
+        },
+        {
+          "label": "the rest of the rendering as the name",
+          "consequence": "A name the rule does not define."
+        }
+      ],
+      "chosen": "anonymous; String.indexOf, no RegExp",
+      "why": "G9's rule defines the name as the text between the marker and the next quote; with no next quote there is no such text. F1 R re-checked every form the tests use on the pinned SDK.",
+      "evidence": [
+        "docs/auto-run/experiments/ir-values-plan/output.txt F1 R",
+        "hsdd/contract/topology-ir.md G9"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T14:21:28Z",
+      "artifact": "docs/superpowers/plans/nidana.model.10.md",
+      "question": "How does FunctionRef.named check its name, given the class keeps a final field?",
+      "options": [
+        {
+          "label": "initializer list : name = _nonEmpty(name), a library function that throws",
+          "consequence": "No constructor body; the parameter keeps its name; non-const as the Interface declares."
+        },
+        {
+          "label": "an initializing formal with a constructor body that throws",
+          "consequence": "Works, but the body reads the parameter through the field's nullable type."
+        }
+      ],
+      "chosen": "initializer list : name = _nonEmpty(name), a library function that throws",
+      "why": "Smallest change that fulfils the routed item; the same initializer-list style the findings' sorting constructors use.",
+      "evidence": [
+        "docs/auto-run/experiments/ir-values-plan/draft/lib/src/ir/function_ref.dart"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T14:26:15Z",
+      "artifact": "docs/superpowers/plans/nidana.model.10.md",
+      "question": "G6 rejects a negative StageInput, but StageInput asserts a non-negative index and dart test runs with assertions, so no test can build one in-process. Pin it, and how?",
+      "options": [
+        {
+          "label": "a package test that runs a small program through Platform.resolvedExecutable without assertions",
+          "consequence": "Pins the rule (dry run D4 is otherwise invisible to every test and to the gate); one subprocess, the whole package run stays about 4 seconds."
+        },
+        {
+          "label": "pin it in the experiment only",
+          "consequence": "No process in the package tests; the rule then has no test in the gate."
+        },
+        {
+          "label": "leave it to review",
+          "consequence": "Cheapest; the check could be dropped silently."
+        }
+      ],
+      "chosen": "a package test that runs a small program through Platform.resolvedExecutable without assertions",
+      "why": "The run ruling asks for tests where a rule would otherwise go unpinned; the dry run showed the test passes with the check and fails without it, starts no flutter, and leaves no file behind (temp directory torn down).",
+      "evidence": [
+        "docs/auto-run/experiments/ir-values-plan/output.txt T4.4, D4",
+        "docs/auto-run/experiments/ir-values-plan/draft/test/topology_definition_test.dart"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T14:24:30Z",
+      "artifact": "docs/superpowers/plans/nidana.model.10.md",
+      "question": "How does a test reproduce S132's routed corner, two state topics whose value types render alike?",
+      "options": [
+        {
+          "label": "a helper library test/src/cart_elsewhere.dart declaring a second Cart, imported with a prefix",
+          "consequence": "The test builds two real StateTopics that are unequal Topics with equal refs, exactly the corner nidana.model.11 will meet."
+        },
+        {
+          "label": "two TopicRefs built apart with typeName 'Cart'",
+          "consequence": "No extra file, but it only restates the second-state-sink rule and never shows two distinct types."
+        }
+      ],
+      "chosen": "a helper library test/src/cart_elsewhere.dart declaring a second Cart, imported with a prefix",
+      "why": "The corner is about types that differ but render alike; only two class declarations in two libraries produce it. One five-line file.",
+      "evidence": [
+        "docs/auto-run/experiments/ir-values-plan/draft/test/src/cart_elsewhere.dart",
+        "docs/auto-run/impl-execution-plan.md (S132 final review)"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T14:22:25Z",
+      "artifact": "docs/superpowers/plans/nidana.model.10.md",
+      "question": "Do the findings' constructors also make their lists unmodifiable copies now, or only sort them?",
+      "options": [
+        {
+          "label": "sort into unmodifiable copies",
+          "consequence": "G3's value side lands with the value semantics; the G3 case that also covers findings passes on this part once nidana.model.11 lands graphs."
+        },
+        {
+          "label": "sort into growable lists, leave G3 to a later phase",
+          "consequence": "A later phase would have to touch the same constructors again."
+        }
+      ],
+      "chosen": "sort into unmodifiable copies",
+      "why": "The Scope says 'value semantics' of the findings and G3 names findings; sorting already copies, so unmodifiable costs nothing.",
+      "evidence": [
+        "docs/auto-run/experiments/ir-values-plan/draft/lib/src/analysis/findings.dart",
+        "hsdd/contract/topology-ir.md G3, G23"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T14:21:28Z",
+      "artifact": "docs/superpowers/plans/nidana.model.10.md",
+      "question": "Do the IR values and findings gain toString overrides, which would make test failures readable?",
+      "options": [
+        {
+          "label": "no toString",
+          "consequence": "Matches the Interface, which declares none, and nidana.model.9's ruling for TopologyRef; failures print 'Instance of ...'."
+        },
+        {
+          "label": "add toString",
+          "consequence": "Readable failures, but a behavior the contract does not state."
+        }
+      ],
+      "chosen": "no toString",
+      "why": "Precedent (nidana.model.9 plan, Interface rule) and the run's governance freeze: a rendering is a contract decision; already routed to the end-of-node sweep for topic-model values.",
+      "evidence": [
+        "docs/superpowers/plans/nidana.model.10.md Global Constraints, Interface"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T14:26:15Z",
+      "artifact": "docs/superpowers/plans/nidana.model.10.md",
+      "question": "How much code does the plan carry for spot-check-tier Sonnet implementers?",
+      "options": [
+        {
+          "label": "full test files, the stage-edge table, canonical_order.dart and the findings' constructors verbatim; other bodies as signatures and rules",
+          "consequence": "Implementers write exactly the tested code; the plan is 1770 lines, about the length of nidana.model.9's 1737."
+        },
+        {
+          "label": "test names and key assertions only",
+          "consequence": "Half the length, but each implementer reconstructs 1054 lines of tests and the expected counts no longer hold."
+        }
+      ],
+      "chosen": "full test files, the stage-edge table, canonical_order.dart and the findings' constructors verbatim; other bodies as signatures and rules",
+      "why": "Precedent and the dry run: every quoted block is the formatter-stable draft the dry run ran (X), so each task's expected output in the plan is measured, not guessed.",
+      "evidence": [
+        "docs/auto-run/experiments/ir-values-plan/output.txt X",
+        "docs/superpowers/plans/nidana.model.9.md"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T14:30:29Z",
+      "artifact": "docs/superpowers/plans/nidana.model.10.md",
+      "question": "Is the conformance suite's failure to reach three rules (retry on combinators other than map, G6's negative index, edge order in a definition's equality) a contract gap to report, or only a learning?",
+      "options": [
+        {
+          "label": "both: a low-severity contract gap and a Learning routed to the end-of-node sweep",
+          "consequence": "hsdd-contract can add two assertions and one not-executable line within v1; the phase is not blocked."
+        },
+        {
+          "label": "a Learning only",
+          "consequence": "The governance owner might not see the missing not-executable line ADR-001 item 3 asks for."
+        }
+      ],
+      "chosen": "both: a low-severity contract gap and a Learning routed to the end-of-node sweep",
+      "why": "Same treatment S127 gave the recording suite's misses. suite_reach.txt shows seeded defects D5 and D11 pass every G5 to G7 case even once G3 and G7 join the restriction; D4 is unreachable under assertions.",
+      "evidence": [
+        "docs/auto-run/experiments/ir-values-plan/suite_reach.txt",
+        "docs/auto-run/experiments/ir-values-plan/output.txt D4, D5, D11",
+        "hsdd/adr/001-executable-contract-validation.md item 3"
+      ],
+      "blast_radius": "contract",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T14:36:00Z",
+      "artifact": "docs/superpowers/plans/nidana.model.10.md",
+      "question": "Which five input classes go in Review Focus?",
+      "options": [
+        {
+          "label": "hash-collection keys, reused argument lists, repeated topics and variants under one name, rendered-alike types, transformer forms the suite does not name",
+          "consequence": "Each is a way a consumer (graphs, catalog, projection) will use the IR, and three pass the gate's replay when broken (dry run D2, D8; D3 is caught)."
+        },
+        {
+          "label": "include the negative index and per-combinator retry",
+          "consequence": "Both are rules, not input classes a user meets, and both are already pinned."
+        }
+      ],
+      "chosen": "hash-collection keys, reused argument lists, repeated topics and variants under one name, rendered-alike types, transformer forms the suite does not name",
+      "why": "writing-plans asks for the inputs most likely to bite a person using the software; nidana.model.11 to .14 build graphs, sets and catalogs over these values next.",
+      "evidence": [
+        "docs/superpowers/plans/nidana.model.10.md Review Focus",
+        "docs/auto-run/experiments/ir-values-plan/output.txt D"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    }
+  ],
+  "experiments": [
+    {
+      "path": "docs/auto-run/experiments/ir-values-plan/",
+      "question": "Does this plan's task sequence, run in a temporary copy of HEAD 06d90bc with the drafted files, produce the failing and passing outputs the plan states, keep every committed fixture and test green, and catch seeded defects? Also: how Object.hash treats lists, whether hash codes are stable across runs, what Set.unmodifiable keeps, and what FunctionRef.of's rule yields for the forms the tests use.",
+      "finding": "Yes. Package tests 147 -> 153 -> 160 -> 166 -> 174 -> 182; the gate's restricted topology-ir replay goes 1/10 (S1) -> 10/10 after Task 4; the full gate exits 0 (G); unrestricted 11/43 (U, G7's IR case passes early); fixture diagnostics unchanged at 3143 in 70 libraries (B, A); every quoted block formatter-stable (X). Object.hash of a list hashes identity (H2), Object.hashAll is element-wise and order-sensitive (H3, H4); Object.hash and enum hash codes change between runs (F2), so no test pins a value. Set.unmodifiable keeps first-occurrence order, copies, throws UnsupportedError (U1 to U4); Set == is identity (U6). FunctionRef.of: topLevel, reduce, label, identity, Box., Box.named, call, _private@21481238; anonymous for extension tear-offs and every closure (R). 13 seeded defects: all fail a package test, 10 pass the gate's replay (D)."
+    },
+    {
+      "path": "docs/auto-run/experiments/ir-values-plan/suite_reach.sh",
+      "question": "Would topology-ir@v1's suite catch the seeded defects once G3, G5, G6 and G7 are all in the restriction (nidana.model.11's gate)?",
+      "finding": "D2 and D7 fail G7's IR case; D5 (retry accepted on combine) and D11 (definition equality ignores edge order) pass every G5 to G7 case; D8 is not distinguishable here because both G3 cases fail on graphs until nidana.model.11. Output in suite_reach.txt."
+    }
+  ],
+  "self_check": [
+    {
+      "gate": "Spec coverage: skim each section/requirement in the spec. Can you point to a task that implements it?",
+      "status": "pass",
+      "note": "Scope: G5 table, reduceInto, zero/negative durations -> Task 2; G6 rules, reads/writes -> Task 4; four canonical orders -> Task 3; isStateBearing (G10) -> Task 2; FunctionRef (G9) -> Task 1; CombinatorKind order (G2) -> already green, unchanged (stated); value equality, hash codes, unmodifiable copies -> Tasks 1, 2, 4; findings' value semantics (G23) -> Task 5; Verification line -> 'Which task turns which failing case green' and Task 6 checklist; gate -> Task 6."
+    },
+    {
+      "gate": "Step scan: every step must let the implementer write exactly one reasonable thing, and no step may carry more than that.",
+      "status": "pass",
+      "note": "Test steps carry full files; code steps carry signatures, the exact table and constructors, and rules with argument names; verification steps carry commands and measured outputs. Replaced inline dartdoc fragments with a whole-file block for canonical_order.dart after review."
+    },
+    {
+      "gate": "Type consistency: do the types, method signatures, and property names you used in later tasks match what you defined in earlier tasks?",
+      "status": "pass",
+      "note": "compareTopicRefs, compareTopologyIds, compareMessageSources, ClaimKey, compareClaimKeys, sortedCopy, _StageRule, _ruleOf, _checkPresence, _checkWellFormed, _bySiteThenTopic, _marker, _nonEmpty used consistently; the dry run compiled the exact blocks (X)."
+    },
+    {
+      "gate": "Review Focus: for each input class or failure mode the spec implies, is there a task whose tests exercise it?",
+      "status": "pass",
+      "note": "Five lines, each naming its tests in the owning task."
+    },
+    {
+      "gate": "Proportion: compare the plan's length to the spec's.",
+      "status": "pass",
+      "note": "1770 lines against a 1075-line derivative; 1054 lines are test files quoted verbatim for spot-check-tier Sonnet implementers, as in nidana.model.9's 1737-line plan. Library bodies are mostly signatures and rules."
+    },
+    {
+      "gate": "Plan check: The plan's Global Constraints contain constraints 1 to 8 above, verbatim.",
+      "status": "pass",
+      "note": "impl-gate code-plan: 0 errors, 0 warnings."
+    },
+    {
+      "gate": "Plan check: Every `### Task N:` except the last starts with a failing-test step.",
+      "status": "pass",
+      "note": "Tasks 1 to 5; impl-gate checks it."
+    },
+    {
+      "gate": "Plan check: The last task writes the verification doc named in constraint 5.",
+      "status": "pass",
+      "note": "Task 6 writes hsdd/verify/nidana.model.10.verification.md, title '# Verification: nidana.model.10 - IR values and function references', Sign-off empty."
+    },
+    {
+      "gate": "Plan check: The plan has at most 7 tasks.",
+      "status": "pass",
+      "note": "6 tasks."
+    },
+    {
+      "gate": "Plan check: The plan is saved under docs/superpowers/plans/.",
+      "status": "pass",
+      "note": "docs/superpowers/plans/nidana.model.10.md, Spec line names hsdd-context/superpowers/nidana.model.10.md."
+    },
+    {
+      "gate": "node docs/auto-run/tools/impl-gate.mjs code-plan nidana.model.10",
+      "status": "pass",
+      "note": "exit 0, 0 errors, 0 warnings (run after the final splice)."
+    },
+    {
+      "gate": "Step brief: say which task turns which case green; the gate's restricted replay passes 10 of 10.",
+      "status": "pass",
+      "note": "Task 1: G9 x3; Task 2: G5 x3, G10 x1; Task 4: G6 x2; G2 already green; Tasks 3 and 5 none in the restriction. Dry run G: 10/10."
+    },
+    {
+      "gate": "Step brief: record each routed item's disposition, one line each.",
+      "status": "pass",
+      "note": "Plan section 'Routed items', eight lines."
+    },
+    {
+      "gate": "Step brief: settle by experiment and cite FunctionRef.of forms, hash-code stability, Object.hash on lists; no test writes a non-empty const set or map of value-equal types; fvm dart format before commits; trailer names the model; no test starts flutter.",
+      "status": "pass",
+      "note": "F1 R, F2, H1 to H4; A grep exit 1; Global Constraints, Formatting and commits, Tests."
+    },
+    {
+      "gate": "Prose rules: no em-dash, never the banned phrase.",
+      "status": "pass",
+      "note": "grep over the plan and the experiment directory found neither."
+    }
+  ],
+  "contract_gaps": [
+    {
+      "contract": "topology-ir@v1",
+      "where": "hsdd/contract/topology-ir.md G6 and ## Validation; hsdd/contract/fixture/topology-ir/behavior/topology_ir_conformance.dart 'G6 a definition rejects an empty id and ill-formed edges' (line 714)",
+      "problem": "Low, non-blocking. G6 rejects 'a stage input that is negative', but no fixture covers that part: StageInput asserts a non-negative index and every binding runs under dart test with assertions enabled, so the assertion fires before any TopologyDefinition sees the index. ADR-001 item 3 asks a guarantee covered only in part to carry a not-executable line for the rest; topology-ir@v1's Validation has none for G6. nidana.model.10's package tests pin it by running a program without assertions.",
+      "proposed_fix": "Compatible hsdd-contract touch within v1: add '- not executable: G6's negative stage input, StageInput asserts a non-negative index and every binding runs with assertions enabled; checked by nidana.model's gates' to topology-ir@v1's Validation."
+    },
+    {
+      "contract": "topology-ir@v1",
+      "where": "hsdd/contract/fixture/topology-ir/behavior/topology_ir_conformance.dart, the G5 case at line 607 and the G7 case at line 774",
+      "problem": "Low, non-blocking. The suite checks a retry's rejection on map only, so a TransformEdge.stage that accepts a retry on combine (or any combinator but switchMap) passes every G5 case; and no G7 assertion compares two definitions that differ only in edge order, so a definition equality that ignores edge order passes. Seeded defects D5 and D11 pass every G5, G6 and G7 case (docs/auto-run/experiments/ir-values-plan/suite_reach.txt). nidana.model.10's package tests pin both.",
+      "proposed_fix": "Compatible hsdd-contract touch within v1, at the end-of-node governance sweep: in the G5 case, loop the retry rejection over every combinator but switchMap; in the G7 IR case, assert that a definition with two sink edges swapped is not equal to the original."
+    }
+  ],
+  "notes_for_orchestrator": [
+    "STATUS: completed. Plan: docs/superpowers/plans/nidana.model.10.md (1770 lines, 6 tasks of the allowed 7; Spec line names hsdd-context/superpowers/nidana.model.10.md). Plan check: `node docs/auto-run/tools/impl-gate.mjs code-plan nidana.model.10` exits 0 with 0 errors and 0 warnings. Nothing committed; git status shows the plan and docs/auto-run/experiments/ir-values-plan/ untracked, plus this report.",
+    "EXECUTION: superpowers:subagent-driven-development, Sonnet implementers (spot-check tier). The writing-plans Execution Handoff was not waited on, per the preamble. Tasks 2 and 4 both edit lib/src/ir/definition.dart (Task 2 above '/// The IR of one topology', Task 4 below it), so they run in order. Task 6's `<base>` is the parent of Task 1's commit.",
+    "WHICH TASK TURNS WHICH CASE GREEN: Task 1 G9 x3; Task 2 G5 x3 and G10 x1; Task 3 none (comparators); Task 4 G6 x2, after which the gate's restricted replay passes 10 of 10; Task 5 none in the restriction (G23 joins at nidana.model.12; its package tests check it now). G2 passes at HEAD and no task touches CombinatorKind. Unrestricted after Task 5: 11 of 43 (G7's IR case passes ahead of its restriction).",
+    "EXPECTED GATE (dry run G, HEAD 06d90bc plus the drafts): exit 0; Got dependencies!; No issues found!; 102 fixtures passed; +182 package tests (147 + 35); topic-model 41 behavior cases and 31 fixtures; topology-dsl structure,surface,reject 27 fixtures; topology-ir 10 of 10 restricted and 61 fixtures.",
+    "ROUTED ITEMS: claim order defined in lib/src/ir/canonical_order.dart over a ClaimKey record of (source, scope, writes), no ir/ -> graph/ import, pinned by a test (Task 3); findings' constructors become sorting initializer lists with every parameter name and field type kept (Task 5); the two `// ignore: unused_element` in lib/src/ir/definition.dart go in Tasks 2 and 4 (graph/'s two stay for nidana.model.11); FunctionRef.named's empty-name ArgumentError (Task 1); nidana.model.11's needs: FunctionRef.of on combiner not apply (no IR change; Task 1 shows closures are anonymous), stage-to-edge index by identity (no IR change), the factory's ArgumentError for the rendered-alike corner (Task 4 test with test/src/cart_elsewhere.dart).",
+    "FOR nidana.model.11's PLAN: sort claims with compareClaimKeys((source: c.source, scope: c.scope, writes: c.writes), ...); sort topologies with compareTopologyIds(a.topologyId, b.topologyId); use sortedCopy for unmodifiable sorted lists; all in package:nidana_dart_contracts/src/ir/canonical_order.dart (internal). The rendered-alike corner makes TopologyPlan.definition throw ArgumentError (named 'transforms') for a plan planOf accepts.",
+    "SIZE: library 236 -> 701 lines in 4 files (function_ref 17 -> 44, definition 136 -> 427, canonical_order 0 -> 63, findings 83 -> 167); tests 1054 lines in 6 new files; about 1500 product lines against the Scope's ~400. Measured in the dry run (C).",
+    "INFORMATIVE, NOT A GAP: a named constructor tear-off renders 'Box.named' (F1 R); topology-ir@v1's Function references table lists only `Box.new` -> `Box.`. G9's rule yields it and no fixture depends on it.",
+    "DECISION TIMES: taken from the mtimes of the artifact each decision landed in (the drafts under the experiment directory and the plan), in UTC, since the decisions were made while drafting and recorded in this report at its end."
+  ]
+}
