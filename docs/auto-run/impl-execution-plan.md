@@ -208,6 +208,7 @@ a `Task N: complete` line; never re-dispatch them.
 | S137 | phase-plan | hsdd-phase-plan | nidana.model amend of the unshipped gates (.11 and .13 without G3, G7; reach table over .11 to .14: all pass after) | done | 1c49c76 |
 | S138 | reconcile | hsdd-reconcile | nidana.model pending section (amend of .11 and .13 gates): topology-ir@v1 Delivery, compatible within v1 | done | 708e7df |
 | S139 | config | hsdd-config | nidana.model.11 re-run after the gate amend (topology-ir G2,G5,G6,G8 to G12: 17 cases, 7 for .11) | done | d68ad72 |
+| S140 | code-plan | superpowers:writing-plans | nidana.model.11 (5 tasks; dry run gate exit 0: topology-dsl 24/24, topology-ir restricted 17/17; every routed item taken) | done | bba6721 |
 
 ## Notes for the report
 
@@ -376,7 +377,7 @@ that phase's writing-plans dispatch and strikes it here when the phase's plan co
   one-sink check, stages left behind after a rejected call); the contract does not say which error wins when a
   closed builder also gets a bad argument, or what `apply` does with a list of the wrong length (the code checks
   closed first, then arguments, and throws `ArgumentError` on a wrong length). `docs/auto-run/steps/S127.json`.
-- nidana.model.11 (from S132's final review), which edits the DSL library: the builder's `"... is an replay topic"`
+- nidana.model.11 (from S132's final review, which edits the DSL library; taken into S140's plan, Tasks 1 to 4): the builder's `"... is an replay topic"`
   message grammar; `_checkMade` names the argument `handle` without its position (a foreign fourth handle of
   `combine4` reads "Invalid argument (handle)"); use `combiner`, never `apply`, for `FunctionRef.of`; map a stage
   to its edge index by identity (stages keep `Object`'s `==`, G30); expect `TopologyDefinition`'s `ArgumentError`
@@ -421,6 +422,8 @@ that phase's writing-plans dispatch and strikes it here when the phase's plan co
 - End of nidana.model, governance sweep (from S139): nidana.model.10's shipped Scope (spec line 361) and its
   verification doc (line 70) still say G3 and G7 join the topology-ir restriction at nidana.model.11; S137 moved
   them to nidana.model.12 (shipped text was left untouched). An hsdd-phase-plan or reconcile touch, or a note.
+- End of nidana.model, governance sweep (from S140, hsdd-contract on topology-ir@v1, low): no case builds two claims
+  that tie on source and scope, so the writes part of the claim order is never replayed; a compatible case.
 - nidana.tooling.codegen.6, .9, .11 and nidana.tooling.lint.4 (from S122): the first gates to run the 39 committed
   recorded invocations and topic-codegen's file replay for real (all PENDING until then); their `{files}` and
   `{root}` recordings and in-place `files/` runs are first exercised there.
