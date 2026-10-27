@@ -195,6 +195,8 @@ a `Task N: complete` line; never re-dispatch them.
 | S124 | code-plan | superpowers:writing-plans | nidana.model.8 (6 tasks; dry run green: topic-model 41 behavior cases; 3 contract gaps routed) | done | 7a245e7 |
 | S125 | implement | superpowers:subagent-driven-development | nidana.model.8: 6 tasks, no fix rounds, final review with fixes (doc overclaims), one fix wave; gate exit 0, 95 tests; topic-model 31/31, 41/41 behavior cases; topic-model@v1 fully produced | done | a35f40c; merged into impl/nidana.model as 5d2cf18 |
 | S126 | config | hsdd-config | nidana.model.9 (N=7, spot-check; consumes topic-model@v1, produces topology-dsl@v2; the gate does not replay G9) | done | c286b15 |
+| S127 | code-plan | superpowers:writing-plans | nidana.model.9 (5 tasks; found the Gate's G10 restriction cannot pass before .11; governance route S128 to S131) | done | 8aa4d1b |
+| S128 | phase-plan | hsdd-phase-plan | nidana.model amend of .9's gate (G10 out of the restriction; .11 Scope names G10; one compatible Delivery amend pending) | done | 5caef25 |
 
 ## Notes for the report
 
@@ -299,7 +301,7 @@ that phase's writing-plans dispatch and strikes it here when the phase's plan co
   non-empty const set or const map keyed by topics, refs, sources, envelopes or lineages stops compiling
   (`const_set_element_not_primitive_equality`); consumer plans must not rely on such collections. For the
   report and the owner.
-- nidana.model.9 (from S113's final review): G14's "a handle another builder made" check needs a
+- nidana.model.9 (from S113's final review; taken into S127's plan, Tasks 1 and 3): G14's "a handle another builder made" check needs a
   handle-to-builder link (a private constructor argument or an Expando); `CombineStage.apply` for `combineAll`
   needs `T`, which `CombineStage<R>` does not carry, so capture a typed closure in the private constructor.
 - nidana.model.11 (from S115): remove the two `// ignore: unused_element` lines above `ShellClaim._` and
@@ -358,6 +360,11 @@ that phase's writing-plans dispatch and strikes it here when the phase's plan co
   print `Instance of 'TopicRef'`; compatible renderings would need the contract (D4 gives `lib/src/topic/` no later
   owner). Also: Spec §2.4's worked examples are checked only as G19's conformance cases encode them; compare them
   with the Specification once `ref/nidana-docs` is checked out (nidana.model.8's Outstanding).
+- End of nidana.model, governance sweep (from S127, hsdd-contract on topology-dsl@v2, non-blocking): the recording
+  suite misses several defects seeded against stated rules (wrong type arguments in the visitors, an identity-based
+  one-sink check, stages left behind after a rejected call); the contract does not say which error wins when a
+  closed builder also gets a bad argument, or what `apply` does with a list of the wrong length (the code checks
+  closed first, then arguments, and throws `ArgumentError` on a wrong length). `docs/auto-run/steps/S127.json`.
 - nidana.tooling.codegen.6, .9, .11 and nidana.tooling.lint.4 (from S122): the first gates to run the 39 committed
   recorded invocations and topic-codegen's file replay for real (all PENDING until then); their `{files}` and
   `{root}` recordings and in-place `files/` runs are first exercised there.
