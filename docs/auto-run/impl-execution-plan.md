@@ -177,6 +177,7 @@ a `Task N: complete` line; never re-dispatch them.
 | S106 | code-plan | superpowers:writing-plans | nidana.model.3 (4 tasks; dry-run of every block: gate exit 0, 30/30) | done | 5d420f4 |
 | S107 | implement | superpowers:subagent-driven-development | nidana.model.3: 4 tasks, no fix round, final review ready to merge; gate exit 0, topic-model 30/30 (first real surface and reject replay) | done | 881a18f; merged into impl/nidana.model as a8d43df |
 | S108 | config | hsdd-config | nidana.model.4 (found the scope cannot analyze: TransformEdge lands at .5) | done | 6c258b4 |
+| S109 | phase-plan (inserted) | hsdd-phase-plan | nidana.model re-plan of unshipped .4 and .5 (main library at .4, topology_ir.dart at .5) | done | 6f1d4b4 |
 
 ## Notes for the report
 
