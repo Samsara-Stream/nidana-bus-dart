@@ -1,0 +1,434 @@
+{
+  "step_ref": "S153",
+  "skill": "hsdd-contract",
+  "target": "topology-ir@v1 (hsdd/contract/topology-ir.md, hsdd/contract/fixture/topology-ir/), end-of-nidana.model governance sweep part 1: text, Interface, schema, invalid/ and surface; compatible touches within v1",
+  "status": "completed",
+  "stop": null,
+  "artifacts": [
+    "hsdd/contract/topology-ir.md",
+    "hsdd/contract/fixture/topology-ir/surface/graphs.dart (a top-level const ScopeViolation, pageOwned, listed in constructed)",
+    "hsdd/contract/INDEX.md (regenerated, no byte changed: no frontmatter changed)",
+    "docs/auto-run/experiments/sweep-topology-ir-text/ (run.sh, output.txt, facts/facts.dart, facts/elsewhere.dart, ext/ with pubspec.yaml, bin/main.dart and bin/run_wasm.mjs, would-be-invalid/ with write.mjs and three documents)",
+    "docs/auto-run/steps/S153.json"
+  ],
+  "decisions": [
+    {
+      "at": "2026-10-27T23:04:20Z",
+      "artifact": "hsdd/contract/topology-ir.md",
+      "question": "Item 1 (S112): the Interface prose says every value type is @immutable, but the code blocks show no annotation. Where do the code blocks put it?",
+      "options": [
+        {
+          "label": "where the code puts it",
+          "consequence": "@immutable on the sealed bases EdgeInput and TopologyFinding (covering TopicInput, StageInput and the four findings) and on TransformEdge, TopologyDefinition, FunctionRef, ShellClaim, TopologyGraph, TopicDeclaration and TopicNameCollision, as packages/nidana_dart_contracts/lib annotates them and as topic-model@v1's code blocks follow its code; the prose names the list"
+        },
+        {
+          "label": "on every value class",
+          "consequence": "the code blocks would show annotations on TopicInput, StageInput and the findings that the code does not write, so a reader copying them would differ from the package"
+        },
+        {
+          "label": "prose only",
+          "consequence": "the gap S112 found stays"
+        }
+      ],
+      "chosen": "where the code puts it",
+      "why": "The brief asks the code blocks to agree with the prose and the code. meta's @immutable on a class covers its subtypes, so annotating the sealed bases is what the package does and what the prose means. No reject fixture quotes the code blocks (reject/ir_values_are_immutable.dart expects assignment_to_final on fields, not the annotation), and no package test reads the contract text.",
+      "evidence": [
+        "packages/nidana_dart_contracts/lib/src/ir/definition.dart, function_ref.dart, graph/graph.dart, analysis/findings.dart (@immutable placements)",
+        "hsdd/contract/fixture/topology-ir/reject/ir_values_are_immutable.dart",
+        "hsdd/contract/topic-model.md Interface (same pattern)"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T23:04:20Z",
+      "artifact": "hsdd/contract/fixture/topology-ir/surface/graphs.dart",
+      "question": "Item 2 (S115): how does surface/graphs.dart use ScopeViolation's const constructor?",
+      "options": [
+        {
+          "label": "a top-level const pageOwned, listed in constructed",
+          "consequence": "a new const declaration built from const TopicRef and PageSource literals; the existing non-const entry stays, so the surface keeps a use with route.ref; a constructor that is not const fails the surface set (const_with_non_const)"
+        },
+        {
+          "label": "make the existing list entry const",
+          "consequence": "needs route.ref replaced by a literal, losing the one use that shows a finding built from a topic's ref"
+        }
+      ],
+      "chosen": "a top-level const pageOwned, listed in constructed",
+      "why": "It adds the missing pin without removing an existing use. The dry run shows the touched surface set passes against the shipped package and fails a copy whose ScopeViolation constructor is not const, which the committed graphs.dart passes.",
+      "evidence": [
+        "docs/auto-run/experiments/sweep-topology-ir-text/output.txt sections N and C"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T23:04:20Z",
+      "artifact": "hsdd/contract/topology-ir.md",
+      "question": "Item 3 (S132): \"From a plan\" says every projected definition is well formed, but two state topics of one name whose value types render alike pass planOf and break the IR's one-sink rule. What does the text say?",
+      "options": [
+        {
+          "label": "state the code's behavior",
+          "consequence": "the sentence keeps the rule and names the one exception: such a plan's definition and buildDefinition() throw TopologyDefinition's ArgumentError naming transforms, and the pair is a Spec 4.3 name collision the scan reports; compatible, no code change"
+        },
+        {
+          "label": "make planOf reject the pair",
+          "consequence": "a recording rule in topology-dsl@v2 (G14 compares by Topic equality) and a code change in nidana.model; the owner's choice, outside the sweep"
+        },
+        {
+          "label": "make the IR keep the two topics apart",
+          "consequence": "TopicRef equality or the typeName rendering changes: breaking for topic-model@v1 and topology-ir@v1"
+        }
+      ],
+      "chosen": "state the code's behavior",
+      "why": "The brief directs the qualification and the code's choice is sound: the failure is loud, at definition time, before activation wires anything, and the same pair is already an error of the workspace scan. The probe confirms planOf records two sinks, definition and buildDefinition throw ArgumentError(transforms), and findTopicNameCollisions reports the pair. A careful engineer would still put the alternative to the owner, because it collides with topology-dsl@v2 G14, which S152 also left as it was.",
+      "evidence": [
+        "docs/auto-run/experiments/sweep-topology-ir-text/output.txt section F, P",
+        "packages/nidana_dart_contracts/lib/src/ir/projection.dart (projectPlan's dartdoc)",
+        "packages/nidana_dart_contracts/test/projection_test.dart (G8 two state topics whose value types render alike)",
+        "hsdd/contract/topology-dsl.md Versioning, S152 entry (Left as it was)"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": true,
+      "stop_class": "collision",
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T23:04:41Z",
+      "artifact": "hsdd/contract/topology-ir.md",
+      "question": "Item 4, G6 (S134): what form does the not-executable line for G6's negative stage input take, and where does it go?",
+      "options": [
+        {
+          "label": "a partial line after the binding bullet",
+          "consequence": "- not executable: G6's rejection of a stage input whose index is negative, {reason}; checked by nidana.model's gates, in ADR-001 item 3's partial form, placed where topic-model@v1 puts its lines; the structure set parses the id and the node and counts no coverage from a partial line"
+        },
+        {
+          "label": "a whole-guarantee line",
+          "consequence": "wrong: G6's other rules are covered by behavior cases, and a whole line would claim G6 as not executable"
+        }
+      ],
+      "chosen": "a partial line after the binding bullet",
+      "why": "ADR-001 item 3 asks a guarantee covered in part to name the rest in the partial form. A binding runs under dart test with assertions on, so StageInput's assertion fires before TopologyDefinition sees the index; nidana.model's package test topology_definition_test.dart builds one in a program run without assertions and expects ArgumentError(transforms), so the node's gates check it. The structure set passes with the line (102/102).",
+      "evidence": [
+        "hsdd/adr/001-executable-contract-validation.md item 3",
+        "packages/nidana_contract_check/lib/src/contract.dart (_notExecutableHead, _checkedBy)",
+        "packages/nidana_dart_contracts/test/topology_definition_test.dart (G6 a negative stage input)",
+        "docs/auto-run/experiments/sweep-topology-ir-text/output.txt section N"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T23:04:41Z",
+      "artifact": "hsdd/contract/topology-ir.md",
+      "question": "Item 4, G9 (S135): the derivation table says an extension tear-off is anonymous, which holds for instance members only. How far does the clarification go?",
+      "options": [
+        {
+          "label": "every extension form the probe found, with the key placement",
+          "consequence": "two rows (a static method of a named extension or extension type renders Ext|helper, ET|make; an extension type's constructor tear-off, a factory included, renders ET|constructor#_#new#tearOff), the anonymous row narrowed to instance method tear-offs, the private row limited to the other forms, a Private names sentence (the key comes once at the end of the whole name, and only when that name is private: _Ext|helper@{key}, but Ext|_helper has none), and G9's gloss says an extension form's whole name counts as one name"
+        },
+        {
+          "label": "the two forms the brief names",
+          "consequence": "the table would still read as if Ext._helper carried @{key} under the private row and G9's gloss, which the probe shows it does not"
+        },
+        {
+          "label": "only narrow the anonymous row",
+          "consequence": "the named forms stay undocumented although the schema and the decoder accept them"
+        }
+      ],
+      "chosen": "every extension form the probe found, with the key placement",
+      "why": "The probe over JIT, AOT, obfuscated AOT, dart2js -O1/-O4 and dart2wasm, and FunctionRef.of itself, shows the named forms, and a corner the routed item did not name: a private static of a public extension renders Ext|_helper with no key, while a private extension's static renders _Ext|helper@{key}. Stating the table without it would have made the private row and G9's gloss wrong for that form. The gloss edit restates what G9's rule (the text between the markers) already yields; no rule changes.",
+      "evidence": [
+        "docs/auto-run/experiments/sweep-topology-ir-text/output.txt sections E and X",
+        "docs/auto-run/experiments/sweep-topology-ir-text/ext/bin/main.dart",
+        "hsdd/verify/nidana.model.10.verification.md line 82"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T23:04:41Z",
+      "artifact": "hsdd/contract/topology-ir.md",
+      "question": "Item 5 (S135): TopicInput accepts a dedup on an event or replay topic and TopicRef an empty typeName, which the schema rejects, so G20's round trip fails for such graphs. Narrow G20 or add constructor asserts?",
+      "options": [
+        {
+          "label": "narrow G20 and explain in The JSON form",
+          "consequence": "G20 gives a graph back whenever the decoder accepts its encoding; a JSON form bullet names the values (and, without assertions, a source with an empty name) and says a plan-made definition holds neither of the first two; compatible, no code change"
+        },
+        {
+          "label": "assert in TopicInput and TopicRef",
+          "consequence": "a code change in nidana.model and, for TopicRef, a touch of topic-model@v1; the owner's choice, outside the sweep"
+        }
+      ],
+      "chosen": "narrow G20 and explain in The JSON form",
+      "why": "The brief directs it. The old wording promised what no decoder meeting G21 and the schema could keep, so no consumer can rely on it. The probe shows all four hand-built graphs encode and the decoder rejects each with a FormatException, a source with an empty name too when assertions are off (dart run), while read() rejects a dedup on an event or replay topic and Topic.ref renders int, (), Object?.",
+      "evidence": [
+        "docs/auto-run/experiments/sweep-topology-ir-text/output.txt section F, R",
+        "hsdd/contract/fixture/topology-ir/invalid/dedup_on_event_read.json",
+        "hsdd/contract/schema/topology-ir.schema.json (typeName minLength 1)"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T23:05:03Z",
+      "artifact": "hsdd/contract/topology-ir.md",
+      "question": "Item 6 (S143, S144): scope violations are ordered \"by topic, then owner, then reader\", which leaves the owner order open (and reads as graph order). Which order does the text state?",
+      "options": [
+        {
+          "label": "the code's order",
+          "consequence": "by topic in canonical order, then owner by its source's rendering and then its scope (application, module, page), then reader in graph order; the text adds that this puts every claim before every topology owner and that two equal owners give one violation per reader; nidana-checks' scope-violation lines and the package stay right"
+        },
+        {
+          "label": "owners in graph order",
+          "consequence": "topology owners first: the shipped analyses and nidana-checks' line order would be wrong, and result order is on the Breaking list"
+        }
+      ],
+      "chosen": "the code's order",
+      "why": "The brief gives the wording and the code embodies a sound total order. Checked against lib/src/analysis/analyses.dart (_byOwner: compareMessageSources then scope index; the Set keeps equal violations once) and by the probe: owners topology:a, page:p twice, service:s module and page give violations page:p/page, service:s/module, service:s/page, topology:a/page. Settling an open result order is compatible because the code's order was one reading of the old text.",
+      "evidence": [
+        "packages/nidana_dart_contracts/lib/src/analysis/analyses.dart lines 212 to 295",
+        "docs/auto-run/experiments/sweep-topology-ir-text/output.txt section F, O"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T23:05:03Z",
+      "artifact": "hsdd/contract/topology-ir.md",
+      "question": "Item 7 (S146, S147): the schema bounds durationMicros and edge only from below while the decoder rejects 2^63 or more. Add a maximum to the schema, or state the decoder's bound in the text?",
+      "options": [
+        {
+          "label": "state the bound in the text",
+          "consequence": "The JSON form says an integer is a JSON number with no fractional part (5000, 5000.0 and 5e3 are one duration), that the decoder rejects 2^63 or more, which the schema accepts and no Duration or index can hold, and why the schema states no upper bound; the decoder-rules bullet lists integers below 2^63; schema unchanged"
+        },
+        {
+          "label": "maximum 2^63 - 1 in the schema",
+          "consequence": "every valid/ file still passes and every invalid/ file still fails (dry run M), but package:json_schema 5.2.2 and any JavaScript validator compare as doubles, so 2^63 still validates: the bound does not separate what the decoder rejects"
+        },
+        {
+          "label": "exclusiveMaximum 2^63 in the schema",
+          "consequence": "rejects 2^63 - 1, which the decoder accepts, under both validators: the schema would reject a document the decoder decodes"
+        }
+      ],
+      "chosen": "state the bound in the text",
+      "why": "Evidence, not taste: with maximum 9223372036854775807, json_schema accepts 9223372036854775808; with exclusiveMaximum 9223372036854775808 it rejects 9223372036854775807; node's JSON.parse reads both as 2**63. No schema bound draws the decoder's line, so the line is a decoder rule, which the text already gives the decoder for what the schema cannot state.",
+      "evidence": [
+        "docs/auto-run/experiments/sweep-topology-ir-text/output.txt sections F (I), J and M",
+        "packages/nidana_dart_contracts/lib/src/json/codec.dart _integer and _twoTo63"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T23:05:03Z",
+      "artifact": "hsdd/contract/fixture/topology-ir/invalid/",
+      "question": "Item 7 (S146): add invalid/ files for an empty typeName, a dedup on a replay read and a claim listing one topic twice?",
+      "options": [
+        {
+          "label": "do not add; owner item with the files ready",
+          "consequence": "invalid/ stays at 38; the three documents live in the experiment's would-be-invalid/, each failing the schema and rejected by the decoder with a FormatException; the owner adds them together with three invalidMessages entries in packages/nidana_dart_contracts/test/json_reject_test.dart"
+        },
+        {
+          "label": "add them",
+          "consequence": "the schema set and the G21 conformance cases pass, but json_reject_test.dart's 'G21 invalid/ holds exactly the files whose messages this test pins' fails, so the node gate fails; packages/ is not this step's"
+        }
+      ],
+      "chosen": "do not add; owner item with the files ready",
+      "why": "Checked before deciding, as the brief requires: with the three files in a copy's invalid/, the schema set passes 58/58 and behavior G21 3/3, and json_reject_test fails exactly that one test (51 passed, 1 failed). The test's other cases already reject the same three shapes from in-memory edits, so only the file-level pin is missing.",
+      "evidence": [
+        "docs/auto-run/experiments/sweep-topology-ir-text/output.txt sections F (W) and W",
+        "docs/auto-run/experiments/sweep-topology-ir-text/would-be-invalid/",
+        "packages/nidana_dart_contracts/test/json_reject_test.dart lines 20 to 75 and 217 to 222"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T23:05:04Z",
+      "artifact": "hsdd/contract/topology-ir.md",
+      "question": "Item 8 (S150): Graphviz omits an empty cluster, so an edgeless topology is not drawn. The rule change is the owner's; does the text say anything now?",
+      "options": [
+        {
+          "label": "a descriptive sentence, no rule change",
+          "consequence": "after the rendering rules: Graphviz lays out no empty cluster, so a topology with no edges (escaping's idle) is in the .dot text but not drawn, citing the fixtures experiment's clusters=1; the owner keeps the rule choice"
+        },
+        {
+          "label": "say nothing",
+          "consequence": "a consumer reading a drawn catalog may think a topology is missing"
+        },
+        {
+          "label": "change the rule (an invisible point node)",
+          "consequence": "a rendering rule is on the Breaking list and the renderer and the escaping.dot golden change: not the sweep's"
+        }
+      ],
+      "chosen": "a descriptive sentence, no rule change",
+      "why": "It tells consumers what they will see without deciding the owner's question; it adds no rule or guarantee. The retry bullet beside it was made plainer as the brief asked (retry, one space and the name; an anonymous retry renders retry (anonymous)), which the renderer's _edgeLabel already does.",
+      "evidence": [
+        "docs/auto-run/experiments/topology-ir-fixtures/output.txt T12 (escaping.dot clusters=1)",
+        "hsdd/contract/fixture/topology-ir/render/escaping.dot",
+        "packages/nidana_dart_contracts/lib/src/render/renderers.dart _edgeLabel"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    }
+  ],
+  "experiments": [
+    {
+      "path": "docs/auto-run/experiments/sweep-topology-ir-text/",
+      "question": "For each routed item, what does the shipped package do (the extension forms FunctionRef.of names, two state topics whose value types render alike, hand-built graphs whose encoding the decoder rejects, integers at 2^63, the owner order of scope violations); does a schema bound match the decoder; do the touched fixtures pass against the package and the const use pin a non-const constructor; and would three new invalid/ files pass the gates?",
+      "finding": "E/X: FunctionRef.of names Ext|helper, ET|make, ET|constructor#_#new#tearOff (named constructors and factories alike) on JIT and AOT, obfuscated under --obfuscate, anonymous on dart2js and dart2wasm; instance tear-offs of extensions and extension types are anonymous everywhere; a private extension's static renders _Ext|helper@{key}, a public extension's private static Ext|_helper with no key. P: planOf records both sinks; definition and buildDefinition throw ArgumentError(transforms); findTopicNameCollisions reports the pair. R: dedup on an event or replay read, an empty typeName in a read or a claim, and (without assertions) a source with an empty name all encode and the decoder rejects each with a FormatException; read() rejects a dedup on an event or replay topic. I/J/M: 5000.0 and 5e3 decode to 5000us; 2^63 - 1 decodes; 2^63 and 1e30 pass the schema and the decoder rejects them; maximum 2^63 - 1 still accepts 2^63 and exclusiveMaximum 2^63 rejects 2^63 - 1 under json_schema 5.2.2; JSON.parse reads both as 2**63; a schema with maximum passes valid/ and invalid/ (55/55). O: owners ordered by source rendering then scope (page:p, service:s module, service:s page, topology:a), equal claims once. B/N/R: committed and touched fixtures 61/61 each, behavior 43/43, --all structure 102/102, copy's lib equals HEAD. C: a non-const ScopeViolation constructor passes the committed surface set and fails the touched one (const_with_non_const). W: the three would-be invalid/ documents pass the schema set (58/58) and G21 (3/3), and json_reject_test fails exactly 'G21 invalid/ holds exactly the files whose messages this test pins' (51 passed, 1 failed)."
+    }
+  ],
+  "self_check": [
+    {
+      "gate": "Frontmatter has id, version, status, kind, owner, compatibility, produced_by, consumers; external_consumers when any exist.",
+      "status": "pass",
+      "note": "frontmatter untouched"
+    },
+    {
+      "gate": "`consumers` lists phase ids that actually consume this contract.",
+      "status": "pass",
+      "note": "untouched; phase_ids final"
+    },
+    {
+      "gate": "The Interface section is concrete enough to mock against.",
+      "status": "pass",
+      "note": "no declaration changed; the code blocks gain @immutable where the package carries it; From a plan, Function references, the rendering rules, The JSON form and Analyses state the settled rules"
+    },
+    {
+      "gate": "At least one guarantee/invariant is stated.",
+      "status": "pass",
+      "note": "G1 to G23; G9's gloss and G20 reworded, no id moved"
+    },
+    {
+      "gate": "A breaking change bumped the version and added a migration note.",
+      "status": "n/a",
+      "note": "compatible touch within v1, recorded in Versioning as 'Touched within v1, 2026-10-27' with its compatibility argument"
+    },
+    {
+      "gate": "The registry was regenerated.",
+      "status": "pass",
+      "note": "node hsdd/scripts/gen-registry.mjs: contract 9, adr 3; INDEX.md byte-identical"
+    },
+    {
+      "gate": "`phase_ids` is present (`provisional` until `hsdd-reconcile` finalizes it).",
+      "status": "pass",
+      "note": "phase_ids: final, unchanged"
+    },
+    {
+      "gate": "Every code-level artifact both sides consume (types file, fixtures, shared package) names its canonical path and its owner in the Interface or Validation section: the owning phase for code, `hsdd-contract` for validation artifacts.",
+      "status": "pass",
+      "note": "unchanged; Validation gains the G6 not-executable line and a bullet on the surface touch"
+    },
+    {
+      "gate": "A contract or version created by this run has its schema and its kind's fixtures written at the canonical paths.",
+      "status": "n/a",
+      "note": "no contract or version created"
+    },
+    {
+      "gate": "Open questions are cited by ID only, never defined here; prose justifying behavior as \"pending OQ-x\" is swept when the OQ resolves (hsdd-reconcile).",
+      "status": "pass",
+      "note": "no OQ text added; OQ-M1 citations unchanged"
+    },
+    {
+      "gate": "A `stable` contract names a schema or a fixtures directory at the canonical paths and the artifact exists, or it carries `validation: grandfathered` (never on a contract authored after the upgrade).",
+      "status": "pass",
+      "note": "schema unchanged; hsdd/contract/fixture/topology-ir/ replays 61/61 fixtures, 43/43 behavior cases"
+    },
+    {
+      "gate": "No version is `retired` while a consumer or an external consumer still names it.",
+      "status": "n/a",
+      "note": "no status change"
+    },
+    {
+      "gate": "A `v0` contract carries `## Observed completeness`, and the block changed in any commit that added fixtures to it.",
+      "status": "n/a",
+      "note": "v1 contract"
+    },
+    {
+      "gate": "Brief: node docs/auto-run/tools/gate.mjs --skill hsdd-contract --node nidana.model",
+      "status": "pass",
+      "note": "4 errors, exactly the four known owner-file hash errors (HARNESS.md, JUDGEMENT-LAYER.md, explorer/build.py, explorer/index.html); 0 warnings; no other error"
+    },
+    {
+      "gate": "Brief: the node gate (pub get --enforce-lockfile, analyze --fatal-infos, --all --set structure, dart test packages/nidana_dart_contracts, replay topic-model topology-dsl topology-ir) exits 0",
+      "status": "pass",
+      "note": "exit 0: analyze no issues; structure 102/102; 371 package tests passed; replay 120/120 fixtures"
+    },
+    {
+      "gate": "Brief: every new invalid/ file fails the schema, the decoder rejects it with a FormatException, and the node gate still exits 0",
+      "status": "n/a",
+      "note": "no invalid/ file added (decision on item 7); the three would-be documents meet the first two conditions (experiment F/W) and would break the node gate through json_reject_test.dart (experiment W)"
+    },
+    {
+      "gate": "Prose rules of the run: no em-dash character, no banned phrase.",
+      "status": "pass",
+      "note": "grep over the contract diff, the surface fixture, the experiment and this report finds neither"
+    }
+  ],
+  "contract_gaps": [
+    {
+      "contract": "topology-ir@v1",
+      "where": "hsdd/contract/fixture/topology-ir/invalid/ (38 files); packages/nidana_dart_contracts/test/json_reject_test.dart invalidMessages and its first test",
+      "problem": "invalid/ has no document for an empty typeName, a dedup on a replay read, or a claim listing one topic twice, so only the package's own tests catch a decoder accepting them; adding the files fails json_reject_test.dart, which pins the exact list",
+      "proposed_fix": "Owner (nidana.model code plus hsdd-contract): copy docs/auto-run/experiments/sweep-topology-ir-text/would-be-invalid/{claim_repeat_topic,dedup_on_replay_read,topic_ref_empty_type_name}.json into invalid/, add their invalidMessages entries ('$.claims[0].writes[1]: repeats $.claims[0].writes[0]', '$.topologies[0].transforms[2].inputs[1].dedup: may be given only on a read of a state topic', '$.topologies[0].reads[0].typeName: must not be empty'), and change Validation's count to 41"
+    },
+    {
+      "contract": "topology-ir@v1",
+      "where": "Interface, Mermaid and Graphviz rules",
+      "problem": "Graphviz lays out no empty cluster, so a topology with no edges is not drawn (now stated, not fixed)",
+      "proposed_fix": "Owner: a rule such as an invisible point node in an empty cluster; a rendering rule is on the Breaking list, so v2 or an explicit owner ruling, plus a renderer change and a new escaping.dot golden"
+    },
+    {
+      "contract": "topology-ir@v1 and topology-dsl@v2",
+      "where": "topology-ir From a plan; topology-dsl G14",
+      "problem": "Two state topics of one name whose value types render alike pass planOf and make definition and buildDefinition throw (now stated, as the package does)",
+      "proposed_fix": "Owner, optional: have planOf reject the pair at recording time (a topology-dsl@v2 recording rule and a nidana.model code change); S152 left the same choice"
+    },
+    {
+      "contract": "topology-ir@v1 and topic-model@v1",
+      "where": "G20, The JSON form",
+      "problem": "TopicInput accepts a dedup on an event or replay topic and TopicRef an empty typeName, values the schema rejects; G20 is now narrowed to encodings the decoder accepts",
+      "proposed_fix": "Owner, optional: constructor asserts in TopicInput and TopicRef (code change; TopicRef is topic-model@v1's) would let G20 return to every graph built with assertions on"
+    }
+  ],
+  "notes_for_orchestrator": [
+    "Owner items (not made, code or breaking changes): (1) the three invalid/ documents and json_reject_test.dart's invalidMessages entries, files ready under docs/auto-run/experiments/sweep-topology-ir-text/would-be-invalid/; (2) the Graphviz empty-cluster rule; (3) optionally planOf rejecting two state topics whose value types render alike; (4) optionally asserts in TopicInput and TopicRef. See contract_gaps.",
+    "Not contract text, for nidana.model's code if the owner wants: TopologyDefinition's second-sink message renders the document's typeName raw, so a typeName holding a newline makes a two-line FormatException message through the decoder; the decoder's 'must be a non-negative integer' is also its message for a whole number of 2^63 or more, which the schema accepts as an integer. stderr text is in no contract.",
+    "No schema change: the experiment shows no maximum or exclusiveMaximum matches the decoder's 2^63 bound under package:json_schema 5.2.2 or a JavaScript validator, so the bound is stated as a decoder rule in The JSON form.",
+    "Beyond the routed item, the G9 probe found that a private static method of a public extension renders Ext|_helper with no @key, while a private extension's static renders _Ext|helper@{key}; Private names and G9's gloss now say an extension form's whole name counts as one name.",
+    "For S154: the touch's Versioning entry is 'Touched within v1, 2026-10-27, by the end-of-nidana.model governance sweep (S153)'; S154 can add its own entry or extend this one. Validation's surface bullet and the new last bullet describe the const use; the G6 not-executable line sits after the binding bullet.",
+    "For S154: three package tests pin the sample set to seven (json_decode_test.dart line 118, mermaid_renderer_test.dart line 19, graphviz_renderer_test.dart line 19, each expect(names, hasLength(7)) over valid/), so a new eighth sample fails the node gate; forms is pinned byte for byte by json_encode_test.dart and used by json_reject_test.dart and projection_test.dart, and empty by json_encode_test.dart. Extending checkout, claims_only, escaping, every_combinator or findings, with regenerated valid/ and render/ goldens, keeps the package tests green (they decode valid/ and compare with render/).",
+    "For S154, candidate cases beyond its list that would pin text S153 settled (the package pins each already): G8, a plan with sinks on two state topics whose value types render alike throws from definition (projection_test.dart); G9, Ext|helper and ET|constructor#_#new#tearOff are named (the package pins the instance case only); G21, durationMicros of 2^63 is rejected while 2^63 - 1 decodes; G20, 5000.0 decodes and re-encodes as 5000; G16 or G17, owners ordered by source rendering then scope (the analyses-plan seeded defects D1, D2 cover result orders).",
+    "Nothing is committed: the working tree holds hsdd/contract/topology-ir.md, hsdd/contract/fixture/topology-ir/surface/graphs.dart, docs/auto-run/experiments/sweep-topology-ir-text/ and this report."
+  ]
+}
