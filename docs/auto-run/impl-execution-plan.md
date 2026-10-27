@@ -193,7 +193,8 @@ a `Task N: complete` line; never re-dispatch them.
 | S122 | implement | superpowers:subagent-driven-development | nidana.model.7: 8 tasks, a pre-review amendment on Task 3 (sealed FileEntry), a doc fix round on Task 8, final review with fixes (tests pinned governance content), one fix wave; gate exit 0, 468 tests, 102/102; --all 321: 235/3/83; the replay tool is complete | done | f4a13fd; merged into impl/nidana.model as eb033bb |
 | S123 | config | hsdd-config | nidana.model.8 (N=7, spot-check; produces topic-model@v1, last producing phase; the known excerpt-ids warning) | done | b979378 |
 | S124 | code-plan | superpowers:writing-plans | nidana.model.8 (6 tasks; dry run green: topic-model 41 behavior cases; 3 contract gaps routed) | done | 7a245e7 |
-| S125 | implement | superpowers:subagent-driven-development | nidana.model.8: 6 tasks, no fix rounds, final review with fixes (doc overclaims), one fix wave; gate exit 0, 95 tests; topic-model 31/31, 41/41 behavior cases; topic-model@v1 fully produced | done | a35f40c |
+| S125 | implement | superpowers:subagent-driven-development | nidana.model.8: 6 tasks, no fix rounds, final review with fixes (doc overclaims), one fix wave; gate exit 0, 95 tests; topic-model 31/31, 41/41 behavior cases; topic-model@v1 fully produced | done | a35f40c; merged into impl/nidana.model as 5d2cf18 |
+| S126 | config | hsdd-config | nidana.model.9 (N=7, spot-check; consumes topic-model@v1, produces topology-dsl@v2; the gate does not replay G9) | done | c286b15 |
 
 ## Notes for the report
 
