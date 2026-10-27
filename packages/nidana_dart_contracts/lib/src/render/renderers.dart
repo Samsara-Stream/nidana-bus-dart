@@ -35,8 +35,34 @@ final class MermaidRenderer implements GraphRenderer {
 final class GraphvizRenderer implements GraphRenderer {
   const GraphvizRenderer();
 
+  // The graph as a Graphviz digraph (topology-ir@v1, Mermaid and Graphviz
+  // rules): the header, the topics, each topology as a cluster holding its
+  // edges, the claims, the arrows, then the closing brace.
   @override
-  String render(TopologyGraph graph) => throw UnimplementedError();
+  String render(TopologyGraph graph) => _text(<String>[
+    'digraph topologies {',
+    '  rankdir=LR;',
+    for (final (int i, TopicRef topic) in graph.topics.indexed)
+      '  t$i [shape=ellipse, label="${_graphvizLabel(_topicLabel(topic))}"];',
+    for (final (int j, TopologyDefinition definition)
+        in graph.topologies.indexed) ...<String>[
+      '  subgraph cluster_p$j {',
+      '    label="${_graphvizLabel(_topologyLabel(definition))}";',
+      for (final (int k, TransformEdge edge) in definition.transforms.indexed)
+        '    p${j}e$k [shape=box, label="${_graphvizLabel(_edgeLabel(edge))}"];',
+      '  }',
+    ],
+    for (final (int m, ShellClaim claim) in graph.claims.indexed)
+      '  s$m [shape=box, style=rounded, '
+          'label="${_graphvizLabel(_claimLabel(claim))}"];',
+    for (final _Arrow arrow in _arrows(graph))
+      switch (arrow.dedup) {
+        null => '  ${arrow.from} -> ${arrow.to};',
+        final Dedup dedup =>
+          '  ${arrow.from} -> ${arrow.to} [label="dedup ${dedup.name}"];',
+      },
+    '}',
+  ]);
 }
 
 // The text of [lines]: each line followed by a newline.
@@ -107,6 +133,18 @@ String _mermaidLabel(List<String> lines) => lines
           .replaceAll('\n', '#10;'),
     )
     .join('<br/>');
+
+// A Graphviz label: each line escaped, the lines joined by \n. The
+// backslash goes first, so that the escapes the other replacements write
+// stay as written.
+String _graphvizLabel(List<String> lines) => lines
+    .map(
+      (String line) => line
+          .replaceAll(r'\', r'\\')
+          .replaceAll('"', r'\"')
+          .replaceAll('\n', r'\n'),
+    )
+    .join(r'\n');
 
 // One arrow: the ids of the nodes it runs from and to, and the dedup the
 // read gave when it runs from a read's topic.
