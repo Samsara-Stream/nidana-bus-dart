@@ -37,3 +37,13 @@ export 'src/topic/topic.dart'
         TopicVariant,
         Tracing,
         isWellFormedTopicName;
+export 'src/topology/topology.dart'
+    show
+        PipelineValue,
+        RawOperator,
+        RetryPolicy,
+        TopicStream,
+        Topology,
+        TopologyBuilder,
+        TopologyRef,
+        topology;
