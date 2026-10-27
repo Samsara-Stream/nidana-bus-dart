@@ -23,18 +23,67 @@ sealed class TopicStream<T> {
   TopicStream<R> withLatestFrom<B, R>(
     TopicStream<B> latest,
     R Function(T value, B latest) combiner,
-  ) => throw UnimplementedError();
+  ) {
+    _builder._checkOpen();
+    final List<TopicStream<Object?>> made = _builder._checkMade(
+      <TopicStream<Object?>>[latest],
+    );
+    return _builder._addStage(
+      WithLatestFromStage<T, R>._(
+        _builder,
+        this,
+        made,
+        combiner,
+        (T value, List<Object?> values) => combiner(value, values[0] as B),
+      ),
+      <TopicStream<Object?>>[this, ...made],
+    );
+  }
+
   TopicStream<R> withLatestFrom2<B, C, R>(
     TopicStream<B> b,
     TopicStream<C> c,
     R Function(T value, B b, C c) combiner,
-  ) => throw UnimplementedError();
+  ) {
+    _builder._checkOpen();
+    final List<TopicStream<Object?>> made = _builder._checkMade(
+      <TopicStream<Object?>>[b, c],
+    );
+    return _builder._addStage(
+      WithLatestFromStage<T, R>._(
+        _builder,
+        this,
+        made,
+        combiner,
+        (T value, List<Object?> values) =>
+            combiner(value, values[0] as B, values[1] as C),
+      ),
+      <TopicStream<Object?>>[this, ...made],
+    );
+  }
+
   TopicStream<R> withLatestFrom3<B, C, D, R>(
     TopicStream<B> b,
     TopicStream<C> c,
     TopicStream<D> d,
     R Function(T value, B b, C c, D d) combiner,
-  ) => throw UnimplementedError();
+  ) {
+    _builder._checkOpen();
+    final List<TopicStream<Object?>> made = _builder._checkMade(
+      <TopicStream<Object?>>[b, c, d],
+    );
+    return _builder._addStage(
+      WithLatestFromStage<T, R>._(
+        _builder,
+        this,
+        made,
+        combiner,
+        (T value, List<Object?> values) =>
+            combiner(value, values[0] as B, values[1] as C, values[2] as D),
+      ),
+      <TopicStream<Object?>>[this, ...made],
+    );
+  }
 
   /// [toStream] is the shell's stream factory (Spec §6.3); [retry] is the
   /// timed retry of its inner stream (ADR-003 item 4).

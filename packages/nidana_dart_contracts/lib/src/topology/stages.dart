@@ -27,24 +27,57 @@ final class FilterStage<T> extends TopicStream<T> {
 
 /// combine2, combine3, combine4 and combineAll.
 final class CombineStage<R> extends TopicStream<R> {
-  CombineStage._(super.builder, this.inputs, this.combiner) : super._();
+  CombineStage._(super.builder, this.inputs, this.combiner, this._apply)
+    : super._();
 
   final List<TopicStream<Object?>> inputs; // unmodifiable, in input order
   final Function combiner; // the function the declaration passed
 
+  // combiner, called at the type arguments of the builder call that made
+  // this stage.
+  final R Function(List<Object?> values) _apply;
+
   /// Calls combiner with [values], the inputs' latest payloads in input order.
-  R apply(List<Object?> values) => throw UnimplementedError();
+  R apply(List<Object?> values) {
+    if (values.length != inputs.length) {
+      throw ArgumentError.value(
+        values,
+        'values',
+        'holds ${values.length} values for ${inputs.length} inputs',
+      );
+    }
+    return _apply(values);
+  }
 }
 
 /// withLatestFrom, withLatestFrom2 and withLatestFrom3.
 final class WithLatestFromStage<T, R> extends TopicStream<R> {
-  WithLatestFromStage._(super.builder, this.primary, this.latest, this.combiner)
-    : super._();
+  WithLatestFromStage._(
+    super.builder,
+    this.primary,
+    this.latest,
+    this.combiner,
+    this._apply,
+  ) : super._();
 
   final TopicStream<T> primary;
   final List<TopicStream<Object?>> latest; // unmodifiable, in argument order
   final Function combiner;
-  R apply(T value, List<Object?> latest) => throw UnimplementedError();
+
+  // combiner, called at the type arguments of the handle call that made
+  // this stage.
+  final R Function(T value, List<Object?> latest) _apply;
+
+  R apply(T value, List<Object?> latest) {
+    if (latest.length != this.latest.length) {
+      throw ArgumentError.value(
+        latest,
+        'latest',
+        'holds ${latest.length} values for ${this.latest.length} inputs',
+      );
+    }
+    return _apply(value, latest);
+  }
 }
 
 final class MergeStage<T> extends TopicStream<T> {

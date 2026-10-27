@@ -136,35 +136,121 @@ final class TopologyBuilder {
     StateTopic<S> topic,
     TopicStream<E> events,
     S Function(S state, E event) reducer,
-  ) => throw UnimplementedError();
+  ) {
+    _checkOpen();
+    _checkMade(<TopicStream<Object?>>[events]);
+    _checkFirstSink(topic);
+    _addSink(ReduceIntoSink<S, E>._(topic, events, reducer), events);
+  }
 
   TopicStream<R> combine2<A, B, R>(
     TopicStream<A> a,
     TopicStream<B> b,
     R Function(A a, B b) combiner,
-  ) => throw UnimplementedError();
+  ) {
+    _checkOpen();
+    final List<TopicStream<Object?>> inputs = _checkMade(<TopicStream<Object?>>[
+      a,
+      b,
+    ]);
+    return _addStage(
+      CombineStage<R>._(
+        this,
+        inputs,
+        combiner,
+        (List<Object?> values) => combiner(values[0] as A, values[1] as B),
+      ),
+      inputs,
+    );
+  }
+
   TopicStream<R> combine3<A, B, C, R>(
     TopicStream<A> a,
     TopicStream<B> b,
     TopicStream<C> c,
     R Function(A a, B b, C c) combiner,
-  ) => throw UnimplementedError();
+  ) {
+    _checkOpen();
+    final List<TopicStream<Object?>> inputs = _checkMade(<TopicStream<Object?>>[
+      a,
+      b,
+      c,
+    ]);
+    return _addStage(
+      CombineStage<R>._(
+        this,
+        inputs,
+        combiner,
+        (List<Object?> values) =>
+            combiner(values[0] as A, values[1] as B, values[2] as C),
+      ),
+      inputs,
+    );
+  }
+
   TopicStream<R> combine4<A, B, C, D, R>(
     TopicStream<A> a,
     TopicStream<B> b,
     TopicStream<C> c,
     TopicStream<D> d,
     R Function(A a, B b, C c, D d) combiner,
-  ) => throw UnimplementedError();
+  ) {
+    _checkOpen();
+    final List<TopicStream<Object?>> inputs = _checkMade(<TopicStream<Object?>>[
+      a,
+      b,
+      c,
+      d,
+    ]);
+    return _addStage(
+      CombineStage<R>._(
+        this,
+        inputs,
+        combiner,
+        (List<Object?> values) => combiner(
+          values[0] as A,
+          values[1] as B,
+          values[2] as C,
+          values[3] as D,
+        ),
+      ),
+      inputs,
+    );
+  }
 
   /// [combiner] receives an unmodifiable list of the inputs' latest values,
   /// in input order. Throws ArgumentError for an empty [inputs].
   TopicStream<R> combineAll<T, R>(
     List<TopicStream<T>> inputs,
     R Function(List<T> values) combiner,
-  ) => throw UnimplementedError();
+  ) {
+    _checkOpen();
+    _checkNotEmpty(inputs);
+    final List<TopicStream<T>> made = _checkMade(inputs);
+    return _addStage(
+      CombineStage<R>._(
+        this,
+        made,
+        combiner,
+        (List<Object?> values) =>
+            combiner(List<T>.unmodifiable(values.cast<T>())),
+      ),
+      made,
+    );
+  }
 
   /// Throws ArgumentError for an empty [inputs].
-  TopicStream<T> merge<T>(List<TopicStream<T>> inputs) =>
-      throw UnimplementedError();
+  TopicStream<T> merge<T>(List<TopicStream<T>> inputs) {
+    _checkOpen();
+    _checkNotEmpty(inputs);
+    final List<TopicStream<T>> made = _checkMade(inputs);
+    return _addStage(MergeStage<T>._(this, made), made);
+  }
+
+  // Throws ArgumentError for an empty input list (G14).
+  void _checkNotEmpty(List<TopicStream<Object?>> inputs) {
+    if (inputs.isEmpty) {
+      throw ArgumentError.value(inputs, 'inputs', 'must not be empty');
+    }
+  }
 }
