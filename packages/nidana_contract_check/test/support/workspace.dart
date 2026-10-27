@@ -1,7 +1,8 @@
-/// Seeded pub workspaces for the tests that run `dart analyze`: the seeded
-/// files beside a stand-in package, resolved offline. Inside a temporary
-/// directory `fvm` runs no `dart`, so the workspace resolves with
-/// [Platform.resolvedExecutable], the SDK's `dart` running the tests.
+/// Seeded pub workspaces for the tests that run `dart analyze` or a binding's
+/// test runner: the seeded files beside stand-in packages, resolved offline.
+/// Inside a temporary directory `fvm` runs no `dart`, so the workspace
+/// resolves with [Platform.resolvedExecutable], the SDK's `dart` running the
+/// tests.
 library;
 
 import 'dart:io';
@@ -28,16 +29,35 @@ final class Sample {
 
 /// [files] in a fresh temporary pub workspace resolved offline: its root's one member is the
 /// stand-in package `sample` unless [standIn] is false, and the fixtures' analysis options are
-/// this workspace's hsdd/contract/fixture/analysis_options.yaml.
+/// this workspace's hsdd/contract/fixture/analysis_options.yaml. With [runners], `sample` also
+/// depends on `matcher` and dev-depends on `test`, and the stand-in members `nidana_contract_check`
+/// and `flutter_test` join the workspace, so bindings run under `dart test`.
 Future<Directory> seedWorkspace(
   Map<String, String> files, {
   bool standIn = true,
+  bool runners = false,
 }) async {
+  if (runners && !standIn) {
+    throw ArgumentError.value(
+      runners,
+      'runners',
+      'the runners join the stand-in package sample, so they require standIn',
+    );
+  }
   final Directory root = seed(<String, String>{
     ...files,
-    'pubspec.yaml': _rootPubspec(standIn: standIn),
-    if (standIn) 'packages/sample/pubspec.yaml': _samplePubspec,
+    'pubspec.yaml': _rootPubspec(standIn: standIn, runners: runners),
+    if (standIn)
+      'packages/sample/pubspec.yaml': runners
+          ? '$_samplePubspec$_sampleRunnerDependencies'
+          : _samplePubspec,
     if (standIn) 'packages/sample/lib/sample.dart': standInSample,
+    if (runners) ...<String, String>{
+      'packages/nidana_contract_check/pubspec.yaml': _toolPubspec,
+      'packages/nidana_contract_check/lib/fixture.dart': _toolFixture,
+      'packages/flutter_test/pubspec.yaml': _flutterTestPubspec,
+      'packages/flutter_test/lib/flutter_test.dart': _flutterTestLibrary,
+    },
     'hsdd/contract/fixture/analysis_options.yaml': _fixtureOptions,
   });
   final ProcessResult result = await Process.run(
@@ -50,13 +70,18 @@ Future<Directory> seedWorkspace(
 }
 
 /// The seeded workspace's root `pubspec.yaml`: a pub workspace whose one
-/// member is the stand-in package when [standIn] is true.
-String _rootPubspec({required bool standIn}) => <String>[
+/// member is the stand-in package when [standIn] is true, joined by the
+/// stand-in runner packages when [runners] is true.
+String _rootPubspec({required bool standIn, required bool runners}) => <String>[
   'name: stand_in_workspace',
   'publish_to: none',
   'environment:',
   '  sdk: ^3.13.0',
   if (standIn) ...<String>['workspace:', '  - packages/sample'],
+  if (runners) ...<String>[
+    '  - packages/nidana_contract_check',
+    '  - packages/flutter_test',
+  ],
   '',
 ].join('\n');
 
@@ -67,6 +92,70 @@ publish_to: none
 environment:
   sdk: ^3.13.0
 resolution: workspace
+''';
+
+/// The lines a seeded workspace with runners appends to [_samplePubspec]: the
+/// packages a seeded suite and its `dart test` binding import.
+const String _sampleRunnerDependencies = '''
+dependencies:
+  matcher: any
+dev_dependencies:
+  test: any
+''';
+
+/// `packages/nidana_contract_check/pubspec.yaml` of a seeded workspace with
+/// runners.
+const String _toolPubspec = '''
+name: nidana_contract_check
+publish_to: none
+environment:
+  sdk: ^3.13.0
+resolution: workspace
+''';
+
+/// `packages/nidana_contract_check/lib/fixture.dart` of a seeded workspace
+/// with runners.
+const String _toolFixture = r'''
+/// Stands in for package:nidana_contract_check/fixture.dart in a seeded workspace.
+library;
+
+typedef ConformanceCase<H> = ({
+  String name,
+  Future<void> Function(H harness) body,
+});
+''';
+
+/// `packages/flutter_test/pubspec.yaml` of a seeded workspace with runners.
+const String _flutterTestPubspec = '''
+name: flutter_test
+publish_to: none
+environment:
+  sdk: ^3.13.0
+resolution: workspace
+dependencies:
+  test: any
+''';
+
+/// `packages/flutter_test/lib/flutter_test.dart` of a seeded workspace with
+/// runners.
+const String _flutterTestLibrary = r'''
+/// Stands in for package:flutter_test in a seeded workspace: testWidgets over package:test.
+library;
+
+import 'package:test/test.dart' show test;
+
+export 'package:test/test.dart';
+
+/// Stands in for flutter_test's WidgetTester.
+final class WidgetTester {
+  const WidgetTester._();
+}
+
+/// Registers [description] as a test whose body is given a [WidgetTester].
+void testWidgets(
+  String description,
+  Future<void> Function(WidgetTester tester) body,
+) => test(description, () => body(const WidgetTester._()));
 ''';
 
 /// The text of hsdd/contract/fixture/analysis_options.yaml in the workspace

@@ -260,7 +260,7 @@ void main() {
   });
   group('environment errors exit 2 and name the reason', () {
     test(
-      'no package configuration, and a set this version does not implement',
+      'no package configuration is a reason for every set that reads it',
       () async {
         final ProcessResult r = await runTool(<String>[
           'sample',
@@ -277,7 +277,7 @@ void main() {
               'ERROR reject sample: no package configuration at .dart_tool/package_config.json; run fvm dart pub get',
             ),
             contains(
-              'ERROR behavior sample: this version of nidana_contract_check does not implement the behavior set',
+              'ERROR behavior sample: no package configuration at .dart_tool/package_config.json; run fvm dart pub get',
             ),
           ),
         );

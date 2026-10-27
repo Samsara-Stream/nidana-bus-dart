@@ -264,6 +264,12 @@ void main() {
         CheckSet.behavior,
       ]);
     });
+    test('every set that readsAnalysis also readsPackages, so the analysis always has its names', () {
+      expect(
+        CheckSet.values.where(readsAnalysis),
+        everyElement(predicate<CheckSet>(readsPackages, 'reads packages')),
+      );
+    });
     test('slugPlan: the snapshot and the sets plannedSets runs over it', () {
       final SlugSnapshot sample = snapshotOf('sample', sampleFiles);
       const Request request = Request(

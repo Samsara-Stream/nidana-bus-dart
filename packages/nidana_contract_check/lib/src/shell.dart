@@ -1,10 +1,11 @@
 /// The replay tool's imperative shell (nidana.model D2 item 5): it finds the
 /// workspace root, reads the contract texts a restriction names, one
-/// [SlugSnapshot] per slug and the package configuration, runs `dart analyze`
-/// once for the `surface` and `reject` sets of every slug, runs the planned
-/// sets and prints the report. Every decision is the pure core's; with
-/// `workspace.dart`, this is the only library under `lib/src/` that imports
-/// `dart:io`.
+/// [SlugSnapshot] per slug of the request and per slug whose suite a binding
+/// imports, and the package configuration, runs `dart analyze` once for the
+/// `surface` and `reject` sets of every slug, runs one test runner per
+/// binding the `behavior` set runs, runs the planned sets and prints the
+/// report. Every decision is the pure core's; with `workspace.dart`, this is
+/// the only library under `lib/src/` that imports `dart:io`.
 library;
 
 import 'dart:convert';
@@ -13,6 +14,7 @@ import 'dart:io';
 import 'package:path/path.dart' as p;
 
 import 'analysis.dart';
+import 'behavior.dart';
 import 'contract.dart';
 import 'outcome.dart';
 import 'packages.dart';
@@ -24,6 +26,7 @@ import 'schema.dart';
 import 'snapshot.dart';
 import 'structure.dart';
 import 'surface.dart';
+import 'test_report.dart';
 import 'workspace.dart';
 
 /// The names of the directories directly under hsdd/contract/fixture/, hidden ones excluded; empty
@@ -123,10 +126,12 @@ SlugSnapshot readSnapshot(Directory root, String slug) {
 }
 
 /// Parses, replays, prints one line per fixture to [out] and errors to [err]; returns the exit code.
-/// [dart] runs `dart analyze`; null means Platform.resolvedExecutable, the dart running the tool.
+/// [dart] runs `dart analyze` and `dart test`, and the flutter of its Flutter SDK runs
+/// `flutter test`; null means Platform.resolvedExecutable, the dart running the tool.
 ///
 /// Outcome lines and the summary go to [out]; a set that could not run, a
-/// usage error and an environment error go to [err]. The exit code is
+/// usage error, an environment error and one progress line before each test
+/// runner starts go to [err]. The exit code is
 /// [exitCodeOf] the runs; [exitUsage] on a usage error, a command line
 /// [parseRequest] rejects or a restriction with an id its slug does not
 /// declare, even in a workspace with no slug directory; and
@@ -165,16 +170,19 @@ Future<int> runCli(
 }
 
 /// Parses [arguments] against the slugs under [root], checks the
-/// restriction, reads every slug of the request and the package
-/// configuration, runs the one analysis and every planned set, then prints
-/// each run in order and the summary.
+/// restriction, reads every slug of the request, the slugs whose suites its
+/// bindings import and the package configuration, runs the one analysis and
+/// every planned set, then prints each run in order and the summary.
 ///
 /// The order is fixed: a usage error comes before the check for a slug
 /// directory, so a command line that does not parse exits [exitUsage] even
 /// in a workspace with no fixtures; the restriction is checked against the
-/// contract texts it names before any snapshot is read; the package
-/// configuration is read once, for every set that [readsPackages], before the
-/// analysis that needs its names.
+/// contract texts it names before any snapshot is read; the slugs of the
+/// suites are read after the request's, only for a plan that holds the
+/// `behavior` set; the package configuration is read once, for every set
+/// that [readsPackages], before the analysis that needs its names. The sets
+/// run one after another, so the `behavior` set's runners run one at a time,
+/// in plan order.
 ///
 /// Every run is computed before the first line is printed: the analysis
 /// serves every slug, so no slug's runs are known before it completes.
@@ -185,7 +193,8 @@ Future<int> _replay(
   required StringSink err,
   required String dart,
 }) async {
-  switch (parseRequest(arguments, slugs: discoverSlugs(root))) {
+  final Set<String> discovered = discoverSlugs(root);
+  switch (parseRequest(arguments, slugs: discovered)) {
     case UsageError(:final String message):
       return _usageError(message, err: err);
     case ParsedRequest(:final Request request):
@@ -201,14 +210,25 @@ Future<int> _replay(
         for (final String slug in request.slugs)
           slugPlan(request, readSnapshot(root, slug)),
       ]);
+      final Map<String, SlugSnapshot> snapshots = _snapshotsOf(
+        root,
+        plans,
+        discovered,
+      );
       final _Packages packages = _readPackages(root, plans);
       final _Context context = (
+        root: root,
         packages: packages,
         analysis: await _analyze(root, plans, packages, dart: dart),
+        snapshots: snapshots,
+        restriction: request.restriction,
+        dart: dart,
+        flutter: _flutterOf(dart),
+        progress: err,
       );
       final List<SetRun> runs = List<SetRun>.unmodifiable(<SetRun>[
         for (final (:SlugSnapshot snapshot, :List<CheckSet> sets) in plans)
-          for (final CheckSet set in sets) _run(set, snapshot, context),
+          for (final CheckSet set in sets) await _run(set, snapshot, context),
       ]);
       for (final SetRun run in runs) {
         _print(run, out: out, err: err);
@@ -249,9 +269,54 @@ Set<int>? _declaredBy(Directory root, String slug) {
       : null;
 }
 
-/// What a replay reads once for all its runs: the workspace's [_Packages]
-/// and the replay's one [_Analysis].
-typedef _Context = ({_Packages packages, _Analysis analysis});
+/// What a replay reads once for all its runs: the workspace [root], its
+/// [_Packages] and the replay's one [_Analysis]; the [snapshots] of every
+/// slug read, the request's and the slugs of the suites its bindings import;
+/// the request's [restriction]; the [dart] running the tool and the
+/// [flutter] beside it, null when its Flutter SDK holds none; and the
+/// [progress] sink, `err`, that a line goes to before each runner starts.
+typedef _Context = ({
+  Directory root,
+  _Packages packages,
+  _Analysis analysis,
+  Map<String, SlugSnapshot> snapshots,
+  Set<GuaranteeRef>? restriction,
+  String dart,
+  String? flutter,
+  StringSink progress,
+});
+
+/// The snapshot of each slug of [plans], and of each slug that [discovered] holds whose suite a
+/// binding of a plan with the `behavior` set imports, read once each, in ascending order.
+///
+/// A suite's slug that has no fixture directory is not read: the planner
+/// fails a binding of it as a suite that does not exist.
+Map<String, SlugSnapshot> _snapshotsOf(
+  Directory root,
+  List<SlugPlan> plans,
+  Set<String> discovered,
+) {
+  final Map<String, SlugSnapshot> requested = <String, SlugSnapshot>{
+    for (final SlugPlan plan in plans) plan.snapshot.slug: plan.snapshot,
+  };
+  final List<String> suites = <String>{
+    for (final SlugPlan plan in plans)
+      if (plan.sets.contains(CheckSet.behavior)) ...suiteSlugs(plan.snapshot),
+  }.toList()..sort();
+  return Map<String, SlugSnapshot>.unmodifiable(<String, SlugSnapshot>{
+    ...requested,
+    for (final String slug in suites)
+      if (discovered.contains(slug) && !requested.containsKey(slug))
+        slug: readSnapshot(root, slug),
+  });
+}
+
+/// The flutter of the Flutter SDK that holds [dart], [flutterBeside] it, when that file exists;
+/// else null.
+String? _flutterOf(String dart) => switch (flutterBeside(dart)) {
+  final String flutter when File(flutter).existsSync() => flutter,
+  _ => null,
+};
 
 /// The workspace's package names, read once per replay from
 /// [packageConfigPath], or the reason they cannot be read.
@@ -413,30 +478,28 @@ AnalysisTarget _targetOf(Directory root, String path) {
   );
 }
 
-/// [set] run over [snapshot], the `surface` and `reject` sets reading
-/// [context]. Each set this version does not implement is [SetUnavailable]
-/// with the [notImplemented] reason; the phase that lands it replaces its
-/// branch.
-SetRun _run(CheckSet set, SlugSnapshot snapshot, _Context context) =>
-    switch (set) {
-      CheckSet.structure => SetChecked(
-        set,
-        snapshot.slug,
-        checkStructure(snapshot),
-      ),
-      CheckSet.surface => _analyzedRun(set, snapshot, context, checkSurface),
-      CheckSet.reject => _analyzedRun(set, snapshot, context, checkReject),
-      CheckSet.schema => SetChecked(set, snapshot.slug, checkSchema(snapshot)),
-      // nidana.model.6 lands this.
-      CheckSet.behavior => SetUnavailable(
-        set,
-        snapshot.slug,
-        notImplemented(set),
-      ),
-      // nidana.model.7 lands these.
-      CheckSet.file ||
-      CheckSet.cli => SetUnavailable(set, snapshot.slug, notImplemented(set)),
-    };
+/// [set] run over [snapshot], the `surface`, `reject` and `behavior` sets
+/// reading [context]. Each set this version does not implement is
+/// [SetUnavailable] with the [notImplemented] reason; the phase that lands it
+/// replaces its branch.
+Future<SetRun> _run(
+  CheckSet set,
+  SlugSnapshot snapshot,
+  _Context context,
+) async => switch (set) {
+  CheckSet.structure => SetChecked(
+    set,
+    snapshot.slug,
+    checkStructure(snapshot),
+  ),
+  CheckSet.surface => _analyzedRun(set, snapshot, context, checkSurface),
+  CheckSet.reject => _analyzedRun(set, snapshot, context, checkReject),
+  CheckSet.behavior => await _behaviorRun(snapshot, context),
+  CheckSet.schema => SetChecked(set, snapshot.slug, checkSchema(snapshot)),
+  // nidana.model.7 lands these.
+  CheckSet.file ||
+  CheckSet.cli => SetUnavailable(set, snapshot.slug, notImplemented(set)),
+};
 
 /// A set that judges libraries by the diagnostics reported in them:
 /// [checkSurface] or [checkReject].
@@ -454,15 +517,15 @@ SetRun _analyzedRun(
   SlugSnapshot snapshot,
   _Context context,
   _AnalyzedCheck check,
-) => switch (context) {
-  (packages: _NoPackages(:final String reason), analysis: _) ||
+) => switch ((context.packages, context.analysis)) {
+  (_NoPackages(:final String reason), _) ||
   (
-    packages: _,
-    analysis: _AnalysisUnavailable(:final String reason),
+    _,
+    _AnalysisUnavailable(:final String reason),
   ) => SetUnavailable(set, snapshot.slug, reason),
   (
-    packages: _PackageNames(:final Set<String> names),
-    analysis: _Analyzed(:final Map<String, List<Diagnostic>> diagnostics),
+    _PackageNames(:final Set<String> names),
+    _Analyzed(:final Map<String, List<Diagnostic>> diagnostics),
   ) =>
     SetChecked(
       set,
@@ -470,6 +533,156 @@ SetRun _analyzedRun(
       check(snapshot, packages: names, diagnostics: diagnostics),
     ),
 };
+
+/// The `behavior` set over [snapshot]: [planBindings] plans each binding with the package names
+/// and the snapshots of [context], and each [BindingRun] runs in plan order; else
+/// [SetUnavailable] with the reason of the packages, of an absent flutter or of the first runner
+/// that cannot run or prints no report.
+///
+/// When a binding that would run needs a flutter and the running dart's
+/// Flutter SDK holds none, no binding of the slug starts (design decision
+/// 12).
+Future<SetRun> _behaviorRun(SlugSnapshot snapshot, _Context context) async {
+  switch (context.packages) {
+    case _NoPackages(:final String reason):
+      return SetUnavailable(CheckSet.behavior, snapshot.slug, reason);
+    case _PackageNames(:final Set<String> names):
+      final List<BindingPlan> plans = planBindings(
+        snapshot,
+        snapshots: context.snapshots,
+        packages: names,
+        restriction: context.restriction,
+      );
+      return switch (plans
+          .whereType<BindingRun>()
+          .where((BindingRun run) => _executableOf(run, context) == null)
+          .firstOrNull) {
+        final BindingRun run => SetUnavailable(
+          CheckSet.behavior,
+          snapshot.slug,
+          _noFlutter(run, context),
+        ),
+        null => _runBindings(snapshot.slug, plans, context),
+      };
+  }
+}
+
+/// [plans] of [slug]'s bindings run in order, after the [concluded] outcomes of the bindings
+/// before them: [SetChecked] with every outcome, or [SetUnavailable] at the first binding whose
+/// runner cannot run or prints no report, starting none after it.
+Future<SetRun> _runBindings(
+  String slug,
+  List<BindingPlan> plans,
+  _Context context, {
+  List<FixtureOutcome> concluded = const <FixtureOutcome>[],
+}) async => switch (plans) {
+  [] => SetChecked(
+    CheckSet.behavior,
+    slug,
+    List<FixtureOutcome>.unmodifiable(concluded),
+  ),
+  [final BindingPlan plan, ...final List<BindingPlan> rest] =>
+    switch (await _runBinding(plan, context)) {
+      _BindingConcluded(:final FixtureOutcome outcome) => await _runBindings(
+        slug,
+        rest,
+        context,
+        concluded: <FixtureOutcome>[...concluded, outcome],
+      ),
+      _RunnerUnavailable(:final String reason) => SetUnavailable(
+        CheckSet.behavior,
+        slug,
+        reason,
+      ),
+    },
+};
+
+/// What one binding's plan gives the `behavior` set: its outcome, or the reason the slug's set
+/// cannot run.
+sealed class _BindingResult {
+  const _BindingResult();
+}
+
+/// The binding's [outcome], settled by the planner or read from its runner's report.
+final class _BindingConcluded extends _BindingResult {
+  const _BindingConcluded(this.outcome);
+
+  final FixtureOutcome outcome;
+}
+
+/// The binding's runner could not run it, or printed no report: [reason].
+final class _RunnerUnavailable extends _BindingResult {
+  const _RunnerUnavailable(this.reason);
+
+  final String reason;
+}
+
+/// [plan]'s result: a [BindingSettled] gives its outcome, and a [BindingRun] the result of
+/// [_started] under its runner's executable.
+///
+/// A run whose runner has no executable is unavailable for the reason
+/// [_behaviorRun] gives before any binding of the slug starts, so this
+/// branch only keeps the match total.
+Future<_BindingResult> _runBinding(BindingPlan plan, _Context context) async =>
+    switch (plan) {
+      BindingSettled(:final FixtureOutcome outcome) => _BindingConcluded(
+        outcome,
+      ),
+      final BindingRun run => switch (_executableOf(run, context)) {
+        final String executable => await _started(run, executable, context),
+        null => _RunnerUnavailable(_noFlutter(run, context)),
+      },
+    };
+
+/// [run] under [executable]: its progress line to [_Context.progress], then the runner started
+/// from the workspace root and its report read into the binding's outcome.
+///
+/// The runner's output is decoded as UTF-8 that may be malformed, so bytes a
+/// case writes to stdout that are not UTF-8 never stop the replay; a
+/// malformed line is no event, and the report reader skips it.
+Future<_BindingResult> _started(
+  BindingRun run,
+  String executable,
+  _Context context,
+) async {
+  context.progress.writeln(
+    'running behavior ${run.path} under ${run.runner.label}',
+  );
+  final ProcessResult result;
+  try {
+    result = await Process.run(
+      executable,
+      testArguments(run),
+      workingDirectory: context.root.path,
+      stdoutEncoding: _lenientUtf8,
+      stderrEncoding: _lenientUtf8,
+    );
+  } on ProcessException catch (error) {
+    return _RunnerUnavailable('could not run $executable: ${error.message}');
+  }
+  return switch (readTestReport(result.stdout as String)) {
+    NoReport() => _RunnerUnavailable(
+      runnerFailure(run, result.exitCode, result.stderr as String),
+    ),
+    final Reported report => _BindingConcluded(ranOutcome(run, report)),
+  };
+}
+
+/// UTF-8 that decodes malformed bytes as U+FFFD instead of throwing.
+const Utf8Codec _lenientUtf8 = Utf8Codec(allowMalformed: true);
+
+/// The executable [run]'s runner starts: the running dart, or the flutter beside it; null when
+/// its Flutter SDK holds no flutter.
+String? _executableOf(BindingRun run, _Context context) => switch (run.runner) {
+  Runner.dart => context.dart,
+  Runner.flutter => context.flutter,
+};
+
+/// The reason no binding of a slug runs: [run] needs a flutter, and the running dart's Flutter
+/// SDK holds none.
+String _noFlutter(BindingRun run, _Context context) =>
+    'no flutter in the Flutter SDK of ${context.dart}; '
+    '${run.path} runs under ${run.runner.label}';
 
 /// Prints [run]: each outcome's line to [out], or the unavailable line to
 /// [err].
