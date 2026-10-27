@@ -1,0 +1,287 @@
+
+### S0 setup: the committed tree, resolved offline
+tree from ce03308 judgement: S148
+Dart SDK version: 3.13.5 (stable) (Tue Sep 29 01:00:52 2026 -0700) on "macos_arm64"
+Try `dart pub outdated` for more information.
+renderers.t1.dart: 149 lines; final: 187 lines
+renderers.t1.dart is formatter-stable
+
+### S1 the committed tree
+-- dart test packages/nidana_dart_contracts
++353: All tests passed!
+exit: 0
+-- nidana_contract_check topic-model topology-dsl topology-ir
+PASS structure lines: 42; PASS schema lines: 46
+PASS behavior hsdd/contract/fixture/topic-model/behavior/nidana_dart_contracts_test.dart: 41 passed, 0 failed, 0 skipped under dart test
+PASS behavior hsdd/contract/fixture/topology-dsl/behavior/topology_builder_test.dart: 24 passed, 0 failed, 0 skipped under dart test
+FAIL behavior hsdd/contract/fixture/topology-ir/behavior/nidana_dart_contracts_test.dart: cases (41 passed, 2 failed, 0 skipped under dart test)
+    failed-case (G22 the Mermaid and Graphviz renderings of every sample equal its render/ files)
+    failed-case (G22 render passes the graph to the renderer, and renderers are pure)
+120 fixtures: 119 passed, 1 failed, 0 pending
+exit: 1
+stubs left under lib/src/render/: 2
+
+### T1.2 Task 1's failing step: test/src/render_support.dart, test/mermaid_renderer_test.dart and the G22 cases
+-- dart test packages/nidana_dart_contracts/test/mermaid_renderer_test.dart
++0 -1: G22 every sample renders to its render/ .mmd file byte for byte [E]
++0 -2: G22 an empty graph renders as the header line alone [E]
++0 -3: G22 a duration renders in whole seconds, else whole milliseconds, else microseconds [E]
++0 -4: G22 each time stage renders its combinator and its duration on its first line [E]
++0 -5: G22 an edge renders its transformer and its retry on lines of their own, an anonymous reference as (anonymous) [E]
++0 -6: G22 parts and arrows come in graph order: one arrow per input, a repeated input repeated, then the sink output, then the claims [E]
++0 -7: G22 Mermaid escapes # first, then the quote, the angle brackets and a newline, in every kind of label, and leaves every other character as it is [E]
++0 -8: G22 rendering schedules nothing, and every line ends with a newline and is indented by two spaces per level [E]
++0 -8: Some tests failed.
+exit: 1
+   8   UnimplementedError
+-- nidana_contract_check topology-ir --set behavior --guarantee G22
+PASS structure lines: 9; PASS schema lines: 0
+FAIL behavior hsdd/contract/fixture/topology-ir/behavior/nidana_dart_contracts_test.dart: cases (1 passed, 2 failed, 0 skipped under dart test, restricted to topology-ir G22)
+    failed-case (G22 the Mermaid and Graphviz renderings of every sample equal its render/ files)
+    failed-case (G22 render passes the graph to the renderer, and renderers are pure)
+10 fixtures: 9 passed, 1 failed, 0 pending
+exit: 1
+
+### T1.4 Task 1's library: MermaidRenderer and the shared label, duration and arrow helpers
+Formatted 64 files (0 changed) in 0.23 seconds.
+-- dart test packages/nidana_dart_contracts
++361: All tests passed!
+exit: 0
+Analyzing rp.Ut37oS...
+No issues found!
+analyze exit: 0
+-- nidana_contract_check topology-ir --set behavior --guarantee G22
+PASS structure lines: 9; PASS schema lines: 0
+FAIL behavior hsdd/contract/fixture/topology-ir/behavior/nidana_dart_contracts_test.dart: cases (1 passed, 2 failed, 0 skipped under dart test, restricted to topology-ir G22)
+    failed-case (G22 the Mermaid and Graphviz renderings of every sample equal its render/ files)
+    failed-case (G22 render passes the graph to the renderer, and renderers are pure)
+10 fixtures: 9 passed, 1 failed, 0 pending
+exit: 1
+   1   package:nidana_dart_contracts/src/render/renderers.dart 39:41                     GraphvizRenderer.render
+   1   package:nidana_dart_contracts/src/render/renderers.dart 39:41                    GraphvizRenderer.render
+   2   UnimplementedError
+stubs left under lib/src/render/: 1
+
+### T2.2 Task 2's failing step: test/graphviz_renderer_test.dart and the G22 cases
+-- dart test packages/nidana_dart_contracts/test/graphviz_renderer_test.dart
++0 -1: G22 every sample renders to its render/ .dot file byte for byte [E]
++0 -2: G22 an empty graph renders as the header and the footer alone [E]
++0 -3: G22 a duration renders in whole seconds, else whole milliseconds, else microseconds [E]
++0 -4: G22 each time stage renders its combinator and its duration on its first line [E]
++0 -5: G22 an edge renders its transformer and its retry on lines of their own, an anonymous reference as (anonymous) [E]
++0 -6: G22 parts and arrows come in graph order: one arrow per input, a repeated input repeated, then the sink output, then the claims [E]
++0 -7: G22 Graphviz escapes \ first, then the quote and a newline, in every kind of label, and leaves every other character as it is [E]
++0 -8: G22 rendering schedules nothing, and every line ends with a newline and is indented by two spaces per level [E]
++0 -8: Some tests failed.
+exit: 1
+   8   UnimplementedError
+-- nidana_contract_check topology-ir --set behavior --guarantee G22
+PASS structure lines: 9; PASS schema lines: 0
+FAIL behavior hsdd/contract/fixture/topology-ir/behavior/nidana_dart_contracts_test.dart: cases (1 passed, 2 failed, 0 skipped under dart test, restricted to topology-ir G22)
+    failed-case (G22 the Mermaid and Graphviz renderings of every sample equal its render/ files)
+    failed-case (G22 render passes the graph to the renderer, and renderers are pure)
+10 fixtures: 9 passed, 1 failed, 0 pending
+exit: 1
+
+### T2.4 Task 2's library: GraphvizRenderer
+Formatted 65 files (0 changed) in 0.23 seconds.
+-- dart test packages/nidana_dart_contracts
++369: All tests passed!
+exit: 0
+Analyzing rp.Ut37oS...
+No issues found!
+analyze exit: 0
+-- nidana_contract_check topology-ir --set behavior --guarantee G22
+PASS structure lines: 9; PASS schema lines: 0
+PASS behavior hsdd/contract/fixture/topology-ir/behavior/nidana_dart_contracts_test.dart: 3 passed, 0 failed, 0 skipped under dart test, restricted to topology-ir G22
+10 fixtures: 10 passed, 0 failed, 0 pending
+exit: 0
+-- nidana_contract_check topic-model topology-dsl topology-ir
+PASS structure lines: 42; PASS schema lines: 46
+PASS behavior hsdd/contract/fixture/topic-model/behavior/nidana_dart_contracts_test.dart: 41 passed, 0 failed, 0 skipped under dart test
+PASS behavior hsdd/contract/fixture/topology-dsl/behavior/topology_builder_test.dart: 24 passed, 0 failed, 0 skipped under dart test
+PASS behavior hsdd/contract/fixture/topology-ir/behavior/nidana_dart_contracts_test.dart: 43 passed, 0 failed, 0 skipped under dart test
+120 fixtures: 120 passed, 0 failed, 0 pending
+exit: 0
+stubs left under lib/src/render/: 0
+
+### X the new files against draft/ after the formatter, and each new test file's count
+lib/src/render/renderers.dart equals draft/lib/src/render/renderers.dart
+test/src/render_support.dart equals draft/test/src/render_support.dart
+test/mermaid_renderer_test.dart equals draft/test/mermaid_renderer_test.dart
+test/graphviz_renderer_test.dart equals draft/test/graphviz_renderer_test.dart
+mermaid_renderer_test.dart: +8: All tests passed!
+graphviz_renderer_test.dart: +8: All tests passed!
++369: All tests passed!
+real 1.91
+
+### G the phase gate, exactly as the phase context writes it
+gate exit: 0
+Got dependencies!
+No issues found!
+102 fixtures: 102 passed, 0 failed, 0 pending
++369: All tests passed!
+PASS behavior hsdd/contract/fixture/topic-model/behavior/nidana_dart_contracts_test.dart: 41 passed, 0 failed, 0 skipped under dart test
+PASS behavior hsdd/contract/fixture/topology-dsl/behavior/topology_builder_test.dart: 24 passed, 0 failed, 0 skipped under dart test
+PASS behavior hsdd/contract/fixture/topology-ir/behavior/nidana_dart_contracts_test.dart: 43 passed, 0 failed, 0 skipped under dart test
+120 fixtures: 120 passed, 0 failed, 0 pending
+PASS schema lines in the gate: 46
+
+### C the last task's checklist
++0: G22 the Mermaid and Graphviz renderings of every sample equal its render/ files
++1: G22 the JSON rendering of every sample is its valid/ file, byte for byte
++2: G22 render passes the graph to the renderer, and renderers are pure
++3: All tests passed!
++0: mermaid_renderer_test.dart: G22 every sample renders to its render/ .mmd file byte for byte
++1: mermaid_renderer_test.dart: G22 an empty graph renders as the header line alone
++2: mermaid_renderer_test.dart: G22 a duration renders in whole seconds, else whole milliseconds, else microseconds
++3: mermaid_renderer_test.dart: G22 each time stage renders its combinator and its duration on its first line
++4: mermaid_renderer_test.dart: G22 an edge renders its transformer and its retry on lines of their own, an anonymous reference as (anonymous)
++5: mermaid_renderer_test.dart: G22 parts and arrows come in graph order: one arrow per input, a repeated input repeated, then the sink output, then the claims
++6: mermaid_renderer_test.dart: G22 Mermaid escapes # first, then the quote, the angle brackets and a newline, in every kind of label, and leaves every other character as it is
++7: mermaid_renderer_test.dart: G22 rendering schedules nothing, and every line ends with a newline and is indented by two spaces per level
++8: graphviz_renderer_test.dart: G22 every sample renders to its render/ .dot file byte for byte
++9: graphviz_renderer_test.dart: G22 an empty graph renders as the header and the footer alone
++10: graphviz_renderer_test.dart: G22 a duration renders in whole seconds, else whole milliseconds, else microseconds
++11: graphviz_renderer_test.dart: G22 each time stage renders its combinator and its duration on its first line
++12: graphviz_renderer_test.dart: G22 an edge renders its transformer and its retry on lines of their own, an anonymous reference as (anonymous)
++13: graphviz_renderer_test.dart: G22 parts and arrows come in graph order: one arrow per input, a repeated input repeated, then the sink output, then the claims
++14: graphviz_renderer_test.dart: G22 Graphviz escapes \ first, then the quote and a newline, in every kind of label, and leaves every other character as it is
++15: graphviz_renderer_test.dart: G22 rendering schedules nothing, and every line ends with a newline and is indented by two spaces per level
++16: All tests passed!
+exit: 1
+exit: 1
+packages/nidana_dart_contracts/lib/src/render/renderers.dart:1:import '../graph/graph.dart';
+packages/nidana_dart_contracts/lib/src/render/renderers.dart:2:import '../ir/definition.dart';
+packages/nidana_dart_contracts/lib/src/render/renderers.dart:3:import '../ir/function_ref.dart';
+packages/nidana_dart_contracts/lib/src/render/renderers.dart:4:import '../topic/topic.dart';
+     187 packages/nidana_dart_contracts/lib/src/render/renderers.dart
+     194 packages/nidana_dart_contracts/test/mermaid_renderer_test.dart
+     210 packages/nidana_dart_contracts/test/graphviz_renderer_test.dart
+     270 packages/nidana_dart_contracts/test/src/render_support.dart
+     861 total
+
+### D seeded defects: which check catches each
+-- D1 Mermaid escapes # last, so it escapes its own escapes again
+   package tests: +367 -2: Some tests failed.
+   failing: mermaid_renderer_test.dart: G22 every sample renders to its render/ .mmd file byte for byte
+   failing: mermaid_renderer_test.dart: G22 Mermaid escapes # first, then the quote, the angle brackets and a newline, in every kind of label, and leaves every other character as it is
+   gate topology-ir replay: cases (42 passed, 1 failed, 0 skipped under dart test) | G22 the Mermaid and Graphviz renderings of every sample equal its render/ files)
+-- D2 Graphviz escapes the backslash last
+   package tests: +367 -2: Some tests failed.
+   failing: graphviz_renderer_test.dart: G22 every sample renders to its render/ .dot file byte for byte
+   failing: graphviz_renderer_test.dart: G22 Graphviz escapes \ first, then the quote and a newline, in every kind of label, and leaves every other character as it is
+   gate topology-ir replay: cases (42 passed, 1 failed, 0 skipped under dart test) | G22 the Mermaid and Graphviz renderings of every sample equal its render/ files)
+-- D3 Mermaid escapes the joined label, its <br/> breaks included
+   package tests: +364 -5: Some tests failed.
+   failing: mermaid_renderer_test.dart: G22 an edge renders its transformer and its retry on lines of their own, an anonymous reference as (anonymous)
+   failing: mermaid_renderer_test.dart: G22 each time stage renders its combinator and its duration on its first line
+   failing: mermaid_renderer_test.dart: G22 every sample renders to its render/ .mmd file byte for byte
+   failing: mermaid_renderer_test.dart: G22 Mermaid escapes # first, then the quote, the angle brackets and a newline, in every kind of label, and leaves every other character as it is
+   failing: mermaid_renderer_test.dart: G22 parts and arrows come in graph order: one arrow per input, a repeated input repeated, then the sink output, then the claims
+   gate topology-ir replay: cases (42 passed, 1 failed, 0 skipped under dart test) | G22 the Mermaid and Graphviz renderings of every sample equal its render/ files)
+-- D4 Mermaid also escapes &, which the rule leaves as it is
+   package tests: +368 -1: Some tests failed.
+   failing: mermaid_renderer_test.dart: G22 Mermaid escapes # first, then the quote, the angle brackets and a newline, in every kind of label, and leaves every other character as it is
+   gate topology-ir replay: 43 passed, 0 failed, 0 skipped under dart test
+-- D5 Graphviz also escapes {, } and |, as for a record label
+   package tests: +367 -2: Some tests failed.
+   failing: graphviz_renderer_test.dart: G22 every sample renders to its render/ .dot file byte for byte
+   failing: graphviz_renderer_test.dart: G22 Graphviz escapes \ first, then the quote and a newline, in every kind of label, and leaves every other character as it is
+   gate topology-ir replay: cases (42 passed, 1 failed, 0 skipped under dart test) | G22 the Mermaid and Graphviz renderings of every sample equal its render/ files)
+-- D6 an anonymous retry renders as 'retry null'
+   package tests: +367 -2: Some tests failed.
+   failing: graphviz_renderer_test.dart: G22 an edge renders its transformer and its retry on lines of their own, an anonymous reference as (anonymous)
+   failing: mermaid_renderer_test.dart: G22 an edge renders its transformer and its retry on lines of their own, an anonymous reference as (anonymous)
+   gate topology-ir replay: 43 passed, 0 failed, 0 skipped under dart test
+-- D7 a duration of a second or more renders in whole seconds
+   package tests: +365 -4: Some tests failed.
+   failing: graphviz_renderer_test.dart: G22 a duration renders in whole seconds, else whole milliseconds, else microseconds
+   failing: graphviz_renderer_test.dart: G22 each time stage renders its combinator and its duration on its first line
+   failing: mermaid_renderer_test.dart: G22 a duration renders in whole seconds, else whole milliseconds, else microseconds
+   failing: mermaid_renderer_test.dart: G22 each time stage renders its combinator and its duration on its first line
+   gate topology-ir replay: 43 passed, 0 failed, 0 skipped under dart test
+-- D8 a duration of a millisecond or more renders in whole milliseconds
+   package tests: +363 -6: Some tests failed.
+   failing: graphviz_renderer_test.dart: G22 a duration renders in whole seconds, else whole milliseconds, else microseconds
+   failing: graphviz_renderer_test.dart: G22 each time stage renders its combinator and its duration on its first line
+   failing: graphviz_renderer_test.dart: G22 every sample renders to its render/ .dot file byte for byte
+   failing: mermaid_renderer_test.dart: G22 a duration renders in whole seconds, else whole milliseconds, else microseconds
+   failing: mermaid_renderer_test.dart: G22 each time stage renders its combinator and its duration on its first line
+   failing: mermaid_renderer_test.dart: G22 every sample renders to its render/ .mmd file byte for byte
+   gate topology-ir replay: cases (42 passed, 1 failed, 0 skipped under dart test) | G22 the Mermaid and Graphviz renderings of every sample equal its render/ files)
+-- D9 the duration goes on a line of its own
+   package tests: +363 -6: Some tests failed.
+   failing: graphviz_renderer_test.dart: G22 a duration renders in whole seconds, else whole milliseconds, else microseconds
+   failing: graphviz_renderer_test.dart: G22 each time stage renders its combinator and its duration on its first line
+   failing: graphviz_renderer_test.dart: G22 every sample renders to its render/ .dot file byte for byte
+   failing: mermaid_renderer_test.dart: G22 a duration renders in whole seconds, else whole milliseconds, else microseconds
+   failing: mermaid_renderer_test.dart: G22 each time stage renders its combinator and its duration on its first line
+   failing: mermaid_renderer_test.dart: G22 every sample renders to its render/ .mmd file byte for byte
+   gate topology-ir replay: cases (42 passed, 1 failed, 0 skipped under dart test) | G22 the Mermaid and Graphviz renderings of every sample equal its render/ files)
+-- D10 the retry line comes before the transformer line
+   package tests: +363 -6: Some tests failed.
+   failing: graphviz_renderer_test.dart: G22 an edge renders its transformer and its retry on lines of their own, an anonymous reference as (anonymous)
+   failing: graphviz_renderer_test.dart: G22 every sample renders to its render/ .dot file byte for byte
+   failing: graphviz_renderer_test.dart: G22 Graphviz escapes \ first, then the quote and a newline, in every kind of label, and leaves every other character as it is
+   failing: mermaid_renderer_test.dart: G22 an edge renders its transformer and its retry on lines of their own, an anonymous reference as (anonymous)
+   failing: mermaid_renderer_test.dart: G22 every sample renders to its render/ .mmd file byte for byte
+   failing: mermaid_renderer_test.dart: G22 Mermaid escapes # first, then the quote, the angle brackets and a newline, in every kind of label, and leaves every other character as it is
+   gate topology-ir replay: cases (42 passed, 1 failed, 0 skipped under dart test) | G22 the Mermaid and Graphviz renderings of every sample equal its render/ files)
+-- D11 a scope renders as Scope.page
+   package tests: +359 -10: Some tests failed.
+   failing: graphviz_renderer_test.dart: G22 an edge renders its transformer and its retry on lines of their own, an anonymous reference as (anonymous)
+   failing: graphviz_renderer_test.dart: G22 each time stage renders its combinator and its duration on its first line
+   failing: graphviz_renderer_test.dart: G22 every sample renders to its render/ .dot file byte for byte
+   failing: graphviz_renderer_test.dart: G22 Graphviz escapes \ first, then the quote and a newline, in every kind of label, and leaves every other character as it is
+   failing: graphviz_renderer_test.dart: G22 parts and arrows come in graph order: one arrow per input, a repeated input repeated, then the sink output, then the claims
+   failing: mermaid_renderer_test.dart: G22 an edge renders its transformer and its retry on lines of their own, an anonymous reference as (anonymous)
+   failing: mermaid_renderer_test.dart: G22 each time stage renders its combinator and its duration on its first line
+   failing: mermaid_renderer_test.dart: G22 every sample renders to its render/ .mmd file byte for byte
+   failing: mermaid_renderer_test.dart: G22 Mermaid escapes # first, then the quote, the angle brackets and a newline, in every kind of label, and leaves every other character as it is
+   failing: mermaid_renderer_test.dart: G22 parts and arrows come in graph order: one arrow per input, a repeated input repeated, then the sink output, then the claims
+   gate topology-ir replay: cases (42 passed, 1 failed, 0 skipped under dart test) | G22 the Mermaid and Graphviz renderings of every sample equal its render/ files)
+-- D12 repeated arrows collapse into one
+   package tests: +367 -2: Some tests failed.
+   failing: graphviz_renderer_test.dart: G22 parts and arrows come in graph order: one arrow per input, a repeated input repeated, then the sink output, then the claims
+   failing: mermaid_renderer_test.dart: G22 parts and arrows come in graph order: one arrow per input, a repeated input repeated, then the sink output, then the claims
+   gate topology-ir replay: 43 passed, 0 failed, 0 skipped under dart test
+-- D13 topic ids keyed by name, so one name of two variants shares an id
+   package tests: +367 -2: Some tests failed.
+   failing: graphviz_renderer_test.dart: G22 parts and arrows come in graph order: one arrow per input, a repeated input repeated, then the sink output, then the claims
+   failing: mermaid_renderer_test.dart: G22 parts and arrows come in graph order: one arrow per input, a repeated input repeated, then the sink output, then the claims
+   gate topology-ir replay: 43 passed, 0 failed, 0 skipped under dart test
+-- D14 the sink output arrows come after every input arrow of the graph
+   package tests: +361 -8: Some tests failed.
+   failing: graphviz_renderer_test.dart: G22 an edge renders its transformer and its retry on lines of their own, an anonymous reference as (anonymous)
+   failing: graphviz_renderer_test.dart: G22 every sample renders to its render/ .dot file byte for byte
+   failing: graphviz_renderer_test.dart: G22 Graphviz escapes \ first, then the quote and a newline, in every kind of label, and leaves every other character as it is
+   failing: graphviz_renderer_test.dart: G22 parts and arrows come in graph order: one arrow per input, a repeated input repeated, then the sink output, then the claims
+   failing: mermaid_renderer_test.dart: G22 an edge renders its transformer and its retry on lines of their own, an anonymous reference as (anonymous)
+   failing: mermaid_renderer_test.dart: G22 every sample renders to its render/ .mmd file byte for byte
+   failing: mermaid_renderer_test.dart: G22 Mermaid escapes # first, then the quote, the angle brackets and a newline, in every kind of label, and leaves every other character as it is
+   failing: mermaid_renderer_test.dart: G22 parts and arrows come in graph order: one arrow per input, a repeated input repeated, then the sink output, then the claims
+   gate topology-ir replay: cases (42 passed, 1 failed, 0 skipped under dart test) | G22 the Mermaid and Graphviz renderings of every sample equal its render/ files)
+-- D15 no newline after the last line
+   package tests: +355 -14: Some tests failed.
+   failing: graphviz_renderer_test.dart: G22 an edge renders its transformer and its retry on lines of their own, an anonymous reference as (anonymous)
+   failing: graphviz_renderer_test.dart: G22 an empty graph renders as the header and the footer alone
+   failing: graphviz_renderer_test.dart: G22 each time stage renders its combinator and its duration on its first line
+   failing: graphviz_renderer_test.dart: G22 every sample renders to its render/ .dot file byte for byte
+   failing: graphviz_renderer_test.dart: G22 Graphviz escapes \ first, then the quote and a newline, in every kind of label, and leaves every other character as it is
+   failing: graphviz_renderer_test.dart: G22 parts and arrows come in graph order: one arrow per input, a repeated input repeated, then the sink output, then the claims
+   failing: graphviz_renderer_test.dart: G22 rendering schedules nothing, and every line ends with a newline and is indented by two spaces per level
+   failing: mermaid_renderer_test.dart: G22 an edge renders its transformer and its retry on lines of their own, an anonymous reference as (anonymous)
+   failing: mermaid_renderer_test.dart: G22 an empty graph renders as the header line alone
+   failing: mermaid_renderer_test.dart: G22 each time stage renders its combinator and its duration on its first line
+   failing: mermaid_renderer_test.dart: G22 every sample renders to its render/ .mmd file byte for byte
+   failing: mermaid_renderer_test.dart: G22 Mermaid escapes # first, then the quote, the angle brackets and a newline, in every kind of label, and leaves every other character as it is
+   failing: mermaid_renderer_test.dart: G22 parts and arrows come in graph order: one arrow per input, a repeated input repeated, then the sink output, then the claims
+   failing: mermaid_renderer_test.dart: G22 rendering schedules nothing, and every line ends with a newline and is indented by two spaces per level
+   gate topology-ir replay: cases (42 passed, 1 failed, 0 skipped under dart test) | G22 the Mermaid and Graphviz renderings of every sample equal its render/ files)
+-- D16 Mermaid labels a dedup arrow with the enum's toString
+   package tests: +366 -3: Some tests failed.
+   failing: mermaid_renderer_test.dart: G22 every sample renders to its render/ .mmd file byte for byte
+   failing: mermaid_renderer_test.dart: G22 Mermaid escapes # first, then the quote, the angle brackets and a newline, in every kind of label, and leaves every other character as it is
+   failing: mermaid_renderer_test.dart: G22 parts and arrows come in graph order: one arrow per input, a repeated input repeated, then the sink output, then the claims
+   gate topology-ir replay: cases (42 passed, 1 failed, 0 skipped under dart test) | G22 the Mermaid and Graphviz renderings of every sample equal its render/ files)
