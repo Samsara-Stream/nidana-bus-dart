@@ -183,6 +183,7 @@ a `Task N: complete` line; never re-dispatch them.
 | S112 | code-plan | superpowers:writing-plans | nidana.model.4 (5 tasks; dry run 57/57; purity hardening routed in) | done | d3c8f85 |
 | S113 | implement | superpowers:subagent-driven-development | nidana.model.4: 5 tasks, 2 fix rounds (purity reader), final review with one fix wave; gate exit 0, 32 tests, 57/57 | done | ccac409; merged into impl/nidana.model as 3c147db |
 | S114 | config | hsdd-config | nidana.model.5 | done | d514fe4 |
+| S115 | code-plan | superpowers:writing-plans | nidana.model.5 (3 tasks; dry run 117/117) | done | 2088ab2 |
 
 ## Notes for the report
 
@@ -265,6 +266,12 @@ that phase's writing-plans dispatch and strikes it here when the phase's plan co
 - nidana.model.9 (from S113's final review): G14's "a handle another builder made" check needs a
   handle-to-builder link (a private constructor argument or an Expando); `CombineStage.apply` for `combineAll`
   needs `T`, which `CombineStage<R>` does not carry, so capture a typed closure in the private constructor.
+- nidana.model.11 (from S115): remove the two `// ignore: unused_element` lines above `ShellClaim._` and
+  `TopologyGraph._`.
+- nidana.model.13 (from S115): the codec adds the `dart:convert` import (not imported at nidana.model.5).
+- Consumer nodes (from S115): ADR-001 item 4's one-code marker held for all 22 reject libraries of
+  nidana.model's three contracts; the reject sets of bus-api, bus-testing, navigation-api and flutter-binding
+  meet it at their producers' first gates (outside this run).
 - nidana.model.10 (from S112): remove the two `// ignore: unused_element` on `TransformEdge._` and
   `TopologyDefinition._`; `FunctionRef.named`'s empty-name `ArgumentError`.
 - End of nidana.model, governance sweep (from S112): topology-ir@v1's Interface prose (line 47) says every value
