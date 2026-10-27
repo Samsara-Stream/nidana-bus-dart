@@ -7,6 +7,9 @@ import '../topic/topic.dart';
 
 part 'builder.dart';
 part 'handle.dart';
+part 'plan.dart';
+part 'sinks.dart';
+part 'stages.dart';
 
 /// A topology in class form (Spec §6.1, Guide §6.3). Applications extend it;
 /// a subclass is final, base or sealed. Annotated @immutable: a topology is
