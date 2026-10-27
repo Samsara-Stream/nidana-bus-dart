@@ -1,8 +1,8 @@
 /// The workspace root and the platform paths below it: the file-system
-/// helpers the shell and `fixture.dart` share. With the shell, it is the only
-/// library under `lib/src/` that imports `dart:io` (nidana.model D2 item 5),
-/// and a conformance library, which imports `fixture.dart`, compiles this
-/// rather than the shell.
+/// helpers the shell and `fixture.dart` share. With `shell.dart` and
+/// `runners.dart`, it is one of the three libraries under `lib/src/` that
+/// import `dart:io` (nidana.model D2 item 5), and a conformance library,
+/// which imports `fixture.dart`, compiles this rather than the shell.
 library;
 
 import 'dart:io';

@@ -23,6 +23,9 @@ Directory seed(Map<String, String> files) {
 }
 
 /// Runs the bin script with [arguments] from [workingDirectory].
+///
+/// Its flutter is the real one beside the running dart, so it never replays
+/// a Flutter binding that is not PENDING (see `seedWorkspace`).
 Future<ProcessResult> runTool(
   List<String> arguments, {
   required Directory workingDirectory,

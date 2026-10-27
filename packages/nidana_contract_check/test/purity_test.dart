@@ -43,13 +43,13 @@ Set<String> relativeClosure(String from) {
 }
 
 void main() {
-  test('no library under lib/src/ but shell.dart and workspace.dart imports dart:io', () {
+  test('no library under lib/src/ but runners.dart, shell.dart and workspace.dart imports dart:io', () {
     final List<String> importing = <String>[
       for (final FileSystemEntity f in Directory(p.join(lib, 'src')).listSync())
         if (f is File && directivesOf(f.path).contains('dart:io'))
           p.basename(f.path),
     ]..sort();
-    expect(importing, <String>['shell.dart', 'workspace.dart']);
+    expect(importing, <String>['runners.dart', 'shell.dart', 'workspace.dart']);
   });
   test('fixture.dart, which every conformance library imports, reaches json_document.dart and workspace.dart alone', () {
     expect(relativeClosure('fixture.dart'), <String>{

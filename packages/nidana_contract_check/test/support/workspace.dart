@@ -32,6 +32,11 @@ final class Sample {
 /// this workspace's hsdd/contract/fixture/analysis_options.yaml. With [runners], `sample` also
 /// depends on `matcher` and dev-depends on `test`, and the stand-in members `nidana_contract_check`
 /// and `flutter_test` join the workspace, so bindings run under `dart test`.
+///
+/// Never start the real flutter: the pinned Flutter SDK has no engine
+/// artifacts. Replay a seeded Flutter binding that is not PENDING only with
+/// `runCli(..., dart: standInSdk().dart)` or `plainDart()` from
+/// `runners.dart`, never through `runTool` and never with `dart: null`.
 Future<Directory> seedWorkspace(
   Map<String, String> files, {
   bool standIn = true,

@@ -3,9 +3,10 @@
 /// [SlugSnapshot] per slug of the request and per slug whose suite a binding
 /// imports, and the package configuration, runs `dart analyze` once for the
 /// `surface` and `reject` sets of every slug, runs one test runner per
-/// binding the `behavior` set runs, runs the planned sets and prints the
-/// report. Every decision is the pure core's; with `workspace.dart`, this is
-/// the only library under `lib/src/` that imports `dart:io`.
+/// binding the `behavior` set runs (through `runners.dart`), runs the planned
+/// sets and prints the report. Every decision is the pure core's. With
+/// `runners.dart` and `workspace.dart`, it is one of the three libraries
+/// under `lib/src/` that import `dart:io`.
 library;
 
 import 'dart:convert';
@@ -22,11 +23,11 @@ import 'reject.dart';
 import 'report.dart';
 import 'request.dart';
 import 'run.dart';
+import 'runners.dart';
 import 'schema.dart';
 import 'snapshot.dart';
 import 'structure.dart';
 import 'surface.dart';
-import 'test_report.dart';
 import 'workspace.dart';
 
 /// The names of the directories directly under hsdd/contract/fixture/, hidden ones excluded; empty
@@ -535,154 +536,30 @@ SetRun _analyzedRun(
 };
 
 /// The `behavior` set over [snapshot]: [planBindings] plans each binding with the package names
-/// and the snapshots of [context], and each [BindingRun] runs in plan order; else
-/// [SetUnavailable] with the reason of the packages, of an absent flutter or of the first runner
-/// that cannot run or prints no report.
-///
-/// When a binding that would run needs a flutter and the running dart's
-/// Flutter SDK holds none, no binding of the slug starts (design decision
-/// 12).
-Future<SetRun> _behaviorRun(SlugSnapshot snapshot, _Context context) async {
-  switch (context.packages) {
-    case _NoPackages(:final String reason):
-      return SetUnavailable(CheckSet.behavior, snapshot.slug, reason);
-    case _PackageNames(:final Set<String> names):
-      final List<BindingPlan> plans = planBindings(
-        snapshot,
-        snapshots: context.snapshots,
-        packages: names,
-        restriction: context.restriction,
-      );
-      return switch (plans
-          .whereType<BindingRun>()
-          .where((BindingRun run) => _executableOf(run, context) == null)
-          .firstOrNull) {
-        final BindingRun run => SetUnavailable(
-          CheckSet.behavior,
-          snapshot.slug,
-          _noFlutter(run, context),
-        ),
-        null => _runBindings(snapshot.slug, plans, context),
-      };
-  }
-}
-
-/// [plans] of [slug]'s bindings run in order, after the [concluded] outcomes of the bindings
-/// before them: [SetChecked] with every outcome, or [SetUnavailable] at the first binding whose
-/// runner cannot run or prints no report, starting none after it.
-Future<SetRun> _runBindings(
-  String slug,
-  List<BindingPlan> plans,
-  _Context context, {
-  List<FixtureOutcome> concluded = const <FixtureOutcome>[],
-}) async => switch (plans) {
-  [] => SetChecked(
-    CheckSet.behavior,
-    slug,
-    List<FixtureOutcome>.unmodifiable(concluded),
-  ),
-  [final BindingPlan plan, ...final List<BindingPlan> rest] =>
-    switch (await _runBinding(plan, context)) {
-      _BindingConcluded(:final FixtureOutcome outcome) => await _runBindings(
-        slug,
-        rest,
-        context,
-        concluded: <FixtureOutcome>[...concluded, outcome],
-      ),
-      _RunnerUnavailable(:final String reason) => SetUnavailable(
+/// and the snapshots of [context], and [runBehavior] runs the plans with the root, the dart, the
+/// flutter and the progress sink of [context]; [SetUnavailable] with the packages' reason when
+/// the package configuration cannot be read.
+Future<SetRun> _behaviorRun(SlugSnapshot snapshot, _Context context) async =>
+    switch (context.packages) {
+      _NoPackages(:final String reason) => SetUnavailable(
         CheckSet.behavior,
-        slug,
+        snapshot.slug,
         reason,
       ),
-    },
-};
-
-/// What one binding's plan gives the `behavior` set: its outcome, or the reason the slug's set
-/// cannot run.
-sealed class _BindingResult {
-  const _BindingResult();
-}
-
-/// The binding's [outcome], settled by the planner or read from its runner's report.
-final class _BindingConcluded extends _BindingResult {
-  const _BindingConcluded(this.outcome);
-
-  final FixtureOutcome outcome;
-}
-
-/// The binding's runner could not run it, or printed no report: [reason].
-final class _RunnerUnavailable extends _BindingResult {
-  const _RunnerUnavailable(this.reason);
-
-  final String reason;
-}
-
-/// [plan]'s result: a [BindingSettled] gives its outcome, and a [BindingRun] the result of
-/// [_started] under its runner's executable.
-///
-/// A run whose runner has no executable is unavailable for the reason
-/// [_behaviorRun] gives before any binding of the slug starts, so this
-/// branch only keeps the match total.
-Future<_BindingResult> _runBinding(BindingPlan plan, _Context context) async =>
-    switch (plan) {
-      BindingSettled(:final FixtureOutcome outcome) => _BindingConcluded(
-        outcome,
+      _PackageNames(:final Set<String> names) => await runBehavior(
+        snapshot.slug,
+        planBindings(
+          snapshot,
+          snapshots: context.snapshots,
+          packages: names,
+          restriction: context.restriction,
+        ),
+        root: context.root,
+        dart: context.dart,
+        flutter: context.flutter,
+        progress: context.progress,
       ),
-      final BindingRun run => switch (_executableOf(run, context)) {
-        final String executable => await _started(run, executable, context),
-        null => _RunnerUnavailable(_noFlutter(run, context)),
-      },
     };
-
-/// [run] under [executable]: its progress line to [_Context.progress], then the runner started
-/// from the workspace root and its report read into the binding's outcome.
-///
-/// The runner's output is decoded as UTF-8 that may be malformed, so bytes a
-/// case writes to stdout that are not UTF-8 never stop the replay; a
-/// malformed line is no event, and the report reader skips it.
-Future<_BindingResult> _started(
-  BindingRun run,
-  String executable,
-  _Context context,
-) async {
-  context.progress.writeln(
-    'running behavior ${run.path} under ${run.runner.label}',
-  );
-  final ProcessResult result;
-  try {
-    result = await Process.run(
-      executable,
-      testArguments(run),
-      workingDirectory: context.root.path,
-      stdoutEncoding: _lenientUtf8,
-      stderrEncoding: _lenientUtf8,
-    );
-  } on ProcessException catch (error) {
-    return _RunnerUnavailable('could not run $executable: ${error.message}');
-  }
-  return switch (readTestReport(result.stdout as String)) {
-    NoReport() => _RunnerUnavailable(
-      runnerFailure(run, result.exitCode, result.stderr as String),
-    ),
-    final Reported report => _BindingConcluded(ranOutcome(run, report)),
-  };
-}
-
-/// UTF-8 that decodes malformed bytes as U+FFFD instead of throwing.
-const Utf8Codec _lenientUtf8 = Utf8Codec(allowMalformed: true);
-
-/// The executable [run]'s runner starts: the running dart, or the flutter beside it; null when
-/// its Flutter SDK holds no flutter.
-String? _executableOf(BindingRun run, _Context context) => switch (run.runner) {
-  Runner.dart => context.dart,
-  Runner.flutter => context.flutter,
-};
-
-/// The reason no binding of a slug runs: [run] needs a flutter, and the running dart's Flutter
-/// SDK holds none.
-String _noFlutter(BindingRun run, _Context context) =>
-    'no flutter in the Flutter SDK of ${context.dart}; '
-    '${run.path} runs under ${run.runner.label}';
 
 /// Prints [run]: each outcome's line to [out], or the unavailable line to
 /// [err].
