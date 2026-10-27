@@ -1,0 +1,3 @@
+script {root}/packages/probe_tool/bin/facts.dart
+packages file://{root}/.dart_tool/package_config.json
+cwd {files}

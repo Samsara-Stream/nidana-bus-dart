@@ -1,0 +1,246 @@
+
+### S0 setup: the committed tree, resolved offline
+tree from a56f96c judgement: S152
+Dart SDK version: 3.13.5 (stable) (Tue Sep 29 01:00:52 2026 -0700) on "macos_arm64"
+Try `dart pub outdated` for more information.
+packages/ changes in the working tree: 0
+S153's working-tree changes under hsdd/:
+   M hsdd/contract/fixture/topology-ir/surface/graphs.dart
+   M hsdd/contract/topology-ir.md
+
+### F facts/facts.dart against the shipped package, from the repository root
+assertions enabled: false (dart run enables none)
+
+### E FunctionRef.of over extension forms (the package, JIT)
+named extension, instance method 4.triple: (anonymous)
+named extension, static method Ext.helper: Ext|helper
+extension type, constructor ET.new: ET|constructor#_#new#tearOff
+extension type, named constructor ET.named: ET|constructor#_#named#tearOff
+extension type, instance method et.plus: (anonymous)
+extension type, static method ET.make: ET|make
+
+### P two state topics of one name whose value types render alike
+Topic equality: false; refs equal: true (typeName Cart and Cart)
+planOf: returns 2 sinks
+plan.definition: throws ArgumentError(transforms): edge 3 is a second sink edge on this state topic, of type Cart; a state topic takes one sink edge in the IR, and two state topics of one name whose value types render alike count as one
+buildDefinition(): throws ArgumentError(transforms): edge 3 is a second sink edge on this state topic, of type Cart; a state topic takes one sink edge in the IR, and two state topics of one name whose value types render alike count as one
+findTopicNameCollisions over their declarations: 1 collision, shop.cart, 2 declarations
+
+### R graphs built by hand whose encoding the decoder rejects
+a dedup on an event read: built; decode(encode): throws FormatException: $.topologies[0].transforms[0].inputs[0].dedup: may be given only on a read of a state topic
+a dedup on a replay read: built; decode(encode): throws FormatException: $.topologies[0].transforms[0].inputs[0].dedup: may be given only on a read of a state topic
+a read with an empty typeName: built; decode(encode): throws FormatException: $.topologies[0].reads[0].typeName: must not be empty
+a claim with an empty typeName: built; decode(encode): throws FormatException: $.claims[0].writes[0].typeName: must not be empty
+a claim whose source has an empty name (no assertions): built; decode(encode): throws FormatException: $.claims[0].source: must be "service:", "page:" or "executor:" followed by a name
+plan side, read of an event topic with a dedup: throws ArgumentError(dedup): applies to a state topic read only, and r.in is an event topic
+plan side, read of an replay topic with a dedup: throws ArgumentError(dedup): applies to a state topic read only, and r.log is a replay topic
+plan side, a Topic's typeName is '$T': int, (), Object?
+
+### I integers in the JSON form
+durationMicros 5000 (jsonDecode gives int 5000): schema valid; decoder returns duration 5000us
+durationMicros 5000.0 (jsonDecode gives double 5000.0): schema valid; decoder returns duration 5000us
+durationMicros 5e3 (jsonDecode gives double 5000.0): schema valid; decoder returns duration 5000us
+durationMicros 9223372036854775807 (jsonDecode gives int 9223372036854775807): schema valid; decoder returns duration 9223372036854775807us
+durationMicros 9223372036854775808 (jsonDecode gives double 9223372036854776000.0): schema valid; decoder throws FormatException: $.topologies[0].transforms[3].durationMicros: must be a non-negative integer
+durationMicros 1e30 (jsonDecode gives double 1e+30): schema valid; decoder throws FormatException: $.topologies[0].transforms[3].durationMicros: must be a non-negative integer
+Duration(microseconds: 9223372036854775807).inMicroseconds: 9223372036854775807
+with durationMicros maximum 9223372036854775807: 9223372036854775807 valid; 9223372036854775808 valid; 1e30 invalid (1 errors)
+with durationMicros exclusiveMaximum 9223372036854775808: 9223372036854775807 invalid (1 errors); 9223372036854775808 invalid (1 errors); 1e30 invalid (1 errors)
+
+### W the would-be invalid/ documents
+claim_repeat_topic.json: schema invalid: /claims/0/writes; decoder throws FormatException: $.claims[0].writes[1]: repeats $.claims[0].writes[0]
+dedup_on_replay_read.json: schema invalid: /topologies/0/transforms/2; decoder throws FormatException: $.topologies[0].transforms[2].inputs[1].dedup: may be given only on a read of a state topic
+topic_ref_empty_type_name.json: schema invalid: /topologies/0/reads/0/typeName; decoder throws FormatException: $.topologies[0].reads[0].typeName: must not be empty
+
+### O scope violations by owner
+graph order of owners: topologies topology:a/page, then claims page:p/page, page:p/page, service:s/module, service:s/page
+findScopeViolations: page:p/page->reader, service:s/module->reader, service:s/page->reader, topology:a/page->reader
+
+### X the extension forms under each compiler (ext/, standalone)
+-- JIT (fvm dart run)
+unnamed extension, instance method          | Closure: () => int                                                            | null
+named extension, instance method            | Closure: () => int                                                            | null
+named extension, explicit instance method   | Closure: () => int                                                            | null
+named extension, static method Ext.helper   | Closure: (int) => int from Function 'Ext|helper': static.                     | Ext|helper
+named extension, private static Ext._helper | Closure: (int) => int from Function 'Ext|_helper': static.                    | Ext|_helper
+extension type, constructor ET.new          | Closure: (int) => int from Function 'ET|constructor#_#new#tearOff': static.   | ET|constructor#_#new#tearOff
+extension type, named constructor ET.named  | Closure: (int) => int from Function 'ET|constructor#_#named#tearOff': static. | ET|constructor#_#named#tearOff
+extension type, factory ET.made             | Closure: (int) => int from Function 'ET|constructor#_#made#tearOff': static.  | ET|constructor#_#made#tearOff
+extension type, instance method et.plus     | Closure: (int) => int                                                         | null
+extension type, static method ET.make       | Closure: (int) => int from Function 'ET|make': static.                        | ET|make
+private extension, static method _Ext.helper| Closure: (int) => int from Function '_Ext|helper@21172894': static.           | _Ext|helper@21172894
+private extension type, constructor _ET.new | Closure: (int) => int from Function '_ET|constructor#_#new#tearOff@21172894': static.| _ET|constructor#_#new#tearOff@21172894
+-- AOT (fvm dart compile exe)
+unnamed extension, instance method          | Closure: () => int                                                            | null
+named extension, instance method            | Closure: () => int                                                            | null
+named extension, explicit instance method   | Closure: () => int                                                            | null
+named extension, static method Ext.helper   | Closure: (int) => int from Function 'Ext|helper': static.                     | Ext|helper
+named extension, private static Ext._helper | Closure: (int) => int from Function 'Ext|_helper': static.                    | Ext|_helper
+extension type, constructor ET.new          | Closure: (int) => int from Function 'ET|constructor#_#new#tearOff': static.   | ET|constructor#_#new#tearOff
+extension type, named constructor ET.named  | Closure: (int) => int from Function 'ET|constructor#_#named#tearOff': static. | ET|constructor#_#named#tearOff
+extension type, factory ET.made             | Closure: (int) => int from Function 'ET|constructor#_#made#tearOff': static.  | ET|constructor#_#made#tearOff
+extension type, instance method et.plus     | Closure: (int) => int                                                         | null
+extension type, static method ET.make       | Closure: (int) => int from Function 'ET|make': static.                        | ET|make
+private extension, static method _Ext.helper| Closure: (int) => int from Function '_Ext|helper@17172894': static.           | _Ext|helper@17172894
+private extension type, constructor _ET.new | Closure: (int) => int from Function '_ET|constructor#_#new#tearOff@17172894': static.| _ET|constructor#_#new#tearOff@17172894
+-- AOT obfuscated (--extra-gen-snapshot-options=--obfuscate)
+unnamed extension, instance method          | Closure: () => int                                                            | null
+named extension, instance method            | Closure: () => int                                                            | null
+named extension, explicit instance method   | Closure: () => int                                                            | null
+named extension, static method Ext.helper   | Closure: (int) => int from Function 'fF': static.                             | fF
+named extension, private static Ext._helper | Closure: (int) => int from Function 'gF': static.                             | gF
+extension type, constructor ET.new          | Closure: (int) => int from Function 'lF': static.                             | lF
+extension type, named constructor ET.named  | Closure: (int) => int from Function 'nF': static.                             | nF
+extension type, factory ET.made             | Closure: (int) => int from Function 'pF': static.                             | pF
+extension type, instance method et.plus     | Closure: (int) => int                                                         | null
+extension type, static method ET.make       | Closure: (int) => int from Function 'sF': static.                             | sF
+private extension, static method _Ext.helper| Closure: (int) => int from Function '_hF@17172894': static.                   | _hF@17172894
+private extension type, constructor _ET.new | Closure: (int) => int from Function '_jF@17172894': static.                   | _jF@17172894
+-- dart2js -O1, run by node v26.12.1
+unnamed extension, instance method          | Closure '_extension_0_get_twice_closure'                                      | null
+named extension, instance method            | Closure 'Ext_get_triple_closure'                                              | null
+named extension, explicit instance method   | Closure 'Ext_get_triple_closure'                                              | null
+named extension, static method Ext.helper   | Closure 'Ext_helper'                                                          | null
+named extension, private static Ext._helper | Closure 'Ext__helper'                                                         | null
+extension type, constructor ET.new          | Closure 'ET_constructor___new_tearOff'                                        | null
+extension type, named constructor ET.named  | Closure 'ET_constructor___named_tearOff'                                      | null
+extension type, factory ET.made             | Closure 'ET_constructor___made_tearOff'                                       | null
+extension type, instance method et.plus     | Closure 'ET_get_plus_closure'                                                 | null
+extension type, static method ET.make       | Closure 'ET_make'                                                             | null
+private extension, static method _Ext.helper| Closure '_Ext_helper'                                                         | null
+private extension type, constructor _ET.new | Closure '_ET_constructor___new_tearOff'                                       | null
+-- dart2js -O4, run by node v26.12.1
+unnamed extension, instance method          | Closure 'minified:af'                                                         | null
+named extension, instance method            | Closure 'minified:a0'                                                         | null
+named extension, explicit instance method   | Closure 'minified:a0'                                                         | null
+named extension, static method Ext.helper   | Closure 'minified:bf'                                                         | null
+named extension, private static Ext._helper | Closure 'minified:be'                                                         | null
+extension type, constructor ET.new          | Closure 'minified:b9'                                                         | null
+extension type, named constructor ET.named  | Closure 'minified:b8'                                                         | null
+extension type, factory ET.made             | Closure 'minified:b7'                                                         | null
+extension type, instance method et.plus     | Closure 'minified:Y'                                                          | null
+extension type, static method ET.make       | Closure 'minified:bc'                                                         | null
+private extension, static method _Ext.helper| Closure 'minified:bo'                                                         | null
+private extension type, constructor _ET.new | Closure 'minified:bn'                                                         | null
+-- dart2wasm, run by node v26.12.1
+unnamed extension, instance method          | Closure: () => int                                                            | null
+named extension, instance method            | Closure: () => int                                                            | null
+named extension, explicit instance method   | Closure: () => int                                                            | null
+named extension, static method Ext.helper   | Closure: (int) => int                                                         | null
+named extension, private static Ext._helper | Closure: (int) => int                                                         | null
+extension type, constructor ET.new          | Closure: (int) => int                                                         | null
+extension type, named constructor ET.named  | Closure: (int) => int                                                         | null
+extension type, factory ET.made             | Closure: (int) => int                                                         | null
+extension type, instance method et.plus     | Closure: (int) => int                                                         | null
+extension type, static method ET.make       | Closure: (int) => int                                                         | null
+private extension, static method _Ext.helper| Closure: (int) => int                                                         | null
+private extension type, constructor _ET.new | Closure: (int) => int                                                         | null
+
+### J a JavaScript JSON parser reads 2^63 - 1 and 2^63 as one number
+JSON.parse(2^63 - 1) = 9223372036854776000 ; JSON.parse(2^63) = 9223372036854776000 ; equal: true ; equal to 2**63: true
+
+### B the committed fixtures, topology-ir unrestricted
+-- nidana_contract_check topology-ir
+PASS surface hsdd/contract/fixture/topology-ir/surface/definitions.dart
+PASS surface hsdd/contract/fixture/topology-ir/surface/graphs.dart
+PASS reject hsdd/contract/fixture/topology-ir/reject/ir_families_are_closed.dart
+PASS reject hsdd/contract/fixture/topology-ir/reject/ir_holds_no_function.dart
+PASS reject hsdd/contract/fixture/topology-ir/reject/ir_values_are_immutable.dart
+PASS behavior hsdd/contract/fixture/topology-ir/behavior/nidana_dart_contracts_test.dart: 43 passed, 0 failed, 0 skipped under dart test
+61 fixtures: 61 passed, 0 failed, 0 pending
+exit: 0
+
+### N S153's contract text and surface/graphs.dart in the copy
+-- surface/graphs.dart, committed against S153's:
+111a112
+>   pageOwned,
+113a115,124
+> /// A finding built as a constant, as a diagnostic mapper's table may hold
+> /// one: ScopeViolation's constructor is const.
+> const ScopeViolation pageOwned = ScopeViolation(
+>   topic: TopicRef(name: 'nav.depth', variant: TopicVariant.state, typeName: 'int'),
+>   owner: PageSource('settings/profile'),
+>   ownerScope: Scope.page,
+>   readerId: 'b',
+>   readerScope: Scope.application,
+> );
+> 
+-- the schema, committed against S153's: unchanged
+-- nidana_contract_check topology-ir
+PASS structure hsdd/contract/topology-ir.md
+PASS surface hsdd/contract/fixture/topology-ir/surface/definitions.dart
+PASS surface hsdd/contract/fixture/topology-ir/surface/graphs.dart
+PASS reject hsdd/contract/fixture/topology-ir/reject/ir_families_are_closed.dart
+PASS reject hsdd/contract/fixture/topology-ir/reject/ir_holds_no_function.dart
+PASS reject hsdd/contract/fixture/topology-ir/reject/ir_values_are_immutable.dart
+PASS behavior hsdd/contract/fixture/topology-ir/behavior/nidana_dart_contracts_test.dart: 43 passed, 0 failed, 0 skipped under dart test
+61 fixtures: 61 passed, 0 failed, 0 pending
+exit: 0
+-- nidana_contract_check --all --set structure
+102 fixtures: 102 passed, 0 failed, 0 pending
+exit: 0
+
+### C seeded: ScopeViolation's constructor not const
+
+-- C1 ScopeViolation's constructor without const
+92c92
+<   const ScopeViolation({
+---
+>   ScopeViolation({
+- the committed graphs.dart:
+-- nidana_contract_check topology-ir --set surface
+PASS surface hsdd/contract/fixture/topology-ir/surface/definitions.dart
+PASS surface hsdd/contract/fixture/topology-ir/surface/graphs.dart
+11 fixtures: 11 passed, 0 failed, 0 pending
+exit: 0
+- S153's graphs.dart:
+-- nidana_contract_check topology-ir --set surface
+PASS surface hsdd/contract/fixture/topology-ir/surface/definitions.dart
+FAIL surface hsdd/contract/fixture/topology-ir/surface/graphs.dart: diagnostic (line 117: ERROR const_initialized_with_non_constant_value: Const variables must be initialized with a constant value.); diagnostic (line 117: ERROR const_with_non_const: The constructor being called isn't a const constructor.)
+11 fixtures: 10 passed, 1 failed, 0 pending
+exit: 1
+
+### W the would-be invalid/ documents under the copy's invalid/
+invalid/ now holds 41 documents
+-- nidana_contract_check topology-ir --set schema
+PASS schema hsdd/contract/fixture/topology-ir/invalid/claim_repeat_topic.json
+PASS schema hsdd/contract/fixture/topology-ir/invalid/dedup_on_replay_read.json
+PASS schema hsdd/contract/fixture/topology-ir/invalid/topic_ref_empty_type_name.json
+58 fixtures: 58 passed, 0 failed, 0 pending
+exit: 0
+-- nidana_contract_check topology-ir --set behavior --guarantee G21
+PASS behavior hsdd/contract/fixture/topology-ir/behavior/nidana_dart_contracts_test.dart: 3 passed, 0 failed, 0 skipped under dart test, restricted to topology-ir G21
+10 fixtures: 10 passed, 0 failed, 0 pending
+exit: 0
+-- fvm dart test packages/nidana_dart_contracts/test/json_reject_test.dart
+G21 invalid/ holds exactly the files whose messages this test pins [E]
+     Which: at location [1] is 'claim_repeat_topic' instead of 'claim_scope_missing'
++51 -1: Some tests failed.
+exit: 1
+invalid/ restored: 38 documents
+
+### M the alternative not taken: maximum 2^63 - 1 on durationMicros and edge
+74c74
+<           "properties": { "edge": { "type": "integer", "minimum": 0 } },
+---
+>           "properties": { "edge": { "type": "integer", "minimum": 0, "maximum": 9223372036854775807 } },
+196c196
+<         "durationMicros": { "type": "integer", "minimum": 0 }
+---
+>         "durationMicros": { "type": "integer", "minimum": 0, "maximum": 9223372036854775807 }
+-- nidana_contract_check topology-ir --set schema
+PASS schema hsdd/contract/schema/topology-ir.schema.json
+55 fixtures: 55 passed, 0 failed, 0 pending
+exit: 0
+
+### R restored: the copy's lib/ and schema against HEAD's, S153's fixtures once more
+the copy's lib/ equals HEAD's
+-- nidana_contract_check topology-ir
+PASS surface hsdd/contract/fixture/topology-ir/surface/definitions.dart
+PASS surface hsdd/contract/fixture/topology-ir/surface/graphs.dart
+PASS reject hsdd/contract/fixture/topology-ir/reject/ir_families_are_closed.dart
+PASS reject hsdd/contract/fixture/topology-ir/reject/ir_holds_no_function.dart
+PASS reject hsdd/contract/fixture/topology-ir/reject/ir_values_are_immutable.dart
+PASS behavior hsdd/contract/fixture/topology-ir/behavior/nidana_dart_contracts_test.dart: 43 passed, 0 failed, 0 skipped under dart test
+61 fixtures: 61 passed, 0 failed, 0 pending
+exit: 0

@@ -1,0 +1,355 @@
+
+### S0 setup: two copies of the committed tree, resolved offline
+tree from 068bfe6 judgement: S153
+Dart SDK version: 3.13.5 (stable) (Tue Sep 29 01:00:52 2026 -0700) on "macos_arm64"
+Try `dart pub outdated` for more information.
+Try `dart pub outdated` for more information.
+packages/ changes in the working tree: 0
+NEW's fixture files that differ from HEAD's:
+  Files {old}/hsdd/contract/fixture/topology-ir/behavior/topology_ir_conformance.dart and {new}/hsdd/contract/fixture/topology-ir/behavior/topology_ir_conformance.dart differ
+  Files {old}/hsdd/contract/fixture/topology-ir/render/escaping.dot and {new}/hsdd/contract/fixture/topology-ir/render/escaping.dot differ
+  Files {old}/hsdd/contract/fixture/topology-ir/render/escaping.mmd and {new}/hsdd/contract/fixture/topology-ir/render/escaping.mmd differ
+  Files {old}/hsdd/contract/fixture/topology-ir/render/every_combinator.dot and {new}/hsdd/contract/fixture/topology-ir/render/every_combinator.dot differ
+  Files {old}/hsdd/contract/fixture/topology-ir/render/every_combinator.mmd and {new}/hsdd/contract/fixture/topology-ir/render/every_combinator.mmd differ
+  Files {old}/hsdd/contract/fixture/topology-ir/valid/escaping.json and {new}/hsdd/contract/fixture/topology-ir/valid/escaping.json differ
+  Files {old}/hsdd/contract/fixture/topology-ir/valid/every_combinator.json and {new}/hsdd/contract/fixture/topology-ir/valid/every_combinator.json differ
+
+### I independent.py: every sample's valid/ and render/ files derived without the producer, against NEW's
+AGREE render/every_combinator.mmd of HEAD: derived from HEAD's valid/ and equal to HEAD's file
+AGREE render/every_combinator.dot of HEAD: derived from HEAD's valid/ and equal to HEAD's file
+AGREE render/escaping.mmd of HEAD: derived from HEAD's valid/ and equal to HEAD's file
+AGREE render/escaping.dot of HEAD: derived from HEAD's valid/ and equal to HEAD's file
+AGREE valid/checkout.json: derived from HEAD's valid/ and equal to HEAD's file
+AGREE valid/checkout.json: derived, against topology-ir/valid/checkout.json
+AGREE render/checkout.mmd: derived from HEAD's valid/ and equal to HEAD's file
+AGREE render/checkout.mmd: derived, against topology-ir/render/checkout.mmd
+AGREE render/checkout.dot: derived from HEAD's valid/ and equal to HEAD's file
+AGREE render/checkout.dot: derived, against topology-ir/render/checkout.dot
+AGREE valid/claims_only.json: derived from HEAD's valid/ and equal to HEAD's file
+AGREE valid/claims_only.json: derived, against topology-ir/valid/claims_only.json
+AGREE render/claims_only.mmd: derived from HEAD's valid/ and equal to HEAD's file
+AGREE render/claims_only.mmd: derived, against topology-ir/render/claims_only.mmd
+AGREE render/claims_only.dot: derived from HEAD's valid/ and equal to HEAD's file
+AGREE render/claims_only.dot: derived, against topology-ir/render/claims_only.dot
+AGREE valid/empty.json: derived from HEAD's valid/ and equal to HEAD's file
+AGREE valid/empty.json: derived, against topology-ir/valid/empty.json
+AGREE render/empty.mmd: derived from HEAD's valid/ and equal to HEAD's file
+AGREE render/empty.mmd: derived, against topology-ir/render/empty.mmd
+AGREE render/empty.dot: derived from HEAD's valid/ and equal to HEAD's file
+AGREE render/empty.dot: derived, against topology-ir/render/empty.dot
+AGREE valid/escaping.json: derived, against topology-ir/valid/escaping.json
+AGREE render/escaping.mmd: derived, against topology-ir/render/escaping.mmd
+AGREE render/escaping.dot: derived, against topology-ir/render/escaping.dot
+AGREE valid/every_combinator.json: derived, against topology-ir/valid/every_combinator.json
+AGREE render/every_combinator.mmd: derived, against topology-ir/render/every_combinator.mmd
+AGREE render/every_combinator.dot: derived, against topology-ir/render/every_combinator.dot
+AGREE valid/findings.json: derived from HEAD's valid/ and equal to HEAD's file
+AGREE valid/findings.json: derived, against topology-ir/valid/findings.json
+AGREE render/findings.mmd: derived from HEAD's valid/ and equal to HEAD's file
+AGREE render/findings.mmd: derived, against topology-ir/render/findings.mmd
+AGREE render/findings.dot: derived from HEAD's valid/ and equal to HEAD's file
+AGREE render/findings.dot: derived, against topology-ir/render/findings.dot
+AGREE valid/forms.json: derived from HEAD's valid/ and equal to HEAD's file
+AGREE valid/forms.json: derived, against topology-ir/valid/forms.json
+AGREE render/forms.mmd: derived from HEAD's valid/ and equal to HEAD's file
+AGREE render/forms.mmd: derived, against topology-ir/render/forms.mmd
+AGREE render/forms.dot: derived from HEAD's valid/ and equal to HEAD's file
+AGREE render/forms.dot: derived, against topology-ir/render/forms.dot
+0 differences
+exit: 0
+
+### P the shipped package against S154's fixtures (NEW)
+-- nidana_contract_check topology-ir (every set)
+PASS lines by set:  1 PASS behavior; 3 PASS reject; 46 PASS schema; 9 PASS structure; 2 PASS surface;
+PASS behavior hsdd/contract/fixture/topology-ir/behavior/nidana_dart_contracts_test.dart: 56 passed, 0 failed, 0 skipped under dart test
+61 fixtures: 61 passed, 0 failed, 0 pending
+exit: 0
+-- dart test packages/nidana_dart_contracts
++371: All tests passed!
+exit: 0
+-- nidana_contract_check topic-model topology-dsl topology-ir
+PASS behavior hsdd/contract/fixture/topic-model/behavior/nidana_dart_contracts_test.dart: 44 passed, 0 failed, 0 skipped under dart test
+PASS behavior hsdd/contract/fixture/topology-dsl/behavior/topology_builder_test.dart: 31 passed, 0 failed, 0 skipped under dart test
+PASS behavior hsdd/contract/fixture/topology-ir/behavior/nidana_dart_contracts_test.dart: 56 passed, 0 failed, 0 skipped under dart test
+120 fixtures: 120 passed, 0 failed, 0 pending
+exit: 0
+-- nidana_contract_check topic-codegen nidana-checks
+outcomes:  62 PASS; 40 PENDING;
+102 fixtures: 62 passed, 0 failed, 40 pending
+exit: 1
+
+### K the cases S154 adds: case names in NEW's conformance library and not in OLD's
+OLD: 43 cases; NEW: 56 cases
+  + 'G11 claims that tie on source and scope are ordered by their writes element by element, a shorter list first when it is a prefix of the other',
+  + 'G13 a ring of 20000 topologies, deeper than a recursive search can go, is one cycle of every id and every topic',
+  + 'G13 cycles come in the order of their first ids, whichever cycle a search from the first topology completes first',
+  + 'G14 a read with a dedup argument is a read of its topic',
+  + 'G18 collisions come in name order, whatever order the declarations came in',
+  + 'G20 an integer is a JSON number with no fractional part: a duration of 5000.0 decodes as 5000 and re-encodes as 5000',
+  + 'G21 the decoder rejects an integer of 2^63 or more, which the schema accepts, and decodes 2^63 - 1',
+  + 'G3 every analysis returns an unmodifiable list, empty or not',
+  + 'G5 a retry is accepted on a switchMap alone: every other combinator rejects one',
+  + "G13 a cycle lists each topic one member writes and another member reads once, and not a member's own self-read",
+  + "G16 one topic's violations come by owner, by its source's rendering and then its scope, so every claim before every topology owner, then by reader in graph order",
+  + "G7 a definition's equality follows the order of its edges, and an edge's the order of its inputs",
+  + "G9 FunctionRef.of names a static method of an extension, an extension type's constructor tear-offs and a class's, as the VM renders them",
+removed: 0
+
+### F the G13 ring case's time under dart test (NEW, shipped package)
+00:00 the ring case (minutes:seconds since the run started)
+00:00 +1: All tests passed!
+
+### B the behavior set unseeded
+-- committed suite (OLD)
+   43 passed, 0 failed, 0 skipped under dart test
+-- S154's suite (NEW)
+   56 passed, 0 failed, 0 skipped under dart test
+-- samples.dart, unseeded: OLD's goldens, then NEW's
+   7 samples, 0 render/ files differ
+   7 samples, 0 render/ files differ
+
+### D seeded defects, each applied to both copies and restored after
+
+-- I5 ir/definition.dart: combine takes a retry (ir-values-plan D5)
+   seed: 2 changed lines
+   committed suite: 43 passed, 0 failed, 0 skipped under dart test
+   S154's suite:    cases (55 passed, 1 failed, 0 skipped under dart test)
+      failed-case (G5 a retry is accepted on a switchMap alone: every other combinator rejects one)
+
+-- I5b ir/definition.dart: withLatestFrom takes a retry
+   seed: 2 changed lines
+   committed suite: 43 passed, 0 failed, 0 skipped under dart test
+   S154's suite:    cases (55 passed, 1 failed, 0 skipped under dart test)
+      failed-case (G5 a retry is accepted on a switchMap alone: every other combinator rejects one)
+
+-- I5c ir/definition.dart: merge takes a retry
+   seed: 2 changed lines
+   committed suite: 43 passed, 0 failed, 0 skipped under dart test
+   S154's suite:    cases (55 passed, 1 failed, 0 skipped under dart test)
+      failed-case (G5 a retry is accepted on a switchMap alone: every other combinator rejects one)
+
+-- I5d ir/definition.dart: pairwise and distinctUntilChanged take a retry
+   seed: 2 changed lines
+   committed suite: 43 passed, 0 failed, 0 skipped under dart test
+   S154's suite:    cases (55 passed, 1 failed, 0 skipped under dart test)
+      failed-case (G5 a retry is accepted on a switchMap alone: every other combinator rejects one)
+
+-- I5e ir/definition.dart: the six time stages take a retry
+   seed: 2 changed lines
+   committed suite: 43 passed, 0 failed, 0 skipped under dart test
+   S154's suite:    cases (55 passed, 1 failed, 0 skipped under dart test)
+      failed-case (G5 a retry is accepted on a switchMap alone: every other combinator rejects one)
+
+-- I5f ir/definition.dart: filter, scan, catchError and rawEngine take a retry; map does not
+   seed: 10 changed lines
+   committed suite: 43 passed, 0 failed, 0 skipped under dart test
+   S154's suite:    cases (55 passed, 1 failed, 0 skipped under dart test)
+      failed-case (G5 a retry is accepted on a switchMap alone: every other combinator rejects one)
+
+-- I11 ir/definition.dart: a definition's equality ignores the order of its edges (ir-values-plan D11)
+   seed: 3 changed lines
+   committed suite: 43 passed, 0 failed, 0 skipped under dart test
+   S154's suite:    cases (55 passed, 1 failed, 0 skipped under dart test)
+      failed-case (G7 a definition's equality follows the order of its edges, and an edge's the order of its inputs)
+
+-- I11b ir/definition.dart: an edge's equality ignores the order of its inputs
+   seed: 3 changed lines
+   committed suite: 43 passed, 0 failed, 0 skipped under dart test
+   S154's suite:    cases (55 passed, 1 failed, 0 skipped under dart test)
+      failed-case (G7 a definition's equality follows the order of its edges, and an edge's the order of its inputs)
+
+-- C1 ir/canonical_order.dart: claims that tie on source and scope keep the order they came in
+   seed: 4 changed lines
+   committed suite: 43 passed, 0 failed, 0 skipped under dart test
+   S154's suite:    cases (55 passed, 1 failed, 0 skipped under dart test)
+      failed-case (G11 claims that tie on source and scope are ordered by their writes element by element, a shorter list first when it is a prefix of the other)
+
+-- C2 ir/canonical_order.dart: a longer list of writes first when one is a prefix of the other
+   seed: 2 changed lines
+   committed suite: 43 passed, 0 failed, 0 skipped under dart test
+   S154's suite:    cases (55 passed, 1 failed, 0 skipped under dart test)
+      failed-case (G11 claims that tie on source and scope are ordered by their writes element by element, a shorter list first when it is a prefix of the other)
+
+-- C3 ir/canonical_order.dart: claims that tie on source and scope compare the number of their writes first
+   seed: 3 changed lines
+   committed suite: 43 passed, 0 failed, 0 skipped under dart test
+   S154's suite:    cases (55 passed, 1 failed, 0 skipped under dart test)
+      failed-case (G11 claims that tie on source and scope are ordered by their writes element by element, a shorter list first when it is a prefix of the other)
+
+-- A1 analysis/analyses.dart: cycles in the order the search completes them, not by first id
+   seed: 4 changed lines
+   committed suite: 43 passed, 0 failed, 0 skipped under dart test
+   S154's suite:    cases (55 passed, 1 failed, 0 skipped under dart test)
+      failed-case (G13 cycles come in the order of their first ids, whichever cycle a search from the first topology completes first)
+
+-- A2 analysis/analyses.dart: a cycle's topics include a member's own self-read
+   seed: 2 changed lines
+   committed suite: 43 passed, 0 failed, 0 skipped under dart test
+   S154's suite:    cases (55 passed, 1 failed, 0 skipped under dart test)
+      failed-case (G13 a cycle lists each topic one member writes and another member reads once, and not a member's own self-read)
+
+-- A4 analysis/analyses.dart: a self-read matches only a read with no dedup argument
+   seed: 2 changed lines
+   committed suite: 43 passed, 0 failed, 0 skipped under dart test
+   S154's suite:    cases (55 passed, 1 failed, 0 skipped under dart test)
+      failed-case (G14 a read with a dedup argument is a read of its topic)
+
+-- A7 analysis/analyses.dart: scope violations by owner in graph order: topologies, then claims
+   seed: 2 changed lines
+   committed suite: 43 passed, 0 failed, 0 skipped under dart test
+   S154's suite:    cases (55 passed, 1 failed, 0 skipped under dart test)
+      failed-case (G16 one topic's violations come by owner, by its source's rendering and then its scope, so every claim before every topology owner, then by reader in graph order)
+
+-- A8 analysis/analyses.dart: findScopeViolations returns a growable list
+   seed: 2 changed lines
+   committed suite: 43 passed, 0 failed, 0 skipped under dart test
+   S154's suite:    cases (55 passed, 1 failed, 0 skipped under dart test)
+      failed-case (G3 every analysis returns an unmodifiable list, empty or not)
+
+-- A8b analysis/analyses.dart: findTopologyCycles returns a growable list
+   seed: 2 changed lines
+   committed suite: 43 passed, 0 failed, 0 skipped under dart test
+   S154's suite:    cases (55 passed, 1 failed, 0 skipped under dart test)
+      failed-case (G3 every analysis returns an unmodifiable list, empty or not)
+
+-- A8c analysis/analyses.dart: findSelfReferences returns a growable list
+   seed: 2 changed lines
+   committed suite: 43 passed, 0 failed, 0 skipped under dart test
+   S154's suite:    cases (55 passed, 1 failed, 0 skipped under dart test)
+      failed-case (G3 every analysis returns an unmodifiable list, empty or not)
+
+-- A8d analysis/analyses.dart: findWriterConflicts returns a growable list
+   seed: 2 changed lines
+   committed suite: 43 passed, 0 failed, 0 skipped under dart test
+   S154's suite:    cases (55 passed, 1 failed, 0 skipped under dart test)
+      failed-case (G3 every analysis returns an unmodifiable list, empty or not)
+
+-- A8e analysis/analyses.dart: findTopicNameCollisions returns a growable list
+   seed: 2 changed lines
+   committed suite: 43 passed, 0 failed, 0 skipped under dart test
+   S154's suite:    cases (55 passed, 1 failed, 0 skipped under dart test)
+      failed-case (G3 every analysis returns an unmodifiable list, empty or not)
+
+-- A11 analysis/analyses.dart: collisions in the order their names were first met
+   seed: 2 changed lines
+   committed suite: 43 passed, 0 failed, 0 skipped under dart test
+   S154's suite:    cases (55 passed, 1 failed, 0 skipped under dart test)
+      failed-case (G18 collisions come in name order, whatever order the declarations came in)
+
+-- A14 analysis/analyses.dart: a cycle's topics passed with repeats, one per writer and reader pair
+   seed: 10 changed lines
+   committed suite: 43 passed, 0 failed, 0 skipped under dart test
+   S154's suite:    cases (55 passed, 1 failed, 0 skipped under dart test)
+      failed-case (G13 a cycle lists each topic one member writes and another member reads once, and not a member's own self-read)
+
+-- A15 analysis/analyses.dart: the cycle search recurses, one call per topology on the path
+   seed: 60 changed lines
+   committed suite: 43 passed, 0 failed, 0 skipped under dart test
+   S154's suite:    cases (55 passed, 1 failed, 0 skipped under dart test)
+      failed-case (G13 a ring of 20000 topologies, deeper than a recursive search can go, is one cycle of every id and every topic)
+
+-- R4 render/renderers.dart: Mermaid also escapes &, which the rule leaves as it is
+   seed: 1 changed lines
+   committed suite: 43 passed, 0 failed, 0 skipped under dart test
+   S154's suite:    cases (55 passed, 1 failed, 0 skipped under dart test)
+      failed-case (G22 the Mermaid and Graphviz renderings of every sample equal its render/ files)
+   samples.dart over NEW's goldens, seeded:
+   render/escaping.mmd differs first at line 5: golden "  t3([\"odd.it's [a|b] & c<br/>event String\"])", rendered "  t3([\"odd.it's [a|b] #38; c<br/>event String\"])"
+   7 samples, 1 render/ files differ
+
+-- R4b render/renderers.dart: Graphviz also escapes |, [ and ], as for a record label
+   seed: 3 changed lines
+   committed suite: 43 passed, 0 failed, 0 skipped under dart test
+   S154's suite:    cases (55 passed, 1 failed, 0 skipped under dart test)
+      failed-case (G22 the Mermaid and Graphviz renderings of every sample equal its render/ files)
+   samples.dart over NEW's goldens, seeded:
+   render/escaping.dot differs first at line 6: golden "  t3 [shape=ellipse, label=\"odd.it's [a|b] & c\\nevent String\"];", rendered "  t3 [shape=ellipse, label=\"odd.it's \\[a\\|b\\] & c\\nevent String\"];"
+   7 samples, 1 render/ files differ
+
+-- R4c render/renderers.dart: Mermaid also escapes the single quote
+   seed: 1 changed lines
+   committed suite: 43 passed, 0 failed, 0 skipped under dart test
+   S154's suite:    cases (55 passed, 1 failed, 0 skipped under dart test)
+      failed-case (G22 the Mermaid and Graphviz renderings of every sample equal its render/ files)
+   samples.dart over NEW's goldens, seeded:
+   render/escaping.mmd differs first at line 5: golden "  t3([\"odd.it's [a|b] & c<br/>event String\"])", rendered "  t3([\"odd.it#39;s [a|b] & c<br/>event String\"])"
+   7 samples, 1 render/ files differ
+
+-- R6 render/renderers.dart: an anonymous retry renders as 'retry null'
+   seed: 2 changed lines
+   committed suite: 43 passed, 0 failed, 0 skipped under dart test
+   S154's suite:    cases (55 passed, 1 failed, 0 skipped under dart test)
+      failed-case (G22 the Mermaid and Graphviz renderings of every sample equal its render/ files)
+   samples.dart over NEW's goldens, seeded:
+   render/every_combinator.mmd differs first at line 38: golden "    p0e23[\"switchMap<br/>ticks<br/>retry (anonymous)\"]", rendered "    p0e23[\"switchMap<br/>ticks<br/>retry null\"]"
+   render/every_combinator.dot differs first at line 40: golden "    p0e23 [shape=box, label=\"switchMap\\nticks\\nretry (anonymous)\"];", rendered "    p0e23 [shape=box, label=\"switchMap\\nticks\\nretry null\"];"
+   7 samples, 2 render/ files differ
+
+-- R7 render/renderers.dart: a duration of a second or more renders in whole seconds
+   seed: 2 changed lines
+   committed suite: 43 passed, 0 failed, 0 skipped under dart test
+   S154's suite:    cases (55 passed, 1 failed, 0 skipped under dart test)
+      failed-case (G22 the Mermaid and Graphviz renderings of every sample equal its render/ files)
+   samples.dart over NEW's goldens, seeded:
+   render/every_combinator.mmd differs first at line 39: golden "    p0e24[\"throttle 1500ms\"]", rendered "    p0e24[\"throttle 1s\"]"
+   render/every_combinator.dot differs first at line 41: golden "    p0e24 [shape=box, label=\"throttle 1500ms\"];", rendered "    p0e24 [shape=box, label=\"throttle 1s\"];"
+   7 samples, 2 render/ files differ
+
+-- R12 render/renderers.dart: repeated arrows collapse into one
+   seed: 4 changed lines
+   committed suite: 43 passed, 0 failed, 0 skipped under dart test
+   S154's suite:    cases (55 passed, 1 failed, 0 skipped under dart test)
+      failed-case (G22 the Mermaid and Graphviz renderings of every sample equal its render/ files)
+   samples.dart over NEW's goldens, seeded:
+   render/every_combinator.mmd differs first at line 81: golden "  t1 --> p0e22", rendered "  p0e22 --> p0e23"
+   render/every_combinator.dot differs first at line 83: golden "  t1 -> p0e22;", rendered "  p0e22 -> p0e23;"
+   7 samples, 2 render/ files differ
+
+-- R13 render/renderers.dart: topic ids keyed by name, so one name of two variants shares an id
+   seed: 6 changed lines
+   committed suite: 43 passed, 0 failed, 0 skipped under dart test
+   S154's suite:    cases (55 passed, 1 failed, 0 skipped under dart test)
+      failed-case (G22 the Mermaid and Graphviz renderings of every sample equal its render/ files)
+   samples.dart over NEW's goldens, seeded:
+   render/every_combinator.mmd differs first at line 51: golden "  t0 --> p0e0", rendered "  t1 --> p0e0"
+   render/every_combinator.dot differs first at line 53: golden "  t0 -> p0e0;", rendered "  t1 -> p0e0;"
+   7 samples, 2 render/ files differ
+
+-- R17 render/renderers.dart: topic ids keyed by name and variant, so two type names share an id
+   seed: 8 changed lines
+   committed suite: 43 passed, 0 failed, 0 skipped under dart test
+   S154's suite:    cases (55 passed, 1 failed, 0 skipped under dart test)
+      failed-case (G22 the Mermaid and Graphviz renderings of every sample equal its render/ files)
+   samples.dart over NEW's goldens, seeded:
+   render/every_combinator.mmd differs first at line 102: golden "  p0e34 --> t7", rendered "  p0e34 --> t8"
+   render/every_combinator.dot differs first at line 104: golden "  p0e34 -> t7;", rendered "  p0e34 -> t8;"
+   7 samples, 2 render/ files differ
+
+-- F1 ir/function_ref.dart: FunctionRef.of keeps the text after the last |
+   seed: 2 changed lines
+   committed suite: 43 passed, 0 failed, 0 skipped under dart test
+   S154's suite:    cases (55 passed, 1 failed, 0 skipped under dart test)
+      failed-case (G9 FunctionRef.of names a static method of an extension, an extension type's constructor tear-offs and a class's, as the VM renders them)
+
+-- F2 ir/function_ref.dart: FunctionRef.of is anonymous for a constructor tear-off
+   seed: 2 changed lines
+   committed suite: 43 passed, 0 failed, 0 skipped under dart test
+   S154's suite:    cases (55 passed, 1 failed, 0 skipped under dart test)
+      failed-case (G9 FunctionRef.of names a static method of an extension, an extension type's constructor tear-offs and a class's, as the VM renders them)
+
+-- J1 json/codec.dart: the decoder takes any whole double, 2^63 and above clamped by toInt
+   seed: 2 changed lines
+   committed suite: 43 passed, 0 failed, 0 skipped under dart test
+   S154's suite:    cases (55 passed, 1 failed, 0 skipped under dart test)
+      failed-case (G21 the decoder rejects an integer of 2^63 or more, which the schema accepts, and decodes 2^63 - 1)
+
+-- J2 json/codec.dart: the decoder takes only a Dart int as an integer
+   seed: 2 changed lines
+   committed suite: 43 passed, 0 failed, 0 skipped under dart test
+   S154's suite:    cases (55 passed, 1 failed, 0 skipped under dart test)
+      failed-case (G20 an integer is a JSON number with no fractional part: a duration of 5000.0 decodes as 5000 and re-encodes as 5000)
+
+### R both copies' lib/ against HEAD's after the seeds
+sweepcases-old.OtiGuj: lib/ equals HEAD's
+sweepcases-new.2RmN3d: lib/ equals HEAD's
+done

@@ -1,0 +1,244 @@
+{
+  "step_ref": "S152",
+  "skill": "hsdd-contract",
+  "target": "topology-dsl@v2 (hsdd/contract/topology-dsl.md, hsdd/contract/fixture/topology-dsl/) and nidana-checks@v1 (hsdd/contract/nidana-checks.md), end-of-nidana.model governance sweep, compatible touches within the current versions",
+  "status": "completed",
+  "stop": null,
+  "artifacts": [
+    "hsdd/contract/topology-dsl.md",
+    "hsdd/contract/fixture/topology-dsl/behavior/recording_conformance.dart (seven cases, a _words topic and helpers _DeclareFailed, _foreignHandle, _timed, _Types, _SinkTypes added; 24 to 31 cases)",
+    "hsdd/contract/nidana-checks.md",
+    "hsdd/contract/INDEX.md (regenerated, no byte changed: no frontmatter changed)",
+    "docs/auto-run/experiments/sweep-topology-dsl/ (run.sh, output.txt, facts/facts.dart)",
+    "docs/auto-run/steps/S152.json"
+  ],
+  "decisions": [
+    {
+      "at": "2026-10-27T22:33:10Z",
+      "artifact": "hsdd/contract/topology-dsl.md",
+      "question": "Item 2 (S127): the contract does not say which error wins when a closed builder or handle also gets a bad argument (a foreign handle, a negative duration, an empty list, a dedup on an event read, a second sink). Which does the text state?",
+      "options": [
+        { "label": "StateError first, as the code does", "consequence": "The handle paragraph and G15 say a builder or handle whose declaration has ended throws StateError whatever its arguments; every builder and handle method of the shipped package calls _checkOpen() before any argument check, so no code changes; one new G15 case pins it" },
+        { "label": "ArgumentError first", "consequence": "a code change in nidana.model (every method's check order) plus a G15 amendment, outside the sweep's rule" },
+        { "label": "leave it open", "consequence": "a second reading of the paragraph stays possible, and a reordering defect passes every case (D9 and D10 in the dry run)" }
+      ],
+      "chosen": "StateError first, as the code does",
+      "why": "The facts probe shows StateError in all eight combinations (C1 to C8), and the code's choice is sound: a closed builder records nothing whatever it is given, and the StateError names the actual misuse, a handle or builder kept past its declaration. Both errors are programming errors and recording has one implementation by design, so no consumer depends on the other order.",
+      "evidence": [
+        "packages/nidana_dart_contracts/lib/src/topology/builder.dart and handle.dart (_checkOpen first in every method)",
+        "docs/auto-run/experiments/sweep-topology-dsl/output.txt F C1 to C9, D9, D10",
+        "docs/auto-run/steps/S127.json contract_gaps[2]"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T22:33:10Z",
+      "artifact": "hsdd/contract/topology-dsl.md",
+      "question": "Item 3 (S127): the contract does not say what apply of a CombineStage or WithLatestFromStage does with a list of the wrong length. What does it state, and where?",
+      "options": [
+        { "label": "ArgumentError without calling the combiner, in prose under The plan and in G11", "consequence": "states what both apply bodies do (a length check that throws ArgumentError.value before the combiner); the Interface's doc comments stay identical to the package's, which copied them" },
+        { "label": "the same rule in the apply doc comment (S127's proposed wording)", "consequence": "the Interface's comment and the shipped package's dartdoc would differ, and the dartdoc is copied from the Interface as written; aligning them is a package change outside the sweep" },
+        { "label": "also state TypeError for a value of another type", "consequence": "true of the shipped package (facts A1 to A3) and pinned by its own test, but not routed here and a second rule to pin" }
+      ],
+      "chosen": "ArgumentError without calling the combiner, in prose under The plan and in G11",
+      "why": "The facts show ArgumentError (not a RangeError) for a short and a long list in all three forms and no combiner call (A1 to A4). The case uses a list longer than the inputs as well, because RangeError is an ArgumentError and a missing check would otherwise pass with a short list alone (A5; D11 and D12 fail only through the long and empty lists). TypeError is left unstated: the item asks about length only.",
+      "evidence": [
+        "packages/nidana_dart_contracts/lib/src/topology/stages.dart CombineStage.apply, WithLatestFromStage.apply",
+        "docs/auto-run/experiments/sweep-topology-dsl/output.txt F A1 to A6, D11, D12"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T22:33:10Z",
+      "artifact": "hsdd/contract/topology-dsl.md",
+      "question": "Item 1, stages left behind after a rejected call: G11 says each call adds exactly one stage and says nothing of a call that throws; a call that records its stage, or marks its handle consumed, or counts its state topic as written, before a check that fails passes every committed case. Is there a stated rule to pin, and if not what does the text state?",
+      "options": [
+        { "label": "state the code's choice: a call that throws records nothing", "consequence": "The handle paragraph, Recording and G14 say a call that throws adds no stage and no sink and a declaration that catches its error plans as if the call had not been made; the shipped package runs every check before _addStage or _addSink; one G14 case pins it against four seeded defects" },
+        { "label": "leave it open", "consequence": "an implementation could leave a stage behind, which then fails planOf with StateError only when the declaration catches the error, or a stage that reaches no sink could pass because a rejected sink marked it consumed" }
+      ],
+      "chosen": "state the code's choice: a call that throws records nothing",
+      "why": "Atomic calls are the only reading under which a caught error leaves the plan meaningful, and the code already does it (facts R1 to R3). An uncaught error propagates from planOf either way, so only a declaration that catches can tell the difference, which is why no consumer can depend on the other behavior. A careful engineer would not have asked.",
+      "evidence": [
+        "packages/nidana_dart_contracts/lib/src/topology/builder.dart (_addStage and _addSink run after every check)",
+        "docs/auto-run/experiments/sweep-topology-dsl/output.txt F R1 to R3, D3, D8, D13, D14"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T22:33:10Z",
+      "artifact": "hsdd/contract/topology-dsl.md",
+      "question": "Item 1, an identity-based one-sink check: G14 says a second sink on 'one StateTopic' throws, without saying how two topics are one. The new case could also pin that a StateTopic<num> of the same name is another topic. How far does the touch go?",
+      "options": [
+        { "label": "equal under topic-model@v1 G7, pin only the topic built apart", "consequence": "G14 and The builder name G7 equality; the case builds a StateTopic<int> of the same name with another initial value at run time and expects ArgumentError for write then write and reduceInto then write; it says nothing about two topics of one name and different value types" },
+        { "label": "also pin that another value type is another topic", "consequence": "matches the package test, but fixes in the conformance suite an answer to the open S132 item (two topics of one name whose value types render alike break topology-ir@v1's well-formedness), which a recording rule for name collisions would reverse" }
+      ],
+      "chosen": "equal under topic-model@v1 G7, pin only the topic built apart",
+      "why": "Topics have value equality (G7), so identity is not a sound reading, and the code uses a Set under topic == (facts S1, S2; D4 fails the new case). The other-value-type half would preempt the S132 item, which belongs to topology-ir@v1's touch or to the owner; the Versioning entry names it as left as it was.",
+      "evidence": [
+        "packages/nidana_dart_contracts/lib/src/topology/builder.dart _written",
+        "hsdd/contract/topic-model.md G7",
+        "docs/auto-run/experiments/sweep-topology-dsl/output.txt F S1, S2, D4",
+        "docs/auto-run/impl-execution-plan.md Routed to later phases, the entry from S132's final review"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T22:33:10Z",
+      "artifact": "hsdd/contract/topology-dsl.md",
+      "question": "S127's further seeded defects: a builder closed only when declare returns normally (the text says 'has returned'), and a foreign handle told apart by its builder being closed rather than by identity (a handle of a declaration still running, passed into a nested planOf). State and pin them?",
+      "options": [
+        { "label": "state both as the code does and pin them", "consequence": "The handle, G14 and G15 say a builder closes when its declaration ends by returning or by throwing, and that a handle is another builder's whether its declaration is still running or has ended; one G15 and one G14 case" },
+        { "label": "leave them to the package tests", "consequence": "a second implementation or a regression closes the builder only on a normal return, or accepts a running declaration's handle in a nested planOf, and passes the contract" }
+      ],
+      "chosen": "state both as the code does and pin them",
+      "why": "planOf closes the builder in a finally block and _checkMade compares builders by identity (facts T1 to T3, N1). 'has returned' was the only word that let the throwing case read otherwise; 'another builder' already meant identity. Both fail their seeded defect only with the new cases (D5, D6).",
+      "evidence": [
+        "packages/nidana_dart_contracts/lib/src/topology/plan.dart planOf",
+        "packages/nidana_dart_contracts/lib/src/topology/builder.dart _checkMade",
+        "docs/auto-run/experiments/sweep-topology-dsl/output.txt F N1, T1 to T3, D5, D6",
+        "docs/auto-run/steps/S127.json contract_gaps[1]"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T22:33:10Z",
+      "artifact": "hsdd/contract/topology-dsl.md",
+      "question": "S127's list defects: a merge that keeps the caller's list, and combineAll handing its combiner a modifiable cast view. The Interface says the input lists and combineAll's list are unmodifiable; does the text also say the stage's lists are copies taken at the call?",
+      "options": [
+        { "label": "unmodifiable copies taken at the call", "consequence": "The plan and G11 say so; one G11 case clears the caller's list after the call, adds to every list the stage holds and to the list combineAll's combiner gets, and expects UnsupportedError" },
+        { "label": "unmodifiable only", "consequence": "a read-only view of the caller's list would pass, and a declaration that changed its list after the call would change the stage's inputs, bypassing G14's foreign-handle check and the reaches-a-sink check" }
+      ],
+      "chosen": "unmodifiable copies taken at the call",
+      "why": "G11 already says a stage holds the handles it was given; a live view lets it hold handles it was never given. The code takes List.unmodifiable copies in _checkMade and a fresh List<T>.unmodifiable for combineAll's combiner (facts L1 to L5; D2 and D7 fail only the new case).",
+      "evidence": [
+        "packages/nidana_dart_contracts/lib/src/topology/builder.dart _checkMade, combineAll",
+        "docs/auto-run/experiments/sweep-topology-dsl/output.txt F L1 to L5, D2, D7"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T22:33:10Z",
+      "artifact": "hsdd/contract/topology-dsl.md",
+      "question": "Item 1, wrong type arguments in the visitors: the Interface's comment on visitStage says it binds the stage's type arguments, but G16, which the cases carry, says only that each stage reaches the method of its class. Where does the rule go?",
+      "options": [
+        { "label": "extend G16 with the comment's rule and pin it", "consequence": "G16 says the visitor method receives the type arguments of the stage's or sink's class, with an example; one case visits a plan whose stages and sinks have distinct type arguments and compares the bound arguments, for every stage class and both sink classes" },
+        { "label": "a new guarantee G31", "consequence": "the same rule under a new id, separated from the guarantee whose cases already visit every class" }
+      ],
+      "chosen": "extend G16 with the comment's rule and pin it",
+      "why": "The rule is already the Interface's; G16 is where a replay restricts to it, and extending a guarantee is the form S151 used. The dry run seeds a stage and a sink visited at Object? (D1, D15), both passing the committed G16 case and failing the new one.",
+      "evidence": [
+        "hsdd/contract/topology-dsl.md The plan, visitStage comment",
+        "docs/auto-run/experiments/sweep-topology-dsl/output.txt F V1, V2, D1, D15"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T22:33:10Z",
+      "artifact": "hsdd/contract/fixture/topology-dsl/behavior/recording_conformance.dart",
+      "question": "How many recording cases: only the three defects the plan entry names, one per S127 defect, or one per rule?",
+      "options": [
+        { "label": "seven cases, one per rule", "consequence": "covers all nine S127 defects (D1 to D9) and the two wording items, with related rules sharing a case (input lists and combineAll's list; closed after a return or a throw, whatever the arguments); 24 to 31 cases" },
+        { "label": "three cases for the named defects", "consequence": "leaves D2, D5, D6, D7 and D9 of S127.json, which the item cites as its evidence, passing the contract" },
+        { "label": "one case per seeded defect", "consequence": "fifteen cases, several restating one rule" }
+      ],
+      "chosen": "seven cases, one per rule",
+      "why": "The item says 'several defects' and cites S127.json, whose gap lists D1 to D9; one case per rule keeps a failure readable while the dry run shows each of fifteen seeds failing exactly one new case of its guarantee.",
+      "evidence": [
+        "docs/auto-run/steps/S127.json contract_gaps[1]",
+        "docs/auto-run/experiments/sweep-topology-dsl/output.txt N, D1 to D15"
+      ],
+      "blast_radius": "contract",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T22:38:30Z",
+      "artifact": "hsdd/contract/nidana-checks.md",
+      "question": "S121: nidana-checks@v1's Validation says files/ holds no pubspec.yaml 'so that dart run from it finds the workspace's package configuration and resolves nothing in place', which fails on a stale workspace. What is the compatible correction, with ADR-001 left to S154?",
+      "options": [
+        { "label": "state the facts and the replay tool's form", "consequence": "the paragraph keeps the reason (nothing resolves in place), says the replay tool runs the scan as bin/scan.dart under the running dart with --packages from files/, which runs fresh or stale, and says dart run from files/ exits 255 on a stale workspace, which dart pub get --enforce-lockfile does not cure; cites the evidence" },
+        { "label": "S121's proposed wording, 'as ADR-001 item 7 states'", "consequence": "points at a rule ADR-001 does not yet state until S154 amends it" },
+        { "label": "drop the reason", "consequence": "loses why files/ must hold no pubspec.yaml" }
+      ],
+      "chosen": "state the facts and the replay tool's form",
+      "why": "The probe on the committed tree confirms S121's evidence with the current pin: fresh, both forms start; stale, dart run exits 255 ('Could not find a file named pubspec.yaml' in files/) and the script form starts; dart pub get --enforce-lockfile leaves every mtime unchanged (P1 to P3). The command form is processOf in packages/nidana_contract_check/lib/src/command.dart. The Versioning entry says ADR-001 item 7 does not yet state the form.",
+      "evidence": [
+        "docs/auto-run/experiments/file-cli-sets-plan/ staleness-output.txt K1 to K8, staleness3-output.txt N1 to N8",
+        "docs/auto-run/experiments/sweep-topology-dsl/output.txt P1 to P3",
+        "packages/nidana_contract_check/lib/src/command.dart processOf",
+        "docs/auto-run/steps/S121.json contract_gaps[1]"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    }
+  ],
+  "experiments": [
+    {
+      "path": "docs/auto-run/experiments/sweep-topology-dsl/",
+      "question": "What does the shipped package do for each routed item (a closed builder given a bad argument, apply with a list of the wrong length, calls that throw, a state topic built apart, a nested planOf, a declaration that throws, the input lists, the visitors' type arguments); do the seven new cases pass against it and fail seeded defects the 24 earlier cases pass; and, for nidana-checks@v1, does a {package}:{executable} command start from a scan case's files/ fresh, stale and after pub get --enforce-lockfile, in both forms?",
+      "finding": "Facts: StateError wins over every argument error on a closed builder or handle (C1 to C8); apply throws a plain ArgumentError for a short and a long list in all three forms and calls no combiner, TypeError for a value of another type (A1 to A6); caught calls leave a plan of one stage and one sink, and a stage passed only to a rejected second sink still fails planOf with StateError (R1 to R3); a StateTopic built apart is equal, not identical, and its second sink throws ArgumentError (S1, S2); a nested planOf given a running declaration's handle throws ArgumentError (N1); after a declaration throws, its builder and handle throw StateError (T1 to T3); stage lists are unmodifiable copies and combineAll's combiner gets an unmodifiable list (L1 to L5); visitors bind each class's type arguments (V1, V2). Fixtures: committed 24/24; with S152's cases 31/31 (28 fixtures) against the shipped package; fifteen seeded defects (D1 to D15) each pass the committed cases restricted to their guarantee and fail exactly one new case; the restored copy equals HEAD and passes 31/31. P: fresh, dart run and the script form both start (exit 64 from the program); stale (a member pubspec.yaml newer than pubspec.lock), dart run exits 255 before the program starts and the script form starts; dart pub get --enforce-lockfile --offline changes no mtime and dart run still exits 255."
+    }
+  ],
+  "self_check": [
+    { "gate": "Frontmatter has id, version, status, kind, owner, compatibility, produced_by, consumers; external_consumers when any exist.", "status": "pass", "note": "frontmatter of both contracts untouched" },
+    { "gate": "`consumers` lists phase ids that actually consume this contract.", "status": "pass", "note": "untouched; phase_ids final on both" },
+    { "gate": "The Interface section is concrete enough to mock against.", "status": "pass", "note": "no declaration or doc comment changed; prose under The builder, The handle and The plan states the settled rules" },
+    { "gate": "At least one guarantee/invariant is stated.", "status": "pass", "note": "topology-dsl G1 to G30, G11, G14, G15 and G16 reworded, no id moved; nidana-checks G1 to G18 untouched" },
+    { "gate": "A breaking change bumped the version and added a migration note.", "status": "n/a", "note": "compatible touches within v2 and v1, each recorded in Versioning as 'Touched within, 2026-10-27' with its compatibility argument" },
+    { "gate": "The registry was regenerated.", "status": "pass", "note": "node hsdd/scripts/gen-registry.mjs: contract 9, adr 3; INDEX.md byte-identical" },
+    { "gate": "`phase_ids` is present (`provisional` until `hsdd-reconcile` finalizes it).", "status": "pass", "note": "phase_ids: final on both, unchanged" },
+    { "gate": "Every code-level artifact both sides consume (types file, fixtures, shared package) names its canonical path and its owner in the Interface or Validation section: the owning phase for code, `hsdd-contract` for validation artifacts.", "status": "pass", "note": "unchanged; topology-dsl's Validation gains a bullet naming the seven cases and their evidence" },
+    { "gate": "A contract or version created by this run has its schema and its kind's fixtures written at the canonical paths.", "status": "n/a", "note": "no contract or version created; the new cases are in the canonical conformance library" },
+    { "gate": "Open questions are cited by ID only, never defined here; prose justifying behavior as \"pending OQ-x\" is swept when the OQ resolves (hsdd-reconcile).", "status": "pass", "note": "no OQ text added" },
+    { "gate": "A `stable` contract names a schema or a fixtures directory at the canonical paths and the artifact exists, or it carries `validation: grandfathered` (never on a contract authored after the upgrade).", "status": "pass", "note": "hsdd/contract/fixture/topology-dsl/ replays 28/28 fixtures, 31/31 recording cases; hsdd/contract/fixture/nidana-checks/ replays 2 passed, 17 pending (nidana_dart_codegen and nidana_dart_lint absent), 0 failed" },
+    { "gate": "No version is `retired` while a consumer or an external consumer still names it.", "status": "n/a", "note": "no status change" },
+    { "gate": "A `v0` contract carries `## Observed completeness`, and the block changed in any commit that added fixtures to it.", "status": "n/a", "note": "v2 and v1 contracts" },
+    { "gate": "Brief: node docs/auto-run/tools/gate.mjs --skill hsdd-contract --node nidana.model", "status": "pass", "note": "4 errors, exactly the four known owner-file hash errors (HARNESS.md, JUDGEMENT-LAYER.md, explorer/build.py, explorer/index.html); 0 warnings; no other error" },
+    { "gate": "Brief: the node gate (pub get --enforce-lockfile, analyze --fatal-infos, --all --set structure, dart test packages/nidana_dart_contracts, replay topic-model topology-dsl topology-ir) exits 0", "status": "pass", "note": "exit 0: analyze no issues; structure 102/102; 371 package tests passed; replay 120/120 fixtures, behavior topic-model 44/44, topology-dsl 31/31, topology-ir 43/43" },
+    { "gate": "Brief: fvm dart run nidana_contract_check nidana-checks (fixtures not touched, run anyway)", "status": "pass", "note": "exit 0: 19 fixtures, 2 passed, 0 failed, 17 pending" },
+    { "gate": "Prose rules of the run: no em-dash character, no banned phrase.", "status": "pass", "note": "grep over both contracts, the conformance library, the experiment and this report finds neither" }
+  ],
+  "contract_gaps": [],
+  "notes_for_orchestrator": [
+    "No owner choices from this step: every routed item had a sound choice in the shipped code, now stated, and no item needed a code change or a breaking change.",
+    "topology-dsl@v2's recording suite now has 31 cases (was 24); a record that says topology-dsl 24/24 predates S152. The node gate replay shows 31/31.",
+    "S154 (ADR-001): nidana-checks@v1's Validation now states, as a fact of the replay tool, that it runs a {package}:{executable} command as bin/{executable}.dart under the running dart with --packages, and its Versioning entry says ADR-001 item 7 does not yet state that form. Once item 7 states it, a later touch may replace the sentence with a citation; no rule depends on the wording. The probe P1 to P3 in docs/auto-run/experiments/sweep-topology-dsl/ re-confirms S121's staleness evidence on the committed tree and the current pin, if S154 wants a fresh citation.",
+    "The S132 entry (two StateTopics of one name whose value types render alike pass planOf but break topology-ir@v1's well-formedness) was not taken here: its fix site is topology-ir@v1's From a plan sentence or a recording rule for the owner. topology-dsl@v2's Versioning entry names it as left as it was, and the new G14 case pins neither answer (it builds the second topic with the same value type).",
+    "The package's own tests stay stricter than the suite in one place the contract leaves unstated by choice: apply's TypeError for a value of another type (combining_stages_test.dart).",
+    "The Versioning entries are dated 2026-10-27 (UTC, the run's date convention), though the machine's local date is 2026-10-28.",
+    "Nothing committed. Changed: hsdd/contract/topology-dsl.md, hsdd/contract/nidana-checks.md, hsdd/contract/fixture/topology-dsl/behavior/recording_conformance.dart; new: docs/auto-run/experiments/sweep-topology-dsl/, docs/auto-run/steps/S152.json."
+  ]
+}

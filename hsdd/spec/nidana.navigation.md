@@ -174,7 +174,7 @@ No phase collides with another (D2), so the table has no *Collides with* column.
 - **Gate:** `fvm dart pub get --enforce-lockfile && fvm dart analyze --fatal-infos && fvm dart run nidana_contract_check --all --set structure && fvm dart test packages/nidana_dart_navigation && fvm dart run nidana_contract_check navigation-api --set surface,reject`
 - **Verification:** The surface and reject sets pass in full against the real declarations, which confirms every reject code the fixtures name against this package rather than the stand-in; no body computes beyond field assignment and collection copies, and the root workspace list gained exactly one line.
 - **Review tier:** gate-only
-- **Dependencies:** nidana.model.5 (topic-model@v1 and topology-dsl@v2 declarations: the main library of `nidana_dart_contracts` complete); nidana.runtime.1 (bus-api@v2 declarations: `Bus`, `Publisher`, `StateWriter`, `ShellDiagnostic` and the publish signature the G1 reject lines rest on; bus-testing@v2's, which the conformance libraries import, land with them); nidana.model.2 (the replay tool through its `surface` and `reject` sets and PENDING detection).
+- **Dependencies:** nidana.model.5 (topic-model@v1 and topology-dsl@v2 declarations: the phase topology-dsl@v2's Delivery paragraph names for a consumer's edge, nidana.model's last type-level phase, where `topology_ir.dart` completes the declarations of the package's three contracts after nidana.model.4 completed the main library); nidana.runtime.1 (bus-api@v2 declarations: `Bus`, `Publisher`, `StateWriter`, `ShellDiagnostic` and the publish signature the G1 reject lines rest on; bus-testing@v2's, which the conformance libraries import, land with them); nidana.model.2 (the replay tool through its `surface` and `reject` sets and PENDING detection). Restated 2026-10-27 by the end-of-nidana.model governance sweep (S156), from nidana.model's re-plan of nidana.model.4 and nidana.model.5 (nidana.model D1, Restated 2026-10-26): as first written, the reason for nidana.model.5 read "the main library of `nidana_dart_contracts` complete", and the phase dependency graph labeled it "contracts main library complete"; nidana.model.4 lands topology-ir@v1's main-library declarations with topology-dsl@v2's, so the main library is complete there. The edges are unchanged.
 
 ### nidana.navigation.2: Route, intent and route-state values
 
@@ -251,7 +251,7 @@ flowchart TD
     end
 
     M2["nidana.model.2<br/>replay tool: surface, reject"]
-    M5["nidana.model.5<br/>contracts main library complete"]
+    M5["nidana.model.5<br/>last type-level phase"]
     R1["nidana.runtime.1<br/>bus declarations"]
     M6["nidana.model.6<br/>replay tool: behavior"]
     M8["nidana.model.8, nidana.model.9,<br/>nidana.model.10, nidana.model.11<br/>topic values, recording, IR"]

@@ -32,6 +32,7 @@ const EventTopic<int> _taps = EventTopic<int>(name: 'rec.taps');
 const EventTopic<int> _out = EventTopic<int>(name: 'rec.out');
 const ReplayTopic<int> _log = ReplayTopic<int>(name: 'rec.log', bufferSize: 3);
 const EventTopic<Object?> _any = EventTopic<Object?>(name: 'rec.any');
+const EventTopic<String> _words = EventTopic<String>(name: 'rec.words');
 
 // ------------------------------------------------------------ helpers
 
@@ -256,6 +257,87 @@ void _primeStash() {
 
 Topology _single(void Function(TopologyBuilder b) body) =>
     topology('rec-single', Scope.page, body);
+
+/// What a declaration that fails throws.
+final class _DeclareFailed implements Exception {
+  const _DeclareFailed();
+}
+
+/// A handle another declaration made, which has returned.
+TopicStream<int> _foreignHandle() {
+  late final TopicStream<int> made;
+  planOf(_single((TopologyBuilder b) {
+    made = b.read(_taps);
+    b.write(_out, made);
+  }));
+  return made;
+}
+
+/// The six time-dependent calls, each with [duration].
+List<TopicStream<Object?> Function(TopicStream<int> s)> _timed(
+        Duration duration) =>
+    <TopicStream<Object?> Function(TopicStream<int> s)>[
+      (TopicStream<int> s) => s.debounce(duration),
+      (TopicStream<int> s) => s.throttle(duration),
+      (TopicStream<int> s) => s.delay(duration),
+      (TopicStream<int> s) => s.sample(duration),
+      (TopicStream<int> s) => s.buffer(duration),
+      (TopicStream<int> s) => s.timeout(duration),
+    ];
+
+/// Names each stage's class with the type arguments its method received.
+final class _Types implements StageVisitor<String> {
+  const _Types();
+
+  @override
+  String read<T>(ReadStage<T> s) => 'read<$T>';
+  @override
+  String map<T, R>(MapStage<T, R> s) => 'map<$T, $R>';
+  @override
+  String filter<T>(FilterStage<T> s) => 'filter<$T>';
+  @override
+  String combine<R>(CombineStage<R> s) => 'combine<$R>';
+  @override
+  String withLatestFrom<T, R>(WithLatestFromStage<T, R> s) =>
+      'withLatestFrom<$T, $R>';
+  @override
+  String merge<T>(MergeStage<T> s) => 'merge<$T>';
+  @override
+  String switchMap<T, R>(SwitchMapStage<T, R> s) => 'switchMap<$T, $R>';
+  @override
+  String scan<T, S>(ScanStage<T, S> s) => 'scan<$T, $S>';
+  @override
+  String pairwise<T>(PairwiseStage<T> s) => 'pairwise<$T>';
+  @override
+  String distinctUntilChanged<T>(DistinctUntilChangedStage<T> s) =>
+      'distinctUntilChanged<$T>';
+  @override
+  String debounce<T>(DebounceStage<T> s) => 'debounce<$T>';
+  @override
+  String throttle<T>(ThrottleStage<T> s) => 'throttle<$T>';
+  @override
+  String delay<T>(DelayStage<T> s) => 'delay<$T>';
+  @override
+  String sample<T>(SampleStage<T> s) => 'sample<$T>';
+  @override
+  String buffer<T>(BufferStage<T> s) => 'buffer<$T>';
+  @override
+  String timeout<T>(TimeoutStage<T> s) => 'timeout<$T>';
+  @override
+  String catchError<T>(CatchErrorStage<T> s) => 'catchError<$T>';
+  @override
+  String rawEngine<T, R>(RawEngineStage<T, R> s) => 'rawEngine<$T, $R>';
+}
+
+/// Names each sink's class with the type arguments its method received.
+final class _SinkTypes implements SinkVisitor<String> {
+  const _SinkTypes();
+
+  @override
+  String write<T>(WriteSink<T> sink) => 'write<$T>';
+  @override
+  String reduceInto<S, E>(ReduceIntoSink<S, E> sink) => 'reduceInto<$S, $E>';
+}
 
 final List<ConformanceCase<RecordingHarness>> recordingConformance =
     <ConformanceCase<RecordingHarness>>[
@@ -483,6 +565,75 @@ final List<ConformanceCase<RecordingHarness>> recordingConformance =
       expect(() => plan.sinks.clear(), throwsUnsupportedError);
     },
   ),
+  (
+    name: 'G11 a stage holds an unmodifiable copy of the input list the call was given, and combineAll hands its combiner an unmodifiable list',
+    body: (RecordingHarness h) async {
+      late final TopicStream<int> first;
+      late final List<TopicStream<int>> given;
+      late final TopicStream<int> merged;
+      late final TopicStream<int> all;
+      late final TopicStream<int> latest;
+      planOf(_single((TopologyBuilder b) {
+        first = b.read(_taps);
+        given = <TopicStream<int>>[first];
+        merged = b.merge(given);
+        all = b.combineAll(given, (List<int> xs) {
+          xs.add(0);
+          return xs.length;
+        });
+        latest = first.withLatestFrom(merged, (int v, int m) => v);
+        given.clear();
+        b.write(_out, all);
+        b.write(_out, latest);
+      }));
+      await h.settle();
+      final MergeStage<int> merge = merged as MergeStage<int>;
+      final CombineStage<int> combine = all as CombineStage<int>;
+      final WithLatestFromStage<int, int> withLatest =
+          latest as WithLatestFromStage<int, int>;
+      expect(merge.inputs, hasLength(1));
+      expect(identical(merge.inputs.single, first), isTrue);
+      expect(combine.inputs, hasLength(1));
+      expect(identical(combine.inputs.single, first), isTrue);
+      expect(() => merge.inputs.add(first), throwsUnsupportedError);
+      expect(() => combine.inputs.add(first), throwsUnsupportedError);
+      expect(() => withLatest.latest.add(first), throwsUnsupportedError);
+      expect(() => combine.apply(<Object?>[1]), throwsUnsupportedError);
+    },
+  ),
+  (
+    name: 'G11 apply throws ArgumentError, without calling the combiner, for a list that does not hold one value per input',
+    body: (RecordingHarness h) async {
+      int calls = 0;
+      late final TopicStream<int> c2;
+      late final TopicStream<int> all;
+      late final TopicStream<int> w2;
+      planOf(_single((TopologyBuilder b) {
+        final TopicStream<int> a = b.read(_count);
+        final TopicStream<int> t = b.read(_taps);
+        c2 = b.combine2(a, t, (int x, int y) => ++calls);
+        all = b.combineAll(<TopicStream<int>>[a, t], (List<int> xs) => ++calls);
+        w2 = a.withLatestFrom2(t, a, (int v, int x, int y) => ++calls);
+        b.write(_out, b.merge(<TopicStream<int>>[c2, all, w2]));
+      }));
+      await h.settle();
+      final CombineStage<int> combine = c2 as CombineStage<int>;
+      final CombineStage<int> combineAll = all as CombineStage<int>;
+      final WithLatestFromStage<int, int> withLatest =
+          w2 as WithLatestFromStage<int, int>;
+      for (final List<Object?> wrong in <List<Object?>>[
+        <Object?>[],
+        <Object?>[1],
+        <Object?>[1, 2, 3],
+      ]) {
+        expect(() => combine.apply(wrong), throwsArgumentError);
+        expect(() => combineAll.apply(wrong), throwsArgumentError);
+        expect(() => withLatest.apply(0, wrong), throwsArgumentError);
+      }
+      expect(calls, 0);
+      expect(combineAll.apply(<Object?>[1, 2]), 1);
+    },
+  ),
   // ------------------------------------------------------------ G12
   (
     name: 'G12 the definition reads the topics of the read stages and writes the topics of the sinks',
@@ -635,6 +786,109 @@ final List<ConformanceCase<RecordingHarness>> recordingConformance =
           throwsArgumentError);
     },
   ),
+  (
+    name: 'G14 a second sink on a state topic built apart, equal to the first, throws ArgumentError',
+    body: (RecordingHarness h) async {
+      final String name = _count.name;
+      final StateTopic<int> apart = StateTopic<int>(name: name, initial: 5);
+      await h.settle();
+      expect(identical(apart, _count), isFalse);
+      expect(apart, equals(_count));
+      expect(
+          () => planOf(_single((TopologyBuilder b) {
+                b.write(_count, b.read(_taps));
+                b.write(apart, b.read(_taps));
+              })),
+          throwsArgumentError);
+      expect(
+          () => planOf(_single((TopologyBuilder b) {
+                b.reduceInto(apart, b.read(_taps), (int s, int e) => s + e);
+                b.write(_count, b.read(_taps));
+              })),
+          throwsArgumentError);
+    },
+  ),
+  (
+    name: 'G14 a handle of a declaration still running is another builder\'s',
+    body: (RecordingHarness h) async {
+      final List<Object> errors = <Object>[];
+      final TopologyPlan outer = planOf(_single((TopologyBuilder b) {
+        final TopicStream<int> running = b.read(_taps);
+        final List<void Function(TopologyBuilder inner)> uses =
+            <void Function(TopologyBuilder inner)>[
+          (TopologyBuilder inner) => inner.write(_out, running),
+          (TopologyBuilder inner) =>
+              inner.write(_out, inner.merge(<TopicStream<int>>[running])),
+          (TopologyBuilder inner) => inner.write(
+              _out,
+              inner.read(_taps).withLatestFrom(running, (int v, int r) => v)),
+        ];
+        for (final void Function(TopologyBuilder inner) use in uses) {
+          try {
+            planOf(topology('rec-nested', Scope.page, use));
+          } on Object catch (e) {
+            errors.add(e);
+          }
+        }
+        b.write(_out, running);
+      }));
+      await h.settle();
+      expect(errors, hasLength(3));
+      expect(errors, everyElement(isA<ArgumentError>()));
+      expect(outer.sinks, hasLength(1));
+    },
+  ),
+  (
+    name: 'G14 a call that throws records nothing, so a declaration that catches its error plans as if it had not been made',
+    body: (RecordingHarness h) async {
+      final TopicStream<int> foreign = _foreignHandle();
+      const Duration negative = Duration(microseconds: -1);
+      final List<Object?> errors = <Object?>[];
+      void rejected(void Function() call) {
+        try {
+          call();
+          errors.add(null);
+        } on Object catch (e) {
+          errors.add(e);
+        }
+      }
+
+      late final TopicStream<int> taps;
+      final TopologyPlan plan = planOf(_single((TopologyBuilder b) {
+        taps = b.read(_taps);
+        for (final TopicStream<Object?> Function(TopicStream<int> s) f
+            in _timed(negative)) {
+          rejected(() => f(taps));
+        }
+        rejected(() => b.merge(<TopicStream<int>>[]));
+        rejected(() => b.combineAll(<TopicStream<int>>[], (List<int> xs) => 0));
+        rejected(() => b.read(_out, dedup: Dedup.none));
+        rejected(() => b.merge(<TopicStream<int>>[taps, foreign]));
+        rejected(() => b.combine2(taps, foreign, (int x, int y) => x));
+        rejected(() => taps.withLatestFrom(foreign, (int x, int y) => x));
+        rejected(() => b.write(_count, foreign));
+        rejected(() => b.reduceInto(_total, foreign, (int s, int e) => s));
+        b.write(_count, taps);
+        rejected(() => b.write(_count, taps));
+        rejected(() => b.reduceInto(_count, taps, (int s, int e) => s));
+        b.reduceInto(_total, taps, (int s, int e) => s);
+      }));
+      await h.settle();
+      expect(errors, hasLength(16));
+      expect(errors, everyElement(isA<ArgumentError>()));
+      expect(plan.stages, hasLength(1));
+      expect(identical(plan.stages.single, taps), isTrue);
+      expect(plan.sinks.map((PlanSink s) => s.topic),
+          equals(<Topic<Object?>>[_count, _total]));
+      expect(
+          () => planOf(_single((TopologyBuilder b) {
+                b.write(_count, b.read(_taps));
+                final TopicStream<int> orphan = b.read(_taps);
+                rejected(() => b.write(_count, orphan));
+              })),
+          throwsStateError);
+    },
+  ),
   // ------------------------------------------------------------ G15
   (
     name: 'G15 planOf throws StateError when a stage reaches no sink',
@@ -678,6 +932,55 @@ final List<ConformanceCase<RecordingHarness>> recordingConformance =
       expect(() => closed.merge(<TopicStream<int>>[kept]), throwsStateError);
     },
   ),
+  (
+    name: 'G15 a builder and its handles throw StateError, whatever their arguments, once declare has returned or thrown',
+    body: (RecordingHarness h) async {
+      late final TopologyBuilder returned;
+      late final TopicStream<int> kept;
+      planOf(_single((TopologyBuilder b) {
+        returned = b;
+        kept = b.read(_taps);
+        b.write(_count, kept);
+      }));
+      late final TopologyBuilder thrown;
+      late final TopicStream<int> left;
+      Object? failure;
+      try {
+        planOf(_single((TopologyBuilder b) {
+          thrown = b;
+          left = b.read(_taps);
+          throw const _DeclareFailed();
+        }));
+      } on Object catch (e) {
+        failure = e;
+      }
+      final TopicStream<int> foreign = _foreignHandle();
+      const Duration negative = Duration(microseconds: -1);
+      await h.settle();
+      expect(failure, isA<_DeclareFailed>());
+      for (final (TopologyBuilder closed, TopicStream<int> handle)
+          in <(TopologyBuilder, TopicStream<int>)>[
+        (returned, kept),
+        (thrown, left),
+      ]) {
+        expect(() => closed.read(_taps), throwsStateError);
+        expect(() => handle.map((int v) => v), throwsStateError);
+        expect(() => closed.read(_taps, dedup: Dedup.none), throwsStateError);
+        expect(() => closed.write(_out, foreign), throwsStateError);
+        expect(() => closed.write(_count, handle), throwsStateError);
+        expect(() => closed.merge(<TopicStream<int>>[]), throwsStateError);
+        expect(
+            () => closed.combineAll(<TopicStream<int>>[], (List<int> xs) => 0),
+            throwsStateError);
+        expect(() => handle.withLatestFrom(foreign, (int v, int f) => v),
+            throwsStateError);
+        for (final TopicStream<Object?> Function(TopicStream<int> s) f
+            in _timed(negative)) {
+          expect(() => f(handle), throwsStateError);
+        }
+      }
+    },
+  ),
   // ------------------------------------------------------------ G16
   (
     name: 'G16 visitStage and visitSink pass each stage and sink to the method of its class',
@@ -699,6 +1002,75 @@ final List<ConformanceCase<RecordingHarness>> recordingConformance =
       for (int i = 0; i < plan.sinks.length; i++) {
         expect(identical(sinkNames.seen[i], plan.sinks[i]), isTrue);
       }
+    },
+  ),
+  (
+    name: 'G16 visitStage and visitSink bind the type arguments of each stage\'s and sink\'s class',
+    body: (RecordingHarness h) async {
+      const Duration zero = Duration.zero;
+      final TopologyPlan plan = planOf(_single((TopologyBuilder b) {
+        final TopicStream<int> taps = b.read(_taps);
+        final TopicStream<String> words = b.read(_words);
+        final TopicStream<String> shown = taps.map((int v) => '$v');
+        b.write(_label, shown.filter((String v) => v.isNotEmpty));
+        final TopicStream<bool> both =
+            b.combine2(taps, words, (int v, String w) => true);
+        final TopicStream<double> weighed =
+            words.withLatestFrom(both, (String w, bool on) => 0.5);
+        final TopicStream<String> folded = b
+            .merge(<TopicStream<double>>[weighed])
+            .switchMap((double v) => const Stream<int>.empty())
+            .scan('', (String acc, int v) => acc);
+        b.write(_any, folded.pairwise());
+        final TopicStream<String> timed = folded
+            .distinctUntilChanged()
+            .debounce(zero)
+            .throttle(zero)
+            .delay(zero)
+            .sample(zero);
+        b.reduceInto(_count, timed.buffer(zero), (int n, List<String> xs) => n);
+        b.write(
+            _flag,
+            timed
+                .timeout(zero)
+                .catchError((Object e, StackTrace st) => '')
+                .rawEngine<bool>((Stream<PipelineValue<String>> values,
+                        String Function() fresh) =>
+                    const Stream<PipelineValue<bool>>.empty()));
+      }));
+      await h.settle();
+      expect(<String>[
+        for (final TopicStream<Object?> s in plan.stages)
+          visitStage(s, const _Types()),
+      ], <String>[
+        'read<int>',
+        'read<String>',
+        'map<int, String>',
+        'filter<String>',
+        'combine<bool>',
+        'withLatestFrom<String, double>',
+        'merge<double>',
+        'switchMap<double, int>',
+        'scan<int, String>',
+        'pairwise<String>',
+        'distinctUntilChanged<String>',
+        'debounce<String>',
+        'throttle<String>',
+        'delay<String>',
+        'sample<String>',
+        'buffer<String>',
+        'timeout<String>',
+        'catchError<String>',
+        'rawEngine<String, bool>',
+      ]);
+      expect(<String>[
+        for (final PlanSink s in plan.sinks) visitSink(s, const _SinkTypes()),
+      ], <String>[
+        'write<String>',
+        'write<Object?>',
+        'reduceInto<int, List<String>>',
+        'write<bool>',
+      ]);
     },
   ),
   // ------------------------------------------------------------ G17

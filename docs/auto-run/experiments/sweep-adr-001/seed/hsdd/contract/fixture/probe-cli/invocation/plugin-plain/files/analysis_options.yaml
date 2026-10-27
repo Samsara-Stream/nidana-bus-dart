@@ -1,0 +1,4 @@
+# The plugins line is plain.
+plugins:
+  absent_lint:
+    path: ../absent_lint

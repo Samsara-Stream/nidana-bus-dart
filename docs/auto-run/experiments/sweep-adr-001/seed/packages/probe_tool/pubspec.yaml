@@ -1,0 +1,8 @@
+# A stand-in workspace member for the sweep-adr-001 probes: three
+# executables the probe slugs' commands run. Added to a temporary copy of
+# the workspace only, never to the repository's.
+name: probe_tool
+publish_to: none
+environment:
+  sdk: ^3.13.0
+resolution: workspace

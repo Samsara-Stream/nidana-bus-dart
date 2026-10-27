@@ -43,6 +43,11 @@
           "name": "odd.café\nline",
           "variant": "state",
           "typeName": "int?"
+        },
+        {
+          "name": "odd.it's [a|b] & c",
+          "variant": "event",
+          "typeName": "String"
         }
       ],
       "transforms": [
@@ -115,6 +120,18 @@
             "name": "odd.café\nline",
             "variant": "state",
             "typeName": "int?"
+          }
+        },
+        {
+          "inputs": [
+            {
+              "edge": 0
+            }
+          ],
+          "output": {
+            "name": "odd.it's [a|b] & c",
+            "variant": "event",
+            "typeName": "String"
           }
         }
       ]

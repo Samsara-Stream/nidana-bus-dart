@@ -58,6 +58,17 @@ final class _Secret {
   String toString() => 'SECRET-PAYLOAD-$code';
 }
 
+/// A payload of a second type, whose hash code a [_Secret] of the same code
+/// shares.
+final class _Twin {
+  const _Twin(this.code);
+  final int code;
+  @override
+  bool operator ==(Object other) => other is _Twin && other.code == code;
+  @override
+  int get hashCode => code;
+}
+
 final List<ConformanceCase<TopicModelHarness>> topicModelConformance =
     <ConformanceCase<TopicModelHarness>>[
   // ------------------------------------------------------------ G4
@@ -348,6 +359,23 @@ final List<ConformanceCase<TopicModelHarness>> topicModelConformance =
       expect(base == later, isFalse);
     },
   ),
+  (
+    name: 'G13 an envelope whose payload is not equal to itself is not equal to itself',
+    body: (TopicModelHarness h) async {
+      final MessageEnvelope<double> envelope = MessageEnvelope<double>(
+        id: 'e-1',
+        payload: double.nan,
+        correlationId: 'c-1',
+        timestamp: _at,
+        source: const ServiceSource('test'),
+        sensitive: false,
+      );
+      await h.settle();
+      expect(envelope.payload.isNaN, isTrue);
+      expect(envelope == envelope, isFalse);
+      expect(<MessageEnvelope<double>>{envelope}.contains(envelope), isFalse);
+    },
+  ),
   // ------------------------------------------------------------ G14
   (
     name: 'G14 a published envelope mirrors the destination topic sensitive flag',
@@ -476,6 +504,31 @@ final List<ConformanceCase<TopicModelHarness>> topicModelConformance =
       await h.settle();
       expect(envelope.redacted(), equals(envelope));
       expect(envelope.redacted().payload, 'visible');
+    },
+  ),
+  (
+    name: 'G15 an envelope that redacted() returned is redacted again',
+    body: (TopicModelHarness h) async {
+      final MessageEnvelope<_Secret> envelope = MessageEnvelope<_Secret>(
+        id: 'e-1',
+        payload: const _Secret(7),
+        correlationId: 'c-1',
+        timestamp: _at,
+        source: const ServiceSource('auth'),
+        sensitive: true,
+      );
+      final MessageEnvelope<Object?> once = envelope.redacted();
+      final MessageEnvelope<Object?> twice = once.redacted();
+      await h.settle();
+      final RedactedPayload inner = RedactedPayload.of(const _Secret(7));
+      final RedactedPayload outer = RedactedPayload.of(inner);
+      expect(once.payload, inner);
+      expect(once.sensitive, isTrue);
+      expect(twice.payload, outer);
+      expect(outer.typeName, 'RedactedPayload');
+      expect(once.toString(), contains(outer.toString()));
+      expect(once.toString(), isNot(contains(inner.toString())));
+      expect(envelope.toString(), contains(inner.toString()));
     },
   ),
   // ------------------------------------------------------------ G17
@@ -802,6 +855,22 @@ final List<ConformanceCase<TopicModelHarness>> topicModelConformance =
       expect(RedactedPayload.of(const _Secret(42)) ==
               RedactedPayload.of(const _Secret(43)),
           isFalse);
+    },
+  ),
+  (
+    name: 'G24 equal payloads of two runtime types redact apart',
+    body: (TopicModelHarness h) async {
+      const Object one = 1;
+      const Object onePointZero = 1.0;
+      await h.settle();
+      expect(RedactedPayload.of(const _Twin(5)).hash,
+          RedactedPayload.of(const _Secret(5)).hash);
+      expect(RedactedPayload.of(const _Twin(5)) ==
+              RedactedPayload.of(const _Secret(5)),
+          isFalse);
+      expect(one == onePointZero, isTrue);
+      expect(RedactedPayload.of(one) == RedactedPayload.of(onePointZero),
+          one.runtimeType == onePointZero.runtimeType);
     },
   ),
   // ------------------------------------------------------------ G27
