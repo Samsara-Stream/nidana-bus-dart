@@ -175,7 +175,13 @@ a `Task N: complete` line; never re-dispatch them.
 | S104 | implement | superpowers:subagent-driven-development | nidana.model.2: 7 tasks, 2 task fix rounds, final review with one fix wave; gate exit 0, 195 tests, 206/206 structure and schema; surface and reject PENDING by design | done | d9b9b14; merged into impl/nidana.model as 014959f |
 | S105 | config | hsdd-config | nidana.model.3 | done | 52e7a18 |
 | S106 | code-plan | superpowers:writing-plans | nidana.model.3 (4 tasks; dry-run of every block: gate exit 0, 30/30) | done | 5d420f4 |
-| S107 | implement | superpowers:subagent-driven-development | nidana.model.3: 4 tasks, no fix round, final review ready to merge; gate exit 0, topic-model 30/30 (first real surface and reject replay) | done | 881a18f (merge recorded in the next row) |
+| S107 | implement | superpowers:subagent-driven-development | nidana.model.3: 4 tasks, no fix round, final review ready to merge; gate exit 0, topic-model 30/30 (first real surface and reject replay) | done | 881a18f; merged into impl/nidana.model as a8d43df |
+| S108 | config | hsdd-config | nidana.model.4 (found the scope cannot analyze: TransformEdge lands at .5) | done | 6c258b4 |
+| S109 | phase-plan (inserted) | hsdd-phase-plan | nidana.model re-plan of unshipped .4 and .5 (main library at .4, topology_ir.dart at .5) | done | 6f1d4b4 |
+| S110 | reconcile (inserted) | hsdd-reconcile | nidana.model pending section: three Delivery amends within version, conventions fp-progression | done | 87b473a |
+| S111 | config | hsdd-config | nidana.model.4 re-run after the re-plan (N 6) | done | a78d464 |
+| S112 | code-plan | superpowers:writing-plans | nidana.model.4 (5 tasks; dry run 57/57; purity hardening routed in) | done | d3c8f85 |
+| S113 | implement | superpowers:subagent-driven-development | nidana.model.4: 5 tasks, 2 fix rounds (purity reader), final review with one fix wave; gate exit 0, 32 tests, 57/57 | done | ccac409 (merge recorded in the next row) |
 
 ## Notes for the report
 
@@ -202,6 +208,11 @@ Findings the report must carry, written down when found so they survive context 
 - S105: hsdd-config's template has no section for a node's own decisions (`D{n}`), so a phase context omits
   the node decisions that fix what a phase lands (nidana.model D3, D4, D6 for the type-level phases); the
   writing-plans prompts point at them. HSDD feedback, like S98's Rule 2 note.
+
+- S113: `ref/nidana-docs` (the reference architecture) is an uninitialized submodule on this machine, a
+  private repository behind a personal SSH alias; the run does not fetch it (credential) and builds from
+  the governance (decision in S113.orchestrator.json). Watch nidana.model.8, whose Verification cites Spec
+  §2.4's worked examples.
 
 ## Routed to later phases
 
@@ -232,7 +243,7 @@ that phase's writing-plans dispatch and strikes it here when the phase's plan co
   angle-bracket renderings (`'topology:<id>'` and the others) in a doc comment trip `unintended_html_in_doc_comment`
   when copied verbatim under the root lint set; the code puts them in backticks. A compatible hsdd-contract
   touch within v1 would put them in backticks in the contract too. Not blocking: no fixture depends on it.
-- nidana.model.4 (from S107's final review): harden `packages/nidana_dart_contracts/test/purity_test.dart`'s
+- nidana.model.4 (from S107's final review; taken into S112's plan, Task 1 and Task 2's RED step): harden `packages/nidana_dart_contracts/test/purity_test.dart`'s
   directive reader before more libraries land (it reads only the first URI of a conditional import, misses
   `import r'dart:io';`, and accepts a relative URI that climbs out of `lib/`; collect every string literal up to
   the directive's `;`, reject relative URIs outside `lib/`, add self-test cases, and exercise the token scan);
@@ -250,8 +261,22 @@ that phase's writing-plans dispatch and strikes it here when the phase's plan co
   non-empty const set or const map keyed by topics, refs, sources, envelopes or lineages stops compiling
   (`const_set_element_not_primitive_equality`); consumer plans must not rely on such collections. For the
   report and the owner.
-- End of nidana.model, governance sweep (from S107's final review): nidana.model D6's purity token list misses
-  `Random.secure(`, `DateTime.timestamp()`, `Timer.run(`, `runZoned`, `Stream.periodic(`; an hsdd-spec touch
+- nidana.model.9 (from S113's final review): G14's "a handle another builder made" check needs a
+  handle-to-builder link (a private constructor argument or an Expando); `CombineStage.apply` for `combineAll`
+  needs `T`, which `CombineStage<R>` does not carry, so capture a typed closure in the private constructor.
+- nidana.model.10 (from S112): remove the two `// ignore: unused_element` on `TransformEdge._` and
+  `TopologyDefinition._`; `FunctionRef.named`'s empty-name `ArgumentError`.
+- End of nidana.model, governance sweep (from S112): topology-ir@v1's Interface prose (line 47) says every value
+  type is `@immutable`, but its code blocks show no annotation; the code annotates as the prose says.
+- End of nidana.model, governance sweep (from S110): hsdd-adr touch of ADR-001 item 10 (its premise that a
+  contract's first producing phase lands every declaration, and its sub-bullet that nidana.model.4 lands only
+  `TopologyDefinition`, now understate the split); hsdd-spec touches of `hsdd/spec/nidana.md` line 211
+  (Development flow item 1) and `hsdd/spec/nidana.model.md` line 40 ("Inherited from the root"), which still
+  say "one contract per phase"; stale reasons (".5 completes the main library") in
+  `hsdd/spec/nidana.tooling.codegen.md` line 299 and `hsdd/spec/nidana.navigation.md` line 177, edges correct.
+- End of nidana.model, governance sweep (from S107's and S113's final reviews): nidana.model D6's purity token
+  list misses `Random.secure(`, `DateTime.timestamp(` (a clock read, verified on the pinned SDK), `Timer.run(`,
+  `runZoned`, `Stream.periodic(`, `Future(`; an hsdd-spec touch
   could make the list a floor ("at least").
 - nidana.model.6 (from S106): the topic-model binding already loads against nidana.model.3's declarations
   (9 cases pass, 32 fail), and not every failure is `UnimplementedError` (some are identity equality or

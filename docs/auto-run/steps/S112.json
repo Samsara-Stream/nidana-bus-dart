@@ -1,0 +1,328 @@
+{
+  "step_ref": "S112",
+  "skill": "superpowers:writing-plans",
+  "target": "nidana.model.4",
+  "status": "completed",
+  "stop": null,
+  "artifacts": [
+    "docs/superpowers/plans/nidana.model.4.md",
+    "docs/auto-run/experiments/topology-dsl-declarations-plan/",
+    "docs/auto-run/steps/S112.json"
+  ],
+  "decisions": [
+    {
+      "at": "2026-10-27T00:24:10Z",
+      "artifact": "docs/superpowers/plans/nidana.model.4.md",
+      "question": "How are the phase's declarations cut into at most 6 tasks, each test-first except the last?",
+      "options": [
+        { "label": "5 tasks: purity hardening, IR, DSL main part, plan library, gate", "consequence": "each task carries its own red-green cycle and a reviewable seam; the IR lands before the DSL, whose buildDefinition() names TopologyDefinition; the plan library and exports test land together when both export lists become final" },
+        { "label": "4 tasks: purity hardening, IR, the whole DSL library, gate", "consequence": "one task of about 500 lines of library code and both public libraries; a reviewer cannot approve the main-library DSL while rejecting the plan classes" },
+        { "label": "6 tasks: the above with the stage classes split from the plan", "consequence": "a stage task without its visitor and plan has no fixture of its own to turn green, so its failing test would be contrived" }
+      ],
+      "chosen": "5 tasks: purity hardening, IR, DSL main part, plan library, gate",
+      "why": "The fixtures fall along these seams: ir_holds_no_function.dart turns green at Task 2, topologies.dart and eight reject libraries at Task 3, plan.dart and dsl_types_are_closed.dart at Task 4, so every task's failing step is a real replay or test state the dry run recorded. The routed purity hardening is its own task so it lands before any new library (the routed item says so).",
+      "evidence": ["docs/auto-run/experiments/topology-dsl-declarations-plan/output.txt T2.4, T3.4, T4.4", "hsdd-context/superpowers/nidana.model.4.md Global Constraints 1 to 3", "docs/auto-run/impl-execution-plan.md Routed to later phases"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T00:24:40Z",
+      "artifact": "docs/superpowers/plans/nidana.model.4.md",
+      "question": "How are topology-ir@v1's The IR and Function references split into files under lib/src/ir/?",
+      "options": [
+        { "label": "one library per Interface section: definition.dart and function_ref.dart", "consequence": "follows nidana.model.3's one-library-per-section layout; EdgeInput's sealed family shares definition.dart as Dart requires; nidana.model.10 and .11 add the canonical orders and the projection as further files" },
+        { "label": "one file ir.dart", "consequence": "a 150-line file mixing FunctionRef, which nidana.model.10 fills on its own, with the edge rules" },
+        { "label": "three files: edge.dart, definition.dart, function_ref.dart", "consequence": "splits one Interface section across two files with no phase that edits them apart" }
+      ],
+      "chosen": "one library per Interface section: definition.dart and function_ref.dart",
+      "why": "Precedent of nidana.model.3 (one library per Interface section under lib/src/topic/) and D4's one directory per area; the Interface's own sections give the seam.",
+      "evidence": ["hsdd/spec/nidana.model.md D4", "docs/superpowers/plans/nidana.model.3.md Architecture", "hsdd/contract/topology-ir.md lines 56 to 205"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T00:25:10Z",
+      "artifact": "docs/superpowers/plans/nidana.model.4.md",
+      "question": "Which part files make up the DSL library lib/src/topology/topology.dart (D4: one library with part files)?",
+      "options": [
+        { "label": "library file with Topologies and Pipeline values; parts builder, handle, plan, stages, sinks", "consequence": "each part holds one Interface group; nidana.model.9 edits builder, handle, plan and stages, nidana.model.11 plan.dart's definition getter, without touching the others" },
+        { "label": "library file plus two parts (main-library names, plan names)", "consequence": "two files of 200 to 300 lines each, the builder and the handle together, the stages with the visitors" },
+        { "label": "one file per class", "consequence": "about 25 part files, most of them three lines of declarations" }
+      ],
+      "chosen": "library file with Topologies and Pipeline values; parts builder, handle, plan, stages, sinks",
+      "why": "Focused files with one responsibility each (writing-plans File Structure); the sealed TopicStream and PlanSink with their subclasses must share the library, which parts allow. The library file carries every import, which the dry run showed serves all five parts with no unused import.",
+      "evidence": ["hsdd/spec/nidana.model.md D4", "docs/auto-run/experiments/topology-dsl-declarations-plan/output.txt T3.4, T4.4"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T00:25:40Z",
+      "artifact": "docs/superpowers/plans/nidana.model.4.md",
+      "question": "What are the export lists of the main library and topology_plan.dart, and how are they written?",
+      "options": [
+        { "label": "show lists over the one DSL library: main library 40 names, topology_plan.dart 27", "consequence": "the main library adds export 'src/ir/definition.dart' show (6 names), 'src/ir/function_ref.dart' show FunctionRef, 'src/topology/topology.dart' show (8 names); topology_plan.dart exports the same DSL library showing the plan's 27 names; disjoint by construction of the lists" },
+        { "label": "bare exports of per-library files", "consequence": "impossible for the DSL: one library holds both libraries' names, so a bare export would leak the plan into the main library" }
+      ],
+      "chosen": "show lists over the one DSL library: main library 40 names, topology_plan.dart 27",
+      "why": "The DSL is one library (D4), so only show lists can split it between the two public libraries (G2); nidana.model.3 already uses show lists for every export.",
+      "evidence": ["hsdd/contract/topology-dsl.md Libraries", "hsdd/contract/topology-ir.md line 43", "packages/nidana_dart_contracts/lib/nidana_dart_contracts.dart"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T00:26:10Z",
+      "artifact": "docs/superpowers/plans/nidana.model.4.md",
+      "question": "How is 'the main library exports exactly the declarations the three contracts place in it' checked: a checklist grep as nidana.model.3 did, or a test?",
+      "options": [
+        { "label": "a test, exports_test.dart, reading both libraries' show lists", "consequence": "every later gate keeps both lists exact (a leak of visitStage or ReadStage into the main library fails); nidana.model.5 edits neither library, so the test stays true; costs about 95 lines" },
+        { "label": "a checklist grep in the verification task", "consequence": "checked once, at this phase's gate; a later phase can leak a name past the three names plan_is_a_separate_library.dart checks" }
+      ],
+      "chosen": "a test, exports_test.dart, reading both libraries' show lists",
+      "why": "writing-plans asks for a test behind each Review Focus line, and the reject set covers only MapStage, TopologyPlan and planOf; D4 Restated makes both lists final at this phase, so a test can pin them without later edits.",
+      "evidence": ["hsdd/contract/fixture/topology-dsl/reject/plan_is_a_separate_library.dart", "hsdd/spec/nidana.model.md D4 Restated 2026-10-26", "docs/auto-run/experiments/topology-dsl-declarations-plan/output.txt T4.2, T4.4"],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T00:26:40Z",
+      "artifact": "docs/superpowers/plans/nidana.model.4.md",
+      "question": "Where do workspaceRoot() and packageDirectory() live once exports_test.dart also needs them?",
+      "options": [
+        { "label": "move them to test/src/package_files.dart (Task 1)", "consequence": "one definition, imported by purity_test.dart and exports_test.dart; dart test runs only *_test.dart, so the helper is never a test" },
+        { "label": "import 'purity_test.dart' show packageDirectory from exports_test.dart", "consequence": "no move, but a test file imported as a library, which reads oddly" },
+        { "label": "duplicate the 15 lines in exports_test.dart", "consequence": "two copies of the D6 root-finding rule to keep in step" }
+      ],
+      "chosen": "move them to test/src/package_files.dart (Task 1)",
+      "why": "DRY, and Task 1 rewrites purity_test.dart anyway; D6's rule (the nearest ancestor holding hsdd/contract/) is unchanged.",
+      "evidence": ["hsdd/spec/nidana.model.md D6", "packages/nidana_dart_contracts/test/purity_test.dart lines 8 to 25"],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T00:22:50Z",
+      "artifact": "docs/superpowers/plans/nidana.model.4.md",
+      "question": "How far does the routed purity-test hardening go: the three gaps the routed item names, or every URI spelling the probe finds?",
+      "options": [
+        { "label": "the routed three plus part directives, adjacent literals, escapes and other schemes", "consequence": "the reader joins adjacent literals, reads part and part of, rejects a backslash and any scheme but dart and package; the probe shows 'dart:' 'io' and 'dart:\\x69o' both import dart:io; about 15 more lines" },
+        { "label": "the routed three only", "consequence": "two spellings that import dart:io stay invisible to the G25 test while part files land" }
+      ],
+      "chosen": "the routed three plus part directives, adjacent literals, escapes and other schemes",
+      "why": "The probe settled that both spellings resolve (no analyzer issue), and this phase lands the first part files and relative imports, so the reader must read part directives to check them at all. Each extra rule is one line and has a self-test case and a seeded violation in the dry run.",
+      "evidence": ["docs/auto-run/experiments/topology-dsl-declarations-plan/probe/lib/uris.dart", "docs/auto-run/experiments/topology-dsl-declarations-plan/output.txt P, T1.5"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T00:27:10Z",
+      "artifact": "docs/superpowers/plans/nidana.model.4.md",
+      "question": "What does Task 1's failing step look like, given that the readers under test live in the test file?",
+      "options": [
+        { "label": "new self-tests and G-test bodies against the old readers: a compile failure naming the new API", "consequence": "one red step: 'No named parameter with the name path' twice and 'Method not found: effectsIn' four times; the reader gaps themselves are shown by the dry run's seeded violations" },
+        { "label": "two red-green cycles, the directive reader first with its old signature", "consequence": "an assertion-level failure for directiveUris, then a compile failure for allowedUri and effectsIn; two more steps for the same deliverable" }
+      ],
+      "chosen": "new self-tests and G-test bodies against the old readers: a compile failure naming the new API",
+      "why": "The brief allows a test-first change of the test file; one red step keeps the task to the template's five steps, and T1.5 records that the hardened test fails on each seeded spelling.",
+      "evidence": ["docs/auto-run/experiments/topology-dsl-declarations-plan/output.txt T1.2, T1.5"],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T00:21:30Z",
+      "artifact": "docs/superpowers/plans/nidana.model.4.md",
+      "question": "D3 wants a final field behind every getter and throwing bodies: which private constructors does the analyzer report as unused, and how is that handled?",
+      "options": [
+        { "label": "two ignores of unused_element, on TransformEdge._ and TopologyDefinition._", "consequence": "matches nidana.model.3's RedactedPayload._; the stage, sink, builder and plan constructors need none, because a private constructor that is its class's only constructor is not reported; nidana.model.10 removes both ignores" },
+        { "label": "factories that construct through the private constructor without validation", "consequence": "no ignore, but a factory whose contract is validation and an unmodifiable copy would return unvalidated values before nidana.model.10" },
+        { "label": "a file-level ignore_for_file", "consequence": "hides any other unused element in definition.dart" }
+      ],
+      "chosen": "two ignores of unused_element, on TransformEdge._ and TopologyDefinition._",
+      "why": "The probe shows exactly which constructors are reported (only one beside a factory); precedent S106 took the same line-local suppression for the same pattern.",
+      "evidence": ["docs/auto-run/experiments/topology-dsl-declarations-plan/probe/lib/constructors.dart", "docs/auto-run/experiments/topology-dsl-declarations-plan/output.txt P", "packages/nidana_dart_contracts/lib/src/topic/redacted_payload.dart"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T00:23:20Z",
+      "artifact": "docs/superpowers/plans/nidana.model.4.md",
+      "question": "FunctionRef.named(String name) 'Throws ArgumentError for an empty [name]': does this phase store the name, check it, or throw UnimplementedError?",
+      "options": [
+        { "label": "store the name (FunctionRef.named(String this.name)); the check is nidana.model.10's", "consequence": "a generative constructor that stores its argument, as nidana.model.3's MessageEnvelope did before its copy landed; the dartdoc's ArgumentError holds from nidana.model.10" },
+        { "label": "check and throw ArgumentError now", "consequence": "delivers part of nidana.model.10's FunctionRef behavior early, against topology-ir@v1's Delivery" },
+        { "label": "throw UnimplementedError in the initializer", "consequence": "the surface fixture's FunctionRef.named('search') would throw if ever run, and the constructor stores nothing" }
+      ],
+      "chosen": "store the name (FunctionRef.named(String this.name)); the check is nidana.model.10's",
+      "why": "topology-ir@v1 Delivery gives FunctionRef to nidana.model.10; nidana.model.3's plan delivered members that store an argument. The probe confirms a String initializing formal over a String? field is accepted.",
+      "evidence": ["hsdd/contract/topology-ir.md line 45", "docs/superpowers/plans/nidana.model.3.md Global Constraints, Bodies", "docs/auto-run/experiments/topology-dsl-declarations-plan/probe/lib/constructors.dart Named"],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T00:23:40Z",
+      "artifact": "docs/superpowers/plans/nidana.model.4.md",
+      "question": "TransformEdge.isSink is output != null: delivered now or thrown, and are TopologyDefinition.reads and .writes final fields or getters?",
+      "options": [
+        { "label": "isSink and isStateBearing throw; reads and writes are final fields", "consequence": "follows nidana.model.3, whose Topic.ref threw although derivable; D3's final field behind every getter covers reads and writes, which nidana.model.10's factory derives at construction" },
+        { "label": "isSink delivered; reads and writes throwing getters", "consequence": "an early sliver of nidana.model.10's edge rules, and two getters without fields against D3" }
+      ],
+      "chosen": "isSink and isStateBearing throw; reads and writes are final fields",
+      "why": "D3 and nidana.model.3's precedent; topology-ir@v1 Delivery gives TransformEdge's rules to nidana.model.10.",
+      "evidence": ["hsdd/spec/nidana.model.md D3", "packages/nidana_dart_contracts/lib/src/topic/topic.dart Topic.ref", "hsdd/contract/topology-ir.md line 45"],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T00:21:40Z",
+      "artifact": "docs/superpowers/plans/nidana.model.4.md",
+      "question": "The Interface writes 'sealed class EdgeInput {}' with no constructor and no annotation, while the prose makes every value type @immutable and TopicInput and StageInput have const constructors. What does EdgeInput declare?",
+      "options": [
+        { "label": "@immutable sealed class EdgeInput with const EdgeInput._()", "consequence": "the const subclasses compile (an implicit default constructor is not const, the probe shows const_constructor_with_non_const_super), EdgeInput has no public constructor, and the annotation covers both subclasses as MessageSource's does" },
+        { "label": "the block as written", "consequence": "const TopicInput(...) and const StageInput(...) do not compile" }
+      ],
+      "chosen": "@immutable sealed class EdgeInput with const EdgeInput._()",
+      "why": "The probe settles the const question; the prose above the Interface asks for @immutable on every value type; MessageSource is the precedent for a sealed base with a const private constructor.",
+      "evidence": ["docs/auto-run/experiments/topology-dsl-declarations-plan/probe/lib/constructors.dart Base and Sub", "hsdd/contract/topology-ir.md line 47", "packages/nidana_dart_contracts/lib/src/topic/message_source.dart"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T00:29:50Z",
+      "artifact": "docs/superpowers/plans/nidana.model.4.md",
+      "question": "The trailing comments of TopologyDefinition.reads and .writes push their lines past 80 columns, and the formatter then splits each declaration after its type. Keep them trailing, or move them?",
+      "options": [
+        { "label": "move those two comments to the line above their fields", "consequence": "the comment text is kept as written; the two declarations read on one line each" },
+        { "label": "keep them trailing", "consequence": "the formatter writes 'final Set<TopicRef>' and 'reads; // ...' on two lines" }
+      ],
+      "chosen": "move those two comments to the line above their fields",
+      "why": "Readability; the run rule binds dartdoc copied from an Interface, and these are line comments whose text does not change. The plan states the exception.",
+      "evidence": ["docs/auto-run/experiments/topology-dsl-declarations-plan/draft/lib/src/ir/definition.dart"],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T00:25:20Z",
+      "artifact": "docs/superpowers/plans/nidana.model.4.md",
+      "question": "The Interface elides four stage classes with a comment ('ThrottleStage<T>, DelayStage<T>, SampleStage<T> and TimeoutStage<T> have the same two members as DebounceStage<T>; BufferStage<T> ...'). Keep that comment in the code?",
+      "options": [
+        { "label": "drop it; write every class out", "consequence": "the code needs no elision note; stages.dart opens with the Interface's other comment on the stage classes" },
+        { "label": "keep it above the written-out classes", "consequence": "a comment describing an abbreviation the code does not make" }
+      ],
+      "chosen": "drop it; write every class out",
+      "why": "The comment describes the Interface's shorthand, not the code; every other Interface comment is carried.",
+      "evidence": ["hsdd-context/superpowers/nidana.model.4.md lines 759 to 761"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T00:27:40Z",
+      "artifact": "docs/superpowers/plans/nidana.model.4.md",
+      "question": "What do the package tests of a type-level DSL and IR check at run time, given that no test may assert an UnimplementedError body or identity equality?",
+      "options": [
+        { "label": "only what the declarations fix: CombinatorKind's order, TopicInput's dedup default, StageInput's assertion, FunctionRef's stored and absent name, construction not running declare, TopologyRef's id", "consequence": "six small tests that stay true through nidana.model.9 to .11; the surface and reject sets carry the types" },
+        { "label": "no runtime tests beyond the replay", "consequence": "Tasks 2 and 3 would rest on the replay alone, and the Review Focus lines on values would have no test" }
+      ],
+      "chosen": "only what the declarations fix: CombinatorKind's order, TopicInput's dedup default, StageInput's assertion, FunctionRef's stored and absent name, construction not running declare, TopologyRef's id",
+      "why": "nidana.model.3's declarations_test.dart is the precedent; each test backs a Review Focus line.",
+      "evidence": ["packages/nidana_dart_contracts/test/declarations_test.dart", "docs/auto-run/experiments/topology-dsl-declarations-plan/output.txt T2.4, T3.4"],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T00:28:00Z",
+      "artifact": "docs/superpowers/plans/nidana.model.4.md",
+      "question": "Where does the routed RED baseline go, and what is its disposition?",
+      "options": [
+        { "label": "Task 2 Step 2 records it as the phase's failing replay; Task 5 records the end state outside the gate", "consequence": "the plan shows 41 fixtures: 25 passed, 16 failed before any declaration and 41 fixtures: 38 passed, 3 failed after, the three being nidana.model.5's" },
+        { "label": "record it only in the verification doc", "consequence": "the failing state before the declarations is not part of any task's red step" }
+      ],
+      "chosen": "Task 2 Step 2 records it as the phase's failing replay; Task 5 records the end state outside the gate",
+      "why": "Task 2 is the first task that changes lib/, so its red step is the state before any declaration; the dry run reproduced the routed numbers exactly.",
+      "evidence": ["docs/auto-run/impl-execution-plan.md Routed to later phases", "docs/auto-run/experiments/topology-dsl-declarations-plan/output.txt S1, G2"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    }
+  ],
+  "experiments": [
+    {
+      "path": "docs/auto-run/experiments/topology-dsl-declarations-plan/",
+      "question": "Do the plan's code blocks, applied task by task to a temporary copy of HEAD b63d281, produce exactly the failing and passing outputs the plan states, pass the phase gate, and leave no reject line with two codes? Which private constructors does unused_element report, is an implicit default constructor const, and which URI spellings import dart:io past the old directive reader?",
+      "finding": "Probe (P): a private constructor is reported unused only beside a factory (TransformEdge._, TopologyDefinition._), never when it is its class's only constructor (stages, sinks, builder, plan, also in a part file); an implicit default constructor is not const (const_constructor_with_non_const_super), so EdgeInput declares const EdgeInput._(); import 'dart:' 'isolate' and import 'dart:\\x69o' both resolve. Before the phase: the gate replay prints 57 fixtures: 46 passed, 11 failed, 0 pending and the routed RED baseline 41 fixtures: 25 passed, 16 failed, 0 pending (S1). T1: the new self-tests fail to compile against the old readers, pass (+14) with the new ones, and the hardened test fails on all eight seeded spellings, naming library and URI. T2: +18, topology-ir's ir_holds_no_function.dart passes. T3: +20, gate replay 55 of 57 (plan.dart and dsl_types_are_closed.dart on uri_does_not_exist for topology_plan.dart). T4: exports test fails on PathNotFoundException, then +23 and 57 of 57. G: the gate exits 0 (102 structure, +23, 57 of 57); topology-ir surface,reject 11 passed, 3 failed (the three that import topology_ir.dart); the RED baseline command 38 passed, 3 failed. R: every topology-dsl reject library, and topology-ir's, has one code per line; topology-ir's IR lines already report the codes nidana.model.5's replay expects (assignment_to_final on the seven IR fields, invalid_use_of_type_outside_library on the five IR classes, non_exhaustive_switch_expression on EdgeInput and CombinatorKind). X: every one of the plan's 19 Dart blocks is the whole or a contiguous part of a draft file the dry run replayed. dart format changes nothing in the package after each task."
+    }
+  ],
+  "self_check": [
+    { "gate": "Plan check: The plan's Global Constraints contain constraints 1 to 8 above, verbatim.", "status": "pass", "note": "node docs/auto-run/tools/impl-gate.mjs code-plan nidana.model.4: 0 error(s), 0 warning(s)" },
+    { "gate": "Plan check: Every ### Task N: except the last starts with a failing-test step.", "status": "pass", "note": "Tasks 1 to 4 open with 'Step 1: Write the failing test'; Task 5 opens with the gate run" },
+    { "gate": "Plan check: The last task writes the verification doc named in constraint 5.", "status": "pass", "note": "Task 5 writes hsdd/verify/nidana.model.4.verification.md, title '# Verification: nidana.model.4 - topology-dsl@v2 declarations', gate-only depth, Sign-off empty" },
+    { "gate": "Plan check: The plan has at most 6 tasks.", "status": "pass", "note": "5 tasks" },
+    { "gate": "Plan check: The plan is saved under docs/superpowers/plans/.", "status": "pass", "note": "docs/superpowers/plans/nidana.model.4.md; its Spec line names hsdd-context/superpowers/nidana.model.4.md" },
+    { "gate": "writing-plans self-review 1, spec coverage: each requirement has a task", "status": "pass", "note": "Topology, topology(), TopologyRef, TopologyBuilder, TopicStream and its combinators, the three typedefs: Task 3; planOf, TopologyPlan, 18 stages, PlanSink, WriteSink, ReduceIntoSink, both visitors and visit functions, topology_plan.dart: Task 4; CombinatorKind, EdgeInput, TopicInput, StageInput, TransformEdge, TopologyDefinition, FunctionRef under lib/src/ir/: Task 2; the main library's export list complete: Tasks 2 and 3, pinned by Task 4; G30: no override, checked in Task 5; purity hardening: Task 1; gate and verification: Task 5; the phase Verification sentence's four claims map to Task 5's four checklist lines" },
+    { "gate": "writing-plans self-review 2, step scan: every step lets the implementer write exactly one reasonable thing", "status": "pass", "note": "declaration blocks are exact copy the Interfaces fix (type-level phase, D3); each run step names its command and the output the dry run recorded" },
+    { "gate": "writing-plans self-review 3, type consistency across tasks", "status": "pass", "note": "the dry run compiled and analyzed the tasks in order with the plan's blocks (X maps every block to the replayed draft text)" },
+    { "gate": "writing-plans self-review 4, Review Focus: five uncovered input classes, each with a test in its owning task", "status": "pass", "note": "URI spellings (Task 1 self-tests), export leaks (Task 4 exports_test.dart), CombinatorKind order (Task 2), run-time StageInput and omitted dedup (Task 2), construction runs no declare (Task 3)" },
+    { "gate": "writing-plans self-review 5, proportion", "status": "pass", "note": "1397 lines against a 1130-line derivative; most of it is the declarations and dartdoc the Interfaces fix, as in nidana.model.3's 1070-line plan; bodies are one-line throws, no algorithm is transcribed" },
+    { "gate": "Brief: dry-run every code block against the real replay tool in a temporary copy of HEAD", "status": "pass", "note": "docs/auto-run/experiments/topology-dsl-declarations-plan/run.sh, git archive of HEAD b63d281, the committed replay tool, output.txt" },
+    { "gate": "Brief: a fixture failing against a matching declaration is a contract gap; a two-code reject line is a gap for hsdd-adr", "status": "pass", "note": "Global Constraints, Contract gaps bullet; R shows one code per line in all 9 topology-dsl reject libraries" },
+    { "gate": "Brief: routed items dispositioned", "status": "pass", "note": "plan section Routed items: purity hardening in Task 1; RED baseline in Task 2 Step 2 and Task 5; one-code marker question recorded in Task 5" },
+    { "gate": "Brief: fvm dart format before committing; trailer names the implementer's model, not a hard-coded Opus line", "status": "pass", "note": "every task's Step 4 formats; commit steps use '<the co-author trailer your harness gives>' with a Sonnet example" },
+    { "gate": "Run rules: no em-dash, no banned phrase in committed prose", "status": "pass", "note": "impl-gate prose check passes; grep over the plan and the experiment finds no em-dash" }
+  ],
+  "contract_gaps": [],
+  "notes_for_orchestrator": [
+    "PLAN: docs/superpowers/plans/nidana.model.4.md, 5 tasks (Task 1 purity hardening; Task 2 lib/src/ir/; Task 3 DSL library with builder and handle parts; Task 4 plan, stages and sinks parts, lib/topology_plan.dart and exports_test.dart; Task 5 gate and gate-only verification doc). `node docs/auto-run/tools/impl-gate.mjs code-plan nidana.model.4` prints 0 errors, 0 warnings. Execution: superpowers:subagent-driven-development; each task carries Files, Interfaces and the exact blocks.",
+    "EXPECTED AT THE GATE (dry run G): exit 0; Got dependencies!, No issues found!, 102 fixtures: 102 passed, +23: All tests passed!, 57 fixtures: 57 passed. Outside the gate: topology-ir --set surface,reject 14 fixtures: 11 passed, 3 failed; the routed RED baseline command 41 fixtures: 38 passed, 3 failed (from 25 passed, 16 failed).",
+    "ROUTED ITEMS: purity_test.dart directive reader hardened in Task 1 (strike the S107 item when the plan lands); RED baseline recorded in Task 2 Step 2 and Task 5 (strike); ADR-001 item 4 two-code question: no topology-dsl@v2 reject line has two codes, recorded as a dropped Learning; the question stays open for topology-ir@v1 until nidana.model.5's replay, though R already shows one code per line on topology-ir's IR lines.",
+    "FOR nidana.model.5's PLAN: with this phase's declarations, topology-ir's reject libraries already report the codes their IR lines expect (R: assignment_to_final on the seven IR fields, invalid_use_of_type_outside_library on EdgeInput, TopicInput, TransformEdge, TopologyDefinition and FunctionRef, non_exhaustive_switch_expression on EdgeInput and CombinatorKind), so .5's remaining failures are its own names.",
+    "FOR nidana.model.9 and .10: the private constructors are positional for stages and sinks, named for TransformEdge._ and TopologyDefinition._, all free to change; .10 removes the two `// ignore: unused_element` lines; FunctionRef.named stores its name with no empty-name check until .10.",
+    "END-OF-NODE GOVERNANCE SWEEP candidate (planned Learning, not a gap): topology-ir@v1's Interface prose (line 47) makes every value type @immutable while its code block shows no annotation, unlike topic-model@v1's; the plan follows the prose, EdgeInput included. A compatible hsdd-contract text touch.",
+    "SIZE: the dry run's product diff is about 930 inserted lines in 15 files (library 614: 595 in nine new files plus 19 in the main library, 87 of them dartdoc; tests about 316) against the estimate of about 700 lines in about 12 files.",
+    "COMMITS: the plan's commit steps carry '<the co-author trailer your harness gives>' as a placeholder for the implementer's own trailer (orchestrator ruling S107).",
+    "NOT COMMITTED. No git state changed. New files: docs/superpowers/plans/nidana.model.4.md, docs/auto-run/experiments/topology-dsl-declarations-plan/ (run.sh, output.txt, draft/, probe/; the scratch workspace is a mktemp directory removed at exit), and this report."
+  ]
+}

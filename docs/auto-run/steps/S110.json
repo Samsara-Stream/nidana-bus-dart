@@ -1,0 +1,179 @@
+{
+  "step_ref": "S110",
+  "skill": "hsdd-reconcile",
+  "target": "nidana.model pending section (re-plan of .4 and .5)",
+  "status": "completed",
+  "stop": null,
+  "artifacts": [
+    "hsdd/contract/topology-ir.md",
+    "hsdd/contract/topology-dsl.md",
+    "hsdd/contract/topic-model.md",
+    "hsdd/conventions.md",
+    "hsdd/spec/nidana.model.md",
+    "docs/auto-run/steps/S110.json"
+  ],
+  "decisions": [
+    {
+      "at": "2026-10-27T00:06:14Z",
+      "artifact": null,
+      "question": "Skill step 3, detect collisions before applying anything: grouped by contract (topology-ir@v1: confirm and amend; topology-dsl@v2: confirm and amend; topic-model@v1: amend), does any entry collide with another node's entry or assumption?",
+      "options": [
+        { "label": "No collision; drain the section", "consequence": "Only hsdd/spec/nidana.model.md holds pending entries (the other six pending sections carry only their earlier stamps); no other node claims these contracts' artifacts or package; consumer plans that give 'nidana.model.5 completes the main library' as the reason for their .5 edges keep a true edge, because every declaration they assume at .5 has landed by then, so their wording is reported for the sweep rather than arbitrated." },
+        { "label": "Treat the consumer plans' reason wording as a collision and stop for the human", "consequence": "A run stop over prose whose edges hold; reconcile would then have to edit consumer plans, which it does only to update a losing plan after a human decision." }
+      ],
+      "chosen": "No collision; drain the section",
+      "why": "A collision is an ownership dispute, contradictory confirms, or an amend that breaks another node's assumption. The amends move no edge and land nothing later than before; a consumer of topology-dsl@v2 or topology-ir@v1 still finds every declaration it builds against after nidana.model.5. The stale reasons are in nidana.tooling.codegen.md line 299 and nidana.navigation.md line 177, with Mermaid labels at nidana.navigation.md line 254 and nidana.tooling.lint.md line 190 that stay true ('main library complete' holds at .5). A consumer whose edge relied on something landing only at .5 that now lands at .4 would have changed this; none can, since .4 precedes .5.",
+      "evidence": ["grep of '## Governance updates (pending reconcile)' over hsdd/spec/*.md", "hsdd/spec/nidana.tooling.codegen.md line 299", "hsdd/spec/nidana.navigation.md lines 177 and 254", "hsdd/spec/nidana.tooling.lint.md line 190", ".claude/skills/hsdd-reconcile/SKILL.md step 3"],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T00:06:14Z",
+      "artifact": "hsdd/contract/topology-ir.md, hsdd/contract/topology-dsl.md",
+      "question": "Skill step 4: apply the two confirm entries (topology-ir@v1 produced_by [nidana.model.5, .10, .11, .12, .13, .14]; topology-dsl@v2 produced_by [nidana.model.4, .9, .11])?",
+      "options": [
+        { "label": "Apply: both match the frontmatter, so no frontmatter changes and no phase_ids flip", "consequence": "produced_by and phase_ids: final stay as they are; the registry projection does not change; the Delivery paragraphs are rewritten from the amends, as the conventions' Contracts section has reconcile do on a producer's re-plan." },
+        { "label": "Rewrite produced_by to add nidana.model.4 to topology-ir@v1", "consequence": "Contradicts the confirm entry, makes .4 topology-ir@v1's first producing phase, and ADR-001 item 10 would then require its surface and reject sets in full at .4, which fail there (experiment Q3a)." }
+      ],
+      "chosen": "Apply: both match the frontmatter, so no frontmatter changes and no phase_ids flip",
+      "why": "Each confirm list equals the frontmatter byte for byte; both contracts were already stable and final, so step 7 does not re-examine them. gen-registry rewrote INDEX.md identically.",
+      "evidence": ["hsdd/contract/topology-ir.md line 8", "hsdd/contract/topology-dsl.md line 8", "docs/auto-run/experiments/model-main-library-closure/output.txt (Q3a)", "hsdd/conventions.md (Contracts: Delivery paragraph)"],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T00:06:14Z",
+      "artifact": "hsdd/contract/topology-ir.md",
+      "question": "Skill step 6: is the topology-ir@v1 amend (Delivery's landing sentence: nidana.model.4 lands The IR and Function references, nidana.model.5 Graphs, Renderers, The JSON form and Analyses; the Code owner sentence 'by whose first producing phase every declaration below has landed') compatible within v1?",
+      "options": [
+        { "label": "Compatible: fold it in, keep v1, record an 'Amended within v1, 2026-10-27' Versioning entry", "consequence": "Consumers read a true landing statement; no version bump, no migration note; the Validation sentence that consumer checks 'compile against the declarations from nidana.model.5' stays true." },
+        { "label": "Breaking: bump to v2 with a migration note (run-stop candidate)", "consequence": "A new version for a change no consumer can observe, and every consumer reference would move." }
+      ],
+      "chosen": "Compatible: fold it in, keep v1, record an 'Amended within v1, 2026-10-27' Versioning entry",
+      "why": "The Breaking list names declarations, enum values, projection, naming, ordering, analysis, rendering and JSON rules; it names no phase assignment, which is the precedent S87 used for flutter-binding@v2. No declaration, guarantee, case, fixture, JSON key or schema changes; produced_by is unchanged, so .5 remains the first producing phase whose gate first replays surface and reject in full; no declaration lands later than before. Applied verbatim from the entry, whose quoted old sentences matched lines 43 and 45 exactly. The From a plan section holds rules and no declarations, so the two section lists cover every declaration. The structure set over every contract passes after the edits (102 of 102).",
+      "evidence": ["hsdd/contract/topology-ir.md Versioning (Breaking list)", "git show 125d9db (S87, flutter-binding@v2 'the Breaking list names no phase assignment')", "docs/auto-run/experiments/model-main-library-closure/output.txt (Q1, Q2, Q5, Q6)", "fvm dart run nidana_contract_check --all --set structure: 102 fixtures, 102 passed, exit 0"],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T00:06:14Z",
+      "artifact": "hsdd/contract/topology-dsl.md",
+      "question": "Skill step 6: is the topology-dsl@v2 amend (Delivery's landing clause names topology-ir@v1's The IR and Function references at .4; the reason for the .5 edge becomes 'nidana.model's last type-level phase, where topology-ir@v1's topology_ir.dart completes the declarations of the package's three contracts') compatible within v2, and does the paragraph also say that .4 would suffice for this contract alone?",
+      "options": [
+        { "label": "Compatible: fold the entry's text in verbatim, keep v2; put 'this contract's declarations are complete after nidana.model.4' and why the edge stays on .5 in the Versioning entry, not in Delivery", "consequence": "Delivery, which consumer plans and every consuming context read, states one edge and a true reason; the observation that .4 suffices stays on record without inviting an edge change no plan asks for." },
+        { "label": "Compatible, and add 'a consumer of this contract alone could start after nidana.model.4' to the Delivery paragraph", "consequence": "Consumers would read an option the orchestrator ruled out (edges stay on .5); a consumer planner might re-plan toward .4 against the ruling." },
+        { "label": "Breaking: bump to v3", "consequence": "A new version for a phase-assignment and wording change; every consumer reference would move." }
+      ],
+      "chosen": "Compatible: fold the entry's text in verbatim, keep v2; put 'this contract's declarations are complete after nidana.model.4' and why the edge stays on .5 in the Versioning entry, not in Delivery",
+      "why": "Same test as topology-ir@v1: no declaration, guarantee, case or fixture changes, produced_by unchanged, G30 still holds from .4, no edge moves. The entry's new sentence is what S109 proposed and the orchestrator's ruling keeps the edge on .5 (S109.orchestrator.json); its rationale sub-bullet says the same thing goes into the record, which is the Versioning entry. The entry is placed after 'Touched within v2, 2026-10-21' and before the v1 history entry, as S87 placed flutter-binding@v2's.",
+      "evidence": ["hsdd/contract/topology-dsl.md Versioning (Breaking list)", "docs/auto-run/steps/S109.orchestrator.json", "docs/auto-run/steps/S109.json (decision on the .5 edge's reason)", "git show 125d9db (placement before 'v1 history')"],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T00:06:14Z",
+      "artifact": "hsdd/contract/topic-model.md",
+      "question": "Skill step 6: is the topic-model@v1 amend (the reason clause of the .5 edge: 'where their declarations complete: the main library the three contracts share after nidana.model.4, and topology_ir.dart after nidana.model.5') compatible within v1, and does it get a Versioning entry?",
+      "options": [
+        { "label": "Compatible: fold it in verbatim, keep v1, and record an 'Amended within v1, 2026-10-27' Versioning entry", "consequence": "Every contract this drain touched carries its touch in Versioning, as the other two do and as S87 did for a Delivery-only change." },
+        { "label": "Compatible, with no Versioning entry (reason clause only)", "consequence": "One line less, but topic-model@v1's history would not show why its Delivery paragraph changed after nidana.model.3 shipped." }
+      ],
+      "chosen": "Compatible: fold it in verbatim, keep v1, and record an 'Amended within v1, 2026-10-27' Versioning entry",
+      "why": "Only the reason clause changes: produced_by and every edge are unchanged, and nidana.model.3, which landed every declaration of this contract, has shipped. The step brief asks that a Versioning entry record each touch as earlier touches within a version did; 'Amended' matches the entry kind and the label of the other two entries of this drain. Close call on the label only: 'Touched' (used for citation-only intake edits) would also have been defensible.",
+      "evidence": ["hsdd/contract/topic-model.md lines 41 and Versioning", "hsdd/verify/nidana.model.3.verification.md"],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T00:06:14Z",
+      "artifact": "hsdd/conventions.md",
+      "question": "Skill step 10: does the note's proposed wording for the conventions' fp-progression sentence change a convention, and is it applied?",
+      "options": [
+        { "label": "Apply the proposed wording verbatim; keep the paragraph's 'a later type-level phase when contracts share one library' sentence as written", "consequence": "The Phase design paragraph agrees with the re-planned plan: one type-level phase per contract, every declaration landed by the first producing phase's merge, a declaration another contract's declarations name landing with that contract (nidana.model.4's IR declarations)." },
+        { "label": "Drop the note as derived data", "consequence": "The conventions would keep 'each contract's declarations in one phase, that contract's first producing phase', which topology-ir@v1's declarations, now in two phases, contradict." },
+        { "label": "Defer the sentence to hsdd-spec", "consequence": "The conventions header names hsdd-reconcile as one of the two writers, so deferring costs a step for no gain." }
+      ],
+      "chosen": "Apply the proposed wording verbatim; keep the paragraph's 'a later type-level phase when contracts share one library' sentence as written",
+      "why": "The sentence states the rule of the type-level band, a convention that hsdd-phase-plan reads; it is not a contract fact the registry projects. The new wording is consistent with ADR-001 item 10's binding rule (surface and reject in full at every producing phase) and its first sub-bullet ('a declaration of another contract included'). The kept sentence stays true: topology-dsl@v2 and topology-ir@v1 share the main library, and topology-dsl@v2's consumers wait on nidana.model.5. Line wrapping follows the file's ~76-column style.",
+      "evidence": ["hsdd/conventions.md lines 120 to 140 and its header ('updated only at the root (hsdd-spec or hsdd-reconcile)')", "hsdd/adr/001-executable-contract-validation.md item 10", ".claude/skills/hsdd-reconcile/SKILL.md step 10"],
+      "blast_radius": "tree",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T00:06:14Z",
+      "artifact": null,
+      "question": "The note's first follow-up: ADR-001 item 10's premise ('a contract's first producing phase ... lands every declaration of its Interface') and its sub-bullet's instance ('as nidana.model.4 lands topology-ir@v1's TopologyDefinition'). Does reconcile edit the ADR?",
+      "options": [
+        { "label": "Leave it for hsdd-adr: report it as a follow-up for the end-of-node governance sweep", "consequence": "The ADR keeps its loose premise until its next hsdd-adr touch; no gate or edge depends on the wording, and the conventions now state the reading." },
+        { "label": "Edit ADR-001 item 10 here", "consequence": "Outside reconcile's write set and the step brief; an ADR's substance changes only through hsdd-adr." }
+      ],
+      "chosen": "Leave it for hsdd-adr: report it as a follow-up for the end-of-node governance sweep",
+      "why": "The skill applies notes to hsdd/conventions.md only and hands cross-cutting answers to hsdd-adr; the brief forbids editing an ADR's substance in this step. The binding rule of item 10 holds as written, so nothing blocks nidana.model.4.",
+      "evidence": [".claude/skills/hsdd-reconcile/SKILL.md steps 5 and 10, Do NOT use for", "hsdd/adr/001-executable-contract-validation.md item 10"],
+      "blast_radius": "tree",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T00:06:14Z",
+      "artifact": null,
+      "question": "The note's second follow-up: the root's Development flow item 1 ('one contract per phase'; '.5 ... whose declarations complete the main library the three contracts share') and nidana.model's Inherited from the root bullet ('the type-level band lands one contract per phase'). Does reconcile edit them?",
+      "options": [
+        { "label": "Leave them for hsdd-spec: report them as follow-ups for the end-of-node governance sweep", "consequence": "Both stay loosely worded until the next hsdd-spec touch; no edge they state changes." },
+        { "label": "Edit them here", "consequence": "Edits node spec text outside the plan and pending section, which hsdd-spec owns, and the root spec, which the brief forbids." }
+      ],
+      "chosen": "Leave them for hsdd-spec: report them as follow-ups for the end-of-node governance sweep",
+      "why": "Reconcile writes contract bodies and frontmatter, conventions, and the pending section's stamp; node spec substance is hsdd-spec's. S109 left the header byte-identical for the same reason.",
+      "evidence": ["hsdd/spec/nidana.md line 211", "hsdd/spec/nidana.model.md line 40", ".claude/skills/hsdd-reconcile/SKILL.md (Entry Handling)"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    }
+  ],
+  "experiments": [],
+  "self_check": [
+    { "gate": "Every pending section drained, or explicitly deferred with a reason.", "status": "pass", "note": "nidana.model's section drained: its body (the 2026-10-18 stamp, the 2026-10-26 emission line and six entries) replaced by '> Reconciled 2026-10-27 by hsdd-reconcile. Drained entries are in git history.', as S87 replaced nidana.flutter's. The other six sections hold only earlier stamps." },
+    { "gate": "No contract with both sides fully planned remains `phase_ids: provisional`; none with `phase_ids: final`, no open request and an existing validation artifact remains `status: draft`; none was flipped without its artifact.", "status": "pass", "note": "All nine contracts stable and final (INDEX.md); nothing flipped." },
+    { "gate": "Grandfather marks were added only to pre-existing fixtureless `stable` contracts named by the plan step (the upgrade step or one carrying it forward), none re-marked after a discharge, and removed wherever the artifact now exists.", "status": "n/a", "note": "No grandfather step named." },
+    { "gate": "No contract was retired while a consumer or external consumer still names it.", "status": "n/a", "note": "No retirement named." },
+    { "gate": "Every collision was decided by the human, and the losing plan was updated to match.", "status": "n/a", "note": "No collision (decision 1)." },
+    { "gate": "Contract edits follow hsdd-contract versioning (breaking change = new version + migration note).", "status": "pass", "note": "Three compatible amends, each version kept, each with an 'Amended within' Versioning entry dated 2026-10-27; no breaking change." },
+    { "gate": "`node hsdd/scripts/gen-registry.mjs` ran after the last contract edit.", "status": "pass", "note": "Ran again after the last edit of topology-ir.md; contract: 9, adr: 3; both INDEX.md files unchanged (no frontmatter changed)." },
+    { "gate": "No artifact still cites a resolved OQ as open; sweep locations reported.", "status": "n/a", "note": "No entry resolves an open question." },
+    { "gate": "Orchestrator gate: node docs/auto-run/tools/gate.mjs --skill hsdd-reconcile", "status": "pass", "note": "4 errors, all the known owner-file baseline (HARNESS.md, JUDGEMENT-LAYER.md, explorer/build.py, explorer/index.html); 0 warnings; 5 changed files." }
+  ],
+  "contract_gaps": [],
+  "notes_for_orchestrator": [
+    "APPLIED: topology-ir@v1 Delivery landing sentence and Code owner sentence (verbatim from the entry), topology-dsl@v2 Delivery landing and reason clauses (verbatim), topic-model@v1 Delivery reason clause (verbatim); one 'Amended within v{n}, 2026-10-27' Versioning entry per contract; the conventions' fp-progression sentence (verbatim from the note); the pending section stamped. No frontmatter changed, so INDEX.md is unchanged. Every contract stays status: stable, phase_ids: final, at its version (topic-model v1, topology-dsl v2, topology-ir v1).",
+    "EXTRA CHECK: fvm dart run nidana_contract_check --all --set structure after the contract edits: 102 fixtures, 102 passed, 0 pending, exit 0.",
+    "GATE --final: 4 errors (the same owner-file baseline) and 44 warnings, every warning a pre-existing reference to a superseded contract version (migration notes and history across specs, contracts and ADRs). This step's added lines cite only current versions (topic-model@v1, topology-dsl@v2, topology-ir@v1, bus-api@v2).",
+    "FOLLOW-UP FOR THE END-OF-NODE GOVERNANCE SWEEP, hsdd-adr: ADR-001 item 10's premise ('under fp-progression a contract's first producing phase ... lands every declaration of its Interface') as a candidate clarification along the conventions' new wording ('every declaration of a contract having landed when its first producing phase merges; a declaration that another contract's declarations name lands with that contract'), and its first sub-bullet's instance ('as nidana.model.4 lands topology-ir@v1's TopologyDefinition for topology-dsl@v2's surface'), which stays true but now understates what .4 lands (The IR and Function references). No gate or edge depends on it; it blocks nothing.",
+    "FOLLOW-UP FOR THE END-OF-NODE GOVERNANCE SWEEP, hsdd-spec: hsdd/spec/nidana.md line 211 (Development flow item 1: 'nidana.model.3 to .5 the type-level skeleton of its three contracts, one contract per phase' and '.5 ... whose declarations complete the main library the three contracts share') and hsdd/spec/nidana.model.md line 40 (Inherited from the root: 'the type-level band lands one contract per phase'). No edge they state changes.",
+    "STALE REASON WORDING IN CONSUMER PLANS (edges correct, for a checkpoint or the consumer's next hsdd-phase-plan touch, not a collision): hsdd/spec/nidana.tooling.codegen.md line 299 ('nidana.model.5, where topology-ir@v1's declarations complete the main library'); hsdd/spec/nidana.navigation.md line 177 ('nidana.model.5 (topic-model@v1 and topology-dsl@v2 declarations: the main library of nidana_dart_contracts complete)'). The Mermaid labels 'main library complete' at nidana.navigation.md line 254 and nidana.tooling.lint.md line 190 stay true at .5.",
+    "FOR THE RE-RUN OF nidana.model.4's CONTEXT SWITCH: topology-ir@v1's Delivery paragraph now names nidana.model.4 for The IR and Function references, but .4 still neither consumes nor produces topology-ir@v1, so hsdd-config again carries no topology-ir@v1 text; S109's note on pointing the writing-plans prompt at hsdd/contract/topology-ir.md '### The IR' and '### Function references' still applies.",
+    "TIMESTAMPS: the step started at 2026-10-27T00:02:09Z; the decisions were taken between then and 2026-10-27T00:06:14Z, when they were recorded, and carry that reading. Artifact dates (Versioning entries, the stamp) use the UTC date 2026-10-27.",
+    "NOT COMMITTED. No git state changed. Changed files: hsdd/contract/topology-ir.md, hsdd/contract/topology-dsl.md, hsdd/contract/topic-model.md, hsdd/conventions.md, hsdd/spec/nidana.model.md, and this report."
+  ]
+}
