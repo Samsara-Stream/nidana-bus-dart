@@ -1,0 +1,219 @@
+
+### setup: scratch workspace from the committed packages, contracts and fixtures (repository HEAD b6d4981)
+Dart SDK version: 3.13.5 (stable) (Tue Sep 29 01:00:52 2026 -0700) on "macos_arm64"
+pub get exit: 0
+package lib/:
+lib/nidana_dart_contracts.dart
+lib/src/topic_model.dart
+lib/src/topic/envelope.dart
+lib/src/topic/lineage.dart
+lib/src/topic/message_source.dart
+lib/src/topic/observer.dart
+lib/src/topic/redacted_payload.dart
+lib/src/topic/scope.dart
+lib/src/topic/topic.dart
+lib/src/topology_ir.dart
+lib/src/topology.dart
+lib/topology_plan.dart
+main library export lines:
+9
+
+### Q1 analyze at the scratch root with --fatal-infos (main library: topic-model, topology-dsl, IR and Function references; no lib/topology_ir.dart)
+Analyzing work...
+No issues found!
+exit: 0
+
+### Q2 nidana.model.4's gate replay: topic-model topology-dsl --set structure,surface,reject
+PASS structure hsdd/contract/topic-model.md
+PASS structure hsdd/contract/fixture/topic-model/
+PASS structure hsdd/contract/fixture/topic-model/behavior/nidana_dart_contracts_test.dart
+PASS structure hsdd/contract/fixture/topic-model/behavior/topic_model_conformance.dart
+PASS structure hsdd/contract/fixture/topic-model/reject/envelope_requires_metadata.dart
+PASS structure hsdd/contract/fixture/topic-model/reject/no_dispatcher_hint.dart
+PASS structure hsdd/contract/fixture/topic-model/reject/observer_has_no_publish_path.dart
+PASS structure hsdd/contract/fixture/topic-model/reject/only_state_topics_carry_values.dart
+PASS structure hsdd/contract/fixture/topic-model/reject/replay_buffer_is_positive.dart
+PASS structure hsdd/contract/fixture/topic-model/reject/source_family_is_closed.dart
+PASS structure hsdd/contract/fixture/topic-model/reject/state_topic_is_not_multi_writer.dart
+PASS structure hsdd/contract/fixture/topic-model/reject/state_topic_requires_initial.dart
+PASS structure hsdd/contract/fixture/topic-model/reject/topic_family_is_closed.dart
+PASS structure hsdd/contract/fixture/topic-model/reject/values_are_immutable.dart
+PASS structure hsdd/contract/fixture/topic-model/surface/envelopes.dart
+PASS structure hsdd/contract/fixture/topic-model/surface/observers.dart
+PASS structure hsdd/contract/fixture/topic-model/surface/topics.dart
+PASS surface hsdd/contract/fixture/topic-model/surface/envelopes.dart
+PASS surface hsdd/contract/fixture/topic-model/surface/observers.dart
+PASS surface hsdd/contract/fixture/topic-model/surface/topics.dart
+PASS reject hsdd/contract/fixture/topic-model/reject/envelope_requires_metadata.dart
+PASS reject hsdd/contract/fixture/topic-model/reject/no_dispatcher_hint.dart
+PASS reject hsdd/contract/fixture/topic-model/reject/observer_has_no_publish_path.dart
+PASS reject hsdd/contract/fixture/topic-model/reject/only_state_topics_carry_values.dart
+PASS reject hsdd/contract/fixture/topic-model/reject/replay_buffer_is_positive.dart
+PASS reject hsdd/contract/fixture/topic-model/reject/source_family_is_closed.dart
+PASS reject hsdd/contract/fixture/topic-model/reject/state_topic_is_not_multi_writer.dart
+PASS reject hsdd/contract/fixture/topic-model/reject/state_topic_requires_initial.dart
+PASS reject hsdd/contract/fixture/topic-model/reject/topic_family_is_closed.dart
+PASS reject hsdd/contract/fixture/topic-model/reject/values_are_immutable.dart
+PASS structure hsdd/contract/topology-dsl.md
+PASS structure hsdd/contract/fixture/topology-dsl/
+PASS structure hsdd/contract/fixture/topology-dsl/behavior/live_conformance.dart
+PASS structure hsdd/contract/fixture/topology-dsl/behavior/recording_conformance.dart
+PASS structure hsdd/contract/fixture/topology-dsl/behavior/topology_builder_test.dart
+PASS structure hsdd/contract/fixture/topology-dsl/reject/dsl_types_are_closed.dart
+PASS structure hsdd/contract/fixture/topology-dsl/reject/handle_is_opaque.dart
+PASS structure hsdd/contract/fixture/topology-dsl/reject/plan_is_a_separate_library.dart
+PASS structure hsdd/contract/fixture/topology-dsl/reject/reduce_into_targets_state.dart
+PASS structure hsdd/contract/fixture/topology-dsl/reject/time_takes_duration.dart
+PASS structure hsdd/contract/fixture/topology-dsl/reject/topology_declares_id_and_scope.dart
+PASS structure hsdd/contract/fixture/topology-dsl/reject/topology_is_a_base_class.dart
+PASS structure hsdd/contract/fixture/topology-dsl/reject/transformers_see_payloads.dart
+PASS structure hsdd/contract/fixture/topology-dsl/reject/write_type_checks.dart
+PASS structure hsdd/contract/fixture/topology-dsl/surface/plan.dart
+PASS structure hsdd/contract/fixture/topology-dsl/surface/topologies.dart
+PASS surface hsdd/contract/fixture/topology-dsl/surface/plan.dart
+PASS surface hsdd/contract/fixture/topology-dsl/surface/topologies.dart
+PASS reject hsdd/contract/fixture/topology-dsl/reject/dsl_types_are_closed.dart
+PASS reject hsdd/contract/fixture/topology-dsl/reject/handle_is_opaque.dart
+PASS reject hsdd/contract/fixture/topology-dsl/reject/plan_is_a_separate_library.dart
+PASS reject hsdd/contract/fixture/topology-dsl/reject/reduce_into_targets_state.dart
+PASS reject hsdd/contract/fixture/topology-dsl/reject/time_takes_duration.dart
+PASS reject hsdd/contract/fixture/topology-dsl/reject/topology_declares_id_and_scope.dart
+PASS reject hsdd/contract/fixture/topology-dsl/reject/topology_is_a_base_class.dart
+PASS reject hsdd/contract/fixture/topology-dsl/reject/transformers_see_payloads.dart
+PASS reject hsdd/contract/fixture/topology-dsl/reject/write_type_checks.dart
+57 fixtures: 57 passed, 0 failed, 0 pending
+exit: 0
+
+### Q3a topology-ir --set surface,reject at the same point
+PASS structure hsdd/contract/topology-ir.md
+PASS structure hsdd/contract/fixture/topology-ir/
+PASS structure hsdd/contract/fixture/topology-ir/behavior/nidana_dart_contracts_test.dart
+PASS structure hsdd/contract/fixture/topology-ir/behavior/topology_ir_conformance.dart
+PASS structure hsdd/contract/fixture/topology-ir/reject/ir_families_are_closed.dart
+PASS structure hsdd/contract/fixture/topology-ir/reject/ir_holds_no_function.dart
+PASS structure hsdd/contract/fixture/topology-ir/reject/ir_values_are_immutable.dart
+PASS structure hsdd/contract/fixture/topology-ir/surface/definitions.dart
+PASS structure hsdd/contract/fixture/topology-ir/surface/graphs.dart
+PASS surface hsdd/contract/fixture/topology-ir/surface/definitions.dart
+FAIL surface hsdd/contract/fixture/topology-ir/surface/graphs.dart: diagnostic (line 8: ERROR uri_does_not_exist: Target of URI doesn't exist: 'package:nidana_dart_contracts/topology_ir.dart'.); diagnostic (line 13: ERROR undefined_class: Undefined class 'ShellClaim'.); diagnostic (line 13: ERROR undefined_function: The function 'ShellClaim' isn't defined.); diagnostic (line 17: ERROR undefined_class: Undefined class 'ShellClaim'.); diagnostic (line 17: ERROR undefined_function: The function 'ShellClaim' isn't defined.); diagnostic (line 23: ERROR undefined_class: Undefined class 'TopologyGraph'.); diagnostic (line 24: ERROR undefined_class: Undefined class 'TopologyGraph'.); diagnostic (line 24: ERROR undefined_function: The function 'TopologyGraph' isn't defined.); diagnostic (line 28: ERROR non_type_as_type_argument: The name 'ShellClaim' isn't a type, so it can't be used as a type argument.); diagnostic (line 31: ERROR non_type_as_type_argument: The name 'ShellClaim' isn't a type, so it can't be used as a type argument.); diagnostic (line 37: ERROR undefined_function: The function 'TopologyGraph' isn't defined.); diagnostic (line 41: ERROR undefined_class: Undefined class 'TopologyGraph'.); diagnostic (line 43: ERROR undefined_method: The method 'toGraph' isn't defined for the type 'TopologyDefinition'.); diagnostic (line 46: ERROR implements_non_class: Classes and mixins can only implement other classes and mixins.); diagnostic (line 50: WARNING override_on_non_overriding_member: The method doesn't override an inherited method.); diagnostic (line 50: ERROR undefined_class: Undefined class 'TopologyGraph'.); diagnostic (line 55: ERROR creation_with_non_type: The name 'MermaidRenderer' isn't a class.); diagnostic (line 56: ERROR creation_with_non_type: The name 'GraphvizRenderer' isn't a class.); diagnostic (line 57: ERROR creation_with_non_type: The name 'JsonRenderer' isn't a class.); diagnostic (line 59: ERROR creation_with_non_type: The name 'MermaidRenderer' isn't a class.); diagnostic (line 63: ERROR undefined_function: The function 'encodeTopologyGraph' isn't defined.); diagnostic (line 64: ERROR undefined_class: Undefined class 'TopologyGraph'.); diagnostic (line 64: ERROR undefined_function: The function 'decodeTopologyGraph' isn't defined.); diagnostic (line 65: ERROR undefined_function: The function 'encodeTopologyDefinition' isn't defined.); diagnostic (line 66: ERROR undefined_function: The function 'decodeTopologyDefinition' isn't defined.); diagnostic (line 69: ERROR undefined_class: Undefined class 'TopologyGraph'.); diagnostic (line 70: ERROR non_type_as_type_argument: The name 'TopologyCycle' isn't a type, so it can't be used as a type argument.); diagnostic (line 70: ERROR undefined_function: The function 'findTopologyCycles' isn't defined.); diagnostic (line 71: ERROR non_type_as_type_argument: The name 'SelfReference' isn't a type, so it can't be used as a type argument.); diagnostic (line 71: ERROR non_type_as_type_argument: The name 'SelfReference' isn't a type, so it can't be used as a type argument.); diagnostic (line 72: ERROR undefined_function: The function 'findSelfReferences' isn't defined.); diagnostic (line 74: ERROR non_type_as_type_argument: The name 'WriterConflict' isn't a type, so it can't be used as a type argument.); diagnostic (line 74: ERROR undefined_function: The function 'findWriterConflicts' isn't defined.); diagnostic (line 75: ERROR non_type_as_type_argument: The name 'ScopeViolation' isn't a type, so it can't be used as a type argument.); diagnostic (line 75: ERROR undefined_function: The function 'findScopeViolations' isn't defined.); diagnostic (line 76: ERROR non_type_as_type_argument: The name 'TopologyFinding' isn't a type, so it can't be used as a type argument.); diagnostic (line 76: ERROR undefined_function: The function 'analyzeTopologyGraph' isn't defined.); diagnostic (line 79: ERROR undefined_class: Undefined class 'TopologyFinding'.); diagnostic (line 83: ERROR undefined_class: Undefined class 'TopologyFinding'.); diagnostic (line 84: ERROR undefined_class: Undefined class 'TopologyCycle'.); diagnostic (line 86: ERROR undefined_class: Undefined class 'SelfReference'.); diagnostic (line 88: ERROR undefined_class: Undefined class 'WriterConflict'.); diagnostic (line 90: ERROR undefined_class: Undefined class 'ScopeViolation'.); diagnostic (line 101: ERROR non_type_as_type_argument: The name 'TopologyFinding' isn't a type, so it can't be used as a type argument.); diagnostic (line 101: ERROR non_type_as_type_argument: The name 'TopologyFinding' isn't a type, so it can't be used as a type argument.); diagnostic (line 102: ERROR undefined_function: The function 'TopologyCycle' isn't defined.); diagnostic (line 103: ERROR undefined_function: The function 'SelfReference' isn't defined.); diagnostic (line 104: ERROR undefined_function: The function 'WriterConflict' isn't defined.); diagnostic (line 105: ERROR undefined_function: The function 'ScopeViolation' isn't defined.); diagnostic (line 115: ERROR non_type_as_type_argument: The name 'TopicDeclaration' isn't a type, so it can't be used as a type argument.); diagnostic (line 116: ERROR undefined_class: Undefined class 'TopicNameCollision'.); diagnostic (line 116: ERROR undefined_function: The function 'findTopicNameCollisions' isn't defined.); diagnostic (line 117: ERROR undefined_class: Undefined class 'TopicDeclaration'.); diagnostic (line 120: ERROR non_type_as_type_argument: The name 'TopicDeclaration' isn't a type, so it can't be used as a type argument.); diagnostic (line 121: ERROR undefined_function: The function 'TopicDeclaration' isn't defined.); diagnostic (line 122: ERROR creation_with_non_type: The name 'TopicDeclaration' isn't a class.)
+FAIL reject hsdd/contract/fixture/topology-ir/reject/ir_families_are_closed.dart: unexpected-diagnostic (line 8: ERROR uri_does_not_exist: Target of URI doesn't exist: 'package:nidana_dart_contracts/topology_ir.dart'.); missing-diagnostic (line 26: invalid_use_of_type_outside_library, named by the marker on line 25, not reported); unexpected-diagnostic (line 26: ERROR implements_non_class: Classes and mixins can only implement other classes and mixins.); missing-diagnostic (line 29: invalid_use_of_type_outside_library, named by the marker on line 28, not reported); unexpected-diagnostic (line 29: ERROR implements_non_class: Classes and mixins can only implement other classes and mixins.); missing-diagnostic (line 32: invalid_use_of_type_outside_library, named by the marker on line 31, not reported); unexpected-diagnostic (line 32: ERROR implements_non_class: Classes and mixins can only implement other classes and mixins.); missing-diagnostic (line 35: invalid_use_of_type_outside_library, named by the marker on line 34, not reported); unexpected-diagnostic (line 35: ERROR implements_non_class: Classes and mixins can only implement other classes and mixins.); missing-diagnostic (line 43: non_exhaustive_switch_expression, named by the marker on line 42, not reported); unexpected-diagnostic (line 43: ERROR undefined_class: Undefined class 'TopologyFinding'.); unexpected-diagnostic (line 44: ERROR undefined_class: Undefined class 'TopologyCycle'.); unexpected-diagnostic (line 45: ERROR undefined_class: Undefined class 'SelfReference'.); unexpected-diagnostic (line 46: ERROR undefined_class: Undefined class 'WriterConflict'.)
+PASS reject hsdd/contract/fixture/topology-ir/reject/ir_holds_no_function.dart
+FAIL reject hsdd/contract/fixture/topology-ir/reject/ir_values_are_immutable.dart: unexpected-diagnostic (line 6: ERROR uri_does_not_exist: Target of URI doesn't exist: 'package:nidana_dart_contracts/topology_ir.dart'.); unexpected-diagnostic (line 14: ERROR undefined_class: Undefined class 'TopologyGraph'.); unexpected-diagnostic (line 15: ERROR undefined_class: Undefined class 'ShellClaim'.); unexpected-diagnostic (line 16: ERROR undefined_class: Undefined class 'SelfReference'.); missing-diagnostic (line 33: assignment_to_final, named by the marker on line 32, not reported); missing-diagnostic (line 35: assignment_to_final, named by the marker on line 34, not reported); missing-diagnostic (line 37: assignment_to_final, named by the marker on line 36, not reported)
+14 fixtures: 11 passed, 3 failed, 0 pending
+exit: 1
+
+### Q3b the raw diagnostics of the topology-ir fixtures that import topology_ir.dart (first 4 lines each)
+-- hsdd/contract/fixture/topology-ir/surface/graphs.dart
+  error - graphs.dart:8:8 - Target of URI doesn't exist: 'package:nidana_dart_contracts/topology_ir.dart'. Try creating the file referenced by the URI, or try using a URI for a file that does exist. - uri_does_not_exist
+  error - graphs.dart:13:7 - Undefined class 'ShellClaim'. Try changing the name to the name of an existing class, or creating a class with the name 'ShellClaim'. - undefined_class
+  error - graphs.dart:13:30 - The function 'ShellClaim' isn't defined. Try importing the library that defines 'ShellClaim', correcting the name to the name of an existing function, or defining a function named 'ShellClaim'. - undefined_function
+  error - graphs.dart:17:7 - Undefined class 'ShellClaim'. Try changing the name to the name of an existing class, or creating a class with the name 'ShellClaim'. - undefined_class
+-- hsdd/contract/fixture/topology-ir/reject/ir_families_are_closed.dart
+  error - ir_families_are_closed.dart:8:8 - Target of URI doesn't exist: 'package:nidana_dart_contracts/topology_ir.dart'. Try creating the file referenced by the URI, or try using a URI for a file that does exist. - uri_does_not_exist
+  error - ir_families_are_closed.dart:11:45 - The class 'EdgeInput' can't be extended, implemented, or mixed in outside of its library because it's a sealed class. - invalid_use_of_type_outside_library
+  error - ir_families_are_closed.dart:14:50 - The class 'TopicInput' can't be implemented outside of its library because it's a final class. - invalid_use_of_type_outside_library
+  error - ir_families_are_closed.dart:17:44 - The class 'TransformEdge' can't be implemented outside of its library because it's a final class. - invalid_use_of_type_outside_library
+-- hsdd/contract/fixture/topology-ir/reject/ir_values_are_immutable.dart
+  error - ir_values_are_immutable.dart:6:8 - Target of URI doesn't exist: 'package:nidana_dart_contracts/topology_ir.dart'. Try creating the file referenced by the URI, or try using a URI for a file that does exist. - uri_does_not_exist
+  error - ir_values_are_immutable.dart:14:3 - Undefined class 'TopologyGraph'. Try changing the name to the name of an existing class, or creating a class with the name 'TopologyGraph'. - undefined_class
+  error - ir_values_are_immutable.dart:15:3 - Undefined class 'ShellClaim'. Try changing the name to the name of an existing class, or creating a class with the name 'ShellClaim'. - undefined_class
+  error - ir_values_are_immutable.dart:16:3 - Undefined class 'SelfReference'. Try changing the name to the name of an existing class, or creating a class with the name 'SelfReference'. - undefined_class
+
+### Q3c topology-ir --set structure,schema at the same point (what is runnable without topology_ir.dart)
+PASS schema hsdd/contract/fixture/topology-ir/valid/every_combinator.json
+PASS schema hsdd/contract/fixture/topology-ir/valid/findings.json
+PASS schema hsdd/contract/fixture/topology-ir/valid/forms.json
+55 fixtures: 55 passed, 0 failed, 0 pending
+exit: 0
+
+### Q4 the package's own tests (declarations_test.dart, purity_test.dart) with the DSL and IR files in lib/
+00:00 +9: packages/nidana_dart_contracts/test/declarations_test.dart: an envelope keeps the fields it is given, with no causation and no parents by default
+00:00 +10: packages/nidana_dart_contracts/test/declarations_test.dart: G18 Lineage.root has no causation and no parents, and the correlation and sensitivity it is given, null and false by default
+00:00 +11: All tests passed!
+exit: 0
+
+### Q5 control: TopologyDefinition alone, importing the topic declarations and no IR file
+  error - definition_alone.dart:13:19 - The name 'TransformEdge' isn't a type, so it can't be used as a type argument. Try correcting the name to an existing type, or defining a type named 'TransformEdge'. - non_type_as_type_argument
+  error - definition_alone.dart:20:8 - The name 'TransformEdge' isn't a type, so it can't be used as a type argument. Try correcting the name to an existing type, or defining a type named 'TransformEdge'. - non_type_as_type_argument
+2 issues found.
+exit: 3
+
+### Q6 with the stand-in's lib/topology_ir.dart and lib/src/topology_graph.dart added: analyze, then nidana.model.5's gate replay
+Analyzing work...
+No issues found!
+analyze exit: 0
+PASS structure hsdd/contract/topic-model.md
+PASS structure hsdd/contract/fixture/topic-model/
+PASS structure hsdd/contract/fixture/topic-model/behavior/nidana_dart_contracts_test.dart
+PASS structure hsdd/contract/fixture/topic-model/behavior/topic_model_conformance.dart
+PASS structure hsdd/contract/fixture/topic-model/reject/envelope_requires_metadata.dart
+PASS structure hsdd/contract/fixture/topic-model/reject/no_dispatcher_hint.dart
+PASS structure hsdd/contract/fixture/topic-model/reject/observer_has_no_publish_path.dart
+PASS structure hsdd/contract/fixture/topic-model/reject/only_state_topics_carry_values.dart
+PASS structure hsdd/contract/fixture/topic-model/reject/replay_buffer_is_positive.dart
+PASS structure hsdd/contract/fixture/topic-model/reject/source_family_is_closed.dart
+PASS structure hsdd/contract/fixture/topic-model/reject/state_topic_is_not_multi_writer.dart
+PASS structure hsdd/contract/fixture/topic-model/reject/state_topic_requires_initial.dart
+PASS structure hsdd/contract/fixture/topic-model/reject/topic_family_is_closed.dart
+PASS structure hsdd/contract/fixture/topic-model/reject/values_are_immutable.dart
+PASS structure hsdd/contract/fixture/topic-model/surface/envelopes.dart
+PASS structure hsdd/contract/fixture/topic-model/surface/observers.dart
+PASS structure hsdd/contract/fixture/topic-model/surface/topics.dart
+PASS surface hsdd/contract/fixture/topic-model/surface/envelopes.dart
+PASS surface hsdd/contract/fixture/topic-model/surface/observers.dart
+PASS surface hsdd/contract/fixture/topic-model/surface/topics.dart
+PASS reject hsdd/contract/fixture/topic-model/reject/envelope_requires_metadata.dart
+PASS reject hsdd/contract/fixture/topic-model/reject/no_dispatcher_hint.dart
+PASS reject hsdd/contract/fixture/topic-model/reject/observer_has_no_publish_path.dart
+PASS reject hsdd/contract/fixture/topic-model/reject/only_state_topics_carry_values.dart
+PASS reject hsdd/contract/fixture/topic-model/reject/replay_buffer_is_positive.dart
+PASS reject hsdd/contract/fixture/topic-model/reject/source_family_is_closed.dart
+PASS reject hsdd/contract/fixture/topic-model/reject/state_topic_is_not_multi_writer.dart
+PASS reject hsdd/contract/fixture/topic-model/reject/state_topic_requires_initial.dart
+PASS reject hsdd/contract/fixture/topic-model/reject/topic_family_is_closed.dart
+PASS reject hsdd/contract/fixture/topic-model/reject/values_are_immutable.dart
+PASS structure hsdd/contract/topology-dsl.md
+PASS structure hsdd/contract/fixture/topology-dsl/
+PASS structure hsdd/contract/fixture/topology-dsl/behavior/live_conformance.dart
+PASS structure hsdd/contract/fixture/topology-dsl/behavior/recording_conformance.dart
+PASS structure hsdd/contract/fixture/topology-dsl/behavior/topology_builder_test.dart
+PASS structure hsdd/contract/fixture/topology-dsl/reject/dsl_types_are_closed.dart
+PASS structure hsdd/contract/fixture/topology-dsl/reject/handle_is_opaque.dart
+PASS structure hsdd/contract/fixture/topology-dsl/reject/plan_is_a_separate_library.dart
+PASS structure hsdd/contract/fixture/topology-dsl/reject/reduce_into_targets_state.dart
+PASS structure hsdd/contract/fixture/topology-dsl/reject/time_takes_duration.dart
+PASS structure hsdd/contract/fixture/topology-dsl/reject/topology_declares_id_and_scope.dart
+PASS structure hsdd/contract/fixture/topology-dsl/reject/topology_is_a_base_class.dart
+PASS structure hsdd/contract/fixture/topology-dsl/reject/transformers_see_payloads.dart
+PASS structure hsdd/contract/fixture/topology-dsl/reject/write_type_checks.dart
+PASS structure hsdd/contract/fixture/topology-dsl/surface/plan.dart
+PASS structure hsdd/contract/fixture/topology-dsl/surface/topologies.dart
+PASS surface hsdd/contract/fixture/topology-dsl/surface/plan.dart
+PASS surface hsdd/contract/fixture/topology-dsl/surface/topologies.dart
+PASS reject hsdd/contract/fixture/topology-dsl/reject/dsl_types_are_closed.dart
+PASS reject hsdd/contract/fixture/topology-dsl/reject/handle_is_opaque.dart
+PASS reject hsdd/contract/fixture/topology-dsl/reject/plan_is_a_separate_library.dart
+PASS reject hsdd/contract/fixture/topology-dsl/reject/reduce_into_targets_state.dart
+PASS reject hsdd/contract/fixture/topology-dsl/reject/time_takes_duration.dart
+PASS reject hsdd/contract/fixture/topology-dsl/reject/topology_declares_id_and_scope.dart
+PASS reject hsdd/contract/fixture/topology-dsl/reject/topology_is_a_base_class.dart
+PASS reject hsdd/contract/fixture/topology-dsl/reject/transformers_see_payloads.dart
+PASS reject hsdd/contract/fixture/topology-dsl/reject/write_type_checks.dart
+PASS structure hsdd/contract/topology-ir.md
+PASS structure hsdd/contract/fixture/topology-ir/
+PASS structure hsdd/contract/fixture/topology-ir/behavior/nidana_dart_contracts_test.dart
+PASS structure hsdd/contract/fixture/topology-ir/behavior/topology_ir_conformance.dart
+PASS structure hsdd/contract/fixture/topology-ir/reject/ir_families_are_closed.dart
+PASS structure hsdd/contract/fixture/topology-ir/reject/ir_holds_no_function.dart
+PASS structure hsdd/contract/fixture/topology-ir/reject/ir_values_are_immutable.dart
+PASS structure hsdd/contract/fixture/topology-ir/surface/definitions.dart
+PASS structure hsdd/contract/fixture/topology-ir/surface/graphs.dart
+PASS surface hsdd/contract/fixture/topology-ir/surface/definitions.dart
+PASS surface hsdd/contract/fixture/topology-ir/surface/graphs.dart
+PASS reject hsdd/contract/fixture/topology-ir/reject/ir_families_are_closed.dart
+PASS reject hsdd/contract/fixture/topology-ir/reject/ir_holds_no_function.dart
+PASS reject hsdd/contract/fixture/topology-ir/reject/ir_values_are_immutable.dart
+117 fixtures: 117 passed, 0 failed, 0 pending
+exit: 0
+00:00 +11: All tests passed!
+exit: 0
