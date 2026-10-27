@@ -222,6 +222,7 @@ a `Task N: complete` line; never re-dispatch them.
 | S151 | contract (inserted, sweep) | hsdd-contract | topic-model@v1 touch within v1: S106, S124, S125 wording gaps stated as the code behaves; 3 new behavior cases (44/44); S133 left; owner items: re-redaction, NaN identity, renderings, Spec §2.4 | done | 7bfc2da |
 | S152 | contract (inserted, sweep) | hsdd-contract | topology-dsl@v2 touch within v2 (S127: closed-first, apply's wrong length, a throwing call records nothing, topic equality for one sink, visitor type arguments; 7 recording cases, 31/31; 15 seeded defects each caught) and nidana-checks@v1 touch within v1 (the scan's run form, S121) | done | 2614631 |
 | S153 | contract (inserted, sweep) | hsdd-contract | topology-ir@v1 touch within v1, part 1: @immutable in the code blocks, From a plan's exception, G6 not-executable line, G9 extension rows, G20 narrowed to accepted encodings, owner order of scope violations, integers below 2^63 and whole-number doubles, plainer retry bullet; a const ScopeViolation surface use; schema unchanged (no bound fits json_schema 5.2.2) | done | 539a8f6 |
+| S154 | contract (inserted, sweep) | hsdd-contract | topology-ir@v1 touch within v1, part 2: 13 cases (56/56: retry on other combinators, edge-order equality, claim ties, cycle order and topics, a 20000-topology ring, dedup reads, owner order, collision order, unmodifiable analyses, extension names, 5000.0, 2^63); every_combinator and escaping extended with goldens derived independently; 35 seeded defects each caught | done | af302a3 |
 
 ## Notes for the report
 
@@ -295,6 +296,15 @@ Findings the report must carry, written down when found so they survive context 
   alike, and constructor asserts in `TopicInput` and `TopicRef`. The schema keeps no upper bound: under
   `json_schema` 5.2.2 neither `maximum` 2^63-1 nor `exclusiveMaximum` 2^63 states the decoder's bound, so the text
   states it.
+
+- S154 (sweep, topology-ir@v1 part 2): the four extended goldens (`render/every_combinator.mmd`, `.dot`,
+  `render/escaping.mmd`, `.dot`) were derived by an independent script and match the shipped renderers, but were
+  not run through Mermaid's parser or Graphviz's layout: the render-check tool's npm packages are not in the local
+  cache and the run allows no other network action. Owner action: `npm ci` in
+  `docs/auto-run/experiments/topology-ir-fixtures/render-check/`, then run its `check.mjs` over `render/`. No case
+  pins two state topics whose value types render alike (it needs a second library under `behavior/`; the
+  package's `projection_test.dart` covers it). Records that give topology-ir 43 behavior cases, topology-dsl 24 or
+  topic-model 41 predate the sweep: now 56, 31 and 44.
 
 ## Routed to later phases
 
@@ -450,7 +460,7 @@ that phase's writing-plans dispatch and strikes it here when the phase's plan co
   G12 and G25, but its Governed by omits ADR-003 and ADR-003's `affects` omits topic-model@v1, so hsdd-config leaves
   ADR-003 out of a phase that consumes topic-model@v1 without naming ADR-003 itself (impl-gate warns). Add the link
   in both places (hsdd-contract and hsdd-adr), or leave it.
-- End of nidana.model, governance sweep (from S134, hsdd-contract on topology-ir@v1, low; text taken by S153, cases S154's): G6's rule against a
+- End of nidana.model, governance sweep (from S134, hsdd-contract on topology-ir@v1, low; text taken by S153, cases by S154): G6's rule against a
   `StageInput` with a negative index has no fixture (a negative case needs assertions off, which `dart test` turns
   on) and the Validation section lacks the not-executable line ADR-001 item 3 asks for; the suite misses a
   `retry` accepted on combinators other than `map` and a definition equality that ignores edge order (seeded
@@ -468,9 +478,9 @@ that phase's writing-plans dispatch and strikes it here when the phase's plan co
   them to nidana.model.12 (shipped text was left untouched). An hsdd-phase-plan or reconcile touch, or a note.
   Also (S141 Task 2): D4's directory list gives `lib/src/topic/` to nidana.model.3 and .8 only, but nidana.model.11
   made a comment-only dartdoc edit to `list_equality.dart` (safe: no phase ran beside it).
-- End of nidana.model, governance sweep (from S140, hsdd-contract on topology-ir@v1, low): no case builds two claims
+- End of nidana.model, governance sweep (from S140, hsdd-contract on topology-ir@v1, low; taken by S154): no case builds two claims
   that tie on source and scope, so the writes part of the claim order is never replayed; a compatible case.
-- End of nidana.model, governance sweep (from S143, widened by S144's final review; wording taken by S153, cases S154's; hsdd-contract on
+- End of nidana.model, governance sweep (from S143, widened by S144's final review; wording taken by S153, cases by S154; hsdd-contract on
   topology-ir@v1): line 436 orders scope violations "by topic, then owner, then reader" and lists "each owner (...)
   and each topology that reads it, in graph order", which also reads as owners in graph order (topologies by id,
   then claims); it leaves open both that and two owners of one source in different scopes (result order is on
@@ -494,7 +504,7 @@ that phase's writing-plans dispatch and strikes it here when the phase's plan co
   a `typeName` holding a newline gives a two-line `FormatException` message through the decoder (topic-codegen
   prints one `{path}: {message}` diagnostic per line; hostile documents only); and "must be a non-negative
   integer" is the decoder's message for a whole number of 2^63 or more, which the schema accepts as one.
-- End of nidana.model, governance sweep (from S149, hsdd-contract on topology-ir@v1, low; retry bullet taken by S153, samples S154's, the empty-cluster rule left to the owner): no `render/` golden holds
+- End of nidana.model, governance sweep (from S149, hsdd-contract on topology-ir@v1, low; retry bullet taken by S153, samples by S154, the empty-cluster rule left to the owner): no `render/` golden holds
   an anonymous retry, a duration above a second that is not whole seconds, a repeated input, one topic name used
   for two variants, or the characters `&|[]'`, so five seeded renderer defects pass G22 and only nidana.model.14's
   package tests catch them (`docs/auto-run/experiments/renderers-plan/output.txt`); the rule text settles each
