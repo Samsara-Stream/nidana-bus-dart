@@ -215,7 +215,8 @@ a `Task N: complete` line; never re-dispatch them.
 | S144 | implement | superpowers:subagent-driven-development | nidana.model.12: 5 tasks, 1 fix round (Task 4, equal-claims test), the ownership index carried (linear), final review doc-only fixes, one doc wave; gate exit 0, 270 tests; topology-ir restricted 31/31 | done | 65dc152; merged into impl/nidana.model as 333e08a |
 | S145 | config | hsdd-config | nidana.model.13 (N=6, spot-check; all 26 restricted topology-ir cases reachable, 9 for .13) | done | 5e93f98 |
 | S146 | code-plan | superpowers:writing-plans | nidana.model.13 (4 tasks; dry run: restricted 17/26 to 26/26, 336 tests; all 38 invalid files rejected) | done | 58d4f77 |
-| S147 | implement | superpowers:subagent-driven-development | nidana.model.13: 4 tasks, 1 fix round (Task 4, the doc's D7 account), final review Ready to merge with a small test and doc wave; gate exit 0, 353 tests; topology-ir restricted 26/26 plus 46 schema documents, unrestricted 41/43 (G22's two renderer cases left for .14) | done | 75e7d70 |
+| S147 | implement | superpowers:subagent-driven-development | nidana.model.13: 4 tasks, 1 fix round (Task 4, the doc's D7 account), final review Ready to merge with a small test and doc wave; gate exit 0, 353 tests; topology-ir restricted 26/26 plus 46 schema documents, unrestricted 41/43 (G22's two renderer cases left for .14) | done | 75e7d70; merged into impl/nidana.model as 102ff8c |
+| S148 | config | hsdd-config | nidana.model.14 (N=5, spot-check; unrestricted replay 41/43 today, the two G22 renderer cases reachable, a prototype reproduced all 14 render/ goldens) | done | 55dedf4 |
 
 ## Notes for the report
 

@@ -146,3 +146,4 @@
 {"step_ref":"S145","skill":"hsdd-config","target":"nidana.model.13","started":"2026-10-27T19:20:47Z","finished":"2026-10-27T19:28:33Z","commit":"5e93f98","dispatches":1}
 {"step_ref":"S146","skill":"superpowers:writing-plans","target":"nidana.model.13","started":"2026-10-27T19:28:44Z","finished":"2026-10-27T20:08:34Z","commit":"58d4f77","dispatches":1}
 {"step_ref":"S147","skill":"superpowers:subagent-driven-development","target":"nidana.model.13","started":"2026-10-27T20:08:44Z","finished":"2026-10-27T21:18:45Z","commit":"75e7d70","dispatches":11}
+{"step_ref":"S148","skill":"hsdd-config","target":"nidana.model.14","started":"2026-10-27T21:20:16Z","finished":"2026-10-27T21:26:58Z","commit":"55dedf4","dispatches":1}
