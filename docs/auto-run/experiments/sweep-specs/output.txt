@@ -1,0 +1,76 @@
+== SDK
+Dart SDK version: 3.13.5 (stable) (Tue Sep 29 01:00:52 2026 -0700) on "macos_arm64"
+
+== P1. What the six calls D6's list misses do (effects.dart)
+DateTime.timestamp(): isUtc=true, within two DateTime.now() reads=true
+Random.secure(): 8 draws, 8 distinct (an entropy source)
+Timer.run(f): timers=1 periodic=0 microtasks=0
+Future(f): timers=1 periodic=0 microtasks=0
+Stream.periodic(d) not listened: timers=0 periodic=0 microtasks=0
+Stream.periodic(d).listen: timers=0 periodic=1 microtasks=0
+runZoned(f): runs f in a new zone=true, its parent the caller's zone=true
+
+== P2. The token list purity_test.dart checks (const effects)
+const List<String> effects = <String>[
+  'DateTime.now(',
+  'Stopwatch(',
+  'Timer(',
+  'Timer.periodic(',
+  'scheduleMicrotask(',
+  'Future.delayed(',
+  'Future.microtask(',
+  'Random(',
+  'Zone.',
+];
+
+== P3. Whether a listed token is a substring of each missed call (a hit would mean the test already catches it)
+Random.secure(: listed tokens inside it: none
+DateTime.timestamp(: listed tokens inside it: none
+Timer.run(: listed tokens inside it: none
+runZoned: listed tokens inside it: none
+Stream.periodic(: listed tokens inside it: none
+Future(: listed tokens inside it: none
+
+== P4. The six missed tokens in the shipped libraries under packages/nidana_dart_contracts/lib (no output after this line means none)
+
+== P5. The lib/src/ directories each merged phase of nidana.model changed (D4)
+nidana.model.14 (526fdd0): render 
+nidana.model.13 (102ff8c): json 
+nidana.model.12 (333e08a): analysis 
+nidana.model.11 (c021914): graph ir topic topology 
+nidana.model.10 (9fc5a72): analysis ir 
+nidana.model.9 (e9f2289): topology 
+nidana.model.8 (5d2cf18): topic 
+nidana.model.7 (eb033bb): none
+nidana.model.6 (90116bd): none
+nidana.model.5 (739c828): analysis graph json render 
+nidana.model.4 (3c147db): ir topology 
+nidana.model.3 (a8d43df): topic 
+nidana.model.2 (014959f): none
+nidana.model.1 (cab9039): none
+
+== P6. nidana.model.11's change under packages/nidana_dart_contracts/lib/src/topic/
+diff --git a/packages/nidana_dart_contracts/lib/src/topic/list_equality.dart b/packages/nidana_dart_contracts/lib/src/topic/list_equality.dart
+index fa8ef87..5b161f4 100644
+--- a/packages/nidana_dart_contracts/lib/src/topic/list_equality.dart
++++ b/packages/nidana_dart_contracts/lib/src/topic/list_equality.dart
+@@ -1,6 +1,9 @@
+-/// The element-wise comparison of parent correlation ids that envelope and
+-/// lineage equality use (G13): true when [a] and [b] have the same length and
+-/// `a[i] == b[i]` at every index. A `List`'s own `==` is identity.
++/// The element-wise comparison that value equality uses for the lists a
++/// value holds: an envelope's and a lineage's parent correlation ids
++/// (topic-model@v1 G13), and the lists and sets of the IR values, findings,
++/// claims and graphs (topology-ir@v1 G7), a set compared as its list: true
++/// when [a] and [b] have the same length and `a[i] == b[i]` at every index.
++/// A `List`'s own `==` is identity.
+ bool elementsEqual(List<Object?> a, List<Object?> b) {
+   if (a.length != b.length) {
+     return false;
+
+== P7. Where G3 and G7 first replay: the topology-ir replay of nidana.model.9 to .13's Gates, in phase order (nidana.model.14's is unrestricted)
+line 358: nidana_contract_check topology-ir --set structure,surface,reject,schema
+line 371: nidana_contract_check topology-ir --guarantee G2,G5,G6,G9,G10
+line 386: nidana_contract_check topology-ir --guarantee G2,G5,G6,G8,G9,G10,G11,G12
+line 399: nidana_contract_check topology-ir --guarantee G2,G3,G5,G6,G7,G8,G9,G10,G11,G12,G13,G14,G15,G16,G17,G18,G23
+line 412: nidana_contract_check topology-ir --guarantee G2,G4,G5,G6,G8,G9,G10,G11,G12,G19,G20,G21
