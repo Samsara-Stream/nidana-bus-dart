@@ -267,6 +267,153 @@ const Map<String, String> docFiles = <String, String>{
       '{"name": "a", "count": 0, "extra": true}\n',
 };
 
+/// The `- binding:` bullet of [sampleContract].
+const String _sampleBindingBullet =
+    '- binding: `hsdd/contract/fixture/sample/behavior/sample_impl_test.dart` '
+    'binds the suite, under `dart test`.';
+
+/// The `- binding:` bullet [behaviorFiles] adds after [_sampleBindingBullet].
+const String _widgetBindingBullet =
+    '- binding: `hsdd/contract/fixture/sample/behavior/widget_impl_test.dart` '
+    'binds the suite, under `testWidgets`.';
+
+/// `hsdd/contract/fixture/sample/behavior/sample_conformance.dart` of
+/// [behaviorFiles]: it compiles against the seeded workspace's stand-in
+/// `Sample`, whose `count` is 0, so its G2 cases pass, its G3 case fails on
+/// an expectation and its G1 case on `UnimplementedError`.
+const String _behaviorConformance = r'''
+import 'package:matcher/expect.dart';
+import 'package:nidana_contract_check/fixture.dart';
+import 'package:sample/sample.dart';
+
+abstract interface class SampleHarness {
+  Future<void> settle();
+}
+
+final List<ConformanceCase<SampleHarness>> sampleConformance =
+    <ConformanceCase<SampleHarness>>[
+  (
+    name: 'G2 a sample counts from zero',
+    body: (SampleHarness h) async => expect(const Sample().count, 0),
+  ),
+  (name: 'G2 a second case of G2', body: (SampleHarness h) async {}),
+  (
+    name: 'G3 a sample is redacted',
+    body: (SampleHarness h) async => expect(const Sample().count, 1),
+  ),
+  (
+    name: 'G1 a body not implemented yet',
+    body: (SampleHarness h) async => throw UnimplementedError('G1'),
+  ),
+];
+''';
+
+/// `hsdd/contract/fixture/sample/behavior/sample_impl_test.dart` of
+/// [behaviorFiles]: it binds the suite under `dart test`.
+const String _behaviorBinding = r'''
+// ignore: unused_import
+import 'package:sample/sample.dart';
+import 'package:test/test.dart';
+
+import 'sample_conformance.dart';
+
+final class _Harness implements SampleHarness {
+  @override
+  Future<void> settle() async {}
+}
+
+void main() {
+  for (final c in sampleConformance) {
+    test(c.name, () => c.body(_Harness()));
+  }
+}
+''';
+
+/// `hsdd/contract/fixture/sample/behavior/widget_impl_test.dart` of
+/// [behaviorFiles]: it binds the suite under `testWidgets`.
+const String _widgetBinding = r'''
+import 'package:flutter_test/flutter_test.dart';
+// ignore: unused_import
+import 'package:sample/sample.dart';
+
+import 'sample_conformance.dart';
+
+final class _Harness implements SampleHarness {
+  @override
+  Future<void> settle() async {}
+}
+
+void main() {
+  for (final c in sampleConformance) {
+    testWidgets(c.name, (WidgetTester tester) => c.body(_Harness()));
+  }
+}
+''';
+
+/// The `sample` slug with a suite whose cases run against the seeded
+/// workspace and two bindings of it, one under `dart test` and one under
+/// `testWidgets`, keyed by path from the workspace root; the seeds of the
+/// behavior tests.
+final Map<String, String> behaviorFiles = changed(sampleFiles, <String, String>{
+  'hsdd/contract/sample.md': sampleContract.replaceFirst(
+    _sampleBindingBullet,
+    '$_sampleBindingBullet\n$_widgetBindingBullet',
+  ),
+  'hsdd/contract/fixture/sample/behavior/sample_conformance.dart':
+      _behaviorConformance,
+  'hsdd/contract/fixture/sample/behavior/sample_impl_test.dart':
+      _behaviorBinding,
+  'hsdd/contract/fixture/sample/behavior/widget_impl_test.dart': _widgetBinding,
+});
+
+/// `hsdd/contract/host.md`: a contract whose one binding binds sample@v1's
+/// suite.
+const String _hostContract = r'''
+---
+id: host
+version: v1
+status: stable
+kind: api
+---
+
+# host@v1
+
+## Guarantees / invariants
+
+- **G1** a host binds another contract's suite.
+
+## Validation
+
+- binding: `hsdd/contract/fixture/host/behavior/host_impl_test.dart` binds sample@v1's suite (`../../sample/behavior/sample_conformance.dart`), under `dart test`.
+- not executable: G1, a property no fixture shows; checked by nidana.model's gates
+''';
+
+/// `hsdd/contract/fixture/host/behavior/host_impl_test.dart`: it binds the
+/// suite of [behaviorFiles] by its path from the host's `behavior/`.
+const String _hostBinding = r'''
+import 'package:test/test.dart';
+
+import '../../sample/behavior/sample_conformance.dart';
+
+final class _Harness implements SampleHarness {
+  @override
+  Future<void> settle() async {}
+}
+
+void main() {
+  for (final c in sampleConformance) {
+    test(c.name, () => c.body(_Harness()));
+  }
+}
+''';
+
+/// The `host` slug, keyed by path from the workspace root: its one binding
+/// binds the suite of the `sample` slug of [behaviorFiles].
+const Map<String, String> hostFiles = <String, String>{
+  'hsdd/contract/host.md': _hostContract,
+  'hsdd/contract/fixture/host/behavior/host_impl_test.dart': _hostBinding,
+};
+
 /// [base] with each of [changes] applied: a path mapped to a text holds that
 /// text, a path mapped to null is removed.
 Map<String, String> changed(

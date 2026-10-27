@@ -105,6 +105,16 @@ DartLibrary readDartLibrary(String source) {
   );
 }
 
+/// The id a case name begins with, `G{n}` and a space; null when it begins
+/// with none, or when [name] is null.
+int? caseIdOf(String? name) {
+  final String? digits = name == null
+      ? null
+      : _caseNameId.firstMatch(name)?.group(1);
+  return digits == null ? null : int.tryParse(digits);
+}
+
+final RegExp _caseNameId = RegExp(r'^G([1-9][0-9]*) ');
 final RegExp _blankOrComment = RegExp(r'^\s*(//|$)');
 final RegExp _coversHeader = RegExp(r'^// covers: (.*)$');
 final RegExp _marker = RegExp(

@@ -158,7 +158,6 @@ final RegExp _conformanceLibrary = RegExp(
 );
 final RegExp _bindingLibrary = RegExp(r'^behavior/[^/]+_test\.dart$');
 final RegExp _invocationCase = RegExp(r'^invocation/([^/]+)$');
-final RegExp _caseNameId = RegExp(r'^G([1-9][0-9]*) ');
 
 /// The directories a file replay reads (ADR-001 item 6), in the order a
 /// problem names them.
@@ -351,7 +350,7 @@ List<Problem> _conformanceLibraryCases(DartLibrary content) => <Problem>[
         'line ${name.line}: case name is not a string literal',
       ),
   for (final CaseName name in _cases(content))
-    if (name.name case final String text when _caseId(text) == null)
+    if (name.name case final String text when caseIdOf(text) == null)
       Problem(
         StructureRule.caseName,
         'line ${name.line}: case name does not begin with G{n} and a space: '
@@ -461,7 +460,7 @@ List<_Citation> _citations(_Slug slug) => <_Citation>[
   for (final _Library library in slug.libraries)
     if (_conformanceLibrary.hasMatch(library.relative))
       for (final CaseName name in _cases(library.content))
-        if (_caseId(name.name) case final int id)
+        if (caseIdOf(name.name) case final int id)
           (path: library.path, ids: <int>{id}, covers: true),
 ];
 
@@ -546,15 +545,6 @@ Iterable<int> _repeated(List<int> ids) => ids.toSet().where(
 /// The cases of every case list of [content], in order.
 Iterable<CaseName> _cases(DartLibrary content) =>
     content.caseLists.expand((CaseList list) => list.cases);
-
-/// The id a case name begins with, `G{n}` and a space; null when it begins
-/// with none, or when [name] is null.
-int? _caseId(String? name) {
-  final String? digits = name == null
-      ? null
-      : _caseNameId.firstMatch(name)?.group(1);
-  return digits == null ? null : int.tryParse(digits);
-}
 
 /// What the set that [clause]'s bullet names lacks: the schema file for a
 /// `schema` bullet, `input/` and `expected/` for a `file` bullet. Empty when

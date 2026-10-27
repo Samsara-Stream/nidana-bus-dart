@@ -165,6 +165,19 @@ void f() { final String s = 'import'; }
       'at_the_end',
     ]);
   });
+  test('caseIdOf reads the G{n} and space a case name begins with', () {
+    expect(caseIdOf('G12 a case'), 12);
+    for (final String? name in <String?>[
+      'G1',
+      'G01 a',
+      'g1 a',
+      'G0 a',
+      ' G1 a',
+      null,
+    ]) {
+      expect(caseIdOf(name), isNull, reason: '$name');
+    }
+  });
   test(
     'the typed-literal form is a case list; a list from elsewhere is a problem',
     () {

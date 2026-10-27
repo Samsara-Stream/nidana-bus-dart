@@ -31,7 +31,10 @@ sealed class FixtureOutcome {
 
 /// The fixture breaks none of the set's rules.
 final class Passed extends FixtureOutcome {
-  const Passed(super.path);
+  const Passed(super.path, {this.detail});
+
+  /// What the set adds to the fixture's line, after a colon; null for nothing.
+  final String? detail;
 }
 
 /// The fixture breaks one or more of the set's rules.
