@@ -1,0 +1,88 @@
+{
+  "step_ref": "S116",
+  "decisions": [
+    {
+      "at": "2026-10-27T02:22:15Z",
+      "artifact": null,
+      "question": "SDD pre-flight for nidana.model.5 (gate-only; three tasks; code dry-run against the real replay tool to 117/117): which model implements?",
+      "options": [
+        {
+          "label": "Sonnet for every task",
+          "consequence": "Transcription of verified code at mid-tier cost, as nidana.model.3 and .4 did without a defect in their declarations."
+        },
+        {
+          "label": "Opus",
+          "consequence": "More cost for the same transcription."
+        }
+      ],
+      "chosen": "Sonnet for every task",
+      "why": "S97's rule and the precedent of the two earlier declaration phases, whose task reviews found the transcriptions exact.",
+      "evidence": [
+        "docs/auto-run/experiments/topology-ir-declarations-plan/output.txt",
+        "docs/auto-run/steps/S113.sdd-progress.md"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T02:29:43Z",
+      "artifact": "hsdd/verify/nidana.model.5.verification.md",
+      "question": "Which Learnings does nidana.model.5's slim verification doc carry?",
+      "options": [
+        {
+          "label": "Four, each dropped with a reason: the one-code marker held for all 22 reject libraries of the node's contracts, the surface fixture never using ScopeViolation or TopicDeclaration const, the two temporary ignores, the size",
+          "consequence": "The owner sees the closed routed check, the one fixture coverage gap the dry run found, and what nidana.model.11 must undo."
+        },
+        {
+          "label": "None beyond the size",
+          "consequence": "The fixture coverage gap would reach the owner only through the routed list."
+        }
+      ],
+      "chosen": "Four, each dropped with a reason: the one-code marker held for all 22 reject libraries of the node's contracts, the surface fixture never using ScopeViolation or TopicDeclaration const, the two temporary ignores, the size",
+      "why": "Each is a gate-time finding about the tree; the fixture gap is the kind of contract fixture weakness hsdd-contract owns, batched into the end-of-node sweep.",
+      "evidence": [
+        "docs/auto-run/steps/S115.json (dry run, seeded defects)",
+        "hsdd/templates/verification.md, Learnings"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T02:44:46Z",
+      "artifact": "hsdd/verify/nidana.model.5.verification.md",
+      "question": "nidana.model.5's Task 3 review found the controller's own Learning 2 ruling wrong (it named TopicDeclaration as unpinned, but the surface fixture builds it const), and the final review later left three cosmetic notes in the doc. Fix rounds and merge?",
+      "options": [
+        {
+          "label": "Correct Learning 2 in a fix round; merge with the three cosmetic notes parked",
+          "consequence": "The doc the owner signs states only true facts; a literal <base> in one pasted command and two wording slips remain, each noted in the archived ledger."
+        },
+        {
+          "label": "A fix wave for the cosmetic notes too",
+          "consequence": "One more implementer and re-review for wording that misstates nothing."
+        }
+      ],
+      "chosen": "Correct Learning 2 in a fix round; merge with the three cosmetic notes parked",
+      "why": "A false fact in a signed record is a defect; cosmetic wording is not. The error originated in the orchestrator's ruling text, so the run's routed note was corrected too.",
+      "evidence": [
+        "S116 Task 3 review",
+        "S116 final review (ready to merge: yes)",
+        "docs/auto-run/impl-execution-plan.md, governance sweep entry (corrected)"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "would_upstream": false
+    }
+  ],
+  "skill": "superpowers:subagent-driven-development",
+  "target": "nidana.model.5",
+  "status": "completed",
+  "notes": [
+    "SDD controller rulings are the decisions here; the per-task review log is docs/auto-run/steps/S116.sdd-progress.md.",
+    "Dispatches: 3 implementers (sonnet), 3 task reviews (sonnet), 1 fix round on Task 3 with its re-review (run beside the final review), 1 final review (opus)."
+  ]
+}
