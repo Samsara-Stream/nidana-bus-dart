@@ -430,7 +430,8 @@ Future<_Analysis> _analyze(
 ///
 /// The shell's part is the file system's and the process's: each target's
 /// absolute path and its symlink-resolved form, hsdd/contract/fixture/
-/// resolved once, and the analyzer's output.
+/// resolved once, and the analyzer's output, decoded by [lenientUtf8] so
+/// bytes that are not UTF-8 never stop the replay.
 Future<_Analysis> _analyzeTargets(
   Directory root,
   List<String> targets, {
@@ -444,12 +445,18 @@ Future<_Analysis> _analyzeTargets(
   ).resolveSymbolicLinksSync();
   final ProcessResult result;
   try {
-    result = await Process.run(dart, <String>[
-      'analyze',
-      '--fatal-infos',
-      '--format=json',
-      for (final AnalysisTarget file in files) file.given,
-    ], workingDirectory: root.path);
+    result = await Process.run(
+      dart,
+      <String>[
+        'analyze',
+        '--fatal-infos',
+        '--format=json',
+        for (final AnalysisTarget file in files) file.given,
+      ],
+      workingDirectory: root.path,
+      stdoutEncoding: lenientUtf8,
+      stderrEncoding: lenientUtf8,
+    );
   } on ProcessException catch (error) {
     return _AnalysisUnavailable('could not run $dart: ${error.message}');
   }

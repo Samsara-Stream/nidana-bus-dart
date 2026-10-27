@@ -760,6 +760,44 @@ ids: G{n} for the one slug named, or {slug}/G{n}''');
         ),
       );
     });
+    test(
+      'bytes dart analyze prints that are not UTF-8 stop no replay',
+      () async {
+        final Directory root = seed(<String, String>{
+          ...sampleFiles,
+          '.dart_tool/package_config.json': sampleConfiguration,
+        });
+        final String dart = '${seed(const <String, String>{}).path}/dart';
+        File(dart).writeAsStringSync(
+          <String>[
+            '#!/bin/sh',
+            r"printf '\377\n'",
+            r"printf '\377\n' >&2",
+            """echo '{"version":1,"diagnostics":[]}'""",
+            '',
+          ].join('\n'),
+        );
+        final ProcessResult chmod = Process.runSync('chmod', <String>[
+          '+x',
+          dart,
+        ]);
+        expect(chmod.exitCode, 0, reason: all(chmod));
+        final StringBuffer out = StringBuffer();
+        final StringBuffer err = StringBuffer();
+        expect(
+          await runCli(
+            <String>['sample', '--set', 'surface'],
+            workingDirectory: root,
+            out: out,
+            err: err,
+            dart: dart,
+          ),
+          0,
+          reason: '$out$err',
+        );
+        expect(out.toString(), contains('PASS surface ${s}surface/use.dart\n'));
+      },
+    );
     test('a reported file no fixture claims is an environment error (2), never dropped', () async {
       final Directory root = seed(<String, String>{
         ...sampleFiles,
