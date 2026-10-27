@@ -1,0 +1,102 @@
+{
+  "step_ref": "S150",
+  "decisions": [
+    {
+      "at": "2026-10-27T21:43:30Z",
+      "artifact": null,
+      "question": "SDD pre-flight for nidana.model.14 (spot-check): which model implements each task?",
+      "options": [
+        {
+          "label": "Sonnet for every task",
+          "consequence": "The run's rule for non-full-review phases; the plan's code and tests were dry-run."
+        },
+        {
+          "label": "Opus for the renderers",
+          "consequence": "More capable on the escaping rules; departs from the run's rule."
+        }
+      ],
+      "chosen": "Sonnet for every task",
+      "why": "The run's model rule; the plan's code blocks are spliced from the dry run (docs/auto-run/experiments/renderers-plan/).",
+      "evidence": [
+        "docs/auto-run/impl-execution-plan.md How a phase runs item 3"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T21:43:30Z",
+      "artifact": "packages/nidana_dart_contracts/test/topology_graph_test.dart",
+      "question": "test/topology_graph_test.dart's header comment says the G22 render case waits for nidana.model.14's Mermaid renderer; the plan edits no existing test. Fix the comment in this phase?",
+      "options": [
+        {
+          "label": "Task 2 rewords the comment sentence",
+          "consequence": "A one-sentence comment edit in a shipped test, no behavior change; the comment stays true."
+        },
+        {
+          "label": "Leave it",
+          "consequence": "The comment misleads a reader once the renderers land."
+        }
+      ],
+      "chosen": "Task 2 rewords the comment sentence",
+      "why": "Task 2 is the task that makes the G22 render case pass; the edit is a comment only.",
+      "evidence": [
+        "docs/auto-run/steps/S149.json notes"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T22:05:00Z",
+      "artifact": "hsdd/verify/nidana.model.14.verification.md",
+      "question": "Task 3's review found the doc overstating Task 1's review evidence (from the controller's own dispatch) and five minors, one of them a sixth replay gap no Learning names. Which go into the fix round?",
+      "options": [
+        {
+          "label": "The Important, three minors and a third Learning",
+          "consequence": "The owner-signed doc states the evidence, the cases turned green, the ruling names and every replay gap accurately; the type-name gap is routed to the sweep."
+        },
+        {
+          "label": "The Important only",
+          "consequence": "Smaller edit; the doc keeps an unnamed replay gap and minor inaccuracies."
+        }
+      ],
+      "chosen": "The Important, three minors and a third Learning",
+      "why": "The verification doc is what the owner signs; the type-name gap is a real coverage gap of topology-ir@v1's samples, so it belongs in the sweep entry with S149's five. Lines 14 and 66 are brief-mandated wording and stay.",
+      "evidence": [
+        "docs/auto-run/steps/S150.sdd-progress.md (Task 3)"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T22:16:00Z",
+      "artifact": "hsdd/verify/nidana.model.14.verification.md",
+      "question": "nidana.model.14's final review says ready to merge with one fix: the doc's 'fix rounds: none' is false after Task 3's doc round. Run the final fix wave on that only, and route the Graphviz empty-cluster note?",
+      "options": [
+        {
+          "label": "Doc-only wave on the fix-round line; route the empty-cluster note to the topology-ir@v1 sweep",
+          "consequence": "The signed doc states every fix round; the contract-level drawing issue goes to hsdd-contract with the other renderer coverage gaps."
+        },
+        {
+          "label": "Also refactor the id formats",
+          "consequence": "A library change after review with no behavior change; every golden already pins both spellings."
+        }
+      ],
+      "chosen": "Doc-only wave on the fix-round line; route the empty-cluster note to the topology-ir@v1 sweep",
+      "why": "The reviewer triaged every other deferred finding as can-wait; the empty-cluster behavior follows the contract's rule, so only the contract can change it.",
+      "evidence": [
+        "docs/auto-run/steps/S150.sdd-progress.md (Final review)",
+        "docs/auto-run/experiments/topology-ir-fixtures/output.txt:226"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "would_upstream": false
+    }
+  ]
+}

@@ -1,0 +1,209 @@
+{
+  "step_ref": "S149",
+  "skill": "superpowers:writing-plans",
+  "target": "nidana.model.14",
+  "status": "completed",
+  "stop": null,
+  "artifacts": [
+    "docs/superpowers/plans/nidana.model.14.md",
+    "docs/auto-run/experiments/renderers-plan/"
+  ],
+  "decisions": [
+    {
+      "at": "2026-10-27T21:40:30Z",
+      "artifact": "docs/superpowers/plans/nidana.model.14.md",
+      "question": "How many tasks, and where do their boundaries fall, under constraint 1 (every task but the last starts with a failing test) and constraint 3 (at most 5)?",
+      "options": [
+        { "label": "3 tasks: Mermaid with the shared helpers; Graphviz; gate and doc", "consequence": "each code task has a real red step (8 tests failing with UnimplementedError) and a reviewer can reject one renderer while approving the other; the shared helpers land with their first user, so nothing private is unused at Task 1 (no unused_element warning)" },
+        { "label": "4 tasks: shared helpers alone first, then Mermaid, then Graphviz, then the doc", "consequence": "the helpers are private and testable only through a renderer, so a helpers task has no failing test of its own and breaks constraint 1, or needs a src-public seam only for tests" },
+        { "label": "4 or 5 tasks: a separate task for the corner-case tests", "consequence": "those tests pass against Tasks 1 and 2's code, so the task has no failing first step and breaks constraint 1" }
+      ],
+      "chosen": "3 tasks: Mermaid with the shared helpers; Graphviz; gate and doc",
+      "why": "The only split a reviewer can meaningfully reject one side of is the renderer split; per-rule tests belong in the task whose code they pin. The dry run shows both code tasks red then green (T1.2 to T1.4: 353 to 361; T2.2 to T2.4: 361 to 369), and the G22 cases turning green only in Task 2, because both remaining cases call both renderers.",
+      "evidence": ["docs/auto-run/experiments/renderers-plan/output.txt T1.2, T1.4, T2.2, T2.4", "hsdd/contract/fixture/topology-ir/behavior/topology_ir_conformance.dart lines 1449 and 1469"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T21:40:30Z",
+      "artifact": "docs/superpowers/plans/nidana.model.14.md",
+      "question": "One library with private helpers, or a second library under lib/src/render/ for the shared label, duration and arrow helpers?",
+      "options": [
+        { "label": "one library, private helpers", "consequence": "renderers.dart grows from 15 to 187 lines; no src-public names; matches nidana.model.13's codec precedent and the phase estimate of about 3 files" },
+        { "label": "renderers.dart plus labels.dart", "consequence": "the helpers become src-public and directly testable, at the cost of a second set of names no other library uses" }
+      ],
+      "chosen": "one library, private helpers",
+      "why": "The helpers are one rule set that only the two renderers apply; D4 names the directory, not the file count, and the codec phase chose the same. The renderers' tests pin every helper through the rendered text.",
+      "evidence": ["hsdd/spec/nidana.model.md D4 (line 112)", "docs/superpowers/plans/nidana.model.13.md Design decision 1", "docs/auto-run/experiments/renderers-plan/output.txt C (187 lines)"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T21:40:30Z",
+      "artifact": "docs/superpowers/plans/nidana.model.14.md",
+      "question": "How are labels built and escaped: per line then joined, or the joined label escaped once?",
+      "options": [
+        { "label": "lists of unescaped lines, each escaped, then joined by the renderer's break", "consequence": "follows the rule text literally ('Labels are lines of text, each escaped, then joined'); one label function per part shared by both renderers" },
+        { "label": "build the joined label, then escape it", "consequence": "escapes Mermaid's <br/> into #lt;br/#gt; and doubles Graphviz's \\n break; the dry run's D3 fails the gate" }
+      ],
+      "chosen": "lists of unescaped lines, each escaped, then joined by the renderer's break",
+      "why": "It is what the contract says, and the seeded D3 shows the other reading breaks every golden. Escapes run in the rule's order (Mermaid's '#' first, Graphviz's backslash first; D1 and D2 fail the gate otherwise) and touch nothing else (D4 and D5).",
+      "evidence": ["hsdd/contract/topology-ir.md lines 269 and 287", "docs/auto-run/experiments/renderers-plan/output.txt D1 to D5"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T21:40:30Z",
+      "artifact": "docs/superpowers/plans/nidana.model.14.md",
+      "question": "What does an anonymous retry render as? No render/ golden holds one (S148).",
+      "options": [
+        { "label": "retry (anonymous)", "consequence": "applies 'An anonymous reference renders as (anonymous)' to every function reference, as the samples already do for an anonymous transformer" },
+        { "label": "retry alone", "consequence": "reads 'the retry's name when it has one' as 'when the retry has a name'; an anonymous transformer would then by parallel reading drop its line, which the escaping golden contradicts (filter then (anonymous))" },
+        { "label": "no retry line", "consequence": "hides that the edge retries at all, which the IR records" }
+      ],
+      "chosen": "retry (anonymous)",
+      "why": "The contract settles it: the sentence about anonymous references is general, and the transformer clause has the same 'when it has one' shape while the goldens render an anonymous transformer as (anonymous). Not a rule gap; the missing golden is a coverage gap, reported in contract_gaps. Signal that would change this: an hsdd-contract ruling that 'it' means the reference.",
+      "evidence": ["hsdd/contract/topology-ir.md line 273", "hsdd/contract/fixture/topology-ir/render/escaping.mmd (filter<br/>(anonymous))", "docs/auto-run/experiments/renderers-plan/output.txt D6 (passes the gate, fails both package tests)"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T21:40:30Z",
+      "artifact": "docs/superpowers/plans/nidana.model.14.md",
+      "question": "How does the arrow walk find a topic's node id, and how do the two renderers share the walk?",
+      "options": [
+        { "label": "one walk returning records, ids from a Map keyed by the whole TopicRef", "consequence": "each renderer only formats ({from, to, dedup}); one name of two variants keeps two ids; lookups are O(1)" },
+        { "label": "graph.topics.indexOf per lookup, walk duplicated per renderer", "consequence": "same output, quadratic lookups and two copies of the order rule to keep in step" }
+      ],
+      "chosen": "one walk returning records, ids from a Map keyed by the whole TopicRef",
+      "why": "The order of arrows is the rule most likely to drift between two copies; one walk keeps it in one place. TopicRef equality is all three fields (topic-model@v1 G8), so the Map gives the rule's 't{i} of graph.topics'; the seeded D13 (keyed by name) passes the gate and fails the package tests.",
+      "evidence": ["hsdd/contract/topology-ir.md line 287", "docs/auto-run/experiments/renderers-plan/output.txt D12, D13, D14"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T21:40:30Z",
+      "artifact": "docs/superpowers/plans/nidana.model.14.md",
+      "question": "Where do the package tests get the seven sample graphs for their own golden comparison?",
+      "options": [
+        { "label": "decode valid/{name}.json with nidana.model.13's decoder", "consequence": "no dependency on the conformance library; relies on G20 (the decoder gives the sample back), which the gate already replays" },
+        { "label": "import the conformance library by relative path for topologyIrSamples", "consequence": "imports package:nidana_contract_check/fixture.dart and package:matcher, neither a dependency of nidana_dart_contracts (ADR-002 item 3), so depend_on_referenced_packages would report it" },
+        { "label": "re-declare the samples in test code", "consequence": "hundreds of lines copied from a fixture, drifting silently from it" }
+      ],
+      "chosen": "decode valid/{name}.json with nidana.model.13's decoder",
+      "why": "It reaches the same graphs with the package's own public API and helpers that json_support.dart already has (fixtureJson, fixtureNames). The suite's own G22 case still compares the recorded samples.",
+      "evidence": ["packages/nidana_dart_contracts/test/src/json_support.dart", "hsdd/adr/002-package-workspace-layout.md item 3", "docs/auto-run/experiments/renderers-plan/output.txt X (both golden tests pass)"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T21:40:30Z",
+      "artifact": "docs/superpowers/plans/nidana.model.14.md",
+      "question": "How do the corner-case tests state what they expect?",
+      "options": [
+        { "label": "the whole rendered text of a graph built for each rule, as a raw string", "consequence": "each test reads like a golden and pins ids, order, labels, escapes, indentation and newlines at once; 16 tests in two files of about 200 lines each" },
+        { "label": "contains() checks of single lines", "consequence": "shorter, but misses order, duplicates and indentation, which are exactly what the goldens leave open (D12, D14)" }
+      ],
+      "chosen": "the whole rendered text of a graph built for each rule, as a raw string",
+      "why": "The rules not shown by any sample are mostly about order and repetition, which line checks cannot see. Only the duration table uses contains(), one line per duration, because its graph is otherwise fixed. The expected texts were written by hand from the rules and the dry run passed them on the first run.",
+      "evidence": ["docs/auto-run/experiments/renderers-plan/draft/test/", "docs/auto-run/experiments/renderers-plan/output.txt D (every seeded defect fails at least one package test)"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T21:40:30Z",
+      "artifact": "docs/superpowers/plans/nidana.model.14.md",
+      "question": "topology_graph_test.dart's header comment (lines 7 and 8) says the G22 render case waits for nidana.model.14's Mermaid renderer; edit it in this phase?",
+      "options": [
+        { "label": "leave it; edit no existing test", "consequence": "the comment reads as history after this phase; the file set stays four new or changed files, as the precedent kept it" },
+        { "label": "edit the comment in Task 2", "consequence": "one more file in the product diff for a comment, and an exception to 'edits no existing test'" }
+      ],
+      "chosen": "leave it; edit no existing test",
+      "why": "It is a comment, not a pin, and describes what was true when nidana.model.11 wrote it. Low stakes either way; the orchestrator can fold a one-line comment fix into any later commit.",
+      "evidence": ["packages/nidana_dart_contracts/test/topology_graph_test.dart lines 1 to 8"],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T21:40:30Z",
+      "artifact": null,
+      "question": "Parse the corner-case renderings with Mermaid 11.12.0 and Graphviz (the topology-ir-fixtures render-check)?",
+      "options": [
+        { "label": "skip: the npm packages are not in the local cache", "consequence": "the 16 package tests' expected texts follow the rules but no tool parsed them; the goldens themselves were parsed in docs/auto-run/experiments/topology-ir-fixtures/" },
+        { "label": "npm ci from the registry", "consequence": "a network action beyond pub.dev, which the run rules forbid" }
+      ],
+      "chosen": "skip: the npm packages are not in the local cache",
+      "why": "npm ci --offline failed with ENOTCACHED, and the run rules allow no other network action. The renderers' contract is the rule text, which the goldens' parse validated; whether Mermaid and Graphviz accept '&', '|' or '[' inside a quoted label, which no golden holds, is not this phase's guarantee.",
+      "evidence": ["docs/auto-run/experiments/topology-ir-fixtures/render-check/", "docs/auto-run/impl-step-preamble.md Run rules (Dangerous or outside actions)"],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    }
+  ],
+  "experiments": [
+    {
+      "path": "docs/auto-run/experiments/renderers-plan/",
+      "question": "Does the plan, task by task, go red then green in a copy of HEAD ce03308; does the gate then pass with topology-ir@v1 unrestricted at 43 of 43; and which seeded renderer defects does the gate's replay miss that only the package tests catch?",
+      "finding": "Yes. S1: 353 tests, the gate's last command exits 1 with topology-ir behavior 41/43. T1.2: the Mermaid test file fails +0 -8 (UnimplementedError), G22 replay 1 passed 2 failed. T1.4: +361, analyze clean, G22 replay still 1 passed 2 failed, now at GraphvizRenderer.render (renderers.dart 39:41). T2.2: Graphviz file +0 -8. T2.4: +369, analyze clean, G22 3/3, topic-model 41, topology-dsl 24, topology-ir 43, 46 schema documents, 120 fixtures. X: every new file equals its draft after the formatter (formatter-stable), 8 and 8 tests, full suite 1.9 s. G: the gate exactly as written exits 0. C: no UnimplementedError under lib/src/render, no D6 token under lib/, four relative imports, renderers.dart 187 lines, tests 194 + 210 + 270 lines. D: all 16 seeded defects fail at least one package test; 11 also fail the gate's replay; 5 pass it (D4 Mermaid escapes &, D6 anonymous retry as 'retry null', D7 durations of a second or more in whole seconds, D12 repeated arrows collapsed, D13 topic ids keyed by name). The run took 93 seconds (21:36:54Z to 21:38:27Z). defects.py's D14 comment was reworded after the run to match run.sh's label; no replacement changed."
+    }
+  ],
+  "self_check": [
+    { "gate": "The plan's Global Constraints contain constraints 1 to 8 above, verbatim.", "status": "pass", "note": "copied from the derivative's lines 10 to 26; impl-gate's normalized comparison passes" },
+    { "gate": "Every `### Task N:` except the last starts with a failing-test step.", "status": "pass", "note": "Tasks 1 and 2 start with 'Step 1: Write the failing test'; Step 2 records the failing output (+0 -8 and the G22 replay)" },
+    { "gate": "The last task writes the verification doc named in constraint 5.", "status": "pass", "note": "Task 3 writes hsdd/verify/nidana.model.14.verification.md, title '# Verification: nidana.model.14 - Mermaid and Graphviz renderers'" },
+    { "gate": "The plan has at most 5 tasks.", "status": "pass", "note": "3 tasks" },
+    { "gate": "The plan is saved under docs/superpowers/plans/.", "status": "pass", "note": "docs/superpowers/plans/nidana.model.14.md (1130 lines)" },
+    { "gate": "node docs/auto-run/tools/impl-gate.mjs code-plan nidana.model.14", "status": "pass", "note": "0 error(s), 0 warning(s), exit 0, run at 2026-10-27T21:40Z after the plan was written" },
+    { "gate": "writing-plans Self-Review 1: Spec coverage", "status": "pass", "note": "every rule of 'Mermaid and Graphviz rules' (node ids, label lines per part, durations, both escapes and breaks, the part table, the arrow order, newline after every line, two-space indentation) and G22's three clauses map to a test in Task 1 or 2; the Verification line maps to named suite and package tests" },
+    { "gate": "writing-plans Self-Review 2: Step scan", "status": "pass", "note": "every code step gives complete code; an independent extraction applied Task 2's two edits literally to Task 1's block and got the dry run's final 187-line file byte for byte" },
+    { "gate": "writing-plans Self-Review 3: Type consistency", "status": "pass", "note": "names in the Interfaces blocks equal the code (_text, _topicLabel, _topologyLabel, _edgeLabel, _claimLabel, _Arrow, _arrows, _graphvizLabel; the render_support functions)" },
+    { "gate": "writing-plans Self-Review 4: Review Focus", "status": "pass", "note": "five input classes, each with its tests in the owning task and the seeded defect the gate misses" },
+    { "gate": "writing-plans Self-Review 5: Proportion", "status": "pass", "note": "1130 lines, about 870 of them the code the implementers copy, as the run's precedent asks for sonnet implementers; prose sections are short at spot-check" },
+    { "gate": "Run rules: prose", "status": "pass", "note": "no em-dash and not the banned phrase in the plan or in any file of the experiment directory meant for reading; fill_plan.py asserts no em-dash; impl-gate's prose check passes" },
+    { "gate": "Run rules: purity tokens under lib/", "status": "pass", "note": "the draft renderers.dart contains no D6 token in code or comment (C: grep exit 1); purity_test.dart passes in T1.4 and T2.4" }
+  ],
+  "contract_gaps": [
+    {
+      "contract": "topology-ir@v1",
+      "where": "hsdd/contract/fixture/topology-ir/render/ (G22 first clause) and hsdd/contract/topology-ir.md line 273",
+      "problem": "Low, non-blocking, coverage only. No render/ golden holds an anonymous retry, a duration above a second that is not whole seconds, a repeated input (one handle twice into combine or merge), one topic name of two variants, or a character the rules leave as it is beyond '$' and the backslash in Mermaid ('&', '|', '[', ']', a single quote). A renderer that writes 'retry null', rounds 1500ms to 1s, collapses repeated arrows, gives two variants of one name one id, or escapes '&' passes every replay of this node, nidana.model.14's unrestricted one included (S149 dry run, seeded D4, D6, D7, D12, D13). The rule text settles each case; for the anonymous retry, 'the retry's name when it has one' can be misread as 'when the retry has a name', which only the general sentence on anonymous references resolves.",
+      "proposed_fix": "hsdd-contract adds to an existing sample, or adds an eighth sample with its valid/ document and two render/ goldens, holding a switchMap with an anonymous retry, a duration of 1500ms or 1s and 1us, combine2 of one handle twice, two topics of one name and different variants, and a label with & | [ ] and a single quote; and rewords the edge bullet to 'retry and the retry's name, (anonymous) for an anonymous one, when the edge has a retry'. Compatible within v1 (no rule changes). This phase's package tests pin all five meanwhile."
+    }
+  ],
+  "notes_for_orchestrator": [
+    "STATUS: completed. Plan at docs/superpowers/plans/nidana.model.14.md (1130 lines, 3 tasks of the allowed 5). `node docs/auto-run/tools/impl-gate.mjs code-plan nidana.model.14` exits 0 with 0 errors and 0 warnings. Nothing committed. Write set: the plan, docs/auto-run/experiments/renderers-plan/ (run.sh, output.txt, variants.py, defects.py, fill_plan.py, plan.template.md, draft/ with the final renderers.dart and the three test files), and this report. docs/auto-run/impl-execution-plan.md untouched; nothing under hsdd/ touched; no git state changed; flutter never started.",
+    "THE TASKS. Task 1: MermaidRenderer and the private helpers both renderers share (label lines from fields, durations, one arrow walk returning ({from, to, dedup}) records, the text as lines each followed by a newline); creates test/src/render_support.dart and test/mermaid_renderer_test.dart (8 tests). Task 2: GraphvizRenderer and _graphvizLabel; creates test/graphviz_renderer_test.dart (8 tests). Task 3: gate and the spot-check verification doc. Every code block is complete and was spliced from the dry run's drafts by fill_plan.py, so the implementers copy exactly what passed.",
+    "EXPECTED NUMBERS (floors, implementers may add tests): base 353; after Task 1 at least +361; after Task 2 at least +369. G22 replay (`topology-ir --set behavior --guarantee G22`): 1 passed 2 failed before Task 1, still 1 passed 2 failed after Task 1 (by design: both remaining G22 cases call both renderers; after Task 1 they fail at GraphvizRenderer.render, renderers.dart line 39), 3 passed after Task 2. Gate after Task 2: exit 0; structure 102/102; topic-model 41; topology-dsl 24; topology-ir 43 of 43 unrestricted (41 today); 46 schema lines; 120 fixtures 120 passed.",
+    "SEEDED DEFECTS (output.txt section D): every one of 16 fails a package test; five pass the gate's unrestricted topology-ir replay (D4, D6, D7, D12, D13). That is the one contract gap above (low, coverage only, non-blocking), and the plan's Task 3 carries it as a Learning with disposition dropped (reported to hsdd-contract as a low contract gap by S149).",
+    "S148'S PROTOTYPE: I read it as S148 offered. The plan's code was written from the rule text (hsdd/contract/topology-ir.md lines 269 to 287) with its own structure: label functions over fields, escapes per line then joined, one record-returning arrow walk keyed by the whole TopicRef, and each render as one declarative list of lines. Every expected text in the new tests was written by hand from the rules and passed on the first run.",
+    "THE VERIFICATION DOC (Task 3): title '# Verification: nidana.model.14 - Mermaid and Graphviz renderers'; the brief tells the writer to state fix rounds exactly as the controller reports them, so the controller must pass the per-task and final-review fix rounds to the Task 3 implementer. Two planned Learnings (the coverage gap; sizing against about 260 lines in about 3 files), each ending with one disposition and no ')' inside the reason.",
+    "NOT DONE, BY DECISION: topology_graph_test.dart lines 7 and 8 keep a header comment saying the G22 render case waits for nidana.model.14 (stale after this phase; a comment, not a pin). The corner-case renderings were not parsed by Mermaid or Graphviz: the topology-ir-fixtures render-check needs npm packages that are not in the local cache (npm ci --offline: ENOTCACHED), and no network beyond pub.dev is allowed.",
+    "EXECUTION HANDOFF (writing-plans asks the human; the orchestrator takes it): I recommend subagent-driven, as for nidana.model.13: three tasks, Task 2 depends only on Task 1's private helper names given in its Interfaces block, and a per-task reviewer is cheap here because each task's tests are whole-text expectations a reviewer can check against the rule text line by line."
+  ]
+}
