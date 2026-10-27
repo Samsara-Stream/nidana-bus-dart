@@ -206,6 +206,7 @@ a `Task N: complete` line; never re-dispatch them.
 | S135 | implement | superpowers:subagent-driven-development | nidana.model.10: 6 tasks, no fix rounds (one carried ruling), final review ready to merge, one doc-only wave; gate exit 0, 200 tests; topology-ir restricted 10/10 | done | d8efc63; merged into impl/nidana.model as 9fc5a72 |
 | S136 | config | hsdd-config | nidana.model.11 (N=7, spot-check; found the topology-ir restriction's G3 and G7 cases call analyzeTopologyGraph, .12's; governance route S137 to S139) | done | 6bd67bf |
 | S137 | phase-plan | hsdd-phase-plan | nidana.model amend of the unshipped gates (.11 and .13 without G3, G7; reach table over .11 to .14: all pass after) | done | 1c49c76 |
+| S138 | reconcile | hsdd-reconcile | nidana.model pending section (amend of .11 and .13 gates): topology-ir@v1 Delivery, compatible within v1 | done | 708e7df |
 
 ## Notes for the report
 
