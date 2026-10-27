@@ -190,6 +190,7 @@ a `Task N: complete` line; never re-dispatch them.
 | S119 | implement | superpowers:subagent-driven-development | nidana.model.6: 6 tasks, fix rounds on Tasks 4 (late-error false PASS) and 5 (runners.dart split), final review with fixes, one fix wave; gate exit 0, 292 tests, 102/102; behavior --all 112: 102/3/7 | done | cc375a7; merged into impl/nidana.model as 90116bd |
 | S120 | config | hsdd-config | nidana.model.7 (N=8, full-review; the known excerpt-ids warning) | done | e65c944 |
 | S121 | code-plan | superpowers:writing-plans | nidana.model.7 (8 tasks; script form for package commands; 2 contract gaps routed) | done | 0eacc99 |
+| S122 | implement | superpowers:subagent-driven-development | nidana.model.7: 8 tasks, a pre-review amendment on Task 3 (sealed FileEntry), a doc fix round on Task 8, final review with fixes (tests pinned governance content), one fix wave; gate exit 0, 468 tests, 102/102; --all 321: 235/3/83; the replay tool is complete | done | f4a13fd |
 
 ## Notes for the report
 
@@ -234,12 +235,18 @@ Findings the report must carry, written down when found so they survive context 
   - the phase is about 13 times its estimate in lines (3988 insertions in 28 files, against about 300 in 5), as nidana.model.1 and .2 were;
   - the Flutter runner is checked only against a stand-in SDK; the real run is Outstanding, deferred to nidana.flutter.2.
 
+- S122 (nidana.model.7): the replay tool is complete (all seven sets). The phase is about 15 times its line
+  estimate (6902 insertions in 39 files against about 450 in 7); the tool lane as a whole (nidana.model.1, .2,
+  .6, .7) ran 9 to 15 times. None of the 39 committed recorded invocations nor topic-codegen's file replay has
+  run against a real producer (all PENDING until nidana.tooling's packages exist); a recorded invocation runs in
+  place in its `files/` directory under `hsdd/`.
+
 ## Routed to later phases
 
 Items a phase found that belong to a later phase's context or plan; the orchestrator carries each into
 that phase's writing-plans dispatch and strikes it here when the phase's plan covers it.
 
-- nidana.model.6 (behavior set): ADR-001 item 4 says a conformance library imports neither `package:test`
+- nidana.model.6 (behavior set; taken into S118's plan, Task 2): ADR-001 item 4 says a conformance library imports neither `package:test`
   nor `package:flutter_test`; no set of nidana.model.1 checks it (the structure set's list in item 9 does
   not name it). From S101 Task 5's review.
 - nidana.model.2: every item routed by S101 is dispositioned in S103's plan (`docs/auto-run/steps/S103.json`):
@@ -251,7 +258,7 @@ that phase's writing-plans dispatch and strikes it here when the phase's plan co
   and structure rejects stacked markers; every committed reject library is PENDING until its producer exists,
   so the first real reject replay (nidana.model.3's gate) is where a line with two codes would surface, as a
   contract gap for hsdd-adr.
-- nidana.model.6 (from S104's final review): lift the package-configuration read out of `_analyze` into a
+- nidana.model.6 (from S104's final review; taken into S118's plan, Tasks 1 and 5): lift the package-configuration read out of `_analyze` into a
   replay-level step and pass a context record to `_run` (behavior, file and cli also need the package names
   for PENDING); move `SlugPlan` from `analysis.dart` to `run.dart`; reorder the no-slug check after
   `parseRequest` so a usage error exits 64 even with no fixture directory (D2 item 1); consider moving
@@ -297,7 +304,7 @@ that phase's writing-plans dispatch and strikes it here when the phase's plan co
   initializer lists that sort, keeping every parameter name and field type (no call site changes).
 - nidana.model.10 (from S112): remove the two `// ignore: unused_element` on `TransformEdge._` and
   `TopologyDefinition._`; `FunctionRef.named`'s empty-name `ArgumentError`.
-- nidana.model.7 (from S119's final review), since it edits the same shell and `structure.dart`:
+- nidana.model.7 (from S119's final review; taken into S121's plan, Tasks 1 and 5), since it edits the same shell and `structure.dart`:
   `_snapshotsOf` reads a suite slug's whole snapshot, so a read defect in topology-dsl's tree (a dangling link
   where a source is read, a contract text that is not UTF-8) makes a bus-api behavior replay exit 2 with one
   `error:` line and no fixture line for any slug (reproduced in S119's last re-review; reading only the suite
@@ -305,6 +312,29 @@ that phase's writing-plans dispatch and strikes it here when the phase's plan co
   `dart:io` imports only and `relativeClosure` ignores own-package `package:` self-imports; `lenientUtf8` lives
   in `runners.dart` though every process uses it; a contract text that is not UTF-8 exits 2 while an absent one
   is a structure failure (exit 1).
+- End of nidana.model, governance sweep (from S122): ADR-001 item 7 says `files/` "becomes the working directory",
+  and the replay tool runs a recorded invocation in place under `hsdd/contract/fixture/` (required: the committed
+  `files/analysis_options.yaml` enable the plugin by a path relative to `files/`); nothing detects a command that
+  writes there, and `.gitignore` would hide a `.dart_tool/` or `pubspec.lock` it left. An item 7 touch can require
+  a case's command to leave `files/` unchanged, or the tool can compare its listing before and after.
+- End of nidana.model, governance sweep (from S122, nidana.model.7 decisions 3 and 11): nidana.model.7's Scope (1)
+  (hsdd-spec; it glosses ADR-001 item 6, which says only that `## Validation` "names the generator command")
+  says "the backticked span of the contract's `- file:` bullet that holds `{output}`", which names three spans of
+  topic-codegen@v1's bullet, read by the tool as the one that also holds a space (an ADR-001 item 6 touch or
+  topic-codegen@v1's Validation text, compatible, can name the command span instead); item 7's plugin enabled in `files/analysis_options.yaml`
+  is read as a package the case's command runs, which makes the `analyze-*` cases PENDING without
+  `nidana_dart_lint` (an ADR-001 item 7 touch). Both readings are pinned by tests.
+- End of nidana.model, governance sweep (from S122's final review), for the ADR-001 item 9 and 10 touch: the one
+  order of PENDING and the restriction an item 9 touch states must be restriction-first (nidana.tooling.lint.1 to
+  .4 and codegen.9 and .11 depend on it; no gate depends on behavior's PENDING-first); a file replay or recorded
+  invocation that declares no id runs only unrestricted (a reading; it also makes item 10's "falls within exactly
+  one share" vacuous for such a case); a fixture defect fails even when the restriction does not admit the case (a
+  reading, nidana.model.6 decision 5 and nidana.model.7 decision 12); a duplicate Case-table row's ids are
+  ignored, first row wins (a structure-list touch: item 3 says one row); `plugins: # comment` in a case's
+  `files/analysis_options.yaml` reads as no plugin, which turns a PENDING case into a run (item 7 plugin note).
+- nidana.tooling.codegen.6, .9, .11 and nidana.tooling.lint.4 (from S122): the first gates to run the 39 committed
+  recorded invocations and topic-codegen's file replay for real (all PENDING until then); their `{files}` and
+  `{root}` recordings and in-place `files/` runs are first exercised there.
 - End of nidana.model, governance sweep (from S121): ADR-001 item 9's `dart pub get --enforce-lockfile` does not
   make a stale workspace fresh (pub's mtime rule; Dart 3.13.5), so its stated reason is wrong; the replay tool
   runs a `{package}:{executable}` command as `bin/{executable}.dart` of the package's root under the running
@@ -344,7 +374,7 @@ that phase's writing-plans dispatch and strikes it here when the phase's plan co
   list misses `Random.secure(`, `DateTime.timestamp(` (a clock read, verified on the pinned SDK), `Timer.run(`,
   `runZoned`, `Stream.periodic(`, `Future(`; an hsdd-spec touch
   could make the list a floor ("at least").
-- nidana.model.6 (from S106): the topic-model binding already loads against nidana.model.3's declarations
+- nidana.model.6 (from S106; taken into S118's plan, decision 18 and Task 6): the topic-model binding already loads against nidana.model.3's declarations
   (9 cases pass, 32 fail), and not every failure is `UnimplementedError` (some are identity equality or
   `Object.toString`), so nidana.model.6's Verification sentence "cases fail on UnimplementedError, not on
   loading" holds only loosely; its plan should state what it checks.
@@ -353,14 +383,14 @@ that phase's writing-plans dispatch and strikes it here when the phase's plan co
   `// ignore: unused_element` on `RedactedPayload._`, value equality and `toString`).
 - nidana.model.4 and .5 (from S106): no topic-model reject line carries two codes; the two-codes item
   carries on to the topology-dsl and topology-ir reject replays.
-- nidana.model.6 (from S103): invalid UTF-8 in a Dart fixture still exits 2 as an environment error; make it a
+- nidana.model.6 (from S103; taken into S118's plan, Task 2): invalid UTF-8 in a Dart fixture still exits 2 as an environment error; make it a
   fixture failure when the behavior set reworks reading.
-- nidana.model.6 (from S101's final review): validate `--guarantee` ids against the slug's declared
+- nidana.model.6 (from S101's final review; taken into S118's plan, Task 1, the cross-slug coverage item left routed): validate `--guarantee` ids against the slug's declared
   guarantees (a typo admits no case and passes under item 9); a conformance library that no binding in any
   slug imports should cover nothing (needs a cross-slug view: topology-dsl's live suite is bound from
   bus-api); pin `--guarantee=G1`, one-slug `--all` with a bare id, and the usage text once a set reads the
   restriction.
-- nidana.model.7 (from S101's final review): `readSnapshot`'s hidden-entry filter must not leak into the
+- nidana.model.7 (from S101's final review; taken into S121's plan, Tasks 1, 6 and 7): `readSnapshot`'s hidden-entry filter must not leak into the
   byte-for-byte comparisons of `expected/` and `invocation/*/expected/`.
 
 ## Change log
