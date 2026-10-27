@@ -421,14 +421,3 @@ flowchart TD
 ## Governance updates (pending reconcile)
 
 > Reconciled 2026-10-27 by hsdd-reconcile. Drained entries are in git history.
-
-> Emitted by hsdd-phase-plan on 2026-10-27, amending nidana.model.9's Gate
-> in place (nidana.model.9, Scope, Restated 2026-10-27). Drained by
-> hsdd-reconcile; do not apply by hand.
-
-- confirm `topology-dsl@v2` produced_by: [nidana.model.4, nidana.model.9, nidana.model.11]
-  - Unchanged. nidana.model.9's Gate now restricts the topology-dsl@v2 replay to G11, G13 to G17 and G30; nidana.model.11, the last producing phase, replays it unrestricted and is the first to run the recording cases of G9 and G10 that call `buildDefinition()`. G30 still holds from nidana.model.4. No phase of this node is a consumer in the frontmatter's sense, so no consumers entry is emitted.
-- amend `topology-dsl@v2`: in the Delivery paragraph, "nidana.model.9 delivers recording, `planOf`, the stages, sinks and visitors (G10, G11, G13 to G17, and G9 but for `buildDefinition()`); nidana.model.11 delivers `buildDefinition()` and `TopologyPlan.definition` (G9, G12)." reads "nidana.model.9 delivers recording, `planOf`, the stages, sinks and visitors (G11, G13 to G17, and G9 and G10 but for `buildDefinition()`); nidana.model.11 delivers `buildDefinition()` and `TopologyPlan.definition` (G9, G10, G12)."
-  - Compatible: which phase delivers the `buildDefinition()` half of G10, and nothing else. No declaration, guarantee, case or fixture changes; `produced_by` and every consumer's edge are unchanged. G10 names `planOf` and `buildDefinition()`, and the paragraph already gave `buildDefinition()` to nidana.model.11, before which it throws, so no consumer can have relied on its inertness at nidana.model.9; the amend removes that contradiction.
-  - Why: both G10 cases of `behavior/recording_conformance.dart` call `buildDefinition()`, and `TopologyPlan.definition` throws `UnimplementedError` until nidana.model.11 (`TopologyDefinition`'s factory until nidana.model.10), so a replay restricted to G10 fails them at nidana.model.9 whatever it builds: against a dry run of nidana.model.9 the old restriction passed 17 of 19 cases and failed those two, and the Gate with G10 left out exits 0 (`docs/auto-run/experiments/recording-builder-plan/`, T4.4 and G). A restriction selects cases by guarantee id (ADR-001 item 9), which is why G9 was already left out; nidana.model.9's package tests check G9 and G10 for `planOf`.
-  - From nidana.model.9 on, `buildDefinition()` is `planOf(this).definition` (Refinement 2): it throws whatever `planOf` throws, so G15's empty-id case, which expects `StateError` from `buildDefinition()`, passes at nidana.model.9, and `UnimplementedError` for every declaration `planOf` accepts until nidana.model.11. The Delivery wording "but for `buildDefinition()`" covers this: `buildDefinition()` delivers its definition, and with it G9's and G10's cases, at nidana.model.11.
