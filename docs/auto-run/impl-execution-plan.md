@@ -218,7 +218,7 @@ a `Task N: complete` line; never re-dispatch them.
 | S147 | implement | superpowers:subagent-driven-development | nidana.model.13: 4 tasks, 1 fix round (Task 4, the doc's D7 account), final review Ready to merge with a small test and doc wave; gate exit 0, 353 tests; topology-ir restricted 26/26 plus 46 schema documents, unrestricted 41/43 (G22's two renderer cases left for .14) | done | 75e7d70; merged into impl/nidana.model as 102ff8c |
 | S148 | config | hsdd-config | nidana.model.14 (N=5, spot-check; unrestricted replay 41/43 today, the two G22 renderer cases reachable, a prototype reproduced all 14 render/ goldens) | done | 55dedf4 |
 | S149 | code-plan | superpowers:writing-plans | nidana.model.14 (3 tasks; dry run: topology-ir unrestricted 41/43 to 43/43, gate exit 0, 369 tests; 5 of 16 seeded defects caught only by package tests) | done | e817f16 |
-| S150 | implement | superpowers:subagent-driven-development | nidana.model.14: 3 tasks, 1 doc fix round (Task 3, review evidence), final review ready with one doc-line wave; gate exit 0, 371 tests; topic-model 41/41, topology-dsl 24/24, topology-ir 43/43 all unrestricted, 120/120 fixtures; topology-ir@v1 fully produced, the node's code complete | done | 4cbd957 |
+| S150 | implement | superpowers:subagent-driven-development | nidana.model.14: 3 tasks, 1 doc fix round (Task 3, review evidence), final review ready with one doc-line wave; gate exit 0, 371 tests; topic-model 41/41, topology-dsl 24/24, topology-ir 43/43 all unrestricted, 120/120 fixtures; topology-ir@v1 fully produced, the node's code complete | done | 4cbd957; merged into impl/nidana.model as 526fdd0 |
 
 ## Notes for the report
 
@@ -560,3 +560,18 @@ that phase's writing-plans dispatch and strikes it here when the phase's plan co
   judgement commit of an implement step lands on the phase branch before the merge (the orchestrator's
   pending files differ between the phase and node branches); the merge commit is recorded in the next
   step's row.
+- 2026-10-27 (UTC), after S150: every phase of nidana.model is merged (`526fdd0`; the node gate exits 0,
+  371 package tests, topic-model@v1, topology-dsl@v2 and topology-ir@v1 replayed unrestricted, 120/120;
+  `--all` over the tree: 321 fixtures, 238 passed, 0 failed, 83 PENDING for packages of other nodes). The
+  end-of-node governance sweep DEC-1193 promised runs next, on its own branch `impl/nidana.model.sweep` cut
+  from `impl/nidana.model` and merged back with `--no-ff`, one inserted step per owning skill and artifact:
+  S151 hsdd-contract topic-model@v1; S152 hsdd-contract topology-dsl@v2 and nidana-checks@v1; S153
+  hsdd-contract topology-ir@v1 (text, schema and fixtures); S154 hsdd-adr ADR-001; S155 hsdd-spec on
+  `nidana.model.md` and the three other specs S110 names; S156 hsdd-reconcile only if a step leaves pending
+  governance updates. Each takes every "End of nidana.model, governance sweep" entry of "Routed to later
+  phases" for its artifact. The sweep's rule: compatible touches within the current versions only; where a
+  gap needs a rule choice and the shipped code embodies a sound one, the text states the code's choice; a fix
+  that would need a code change or a breaking change is not made but recorded for the owner (the report
+  lists it); a new fixture or case must pass against the shipped package and, where it is meant to pin a
+  seeded defect, fail it in a dry run. Each step's gate: `gate.mjs` for its skill, then the node gate
+  (nidana.model.14's Gate line). The S104 checkpoint entry (sizing) is the owner's, for the report.
