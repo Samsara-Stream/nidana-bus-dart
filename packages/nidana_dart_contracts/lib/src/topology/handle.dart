@@ -4,7 +4,11 @@ part of 'topology.dart';
 /// only by the builder and by its own methods. It has no synchronous value
 /// accessor, is not a Stream and has no listen (G1).
 sealed class TopicStream<T> {
-  TopicStream._();
+  TopicStream._(this._builder);
+
+  // The builder whose declaration made this handle, which records every
+  // stage derived from it (G14, G15).
+  final TopologyBuilder _builder;
 
   TopicStream<R> map<R>(R Function(T value) transform) =>
       throw UnimplementedError();
