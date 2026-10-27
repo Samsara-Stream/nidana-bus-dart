@@ -30,9 +30,20 @@ sealed class Topic<T> {
   final bool sensitive; // Spec §9.2
   final Tracing tracing; // Guide §8.1
   TopicVariant get variant;
-  Type get valueType => T;
-  TopicRef get ref =>
-      throw UnimplementedError(); // TopicRef(name, variant, typeName: '$T')
+  Type get valueType => T; // T
+  // TopicRef(name, variant, typeName: '$T')
+  TopicRef get ref => TopicRef(name: name, variant: variant, typeName: '$T');
+
+  // same variant, name and valueType (G7)
+  @override
+  bool operator ==(Object other) =>
+      other is Topic<Object?> &&
+      other.variant == variant &&
+      other.name == name &&
+      other.valueType == valueType;
+
+  @override
+  int get hashCode => Object.hash(variant, name, valueType);
 }
 
 final class StateTopic<T> extends Topic<T> {
@@ -43,7 +54,9 @@ final class StateTopic<T> extends Topic<T> {
     this.dedup = Dedup.equality,
     super.sensitive = false,
     super.tracing = Tracing.enabled,
-  }) : super._();
+  }) : _constant = initial,
+       _factory = null,
+       super._();
 
   /// A pure factory (Spec §2.5 "Allowed: pure factory"), never called at
   /// construction. When the bus calls createInitial() is bus-api@v2's.
@@ -53,15 +66,24 @@ final class StateTopic<T> extends Topic<T> {
     this.dedup = Dedup.equality,
     super.sensitive = false,
     super.tracing = Tracing.enabled,
-  }) : super._();
+  }) : _constant = null,
+       _factory = initial,
+       super._();
 
   final Dedup dedup;
+
+  // The declared constant, when _factory is null.
+  final T? _constant;
+  final T Function()? _factory;
 
   @override
   TopicVariant get variant => TopicVariant.state;
 
   /// The declared value, or the factory's result for this call (G9).
-  T createInitial() => throw UnimplementedError();
+  T createInitial() {
+    final T Function()? factory = _factory;
+    return factory == null ? _constant as T : factory();
+  }
 }
 
 /// The topics any number of writers may publish to (Spec §2.1, §3.11): the
@@ -116,9 +138,27 @@ final class TopicRef {
   final String name;
   final TopicVariant variant;
   final String typeName;
+
+  // all three fields
+  @override
+  bool operator ==(Object other) =>
+      other is TopicRef &&
+      other.name == name &&
+      other.variant == variant &&
+      other.typeName == typeName;
+
+  @override
+  int get hashCode => Object.hash(name, variant, typeName);
 }
 
 /// Whether [name] follows `domain.entity` or `domain.entity.action`
 /// (Spec §4.4): two or three segments separated by '.', each segment
 /// lowercase kebab case, `[a-z][a-z0-9]*(-[a-z0-9]+)*`.
-bool isWellFormedTopicName(String name) => throw UnimplementedError();
+bool isWellFormedTopicName(String name) {
+  final List<String> segments = name.split('.');
+  return segments.length >= 2 &&
+      segments.length <= 3 &&
+      segments.every(_segment.hasMatch);
+}
+
+final RegExp _segment = RegExp(r'^[a-z][a-z0-9]*(-[a-z0-9]+)*$');
