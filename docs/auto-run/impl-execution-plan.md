@@ -190,7 +190,8 @@ a `Task N: complete` line; never re-dispatch them.
 | S119 | implement | superpowers:subagent-driven-development | nidana.model.6: 6 tasks, fix rounds on Tasks 4 (late-error false PASS) and 5 (runners.dart split), final review with fixes, one fix wave; gate exit 0, 292 tests, 102/102; behavior --all 112: 102/3/7 | done | cc375a7; merged into impl/nidana.model as 90116bd |
 | S120 | config | hsdd-config | nidana.model.7 (N=8, full-review; the known excerpt-ids warning) | done | e65c944 |
 | S121 | code-plan | superpowers:writing-plans | nidana.model.7 (8 tasks; script form for package commands; 2 contract gaps routed) | done | 0eacc99 |
-| S122 | implement | superpowers:subagent-driven-development | nidana.model.7: 8 tasks, a pre-review amendment on Task 3 (sealed FileEntry), a doc fix round on Task 8, final review with fixes (tests pinned governance content), one fix wave; gate exit 0, 468 tests, 102/102; --all 321: 235/3/83; the replay tool is complete | done | f4a13fd |
+| S122 | implement | superpowers:subagent-driven-development | nidana.model.7: 8 tasks, a pre-review amendment on Task 3 (sealed FileEntry), a doc fix round on Task 8, final review with fixes (tests pinned governance content), one fix wave; gate exit 0, 468 tests, 102/102; --all 321: 235/3/83; the replay tool is complete | done | f4a13fd; merged into impl/nidana.model as eb033bb |
+| S123 | config | hsdd-config | nidana.model.8 (N=7, spot-check; produces topic-model@v1, last producing phase; the known excerpt-ids warning) | done | b979378 |
 
 ## Notes for the report
 
