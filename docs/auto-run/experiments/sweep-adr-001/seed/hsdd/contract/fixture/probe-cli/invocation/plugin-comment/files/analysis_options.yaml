@@ -1,0 +1,4 @@
+# The plugins line carries a comment, which YAML allows.
+plugins: # the plugin under test
+  absent_lint:
+    path: ../absent_lint
