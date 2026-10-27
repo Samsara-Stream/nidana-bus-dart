@@ -203,7 +203,13 @@ a `Task N: complete` line; never re-dispatch them.
 | S132 | implement | superpowers:subagent-driven-development | nidana.model.9: 5 tasks, no fix rounds (one carried ruling), final review with doc fixes, one doc-only fix wave; gate exit 0, 147 tests; topology-dsl restricted 17/17 | done | 235c403; merged into impl/nidana.model as e9f2289 |
 | S133 | config | hsdd-config | nidana.model.10 (N=7, spot-check; every restricted case passable here, checked; baseline 1/10) | done | 03f8fd8 |
 | S134 | code-plan | superpowers:writing-plans | nidana.model.10 (6 tasks; dry run: restricted replay 1/10 to 10/10; 2 low contract gaps routed) | done | 3a9e427 |
-| S135 | implement | superpowers:subagent-driven-development | nidana.model.10: 6 tasks, no fix rounds (one carried ruling), final review ready to merge, one doc-only wave; gate exit 0, 200 tests; topology-ir restricted 10/10 | done | d8efc63 |
+| S135 | implement | superpowers:subagent-driven-development | nidana.model.10: 6 tasks, no fix rounds (one carried ruling), final review ready to merge, one doc-only wave; gate exit 0, 200 tests; topology-ir restricted 10/10 | done | d8efc63; merged into impl/nidana.model as 9fc5a72 |
+| S136 | config | hsdd-config | nidana.model.11 (N=7, spot-check; found the topology-ir restriction's G3 and G7 cases call analyzeTopologyGraph, .12's; governance route S137 to S139) | done | 6bd67bf |
+| S137 | phase-plan | hsdd-phase-plan | nidana.model amend of the unshipped gates (.11 and .13 without G3, G7; reach table over .11 to .14: all pass after) | done | 1c49c76 |
+| S138 | reconcile | hsdd-reconcile | nidana.model pending section (amend of .11 and .13 gates): topology-ir@v1 Delivery, compatible within v1 | done | 708e7df |
+| S139 | config | hsdd-config | nidana.model.11 re-run after the gate amend (topology-ir G2,G5,G6,G8 to G12: 17 cases, 7 for .11) | done | d68ad72 |
+| S140 | code-plan | superpowers:writing-plans | nidana.model.11 (5 tasks; dry run gate exit 0: topology-dsl 24/24, topology-ir restricted 17/17; every routed item taken) | done | bba6721 |
+| S141 | implement | superpowers:subagent-driven-development | nidana.model.11: 5 tasks, no fix rounds, final review with fixes, one fix wave; gate exit 0, 235 tests; topology-dsl@v2 fully produced (24/24 unrestricted); topology-ir restricted 17/17 | done | 9119de2 |
 
 ## Notes for the report
 
@@ -372,7 +378,7 @@ that phase's writing-plans dispatch and strikes it here when the phase's plan co
   one-sink check, stages left behind after a rejected call); the contract does not say which error wins when a
   closed builder also gets a bad argument, or what `apply` does with a list of the wrong length (the code checks
   closed first, then arguments, and throws `ArgumentError` on a wrong length). `docs/auto-run/steps/S127.json`.
-- nidana.model.11 (from S132's final review), which edits the DSL library: the builder's `"... is an replay topic"`
+- nidana.model.11 (from S132's final review, which edits the DSL library; taken into S140's plan, Tasks 1 to 4): the builder's `"... is an replay topic"`
   message grammar; `_checkMade` names the argument `handle` without its position (a foreign fourth handle of
   `combine4` reads "Invalid argument (handle)"); use `combiner`, never `apply`, for `FunctionRef.of`; map a stage
   to its edge index by identity (stages keep `Object`'s `==`, G30); expect `TopologyDefinition`'s `ArgumentError`
@@ -391,7 +397,21 @@ that phase's writing-plans dispatch and strikes it here when the phase's plan co
   constructor's assert is an `AssertionError` under `dart test`; G21 allows only `FormatException`), converts the
   IR factories' `ArgumentError` to `FormatException`, and checks raw repeats before `reads`/`writes` Sets and
   `TopologyGraph` collapse them (`invalid/reads_repeat_topic.json`, `invalid/topologies_repeat.json`); the
-  round-trip generators avoid a dedup on an event or replay read and an empty `typeName`.
+  round-trip generators avoid a dedup on an event or replay read and an empty `typeName`. From S141's Task 4
+  review: a decoded document listing one state topic as a sink twice reaches `TopologyDefinition`'s second-sink
+  message, whose tail ("two state topics of one name whose value types render alike ... are one topic in the IR")
+  implied the wrong cause there (reworded in nidana.model.11's final fix wave, S141). From S141's final review: the
+  decoder also converts `ShellClaim`'s rejections (`invalid/claim_*.json`) and `TopologyGraph`'s rejection of
+  unequal definitions sharing an id to `FormatException`, and checks raw repeats of topology ids and of a claim's
+  topics on the JSON lists before constructing (`TopologyGraph` merges equal definitions; a claim's `writes` is a
+  `Set`).
+- nidana.model.12 (from S141's final review): the analyses return unmodifiable lists (G3's case calls
+  `findings.clear()` and expects it to throw); `graph.topologies` is sorted by id with distinct ids,
+  `graph.claims` canonical with equal claims kept (G15's "one entry per claim"), `graph.topics` canonical.
+- nidana.runtime (planning note, from S141's final review): run G23's idempotency check before building the G24
+  graph with the candidate (else an unequal re-activation surfaces `TopologyGraph`'s `ArgumentError` instead of
+  `TopologyConflict`); compute `plan.definition` before claiming or wiring anything, so the rendered-alike
+  `ArgumentError` leaves nothing behind.
 - End of nidana.model, governance sweep (from S132's final review): two `StateTopic`s with one name and value
   types that render alike (one class name from two libraries) pass `planOf` (topology-dsl@v2 G14 compares by
   `Topic` equality, whose `valueType` is a `Type`) but break topology-ir@v1's well-formedness (`TopicRef`
@@ -414,6 +434,13 @@ that phase's writing-plans dispatch and strikes it here when the phase's plan co
   (`invalid/dedup_on_event_read.json`, `typeName` minLength 1), so G20's "decoding a graph's encoding gives the
   graph back" fails for such hand-built graphs; either assert in the constructors as `StageInput` does or narrow
   G20 to graphs the decoder accepts. Plan-made definitions never hold either.
+- End of nidana.model, governance sweep (from S139): nidana.model.10's shipped Scope (spec line 361) and its
+  verification doc (line 70) still say G3 and G7 join the topology-ir restriction at nidana.model.11; S137 moved
+  them to nidana.model.12 (shipped text was left untouched). An hsdd-phase-plan or reconcile touch, or a note.
+  Also (S141 Task 2): D4's directory list gives `lib/src/topic/` to nidana.model.3 and .8 only, but nidana.model.11
+  made a comment-only dartdoc edit to `list_equality.dart` (safe: no phase ran beside it).
+- End of nidana.model, governance sweep (from S140, hsdd-contract on topology-ir@v1, low): no case builds two claims
+  that tie on source and scope, so the writes part of the claim order is never replayed; a compatible case.
 - nidana.tooling.codegen.6, .9, .11 and nidana.tooling.lint.4 (from S122): the first gates to run the 39 committed
   recorded invocations and topic-codegen's file replay for real (all PENDING until then); their `{files}` and
   `{root}` recordings and in-place `files/` runs are first exercised there.

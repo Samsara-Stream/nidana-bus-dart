@@ -1,0 +1,37 @@
+{
+  "step_ref": "S136",
+  "decisions": [
+    {
+      "at": "2026-10-27T15:44:20Z",
+      "artifact": "hsdd/spec/nidana.model.md",
+      "question": "S136 found nidana.model.11's Gate restricts topology-ir to ids including G3 and G7, whose cases at topology_ir_conformance.dart L508 and L821 call analyzeTopologyGraph (nidana.model.12). The gate cannot pass. How does the run proceed, and how does it avoid a third such detour?",
+      "options": [
+        {
+          "label": "Governance route before planning (S137 hsdd-phase-plan amend, S138 hsdd-reconcile, S139 hsdd-config re-run), with S137 checking every remaining unshipped phase's restriction (.11 to .14) against the cases and amending all in one pass",
+          "consequence": "One detour for the rest of the node; nidana.model.12's Gate already lists G3 and G7; shipped phases stay untouched."
+        },
+        {
+          "label": "Amend .11 only",
+          "consequence": "Cheaper now; a later phase could hit the same defect again (as .9 and .11 did)."
+        },
+        {
+          "label": "Implement the analyses in .11",
+          "consequence": "Collides with nidana.model.12's scope and its full-review tier."
+        }
+      ],
+      "chosen": "Governance route before planning (S137 hsdd-phase-plan amend, S138 hsdd-reconcile, S139 hsdd-config re-run), with S137 checking every remaining unshipped phase's restriction (.11 to .14) against the cases and amending all in one pass",
+      "why": "The same defect class hit nidana.model.9 (S127 to S131) and now .11; a one-pass check of the remaining restrictions costs one experiment and prevents another detour. Precedent S128 to S130.",
+      "evidence": [
+        "docs/auto-run/steps/S136.json contract_gaps",
+        "hsdd/contract/fixture/topology-ir/behavior/topology_ir_conformance.dart L508, L821",
+        "hsdd/contract/topology-ir.md Delivery",
+        "hsdd/spec/nidana.model.md nidana.model.11 and .12 Gates"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": true,
+      "stop_class": "shape",
+      "would_upstream": false
+    }
+  ]
+}

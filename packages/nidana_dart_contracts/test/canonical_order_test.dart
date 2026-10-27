@@ -264,7 +264,7 @@ void main() {
     );
     final Directory ir = Directory('${packageDirectory().path}/lib/src/ir');
     expect(<String>[
-      for (final FileSystemEntity f in ir.listSync())
+      for (final FileSystemEntity f in ir.listSync(recursive: true))
         if (f is File && graph.hasMatch(f.readAsStringSync())) f.path,
     ], isEmpty);
   });

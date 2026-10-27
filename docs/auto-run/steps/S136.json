@@ -1,0 +1,190 @@
+{
+  "step_ref": "S136",
+  "skill": "hsdd-config",
+  "target": "nidana.model.11",
+  "status": "completed",
+  "stop": null,
+  "artifacts": [
+    "hsdd-context/nidana.model.11.md",
+    "hsdd-context/superpowers/nidana.model.11.md"
+  ],
+  "decisions": [
+    {
+      "at": "2026-10-27T15:39:58Z",
+      "artifact": "hsdd-context/nidana.model.11.md",
+      "question": "This phase produces two contracts, topology-dsl@v2 and topology-ir@v1, the first phase of the node to do so (nidana.model.3 to .10 each produce at most one). The skill's Discipline template has one Contract replay line with one slot, 'reproduces the fixtures of {each produced contract-id@version}', and its Quality Gates say the line 'names every produced contract'. How is the slot filled for two?",
+      "options": [
+        {
+          "label": "One line, 'A and B' in Produces order",
+          "consequence": "The template text is unchanged except the slot: '... reproduces the fixtures of topology-dsl@v2 and topology-ir@v1.' Two lines of the file, wrapped as the template wraps. No sentence of my own."
+        },
+        {
+          "label": "One line, 'A, B' comma separated",
+          "consequence": "Also one line and one slot, but a comma list of two contracts reads as a list of fragments and is a formatting choice the template does not make either."
+        },
+        {
+          "label": "One line per produced contract",
+          "consequence": "Repeats the template's sentence twice with one id each. Each id has a place, but the file then carries a second copy of template text the skill does not describe, and the equality of 'one Contract replay line' in the Quality Gates is bent."
+        }
+      ],
+      "chosen": "One line, 'A and B' in Produces order",
+      "why": "The skill gives one line and one slot and says every produced contract gets 'a place in the replay line'; for exactly two ids 'topology-dsl@v2 and topology-ir@v1' is the plain reading and the order is the order the phase's Produces names. Neither contract has a `validation:` field in its frontmatter (both status stable, phase_ids final), so no Grandfathered line is owed. impl-gate does not parse the line (grep of docs/auto-run/tools finds no 'reproduces the fixtures'). The generator I wrote joins three or more ids with commas and a final 'and', which this phase does not exercise. What would have changed my mind: a skill or gate wording that requires one line per contract.",
+      "evidence": [
+        ".claude/skills/hsdd-config/SKILL.md lines 159-160, 197-199, 466",
+        "hsdd-context/nidana.model.3.md, .4.md, .5.md, .8.md, .9.md, .10.md (one produced contract each)",
+        "hsdd/contract/topology-dsl.md and topology-ir.md frontmatter (no validation field)",
+        "docs/auto-run/tools/impl-gate.mjs (no check of the line)"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T15:39:58Z",
+      "artifact": "hsdd-context/nidana.model.11.md",
+      "question": "Which OQ ids enter the Open questions section? The phase block cites none (its Scope, Gate and Verification contain no 'OQ'). The contracts in the Contracts section cite OQ-M3 (topic-model@v1 lines 133 and 397), OQ-M1 (topology-ir@v1 lines 26, 180 and 451; topology-dsl@v2 lines 29 and 477) and OQ-M2 (topology-dsl@v2 lines 35, 422 and 449). nidana.model.10 (S133) carried OQ-M1 and OQ-M3 because topology-dsl@v2 was not among its contracts; nidana.model.5 and .9 carried all three.",
+      "options": [
+        {
+          "label": "OQ-M1, OQ-M2 and OQ-M3",
+          "consequence": "Exactly the ids the phase's contracts cite, three lines copied whole from the node's table (hsdd/spec/nidana.model.md lines 48 to 50), the section nidana.model.5 (S114) and nidana.model.9 (S126, S130) carry."
+        },
+        {
+          "label": "OQ-M1 and OQ-M3",
+          "consequence": "Matches S133's section for nidana.model.10, but drops OQ-M2, which topology-dsl@v2's Refinement 3, its Interface and G18 cite, so the file would name OQ-M2 inside an excerpt with no line."
+        },
+        {
+          "label": "No Open questions section",
+          "consequence": "Drops all three, though the excerpts decide them. The skill omits the section only when there are none."
+        }
+      ],
+      "chosen": "OQ-M1, OQ-M2 and OQ-M3",
+      "why": "The skill selects 'only the ids the phase or its contracts cite'; a grep for 'OQ-' over the three contracts finds all three and the phase block none. The S133 set was right for a phase whose contracts were topic-model@v1 and topology-ir@v1; this phase adds topology-dsl@v2, which cites OQ-M2, as nidana.model.5 and .9 did. All three rows are RESOLVED. What would have changed my mind: nothing found; the rule is explicit.",
+      "evidence": [
+        "hsdd/spec/nidana.model.md (Open questions table; ### nidana.model.11)",
+        "hsdd/contract/topic-model.md lines 133, 397",
+        "hsdd/contract/topology-ir.md lines 26, 180, 451",
+        "hsdd/contract/topology-dsl.md lines 29, 35, 422, 449, 477",
+        "docs/auto-run/steps/S114.json, S126.json, S130.json, S133.json"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T15:41:01Z",
+      "artifact": null,
+      "question": "The restriction check found that two of the 21 cases the gate's topology-ir replay admits, G3's first case (L508) and G7's second (L821), call analyzeTopologyGraph, which nidana.model.12 implements, so the gate's last command cannot exit 0 after this phase whatever it builds. What does this step do: record contract gaps and complete the switch from the governance as written, stop, or edit the Gate in the context?",
+      "options": [
+        {
+          "label": "Record contract gaps, complete the switch from the governance as written",
+          "consequence": "The context carries the Gate and Scope as the node spec states them (Rule 1, selection only). The orchestrator routes the gap to hsdd-phase-plan (an in-place restatement, as S128 did for nidana.model.9) and re-runs config afterwards (as S130 did), before writing-plans. Same path as S126 to S130."
+        },
+        {
+          "label": "Stop with run-stop-candidate",
+          "consequence": "Halts the run for a defect the run already has a route for (S127, S128, S129, S130). The skill has no rule that makes a gate defect a stop, and the brief says to record such cases as contract gaps."
+        },
+        {
+          "label": "Edit the Gate and Scope in the context to drop G3 and G7",
+          "consequence": "A context that disagrees with the node spec: my own authorship in a file that must be a verbatim excerpt (Rule 1), and the writing-plans session would build to a gate the plan does not state."
+        }
+      ],
+      "chosen": "Record contract gaps, complete the switch from the governance as written",
+      "why": "The brief orders the check and the gap record, and S126 to S130 show the route. The two cases are evidence-backed by their lines: L512 `analyzeTopologyGraph(g)` is called before any assertion of G3's first case, and L832 `expect(analyzeTopologyGraph(a), analyzeTopologyGraph(b))` is inside G7's second; hsdd/spec/nidana.model.md says nidana.model.12 implements that function and its Gate lists G3 and G7 there. The other 19 admitted cases are reachable from this phase's Scope. What would have changed my mind: a fixture or a plan wording that put the analyses in this phase.",
+      "evidence": [
+        "hsdd/contract/fixture/topology-ir/behavior/topology_ir_conformance.dart L508-L537 (call at L512), L821-L855 (call at L832)",
+        "packages/nidana_dart_contracts/lib/src/analysis/analyses.dart (analyzeTopologyGraph throws UnimplementedError)",
+        "hsdd/spec/nidana.model.md ### nidana.model.10 Scope (last sentence), ### nidana.model.11 Gate, ### nidana.model.12 Scope and Gate",
+        "hsdd/contract/topology-ir.md Delivery paragraph and G3, G7, G17",
+        "scratchpad s136/ir-restricted.out, s136/scan.py output",
+        "docs/auto-run/steps/S126.json to S130.json"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    }
+  ],
+  "experiments": [],
+  "self_check": [
+    {
+      "gate": "The generic file exists at `hsdd-context/{phase-id}.md`, named by the full phase id, with a stamp naming the spec SHA (and `-dirty` when it applies).",
+      "status": "pass",
+      "note": "hsdd-context/nidana.model.11.md (1517 lines); stamp {\"phase\":\"nidana.model.11\",\"spec\":\"9fc5a72\",\"date\":\"2026-10-27\"}. `git -C hsdd status --porcelain -- spec contract adr conventions.md` printed nothing, so no -dirty. hsdd/ is a plain directory, so the spec SHA is the repository HEAD, the merge of nidana.model.10."
+    },
+    {
+      "gate": "Every line in it is a verbatim excerpt, template text, or a link.",
+      "status": "pass",
+      "note": "Generated by a selection-only script (gen_context.py, session scratchpad s136, not in the repository), which first reproduced hsdd-context/nidana.model.10.md, .9.md and .8.md and their derivatives byte for byte from the current tree. Independent check (s136/check.py) on the new file: the Interface and Guarantees bodies of topic-model@v1 (351 and 27 lines), topology-dsl@v2 (387 and 30) and topology-ir@v1 (397 and 23), the Decision and Consequences bodies of ADR-001 (39, 15), ADR-002 (84, 15) and ADR-003 (38, 14), and the 10-line phase block each occur verbatim; a line-origin check found every non-blank line in the node spec, a contract, an ADR or the skill's text except 27 expected ones (the stamp, title, Goal, Node, Owns, Does not own and Isolation lines, the three contract and three ADR subsection headings, the three OQ lines, the two template-filled Discipline lines, and the Links lines). Neither file contains an em-dash character or the banned phrase."
+    },
+    {
+      "gate": "The self-contained gate passed: every contract, ADR and OQ id named has its text inline, or its external one-liner.",
+      "status": "pass",
+      "note": "Passes under the reading S98 to S133 applied (Rule 2 applied to the ids the file selects, not to citations inside mandated excerpts or the Phase block): topic-model@v1, topology-dsl@v2 and topology-ir@v1 in Contracts, ADR-001, ADR-002 and ADR-003 in Decisions, OQ-M1, OQ-M2 and OQ-M3 in Open questions. A literal Rule 2 flags, all inside verbatim excerpts: contract ids bus-api@v2, bus-testing@v2, flutter-binding@v2, navigation-api@v1, nidana-checks@v1, topic-codegen@v1; OQ ids OQ-F1, OQ-R1, OQ-T2, OQ2, OQ7, OQ8, OQ9, OQ12 (ADR text only); phase ids of other phases (nidana.model.1 to .8 and .12 to .14, nidana.flutter.1, nidana.runtime.12). impl-gate prints one warning, for the six contract ids. Nothing was paraphrased, dropped or inlined to satisfy the check."
+    },
+    {
+      "gate": "The derivative for the method was written, and the equality check printed nothing.",
+      "status": "pass",
+      "note": "hsdd-context/superpowers/nidana.model.11.md (1555 lines). `diff <(tail -n +2 hsdd-context/nidana.model.11.md) <(sed -n '/hsdd-phase-context:begin/,/hsdd-phase-context:end/p' hsdd-context/superpowers/nidana.model.11.md | sed '1d;$d')` printed nothing (exit 0)."
+    },
+    {
+      "gate": "For OpenSpec, the project-wide context and `rules:` are unchanged.",
+      "status": "n/a",
+      "note": "Coding method is superpowers; there is no openspec/ directory and none is created (conventions, Execution setup)."
+    },
+    {
+      "gate": "For superpowers, the Global Constraints and Plan check are filled, with no braces left.",
+      "status": "pass",
+      "note": "N=7 (Size estimate '<= 7 plan tasks'), the full gate command in constraint 4, the spot-check tier line, no constraint 9 (conventions: no Dart tech skill installed), Plan check 'constraints 1 to 8' and 'at most 7 tasks'. The only braces in the derivative's head (before the begin marker) are the stamp's JSON; impl-gate config found no unfilled placeholder."
+    },
+    {
+      "gate": "Every stop (missing ADR, missing default gate, contingent phase) was honored; every warning is in the report.",
+      "status": "pass",
+      "note": "No stop applied: the phase's Gate is explicit (not `node default`); ADR-001, ADR-002 and ADR-003 exist and are accepted; the node's Governance updates section reads 'Reconciled 2026-10-27 by hsdd-reconcile' with no entry, so no request names the phase or lists it as contingent. The profile check does not apply (standalone-spec-repo is not used). Warnings and the blocking gate defect are in notes_for_orchestrator and contract_gaps."
+    },
+    {
+      "gate": "`hsdd/templates/verification.md` exists after the switch and has `## Learnings` (copied in step 7 if missing, replaced if it was a pre-v0.10 copy), and the report says which.",
+      "status": "pass",
+      "note": "hsdd/templates/verification.md already existed (S98), has `## Learnings` and is byte-identical to .claude/skills/hsdd-config/templates/verification.md (cmp printed nothing). Nothing was copied or replaced."
+    },
+    {
+      "gate": "The Contract replay line names every produced contract, and every produced contract with `validation: grandfathered` has its own Grandfathered line; both omitted only when they have nothing to say.",
+      "status": "pass",
+      "note": "The Contract replay line names topology-dsl@v2 and topology-ir@v1, the phase's two produced contracts (decisions[0]). Neither frontmatter has a `validation:` field (status stable, phase_ids final), so no Grandfathered line is owed. That the gate runs topology-dsl unrestricted and restricts the topology-ir replay to G2, G3, G5 to G12 is in the Phase block's Gate and Scope."
+    }
+  ],
+  "contract_gaps": [
+    {
+      "contract": "topology-ir@v1, and nidana.model.11's Gate and Scope in hsdd/spec/nidana.model.md",
+      "where": "hsdd/contract/fixture/topology-ir/behavior/topology_ir_conformance.dart line 508, case 'G3 every collection the IR, graphs, claims and findings expose is unmodifiable'; the case calls `analyzeTopologyGraph(g)` at line 512 over the `findings` sample, then asserts on the returned list and on the lists of its TopologyCycle, SelfReference and WriterConflict findings (lines 523-535). The Gate: `fvm dart run nidana_contract_check topology-ir --guarantee G2,G3,G5,G6,G7,G8,G9,G10,G11,G12`.",
+      "problem": "Blocks the gate. The restriction selects cases by guarantee id (ADR-001 item 9), so it admits both of G3's cases. This one calls analyzeTopologyGraph, whose body (packages/nidana_dart_contracts/lib/src/analysis/analyses.dart) throws UnimplementedError and is nidana.model.12's work (its Scope, G17). Nothing in nidana.model.11's Scope can make the case pass, so the Gate's last command exits 1 after this phase whatever it builds. nidana.model.10's Scope says G3 and G7 join the restriction here 'because their cases also cover graphs and claims' and notes the analyses only for G23; the G3 and G7 cases run them too. Today's baseline: of the 21 admitted cases 11 pass and 10 fail; 8 of the 10 are reachable from this phase's Scope.",
+      "proposed_fix": "Route to hsdd-phase-plan as an in-place restatement of nidana.model (the S128 route), then re-run config for nidana.model.11 (the S130 route): (a) restate nidana.model.11's Gate to `fvm dart run nidana_contract_check topology-ir --guarantee G2,G5,G6,G8,G9,G10,G11,G12` and its Scope so that G3 and G7 are implemented and pinned by the package's own tests here but join the restriction at nidana.model.12; (b) restate nidana.model.12's Scope, whose joins sentence names G23 only, to add G3 and G7 because their cases call analyzeTopologyGraph (its Gate already lists both, as does nidana.model.13's); (c) restate nidana.model.10's Scope sentence 'G3 and G7 join the restriction at nidana.model.11, because their cases also cover graphs and claims'; (d) optionally add to topology-ir@v1's Delivery paragraph, through hsdd-reconcile, that G3 and G7 are delivered by nidana.model.11 and first replay at nidana.model.12. Alternative with a larger blast radius: hsdd-contract moves the analyses assertions out of the two cases into cases under G17 or G23 (a fixture edit, ADR-001 item 8), so that G3 and G7 can run at nidana.model.11."
+    },
+    {
+      "contract": "topology-ir@v1, and nidana.model.11's Gate and Scope in hsdd/spec/nidana.model.md",
+      "where": "hsdd/contract/fixture/topology-ir/behavior/topology_ir_conformance.dart line 821, case 'G7 graphs, claims, declarations and findings are equal, with equal hash codes, exactly when their fields are'; the case calls `analyzeTopologyGraph` twice at line 832, inside `expect(analyzeTopologyGraph(a), analyzeTopologyGraph(b))`, on two `findings` sample graphs. G7's other case (line 774, IR values) passes today.",
+      "problem": "The same defect as the entry above, for G7: the case needs the analyses of nidana.model.12, so the Gate's last command cannot exit 0 after nidana.model.11. Together with G3's case this is every case of the restriction that nidana.model.11 cannot deliver; the other 19 are reachable (see notes_for_orchestrator).",
+      "proposed_fix": "As the entry above: the one restatement of the Gate and Scopes covers both cases."
+    }
+  ],
+  "notes_for_orchestrator": [
+    "hsdd-config report, phase nidana.model.11, method superpowers. STATUS: completed, WITH A BLOCKING GATE DEFECT TO ROUTE BEFORE writing-plans (contract_gaps, two entries; see 'THE GAP' below). Files written: hsdd-context/nidana.model.11.md (generic phase context, 1517 lines, 150586 bytes) and hsdd-context/superpowers/nidana.model.11.md (superpowers derivative, 1555 lines, 152870 bytes); both new, untracked, not committed. hsdd/templates/verification.md already existed (S98), has `## Learnings` and is identical to the skill's template, so nothing was copied or replaced. Spec SHA: 9fc5a72 (git -C hsdd rev-parse --short HEAD; hsdd/ is a plain directory, so this is the repository HEAD, the merge of nidana.model.10); clean, no -dirty warning. Stamp date 2026-10-27 (UTC and local agree). N (plan task cap): 7, from the phase's Size estimate '<= 7 plan tasks'. Review tier spot-check. Gate command (constraint 4 of the derivative and the Gate line of the Phase block): `fvm dart pub get --enforce-lockfile && fvm dart analyze --fatal-infos && fvm dart run nidana_contract_check --all --set structure && fvm dart test packages/nidana_dart_contracts && fvm dart run nidana_contract_check topic-model topology-dsl && fvm dart run nidana_contract_check topology-ir --guarantee G2,G3,G5,G6,G7,G8,G9,G10,G11,G12`.",
+    "SESSION START LINE: Use superpowers:writing-plans to plan hsdd-context/superpowers/nidana.model.11.md . Do not send it until THE GAP is routed (or the owner accepts a gate whose last command exits 1), and regenerate the two files after any restatement (the Phase block, Goal and Gate lines change).",
+    "GATE THE ORCHESTRATOR RUNS: `node docs/auto-run/tools/impl-gate.mjs config nidana.model.11`. Run after the two files were written and before this report existed it printed 0 errors and 1 warning: contract ids named without a Contracts subsection, all inside verbatim excerpts (bus-api@v2, topic-codegen@v1, nidana-checks@v1, flutter-binding@v2, navigation-api@v1, bus-testing@v2), the same kind as S111, S126 and S133. No ADR warning this time: the phase names ADR-003 itself, so ADR-001, ADR-002 and ADR-003 all have Decisions subsections. N = 7 plan tasks. The write set was the two context files plus this report.",
+    "THE GAP (blocks the gate, routes like S127 to S130). Two of the 21 cases the gate's topology-ir replay admits call analyzeTopologyGraph, which nidana.model.12 implements: G3's first case (L508, call at L512) and G7's second (L821, call at L832); both use the `findings` sample, and G3's also pattern-matches on the findings it gets back. ADR-001 item 9 selects by guarantee id, so G3 and G7 bring both their cases in. The Gate's last command therefore exits 1 after nidana.model.11 whatever it builds; nidana.model.10's Scope says G3 and G7 join here 'because their cases also cover graphs and claims' and names the analyses only for G23 (its Verification doc, line 70, words it more loosely but also puts both at nidana.model.11). Recommended fix (details in contract_gaps[0].proposed_fix): hsdd-phase-plan restates nidana.model.11's Gate to `--guarantee G2,G5,G6,G8,G9,G10,G11,G12` (and its Scope), nidana.model.12's Scope (G3 and G7 join there; its Gate already lists them, as does nidana.model.13's) and nidana.model.10's Scope sentence; then S136 is re-run, as S130 re-ran S126. Under that fix the restriction also loses G3's other case (L539, reachable, but G3 leaves as a guarantee), so nidana.model.11's package tests must pin G3's and G7's semantics themselves (unmodifiable copies of graphs, claims and findings; value equality and hash codes of definitions, graphs, claims, declarations and findings; graph equality ignoring argument order), as nidana.model.10's did for the IR values; the G8, G11 and G12 cases the restriction keeps still replay the projection, TopologyGraph and ShellClaim.",
+    "RESTRICTION CHECK, topology-dsl@v2 UNRESTRICTED (`fvm dart run nidana_contract_check topology-dsl`, read-only, run at 2026-10-27T15:37:11Z; output in scratchpad s136/dsl-unrestricted.out). 28 fixtures, 27 passed, 1 failed, exit 1: structure, surface and reject pass; the behavior set runs ONE binding, hsdd/contract/fixture/topology-dsl/behavior/topology_builder_test.dart, which imports recording_conformance.dart only, 24 cases, 19 passed and 5 failed. live_conformance.dart (G18 to G29) is only a library here: it passes `structure` and is not run, because its binding is bus-api@v2's bus_activation_test.dart (hsdd/contract/topology-dsl.md Validation, 'live binding'; bus-api.md line 433), so the unrestricted replay runs the recording suite only, as the brief states. The five failures all call buildDefinition() or TopologyPlan.definition, whose bodies throw UnimplementedError until this phase (plan.dart line 39): L279 G9 'buildDefinition runs declare once and equals the definition of a fresh plan'; L310 G10 'recording calls none of the functions a declaration passes'; L321 G10 'recording creates no timer and schedules no microtask'; L488 G12 'the definition reads the topics of the read stages and writes the topics of the sinks'; L501 G12 'a topic read twice is read once, and a declaration with no stages reads and writes nothing'. EVERY ONE CAN PASS within this phase's Scope (the projection by the five From a plan rules behind definition and buildDefinition(), calling none of the plan's functions, scheduling nothing); none calls an analysis, the codec or a renderer (token scan s136/scan.py over all 24 case bodies). They need IR value equality and FunctionRef.of, both merged at nidana.model.10. The 19 that pass today and must stay green: G9 L264 and L291; G11 L353, L375, L430, L451, L478; G13 L517, L527; G14 L547, L572, L597, L624; G15 L640, L658, L668 (L658 also calls buildDefinition() on an empty id, where planOf throws StateError first); G16 L683; G17 L706; G30 L718. No contract gap for topology-dsl@v2.",
+    "RESTRICTION CHECK, topology-ir@v1 RESTRICTED to G2,G3,G5,G6,G7,G8,G9,G10,G11,G12 (run at 2026-10-27T15:38:05Z; output in scratchpad s136/ir-restricted.out). 61 fixtures, 60 passed, 1 failed, exit 1: structure, surface, reject and schema pass; the behavior binding (nidana_dart_contracts_test.dart) runs 21 cases, 11 passed and 10 failed. Case by case (line, what it calls, verdict). PASS TODAY AND STAY GREEN (11): L500 G2 CombinatorKind.values; L581, L607, L659 G5 TransformEdge.stage, write and reduceInto; L687, L714 G6 TopologyDefinition; L774 G7 IR value equality; L934, L945, L960 G9 FunctionRef.of; L972 G10 isStateBearing. FAIL TODAY AND REACHABLE FROM THIS PHASE'S SCOPE (8): L539 G3 'the IR copies the lists it is given' (TopologyGraph and ShellClaim constructors, unmodifiable copies; Scope G3); L858 G8 CheckoutFlow().buildDefinition() against a hand-built definition (projection, rules 1 to 5); L875 G8 every combinator via buildDefinition() against 30 hand-built edges (I checked the expected list edge by edge against the five rules, stage order and sink order, including the anonymous closure at edge 18, 'label' for the method tear-off at edge 20 and the second read of `every.taps` as a TopicInput; it agrees); L923 G8 two recordings project equal definitions with equal hash codes; L1017 G11 TopologyGraph ordering, duplicates, topics and toGraph(); L1035 G11 two unequal definitions with one id throw ArgumentError; L1044 G11 claim order from the `claims_only` sample (ShellClaim and TopologyGraph only, no buildDefinition); L1060 G12 ShellClaim sources, scope default, state-topic rule. FAIL TODAY AND NOT REACHABLE (2): L508 G3 and L821 G7, because they call analyzeTopologyGraph (nidana.model.12): contract_gaps. Not admitted and not checked: G4 (L566, the codec, nidana.model.13), G13 to G18 (the analyses, nidana.model.12), G19 to G21 (the codec), G22 (the renderers, nidana.model.14) and G23 (L1508, runs the analyses over the `findings` sample, joins at nidana.model.12). No admitted case calls the codec, a renderer, expectMatchesSchema, jsonEncode or jsonDecode.",
+    "BASELINE (facts read at 9fc5a72, all read-only, outputs in the session scratchpad s136/, not in the repository): `fvm dart pub get --enforce-lockfile` exit 0; `fvm dart analyze --fatal-infos` 'No issues found!'; `--all --set structure` 102 fixtures passed; `fvm dart test packages/nidana_dart_contracts` 200 tests passed (147 at S133, before nidana.model.10's tests); `fvm dart run nidana_contract_check topic-model` 31 fixtures passed; the topology-dsl and topology-ir runs above. `git status` after all runs showed only the pre-existing modification of docs/auto-run/impl-execution-plan.md and the new files, so the replays touched nothing tracked. The gate's `topology-dsl` and `topology-ir` commands are the red the plan's tests start from: the 5 recording failures and the 8 reachable IR failures, each an UnimplementedError from plan.dart, graph.dart (ShellClaim, TopologyGraph, toGraph() and render) or the stubs this phase fills.",
+    "NEXT-RUNNABLE, RECONCILE AND TEMPLATE CHECKS (no stop, no warning): hsdd/verify/nidana.model.11.verification.md does not exist, so the phase is not done; its dependencies nidana.model.9 (verification doc, merge e9f2289) and nidana.model.10 (verification doc, merge 9fc5a72) are done, and nidana.model.1 to .10 all have verification docs and merges. topic-model@v1, topology-dsl@v2 and topology-ir@v1 are status stable with phase_ids final (not draft, not provisional), and both produced contracts name nidana.model.11 in produced_by (topology-dsl@v2 as its last producing phase, topology-ir@v1 as the third of six). The node's Governance updates section has no entry, so no request names a contract of this phase and the phase is listed under no request's contingent phases.",
+    "CONTRACTS SECTION: three subsections in the skill's order, topic-model@v1 (consumes), topology-dsl@v2 (produces) and topology-ir@v1 (produces), each stable, each with its Interface and Guarantees bodies verbatim and untruncated (351 + 27, 387 + 30 and 397 + 23 lines); whole-contract inclusion follows S114, S126 and S133 and is not a new decision. DECISIONS SECTION: ADR-001, ADR-002 and ADR-003 (the phase's Governed by names all three), each once in number order, all accepted, so none carries 'Not binding until accepted.' OPEN QUESTIONS SECTION: OQ-M1, OQ-M2 and OQ-M3, all RESOLVED (decisions[1]). The context is the longest of the node after nidana.model.5 (1504 lines); the plan can treat topic-model@v1 as read-only reference beyond the types the IR and the plan name (TopicRef, Dedup, Scope, MessageSource).",
+    "SETUP, present for review. Docs used: hsdd/conventions.md (Coding method: superpowers; standalone-spec-repo not used; Phase design: plan-task ceiling, gate-command rules; Companion skills, no Dart tech skill); hsdd/spec/nidana.model.md (node field block, the Default gate line, the ### nidana.model.11 section and its neighbours .9, .10, .12 to .14 for the restriction wording, the Open questions table, D1 to D6, the Governance updates section); hsdd/contract/topic-model.md, topology-dsl.md and topology-ir.md (frontmatter, Interface, Guarantees, Versioning and Validation); the two conformance libraries and the two bindings under hsdd/contract/fixture/topology-dsl/behavior/ and topology-ir/behavior/; hsdd/adr/001, 002 and 003; hsdd/verify/nidana.model.9 and .10 verification docs (Learnings, for the plan writer); docs/auto-run/steps/S114, S126 to S130 and S133 (precedent) and S123; CLAUDE.md. The skill-to-step mapping is OpenSpec-only and was not used. Coding method: superpowers, from conventions. The other eight node specs were not read.",
+    "METHOD: S130's generator lives in a session scratchpad that no longer exists, so I rewrote it (gen_context.py, selection only, in the scratchpad s136/, not in the repository) and validated it first: from the current tree it reproduces hsdd-context/nidana.model.10.md, .9.md and .8.md and their superpowers derivatives byte for byte (with their own stamps), and .3, .4 and .5 except the contracts' Delivery paragraphs, which hsdd-reconcile has rewritten since. The new files were then checked independently (s136/check.py, see self_check). The replay runs and the token scans were read-only; no experiment under docs/auto-run/experiments was needed (the step turns on no runtime fact the repository's experiments do not already state), so experiments is empty.",
+    "NODE-LOCAL DECISIONS NOT INLINE (same template gap as S102 to S133; precedent followed, not a new decision): the Scope cites no D; the gate follows D5 (this phase's closure is nidana.model.1 to .10, so topic-model@v1 and topology-dsl@v2 run unrestricted, topology-dsl@v2 because this is its last producing phase, and topology-ir@v1 runs restricted to the guarantees delivered so far); D3 says `==` and `hashCode` stay Object's until the delivering phase, which for graphs and claims is this one; D4 places the files (lib/src/ir/ for the projection and visitor, lib/src/graph/ for ShellClaim and TopologyGraph, the `definition` body in lib/src/topology/, with nidana.model.4, .5 and .9 as the Collides with entries); D6's purity_test.dart runs in the gate. They are in hsdd/spec/nidana.model.md (D3 line 102, D4 line 112, D5 line 128, D6 line 135). I recommend the writing-plans prompt names D3, D4, D5 and D6 beside the derivative's path.",
+    "FOR THE PLAN WRITER (facts read, not decided). (1) The ignore comments to remove: ShellClaim._ and TopologyGraph._ in lib/src/graph/graph.dart carry `// ignore: unused_element` for 'once nidana.model.11 lands it' (also routed in docs/auto-run/impl-execution-plan.md line 314). (2) Learnings of nidana.model.10's verification doc that name this phase: two state topics whose value types render alike (one class name in two libraries) pass planOf, because topology-dsl@v2's G14 compares by Topic equality, but are one TopicRef to the IR, so the projection of such a plan raises ArgumentError from the TopologyDefinition factory, against the closing sentence of 'From a plan'; its disposition is routed to nidana.model.11 and the end-of-node sweep, and no conformance case covers it; the S135 review note to sort claims with compareClaimKeys over a claim's source (verification doc line 65). (3) docs/auto-run/impl-execution-plan.md lines 375 to 378 route S132's final-review notes to this phase, which edits the DSL library: the builder's '... is an replay topic' message grammar, the `handle` argument name in _checkMade, use `combiner` and never `apply` for FunctionRef.of, and map a stage to its edge index by identity (stages keep Object's `==`, G30). (4) nidana.model.9's Learning on case selection applies in reverse here: the unrestricted topology-dsl replay is the first to run G9's projection case, G10's two cases and G12's two, so those five are this phase's own red-to-green; the restricted topology-ir replay runs the rest. (5) Both merged neighbours measured their diffs far above the line estimate (nidana.model.9: 2131 insertions against about 400; nidana.model.10: 2046 against about 400, 487 of them library code), mostly tests; the task cap of 7, not the ~400-line estimate, is the binding constraint. A split by seam fits the cases: the projection and the stage and sink visitor behind definition and buildDefinition() (topology-dsl@v2 G9, G10, G12; topology-ir@v1 G8); ShellClaim (G12); TopologyGraph with its canonical orders, duplicates, topics and toGraph() (G11); graph equality, hash codes and unmodifiable copies (G3, G7); the last task for the verification doc.",
+    "NOT COMMITTED. git status shows hsdd-context/nidana.model.11.md and hsdd-context/superpowers/nidana.model.11.md untracked, plus this report and the pre-existing modification of docs/auto-run/impl-execution-plan.md (not mine). No git state was changed, nothing under hsdd/ was touched, and no tracked file was edited."
+  ]
+}

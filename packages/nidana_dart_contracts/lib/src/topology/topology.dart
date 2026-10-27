@@ -1,6 +1,7 @@
 import 'package:meta/meta.dart';
 
 import '../ir/definition.dart';
+import '../ir/projection.dart';
 import '../topic/lineage.dart';
 import '../topic/scope.dart';
 import '../topic/topic.dart';
