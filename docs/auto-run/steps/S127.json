@@ -1,0 +1,556 @@
+{
+  "step_ref": "S127",
+  "skill": "superpowers:writing-plans",
+  "target": "nidana.model.9",
+  "status": "completed",
+  "stop": null,
+  "artifacts": [
+    "docs/superpowers/plans/nidana.model.9.md",
+    "docs/auto-run/experiments/recording-builder-plan/"
+  ],
+  "decisions": [
+    {
+      "at": "2026-10-27T12:27:40Z",
+      "artifact": "docs/superpowers/plans/nidana.model.9.md",
+      "question": "The gate's topology-dsl replay is restricted to G10, G11, G13 to G17 and G30, but both of the recording suite's G10 cases call buildDefinition(), whose TopologyPlan.definition this phase keeps throwing until nidana.model.11 (and whose TopologyDefinition factory throws until nidana.model.10). The gate therefore cannot pass in this phase. How does the plan treat it?",
+      "options": [
+        {
+          "label": "Plan to the gate as written and report the gap",
+          "consequence": "Every task is unaffected; Task 5 runs whichever gate form the phase context holds and says what each prints: the form naming G10 exits 1 on exactly the two G10 cases (17 of 19 pass), the form without G10 exits 0. The orchestrator routes the fix (drop G10 from nidana.model.9's Gate and Scope; a compatible touch of topology-dsl@v2's Delivery paragraph, 'G9 and G10 but for buildDefinition()'). Until it lands, impl-gate's implement check fails on the phase gate."
+        },
+        {
+          "label": "Stop the step until the governance is fixed",
+          "consequence": "No plan this step; the phase waits on an inserted governance step although no task's code depends on the fix."
+        },
+        {
+          "label": "Deliver a provisional definition now",
+          "consequence": "Breaks the Scope ('TopologyPlan.definition and buildDefinition() keep throwing until nidana.model.11') and needs TopologyDefinition's factory, which throws until nidana.model.10, a phase running in the other lane; not possible without editing another phase's files."
+        }
+      ],
+      "chosen": "Plan to the gate as written and report the gap",
+      "why": "The dry run settles it: with every body this plan writes, the gate's restricted replay passes 17 of 19 and fails only the two G10 cases, each on UnimplementedError from TopologyPlan.definition through Topology.buildDefinition (recording_conformance.dart lines 314 and 327); the same gate with G10 dropped exits 0. The same id-level restriction already made the Gate leave out G9 (S126). This phase still delivers G10 for planOf, pinned by a package test the gate runs. S126 counted the 19 failing cases as 'every one named in the Scope' and did not notice that the G10 pair can never pass here. A careful engineer would have asked which governance fix the owner wants before execution reaches Task 5; the signal that would change the choice is an orchestrator ruling that nidana.model.9 must also land the projection, which the Scope forbids.",
+      "evidence": [
+        "hsdd/contract/fixture/topology-dsl/behavior/recording_conformance.dart lines 302 to 340 (the G10 cases)",
+        "hsdd/contract/topology-dsl.md Delivery paragraph (G10 assigned to nidana.model.9; buildDefinition() and definition to nidana.model.11)",
+        "hsdd/spec/nidana.model.md, ### nidana.model.9 Gate and Scope",
+        "packages/nidana_dart_contracts/lib/src/ir/definition.dart line 127 (TopologyDefinition factory throws)",
+        "docs/auto-run/experiments/recording-builder-plan/ T4.4 and G"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": true,
+      "stop_class": "shape",
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T12:26:10Z",
+      "artifact": "docs/superpowers/plans/nidana.model.9.md",
+      "question": "Topology.buildDefinition(): keep `=> throw UnimplementedError();` until nidana.model.11, or give it its contract body `planOf(this).definition` now?",
+      "options": [
+        {
+          "label": "planOf(this).definition now",
+          "consequence": "It keeps throwing for every declaration planOf accepts (UnimplementedError from definition), throws StateError for an empty id, which the suite's G15 case asks of buildDefinition(), and leaves nidana.model.11 only the body of definition, as nidana.model D4 says."
+        },
+        {
+          "label": "Keep throwing UnimplementedError",
+          "consequence": "The suite's case 'G15 an empty topology id fails' expects StateError from const _Unnamed().buildDefinition() and fails at this gate."
+        }
+      ],
+      "chosen": "planOf(this).definition now",
+      "why": "Refinement 2 defines buildDefinition() as planOf(this).definition and D4 names only definition's body for nidana.model.11; the G15 case passes only this way (dry run T1.4). The Scope's 'keep throwing' still holds for every valid declaration.",
+      "evidence": [
+        "hsdd/contract/topology-dsl.md Refinement 2",
+        "hsdd/spec/nidana.model.md D4",
+        "recording_conformance.dart G15 empty-id case",
+        "docs/auto-run/experiments/recording-builder-plan/ T1.4"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T12:25:20Z",
+      "artifact": "docs/superpowers/plans/nidana.model.9.md",
+      "question": "Routed item: G14's 'a handle another builder made' needs a handle-to-builder link. Which link?",
+      "options": [
+        {
+          "label": "A private final field set by TopicStream's private constructor",
+          "consequence": "TopicStream._(this._builder); every stage constructor passes the builder as super.builder; ownership is identical(handle._builder, this); a handle method also finds the builder to record into. Changes eighteen private constructors in Task 1."
+        },
+        {
+          "label": "An Expando<TopologyBuilder> keyed by handle",
+          "consequence": "No constructor changes, but a weak side table the builder fills and every handle method looks up; ownership and recording go through a map lookup."
+        },
+        {
+          "label": "An identity set of handles in each builder",
+          "consequence": "Answers ownership, but a handle method still needs its own builder to record into, so it does not remove the link."
+        }
+      ],
+      "chosen": "A private final field set by TopicStream's private constructor",
+      "why": "The routed item names the first two; the field is plain immutable data on an immutable stage, needs no lookup, and is what a handle method needs anyway. Seeded defect D6 (ownership by a closed builder instead of identity) shows the identity test is what tells an open foreign builder apart.",
+      "evidence": [
+        "docs/auto-run/impl-execution-plan.md, Routed to later phases (nidana.model.9)",
+        "docs/auto-run/experiments/recording-builder-plan/ D6"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T12:26:30Z",
+      "artifact": "docs/superpowers/plans/nidana.model.9.md",
+      "question": "Routed item: CombineStage.apply for combineAll needs T, which CombineStage<R> does not carry. How does apply call the combiner?",
+      "options": [
+        {
+          "label": "A typed closure for every combine and withLatestFrom call",
+          "consequence": "Each builder or handle call captures R Function(List<Object?>) (or R Function(T, List<Object?>)) built from its own type arguments; apply casts each value to its input's type, and combineAll's closure hands the combiner List<T>.unmodifiable(values.cast<T>()). Two private fields, no dynamic call."
+        },
+        {
+          "label": "Function.apply for combine2 to combine4, a closure for combineAll only",
+          "consequence": "Fewer closures, but a dynamic invocation with no casts at the declared types, and two mechanisms for one method."
+        },
+        {
+          "label": "A dynamic call of combiner",
+          "consequence": "Fails for combineAll: a List<Object?> is not a List<int> (F C1)."
+        }
+      ],
+      "chosen": "A typed closure for every combine and withLatestFrom call",
+      "why": "F C1 to C5 show the List<Object?> failure and that a copy made in a captured closure is typed and unmodifiable; one mechanism for all arities keeps apply a two-line method. D2 (a modifiable cast view) passes the suite and fails the package test.",
+      "evidence": [
+        "docs/auto-run/experiments/recording-builder-plan/facts/facts.dart C1 to C5",
+        "docs/auto-run/experiments/recording-builder-plan/ D2",
+        "docs/auto-run/impl-execution-plan.md, Routed to later phases (nidana.model.9)"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T12:26:40Z",
+      "artifact": "docs/superpowers/plans/nidana.model.9.md",
+      "question": "What does apply do with a value list whose length is not the number of inputs? The contract leaves it open.",
+      "options": [
+        {
+          "label": "Throw ArgumentError",
+          "consequence": "An interpreter's off-by-one shows at once; combineAll's combiner never sees extra values."
+        },
+        {
+          "label": "No check",
+          "consequence": "Too few values fail with a RangeError from inside the closure; too many are silently ignored by combine2 to combine4 and passed through by combineAll."
+        }
+      ],
+      "chosen": "Throw ArgumentError",
+      "why": "A precondition check costs one comparison and turns a silent misread into an error. D10 showed that only a too-many case tells the check from its absence (RangeError is an ArgumentError), so the test uses one. A contract statement would change nothing here; reported as a gap for a compatible touch.",
+      "evidence": [
+        "docs/auto-run/experiments/recording-builder-plan/ D10"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T12:27:00Z",
+      "artifact": "docs/superpowers/plans/nidana.model.9.md",
+      "question": "In what order does a call check, and when does it record?",
+      "options": [
+        {
+          "label": "Open builder first, then arguments, record last",
+          "consequence": "A closed builder gives StateError whatever the arguments (the contract says every method throws StateError once declare returned); a rejected call leaves no stage, consumes no handle, claims no topic."
+        },
+        {
+          "label": "Argument checks first",
+          "consequence": "A closed builder given a negative duration throws ArgumentError, contradicting 'every builder and handle method throws StateError'."
+        },
+        {
+          "label": "Record, then check",
+          "consequence": "A rejected call leaves a stage nothing consumes; a declaration that catches the error then fails planOf with a misleading StateError."
+        }
+      ],
+      "chosen": "Open builder first, then arguments, record last",
+      "why": "The phase's Verification line asks each misuse to throw at the call that commits it, not later; D3, D8 and D9 seed the two wrong orders, the suite passes all three, and the package tests fail them.",
+      "evidence": [
+        "hsdd/contract/topology-dsl.md, The handle (closing paragraph)",
+        "hsdd/spec/nidana.model.md nidana.model.9 Verification",
+        "docs/auto-run/experiments/recording-builder-plan/ D3, D8, D9"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T12:27:10Z",
+      "artifact": "docs/superpowers/plans/nidana.model.9.md",
+      "question": "How does planOf decide that a stage reaches no sink (G15)?",
+      "options": [
+        {
+          "label": "A consumed set: every stage must be an input of a later stage or of a sink",
+          "consequence": "One identity set filled as stages and sinks are recorded; equivalent to reachability because a stage's inputs precede it, so a chain of consumers moves forward and ends at a stage a sink consumes."
+        },
+        {
+          "label": "A walk back from the sinks",
+          "consequence": "Needs each stage's inputs as a list, an extra private getter on all eighteen classes or a visitor."
+        },
+        {
+          "label": "A forward graph",
+          "consequence": "More code for the same answer."
+        }
+      ],
+      "chosen": "A consumed set: every stage must be an input of a later stage or of a sink",
+      "why": "The equivalence holds by construction (inputs precede their stage, G11) and the record already has every input at hand; the suite's two G15 shapes and the package tests (a read alone, a map off a written read, a pairwise chain) pass.",
+      "evidence": [
+        "hsdd/contract/topology-dsl.md G11, G15",
+        "docs/auto-run/experiments/recording-builder-plan/ T2.4"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T12:27:20Z",
+      "artifact": "docs/superpowers/plans/nidana.model.9.md",
+      "question": "When does planOf check the id, and how does it close the builder?",
+      "options": [
+        {
+          "label": "Id before declare; close in a finally",
+          "consequence": "An empty id runs nothing; a handle kept from a declaration that threw records nothing more."
+        },
+        {
+          "label": "Id after declare; close on normal return",
+          "consequence": "declare runs for an invalid topology, and a leaked handle of a failed declaration stays usable."
+        }
+      ],
+      "chosen": "Id before declare; close in a finally",
+      "why": "G15 says a builder or handle used after declare returned throws StateError; a throw is a return from declare. D5 seeds the normal-return close: the suite passes, the package test fails.",
+      "evidence": [
+        "hsdd/contract/topology-dsl.md G15",
+        "docs/auto-run/experiments/recording-builder-plan/ D5"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T12:25:40Z",
+      "artifact": "docs/superpowers/plans/nidana.model.9.md",
+      "question": "How do visitStage and visitSink bind the stage's type arguments (G16)?",
+      "options": [
+        {
+          "label": "A private _accept each class implements",
+          "consequence": "visitor.map<T, R>(this) inside MapStage<T, R>: the stage's own type arguments, checked by the compiler for all eighteen classes because _accept is abstract in the sealed base."
+        },
+        {
+          "label": "An exhaustive switch in visitStage",
+          "consequence": "Each case sees the stage at Object? type arguments, so the visitor is called at Object? and reading a function member through such a pattern throws TypeError (F V4)."
+        }
+      ],
+      "chosen": "A private _accept each class implements",
+      "why": "F V1 to V4 show the binding through _accept and the TypeError through a pattern; D1 (a visitor called at Object?) passes the whole recording suite and fails only the package test, so the plan writes the type arguments out.",
+      "evidence": [
+        "docs/auto-run/experiments/recording-builder-plan/facts/facts.dart V1 to V5",
+        "docs/auto-run/experiments/recording-builder-plan/ D1"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T12:27:15Z",
+      "artifact": "docs/superpowers/plans/nidana.model.9.md",
+      "question": "How does the one-sink-per-StateTopic check compare topics?",
+      "options": [
+        {
+          "label": "A Set<StateTopic<Object?>> under topic equality",
+          "consequence": "Two state topics with one name and value type built apart are one topic (topic-model@v1 G7); another value type is another topic."
+        },
+        {
+          "label": "An identity set",
+          "consequence": "Two declarations of one topic, from two registries or a non-const construction, each get a sink."
+        }
+      ],
+      "chosen": "A Set<StateTopic<Object?>> under topic equality",
+      "why": "The phase's Dependencies line says the check uses nidana.model.8's topic equality; D4 seeds identity: the suite passes (it writes one const topic twice), the package test fails.",
+      "evidence": [
+        "hsdd/spec/nidana.model.md nidana.model.9 Dependencies",
+        "hsdd/contract/topic-model.md G7",
+        "docs/auto-run/experiments/recording-builder-plan/ D4"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T12:27:25Z",
+      "artifact": "docs/superpowers/plans/nidana.model.9.md",
+      "question": "What does a stage keep of an input list the declaration passed (combine inputs, merge inputs, withLatestFrom latest)?",
+      "options": [
+        {
+          "label": "An unmodifiable copy",
+          "consequence": "Later changes to the caller's list do not reach the stage; the handles inside are identical."
+        },
+        {
+          "label": "An unmodifiable view of the caller's list",
+          "consequence": "No copy, but a declaration that reuses its list changes the recorded stage."
+        }
+      ],
+      "chosen": "An unmodifiable copy",
+      "why": "G11 asks the stage to hold the handles it was given and the Interface calls the lists unmodifiable; topic-model@v1 G4 set the same rule for its values. D7 seeds keeping the caller's list: the suite passes, the package tests fail.",
+      "evidence": [
+        "hsdd/contract/topology-dsl.md, The plan (CombineStage.inputs, MergeStage.inputs)",
+        "docs/auto-run/experiments/recording-builder-plan/ D7"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T12:31:00Z",
+      "artifact": "docs/superpowers/plans/nidana.model.9.md",
+      "question": "How are the bodies split into tasks (at most 7)?",
+      "options": [
+        {
+          "label": "Five tasks: the record with read and write; the single-input handle calls; the multi-input calls with reduceInto and apply; the visitors; the verification doc",
+          "consequence": "Each task's code makes its own failing tests pass and turns its own suite cases green (7, 2, 7, 3); intermediate library states analyze clean."
+        },
+        {
+          "label": "Seven tasks with the misuse checks and G10 on their own",
+          "consequence": "The misuse checks live in the methods that commit them, so a separate task would reopen every method; G10 has no code of its own."
+        }
+      ],
+      "chosen": "Five tasks: the record with read and write; the single-input handle calls; the multi-input calls with reduceInto and apply; the visitors; the verification doc",
+      "why": "S126 suggested seams; the dry run replayed exactly these five, each state clean under the formatter and the analyzer (T1.4 to T4.4), with private helpers landing in the task that first calls them so unused_element never fires.",
+      "evidence": [
+        "docs/auto-run/experiments/recording-builder-plan/ T1.2 to T4.4",
+        "docs/auto-run/steps/S126.json notes (SIZE)"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T12:30:30Z",
+      "artifact": "docs/superpowers/plans/nidana.model.9.md",
+      "question": "The gate cannot select G9's two recording cases (S126). What checks them?",
+      "options": [
+        {
+          "label": "Package tests the gate runs, plus the binding's two cases by name in the checklist",
+          "consequence": "recording_test.dart's two G9 tests run inside the gate's package test run; the checklist runs the suite's own two cases with --name '^G9 (planOf runs|the builder form)'."
+        },
+        {
+          "label": "The checklist alone",
+          "consequence": "The suite's own cases, but outside every gate command."
+        }
+      ],
+      "chosen": "Package tests the gate runs, plus the binding's two cases by name in the checklist",
+      "why": "N settled the filter: one --plain-name selects one case; a --name regex with alternation selects exactly the two; two --plain-name flags must both match one name, select nothing and exit 79.",
+      "evidence": [
+        "docs/auto-run/experiments/recording-builder-plan/ N, T1.4, C"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T12:26:50Z",
+      "artifact": "docs/superpowers/plans/nidana.model.9.md",
+      "question": "How do the package's tests assert 'creates no timer and schedules no microtask' without a new dependency?",
+      "options": [
+        {
+          "label": "runZoned with a ZoneSpecification counting createTimer, createPeriodicTimer and scheduleMicrotask, with a positive control",
+          "consequence": "dart:async only; the test first shows the counter counts a timer and a microtask (2), then that recording every combinator counts 0."
+        },
+        {
+          "label": "fake_async",
+          "consequence": "Not in ADR-002's table for nidana_dart_contracts (meta and test only)."
+        }
+      ],
+      "chosen": "runZoned with a ZoneSpecification counting createTimer, createPeriodicTimer and scheduleMicrotask, with a positive control",
+      "why": "F Z1 to Z10: a timer, a periodic timer, scheduleMicrotask, Future.value and Completer.complete each count 1; an unlistened Stream or StreamController counts 0; a synchronous throw propagates. The suite's own G10 case uses the same interception.",
+      "evidence": [
+        "docs/auto-run/experiments/recording-builder-plan/facts/facts.dart Z1 to Z10",
+        "hsdd/adr/002-package-workspace-layout.md item 3"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T12:33:00Z",
+      "artifact": "docs/superpowers/plans/nidana.model.9.md",
+      "question": "Which five input classes go into Review Focus?",
+      "options": [
+        {
+          "label": "Misuse caught and continued; one state topic declared twice apart; a handle outliving its declaration; an input list reused after the call; an interpreter applying a stage at its own types",
+          "consequence": "Each is a case the suite passes with a seeded defect (D1 to D10) and a person writing a topology module or an interpreter would meet."
+        },
+        {
+          "label": "Include timing or lineage inputs",
+          "consequence": "Those are the live implementation's (G18 to G29), not recording's."
+        }
+      ],
+      "chosen": "Misuse caught and continued; one state topic declared twice apart; a handle outliving its declaration; an input list reused after the call; an interpreter applying a stage at its own types",
+      "why": "Picked from the seeded defects the restricted replay passes, ordered by how often a module author or nidana.runtime's interpreter would meet them.",
+      "evidence": [
+        "docs/auto-run/experiments/recording-builder-plan/ D"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T12:25:50Z",
+      "artifact": "docs/superpowers/plans/nidana.model.9.md",
+      "question": "Names the Interface leaves open: the class topology() returns, TopologyRef's hash, the error texts.",
+      "options": [
+        {
+          "label": "_BuilderForm; id.hashCode; messages naming the topology, the stage and the rule",
+          "consequence": "Private and invisible to consumers; messages help a module author find the call."
+        },
+        {
+          "label": "Other names",
+          "consequence": "No consumer difference."
+        }
+      ],
+      "chosen": "_BuilderForm; id.hashCode; messages naming the topology, the stage and the rule",
+      "why": "G9's suite calls the shorthand 'the builder form'; a hash of the one field TopologyRef compares; no fixture reads a message. No evidence beyond that.",
+      "evidence": [
+        "recording_conformance.dart G9 case names"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    }
+  ],
+  "experiments": [
+    {
+      "path": "docs/auto-run/experiments/recording-builder-plan/",
+      "question": "Do this plan's five tasks, in order, turn the recording suite green as the plan says; what do the gate's two forms print; which runtime facts (identity, zone counting, type binding, combineAll's list) hold; which seeded defects does the suite miss?",
+      "finding": "Committed tree: 0 of 24 recording cases pass (19 of 19 fail under the gate's restriction). Each task's failing and passing steps print what the plan says: package tests 95 -> 105 -> 110 -> 119 -> 122, the restricted replays 4/7, 3/7, 12/16, 6/6; the gate's restriction ends at 17 passed, 2 failed (the two G10 cases, UnimplementedError from TopologyPlan.definition) and exits 0 with G10 dropped. Unrestricted: 19 passed, 5 failed (G9 buildDefinition, G10 x2, G12 x2). topic-model stays 41/41 and topology-ir's four sets 60/60; fixture diagnostics unchanged (3143 in 70 libraries, no const-collection code). Ten seeded defects (D1 to D10) each pass the restricted replay and fail a package test. Every test file and library excerpt of the plan is identical to, or found verbatim in, the drafts (X)."
+    },
+    {
+      "path": "docs/auto-run/experiments/recording-builder-plan/facts/",
+      "question": "Which references are identical, what a ZoneSpecification counts, how a visitor binds type arguments, what combineAll's apply must hand its combiner.",
+      "finding": "Top-level, static and local tear-offs and a closure read twice are identical; a closure literal evaluated twice and instance-method tear-offs are not; const Duration canonical, runtime Duration identical only to itself; widening a function's static type keeps identity. Timers, periodic timers, microtasks, Future.value and Completer.complete count 1 each; unlistened streams count 0. _accept binds MapStage<int, String> as map<int, String>; a MapStage<Object?, Object?> pattern read of transform throws TypeError. A List<Object?> to a List<int> combiner throws TypeError; List<T>.unmodifiable(values.cast<T>()) in a captured closure is typed and rejects add."
+    }
+  ],
+  "self_check": [
+    {
+      "gate": "Spec coverage: Skim each section/requirement in the spec. Can you point to a task that implements it? List any gaps.",
+      "status": "pass",
+      "note": "Every Scope item has a task: G11 stages and sinks (Tasks 1 to 3), planOf and the topology() form (Task 1), the misuse checks of G13 (Task 1), G14 (Tasks 1, 2, 3), G15 (Tasks 1, 2, 3), visitStage and visitSink with type arguments (Task 4), apply (Task 3), TopologyRef equality (Task 1), G10 for planOf (Task 3's test), G30 (holds; green from Task 1). definition and buildDefinition() keep throwing (Global Constraints, Interface; Task 5 checklist grep). The one Scope item no task can satisfy is the gate's G10 replay, which needs nidana.model.11's definition: reported as contract_gaps[0]."
+    },
+    {
+      "gate": "Step scan: Every step must let the implementer write exactly one reasonable thing, and no step may carry more than that",
+      "status": "pass",
+      "note": "Test steps carry whole test files (the decisions); code steps carry signatures and the excerpts that decide something (check order, the consumed-set rule, planOf's finally, the typed closures, apply's length check, _accept's type arguments) and name the remaining calls by the constructor each builds. No TBD or 'handle edge cases' line."
+    },
+    {
+      "gate": "Type consistency: Do the types, method signatures, and property names you used in later tasks match what you defined in earlier tasks?",
+      "status": "pass",
+      "note": "The private names (_builder, _open, _checkOpen, _checkMade, _checkFirstSink, _checkNotEmpty, _addStage, _addSink, _plan, _derive, _checkNotNegative, _apply, _accept, _BuilderForm) are each defined once in an Interfaces block and every excerpt comes from the dry run's drafts, which compiled and passed at every task boundary (T1.4 to T4.4; X: 4 test files identical, 20 excerpts found verbatim)."
+    },
+    {
+      "gate": "Review Focus: For each input class or failure mode the spec implies, is there a task whose tests exercise it?",
+      "status": "pass",
+      "note": "Five items, each with tests in its owning task, each tied to a seeded defect the suite misses (D1 to D10)."
+    },
+    {
+      "gate": "Proportion: Compare the plan's length to the spec's.",
+      "status": "pass",
+      "note": "1740 lines against the derivative's 1130; about 940 are the four test files, which are the plan's decisions (precedent: nidana.model.8's plan, 1144 lines with its tests). Library code appears only as excerpts that decide something; the twelve single-input calls, combine3, combine4, withLatestFrom2, withLatestFrom3 and seventeen of the eighteen _accept overrides are stated by rule, not written out. One test that repeated a suite case was dropped during review."
+    },
+    {
+      "gate": "Plan check: The plan's Global Constraints contain constraints 1 to 8 above, verbatim.",
+      "status": "pass",
+      "note": "Spliced from the derivative; node docs/auto-run/tools/impl-gate.mjs code-plan nidana.model.9: 0 error(s), 0 warning(s)."
+    },
+    {
+      "gate": "Plan check: Every `### Task N:` except the last starts with a failing-test step.",
+      "status": "pass",
+      "note": "Tasks 1 to 4 open with 'Step 1: Write the failing test'; impl-gate agrees."
+    },
+    {
+      "gate": "Plan check: The last task writes the verification doc named in constraint 5.",
+      "status": "pass",
+      "note": "Task 5 writes hsdd/verify/nidana.model.9.verification.md, titled '# Verification: nidana.model.9 - Recording builder', Sign-off empty."
+    },
+    {
+      "gate": "Plan check: The plan has at most 7 tasks.",
+      "status": "pass",
+      "note": "5 tasks."
+    },
+    {
+      "gate": "Plan check: The plan is saved under docs/superpowers/plans/.",
+      "status": "pass",
+      "note": "docs/superpowers/plans/nidana.model.9.md, with **Spec:** naming hsdd-context/superpowers/nidana.model.9.md."
+    },
+    {
+      "gate": "Phase Verification: recording a declaration calls none of its functions and schedules nothing; each misuse G14 and G15 name throws the named error at the call that commits it; the gate's restricted topology-dsl replay passes.",
+      "status": "fail",
+      "note": "The first two are planned and dry-run green (Task 3's G10 test with a positive control; the 13 G14 and G15 package tests of Task 5's checklist, -j 1). The third cannot pass in this phase as the Gate is written: 17 of 19, the two G10 cases needing buildDefinition() (contract_gaps[0]); with G10 dropped the gate exits 0. Task 5 handles both forms."
+    },
+    {
+      "gate": "Run rulings: fvm dart format before committing; each commit trailer names the model; tests beyond the plan where a rule would go unpinned; no test starts flutter; topic-model 41 and topology-ir's four sets stay green.",
+      "status": "pass",
+      "note": "All stated in Global Constraints; the dry run kept topic-model 41/41 and topology-ir 60/60 and started no flutter."
+    }
+  ],
+  "contract_gaps": [
+    {
+      "contract": "topology-dsl@v2 and nidana.model.9's Gate (hsdd/spec/nidana.model.md, ### nidana.model.9: Recording builder, Gate and Scope)",
+      "where": "Gate: 'fvm dart run nidana_contract_check topology-dsl --guarantee G10,G11,G13,G14,G15,G16,G17,G30'; hsdd/contract/topology-dsl.md Delivery paragraph ('nidana.model.9 delivers ... (G10, G11, G13 to G17, and G9 but for buildDefinition())'); hsdd/contract/fixture/topology-dsl/behavior/recording_conformance.dart, the two G10 cases (lines 302 to 340), which call buildDefinition() at lines 314 and 327",
+      "problem": "Both G10 cases call buildDefinition(), which is planOf(this).definition, and TopologyPlan.definition keeps throwing UnimplementedError until nidana.model.11 (Scope; Delivery), with TopologyDefinition's factory throwing until nidana.model.10. So the gate's topology-dsl replay cannot pass at nidana.model.9: against the dry run's finished code it passes 17 of 19 and fails exactly the two G10 cases (docs/auto-run/experiments/recording-builder-plan/ T4.4, G), and the phase gate, and with it impl-gate's implement check, exits 1. S126 counted the 19 failing cases as all within the Scope and did not see that the G10 pair cannot turn green before nidana.model.11. The same id-level restriction is why the Gate already leaves out G9.",
+      "proposed_fix": "Drop G10 from nidana.model.9's Gate restriction ('--guarantee G11,G13,G14,G15,G16,G17,G30') and say in its Scope that G10 is delivered for planOf here and replayed at nidana.model.11 (hsdd-phase-plan amend, drained by hsdd-reconcile; then re-run hsdd-config for nidana.model.9 so the derivative's constraint 4 and this plan's copy of it change together); and a compatible hsdd-contract touch of topology-dsl@v2's Delivery paragraph: 'nidana.model.9 delivers recording, planOf, the stages, sinks and visitors (G11, G13 to G17, and G9 and G10 but for buildDefinition()); nidana.model.11 delivers buildDefinition() and TopologyPlan.definition (G9, G10, G12)'. Dry run: the gate with G10 dropped exits 0 (G). No fixture changes."
+    },
+    {
+      "contract": "topology-dsl@v2",
+      "where": "hsdd/contract/fixture/topology-dsl/behavior/recording_conformance.dart (G11, G14, G15, G16 cases) against the Interface's 'binding the stage's type arguments' (visitStage), 'an unmodifiable list' (combineAll's combiner), G14's one sink per StateTopic, and G14 and G15 at the call",
+      "problem": "The recording suite passes builders that break stated rules, so a second implementation or a regression would pass the contract: a visitor called at Object? instead of the stage's type arguments (D1), a combineAll that hands its combiner a modifiable cast view (D2), checks made after recording that leave a stage behind (D3, D8), a one-sink check by identity that misses a state topic declared twice apart (D4), a builder closed only on a normal return (D5), ownership by a closed builder rather than by identity (D6), a merge that keeps the caller's list (D7), a closed builder that reports ArgumentError before StateError (D9). This phase's package tests pin each; the contract's own suite does not.",
+      "proposed_fix": "A compatible hsdd-contract touch adding recording cases: a visitor that records '$T' per method over a plan with distinct types (G16); a combineAll combiner that tries to add to its list (G11); a declaration that catches each misuse and still plans with no extra stage (G14, G15); two StateTopic values with one name and type built apart (G14); a handle kept from a declaration that threw, and one passed into a nested planOf (G14, G15); a merge input list changed after the call (G11)."
+    },
+    {
+      "contract": "topology-dsl@v2",
+      "where": "hsdd/contract/topology-dsl.md, The handle (closing paragraph), G14, G15; The plan, CombineStage.apply and WithLatestFromStage.apply",
+      "problem": "Two behaviors are left open: which error a call that is misused twice over throws (a closed builder given a negative duration or a foreign handle), and what apply does with a value list whose length is not the number of inputs. The plan decides StateError first (the paragraph says every method throws StateError once declare returned) and ArgumentError for a wrong length.",
+      "proposed_fix": "A compatible wording touch: 'Every builder and handle method throws StateError once the declaration that made the builder has returned, whatever its arguments'; and on apply: 'Throws ArgumentError when values does not hold one value per input.'"
+    }
+  ],
+  "notes_for_orchestrator": [
+    "STATUS completed. Plan: docs/superpowers/plans/nidana.model.9.md, 5 tasks (4 code tasks each opening with a failing-test step, Task 5 the gate and the verification doc). Plan check: node docs/auto-run/tools/impl-gate.mjs code-plan nidana.model.9 printed 0 error(s), 0 warning(s). Nothing committed; git state unchanged. Untracked: the plan, this report and docs/auto-run/experiments/recording-builder-plan/.",
+    "ATTENTION BEFORE EXECUTION REACHES TASK 5 (contract_gaps[0], decision at 2026-10-27T12:27:40Z, would_have_asked true): the gate as written cannot pass in this phase. Both G10 recording cases call buildDefinition(), which throws until nidana.model.11; the dry run's finished code passes the gate's topology-dsl restriction 17 of 19 and fails exactly those two, and the gate with G10 dropped exits 0. Proposed: drop G10 from nidana.model.9's Gate (and say so in its Scope) through hsdd-phase-plan or hsdd-reconcile, a compatible Delivery touch in topology-dsl@v2, then re-run hsdd-config for nidana.model.9. Tasks 1 to 4 do not depend on the fix. If the derivative's constraint 4 changes, the plan's copy of it must change with it (impl-gate code-plan checks it verbatim); Task 5 already reads the Gate line from hsdd-context/nidana.model.9.md and gives the expected output for both forms. Without the fix, Task 5 writes the G10 pair under Outstanding (deferred to nidana.model.11) and reports DONE_WITH_CONCERNS, and impl-gate's implement check fails on the phase gate.",
+    "G9 (S126's finding): no gate restriction can select G9's two recording cases. They are covered twice: recording_test.dart's two G9 tests run in the gate's package tests, and Task 5's checklist runs the binding's two cases with --name '^G9 (planOf runs|the builder form)' (N: one --plain-name selects one case; two --plain-name flags must both match, select nothing and exit 79). The verification doc states both.",
+    "Routed items: handle-to-builder link -> Task 1, a private constructor argument TopicStream._(this._builder), passed by every stage constructor as super.builder, ownership by identity. combineAll's apply -> Task 3, a typed closure _apply captured in the private constructor of CombineStage (and WithLatestFromStage), combineAll's handing List<T>.unmodifiable(values.cast<T>()). Topic value equality -> Task 1, the one-sink check is a Set<StateTopic<Object?>> under topic ==, tested with topics built apart. Const collections -> none in the four new test files; fixture diagnostics identical before and after (3143 in 70 libraries, no const-collection code).",
+    "Dry run (docs/auto-run/experiments/recording-builder-plan/run.sh, output.txt): committed tree 0 of 24 recording cases; package tests 95 -> 105 -> 110 -> 119 -> 122 across Tasks 1 to 4; restricted replays per task as the plan's table says; unrestricted after Task 4: 19 passed, 5 failed (G9 buildDefinition, G10 x2, G12 x2, all nidana.model.11's); topic-model 41/41; topology-ir 60/60; every intermediate library state formatter-stable and analyzer-clean; ten seeded defects each pass the restricted replay and fail a package test (D); X: every test file of the plan identical to the draft, every library excerpt found verbatim in a draft state.",
+    "Sizing for the record: the dry run's library is 877 lines in the six part files (from 409), the tests 940 lines in four files, against the Scope's ~400 lines in ~5 files; the task cap held (5 of 7).",
+    "Tier spot-check, implementers sonnet: the plan carries whole test files and every deciding excerpt, so a Sonnet implementer writes the remaining calls by the stated rule (twelve single-input calls, combine3/combine4, withLatestFrom2/3, seventeen _accept overrides)."
+  ]
+}

@@ -1,0 +1,38 @@
+{
+  "step_ref": "S127",
+  "decisions": [
+    {
+      "at": "2026-10-27T12:47:14Z",
+      "artifact": "hsdd/spec/nidana.model.md",
+      "question": "S127 found nidana.model.9's Gate restricts topology-dsl to G10,G11,G13 to G17,G30, but both G10 conformance cases call buildDefinition(), which throws until nidana.model.11 (the Delivery paragraph gives G10 wholly to nidana.model.9). The gate cannot pass. How does the run proceed?",
+      "options": [
+        {
+          "label": "Governance route before execution: hsdd-phase-plan amends nidana.model.9's Gate (G10 leaves the restriction; it joins at nidana.model.11's unrestricted replay) with a compatible Delivery request for topology-dsl@v2 (G9 and G10 but for buildDefinition() at .9; G9, G10, G12 at .11); hsdd-reconcile drains it; hsdd-config re-runs; the plan is revised to the new gate",
+          "consequence": "Four governance and planning steps (S128 to S131), the same shape as S108 to S111; no code waits on them except Task 5's gate."
+        },
+        {
+          "label": "Implement buildDefinition() in nidana.model.9",
+          "consequence": "Needs the projection (nidana.model.11) and the TopologyDefinition factory (nidana.model.10); collides with both phases' scopes."
+        },
+        {
+          "label": "Stop the run for the owner",
+          "consequence": "Nothing is ambiguous: the route and its precedent exist; stopping costs the rest of the node."
+        }
+      ],
+      "chosen": "Governance route before execution: hsdd-phase-plan amends nidana.model.9's Gate (G10 leaves the restriction; it joins at nidana.model.11's unrestricted replay) with a compatible Delivery request for topology-dsl@v2 (G9 and G10 but for buildDefinition() at .9; G9, G10, G12 at .11); hsdd-reconcile drains it; hsdd-config re-runs; the plan is revised to the new gate",
+      "why": "Verified: recording_conformance.dart's two G10 cases call buildDefinition(); G10's text names both planOf and buildDefinition(); nidana.model.11's gate replays topology-dsl unrestricted, so G10 stays covered. Precedent S108 to S111 (a phase found unrunnable at config, re-planned through hsdd-phase-plan and hsdd-reconcile).",
+      "evidence": [
+        "hsdd/contract/fixture/topology-dsl/behavior/recording_conformance.dart:308-330",
+        "hsdd/contract/topology-dsl.md G10 and Delivery",
+        "hsdd/spec/nidana.model.md nidana.model.9 and .11 Gates",
+        "docs/auto-run/steps/S127.json contract_gaps",
+        "docs/auto-run/steps/S109.orchestrator.json"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": true,
+      "stop_class": "shape",
+      "would_upstream": false
+    }
+  ]
+}
