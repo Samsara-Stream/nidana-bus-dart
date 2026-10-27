@@ -31,6 +31,7 @@ sealed class TopicStream<T> {
     _builder._checkOpen();
     final List<TopicStream<Object?>> made = _builder._checkMade(
       <TopicStream<Object?>>[latest],
+      const <String>['latest'],
     );
     return _builder._addStage(
       WithLatestFromStage<T, R>._(
@@ -52,6 +53,7 @@ sealed class TopicStream<T> {
     _builder._checkOpen();
     final List<TopicStream<Object?>> made = _builder._checkMade(
       <TopicStream<Object?>>[b, c],
+      const <String>['b', 'c'],
     );
     return _builder._addStage(
       WithLatestFromStage<T, R>._(
@@ -75,6 +77,7 @@ sealed class TopicStream<T> {
     _builder._checkOpen();
     final List<TopicStream<Object?>> made = _builder._checkMade(
       <TopicStream<Object?>>[b, c, d],
+      const <String>['b', 'c', 'd'],
     );
     return _builder._addStage(
       WithLatestFromStage<T, R>._(

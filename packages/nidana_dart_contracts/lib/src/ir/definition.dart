@@ -103,10 +103,13 @@ final class TransformEdge {
           : rule.minInputs == rule.maxInputs
           ? 'exactly ${rule.minInputs}'
           : '${rule.minInputs} to ${rule.maxInputs}';
+      final String noun = (rule.maxInputs ?? rule.minInputs) == 1
+          ? 'input'
+          : 'inputs';
       throw ArgumentError.value(
         inputs.length,
         'inputs',
-        'a ${combinator.name} edge takes $count inputs',
+        'a ${combinator.name} edge takes $count $noun',
       );
     }
     _checkPresence(transformer, 'transformer', combinator, rule.transformer);
@@ -407,7 +410,10 @@ void _checkWellFormed(List<TransformEdge> edges) {
         throw ArgumentError.value(
           output.name,
           'transforms',
-          'edge $i is a second sink edge on a state topic',
+          'edge $i is a second sink edge on this state topic, of type '
+              '${output.typeName}; two state topics of one name whose value '
+              'types render alike, one class name in two libraries, are one '
+              'topic in the IR',
         );
       }
     } else if (sinkSeen) {

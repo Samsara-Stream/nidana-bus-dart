@@ -31,15 +31,19 @@ final class TopologyBuilder {
   }
 
   // Throws ArgumentError unless this builder made every one of [handles]
-  // (G14); returns them as an unmodifiable copy.
-  List<H> _checkMade<H extends TopicStream<Object?>>(List<H> handles) {
-    for (final H handle in handles) {
-      if (!identical(handle._builder, this)) {
+  // (G14), naming the first foreign one by its parameter, the element of
+  // [names] at its index; returns [handles] as an unmodifiable copy.
+  List<H> _checkMade<H extends TopicStream<Object?>>(
+    List<H> handles,
+    List<String> names,
+  ) {
+    for (int i = 0; i < handles.length; i++) {
+      if (!identical(handles[i]._builder, this)) {
         throw ArgumentError.value(
-          handle,
-          'handle',
+          handles[i],
+          names[i],
           'was made by another builder: another declaration, or another '
-              'planOf call of this one',
+          'planOf call of this one',
         );
       }
     }
@@ -110,8 +114,8 @@ final class TopologyBuilder {
       throw ArgumentError.value(
         dedup,
         'dedup',
-        'applies to a state topic read only, and ${topic.name} is an '
-            '${topic.variant.name} topic',
+        'applies to a state topic read only, and ${topic.name} is '
+            '${_variantOf(topic)}',
       );
     }
     return _addStage(
@@ -124,7 +128,7 @@ final class TopologyBuilder {
   /// lineage). The stream's value type is the topic's or a subtype of it (G3).
   void write<T, S extends T>(Topic<T> topic, TopicStream<S> stream) {
     _checkOpen();
-    _checkMade(<TopicStream<Object?>>[stream]);
+    _checkMade(<TopicStream<Object?>>[stream], const <String>['stream']);
     _checkFirstSink(topic);
     _addSink(WriteSink<T>._(topic, stream), stream);
   }
@@ -138,7 +142,7 @@ final class TopologyBuilder {
     S Function(S state, E event) reducer,
   ) {
     _checkOpen();
-    _checkMade(<TopicStream<Object?>>[events]);
+    _checkMade(<TopicStream<Object?>>[events], const <String>['events']);
     _checkFirstSink(topic);
     _addSink(ReduceIntoSink<S, E>._(topic, events, reducer), events);
   }
@@ -149,10 +153,10 @@ final class TopologyBuilder {
     R Function(A a, B b) combiner,
   ) {
     _checkOpen();
-    final List<TopicStream<Object?>> inputs = _checkMade(<TopicStream<Object?>>[
-      a,
-      b,
-    ]);
+    final List<TopicStream<Object?>> inputs = _checkMade(
+      <TopicStream<Object?>>[a, b],
+      const <String>['a', 'b'],
+    );
     return _addStage(
       CombineStage<R>._(
         this,
@@ -171,11 +175,10 @@ final class TopologyBuilder {
     R Function(A a, B b, C c) combiner,
   ) {
     _checkOpen();
-    final List<TopicStream<Object?>> inputs = _checkMade(<TopicStream<Object?>>[
-      a,
-      b,
-      c,
-    ]);
+    final List<TopicStream<Object?>> inputs = _checkMade(
+      <TopicStream<Object?>>[a, b, c],
+      const <String>['a', 'b', 'c'],
+    );
     return _addStage(
       CombineStage<R>._(
         this,
@@ -196,12 +199,10 @@ final class TopologyBuilder {
     R Function(A a, B b, C c, D d) combiner,
   ) {
     _checkOpen();
-    final List<TopicStream<Object?>> inputs = _checkMade(<TopicStream<Object?>>[
-      a,
-      b,
-      c,
-      d,
-    ]);
+    final List<TopicStream<Object?>> inputs = _checkMade(
+      <TopicStream<Object?>>[a, b, c, d],
+      const <String>['a', 'b', 'c', 'd'],
+    );
     return _addStage(
       CombineStage<R>._(
         this,
@@ -226,7 +227,10 @@ final class TopologyBuilder {
   ) {
     _checkOpen();
     _checkNotEmpty(inputs);
-    final List<TopicStream<T>> made = _checkMade(inputs);
+    final List<TopicStream<T>> made = _checkMade(
+      inputs,
+      _elementNames('inputs', inputs.length),
+    );
     return _addStage(
       CombineStage<R>._(
         this,
@@ -243,7 +247,10 @@ final class TopologyBuilder {
   TopicStream<T> merge<T>(List<TopicStream<T>> inputs) {
     _checkOpen();
     _checkNotEmpty(inputs);
-    final List<TopicStream<T>> made = _checkMade(inputs);
+    final List<TopicStream<T>> made = _checkMade(
+      inputs,
+      _elementNames('inputs', inputs.length),
+    );
     return _addStage(MergeStage<T>._(this, made), made);
   }
 
@@ -254,3 +261,15 @@ final class TopologyBuilder {
     }
   }
 }
+
+// The names of the elements of the list parameter [name], by index:
+// 'inputs[0]', 'inputs[1]' and so on.
+List<String> _elementNames(String name, int length) => <String>[
+  for (int i = 0; i < length; i++) '$name[$i]',
+];
+
+// [topic]'s variant with its article, for a message.
+String _variantOf(MultiWriterTopic<Object?> topic) => switch (topic) {
+  EventTopic<Object?>() => 'an event topic',
+  ReplayTopic<Object?>() => 'a replay topic',
+};
