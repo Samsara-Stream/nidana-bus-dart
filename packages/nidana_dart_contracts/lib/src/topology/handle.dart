@@ -10,6 +10,10 @@ sealed class TopicStream<T> {
   // stage derived from it (G14, G15).
   final TopologyBuilder _builder;
 
+  // Calls the visitor method of this stage's class with this stage, binding
+  // its type arguments (G16).
+  V _accept<V>(StageVisitor<V> visitor);
+
   TopicStream<R> map<R>(R Function(T value) transform) {
     _builder._checkOpen();
     return _derive(MapStage<T, R>._(_builder, this, transform));

@@ -42,9 +42,8 @@ final class TopologyPlan {
 /// Passes [stage] to the visitor method of its class, binding the stage's
 /// type arguments; likewise visitSink.
 V visitStage<V>(TopicStream<Object?> stage, StageVisitor<V> visitor) =>
-    throw UnimplementedError();
-V visitSink<V>(PlanSink sink, SinkVisitor<V> visitor) =>
-    throw UnimplementedError();
+    stage._accept(visitor);
+V visitSink<V>(PlanSink sink, SinkVisitor<V> visitor) => sink._accept(visitor);
 
 /// Implemented by a live implementation's interpreter, and by any reader
 /// that needs a stage's type arguments.
