@@ -203,6 +203,7 @@ a `Task N: complete` line; never re-dispatch them.
 | S132 | implement | superpowers:subagent-driven-development | nidana.model.9: 5 tasks, no fix rounds (one carried ruling), final review with doc fixes, one doc-only fix wave; gate exit 0, 147 tests; topology-dsl restricted 17/17 | done | 235c403; merged into impl/nidana.model as e9f2289 |
 | S133 | config | hsdd-config | nidana.model.10 (N=7, spot-check; every restricted case passable here, checked; baseline 1/10) | done | 03f8fd8 |
 | S134 | code-plan | superpowers:writing-plans | nidana.model.10 (6 tasks; dry run: restricted replay 1/10 to 10/10; 2 low contract gaps routed) | done | 3a9e427 |
+| S135 | implement | superpowers:subagent-driven-development | nidana.model.10: 6 tasks, no fix rounds (one carried ruling), final review ready to merge, one doc-only wave; gate exit 0, 200 tests; topology-ir restricted 10/10 | done | d8efc63 |
 
 ## Notes for the report
 
@@ -375,7 +376,22 @@ that phase's writing-plans dispatch and strikes it here when the phase's plan co
   message grammar; `_checkMade` names the argument `handle` without its position (a foreign fourth handle of
   `combine4` reads "Invalid argument (handle)"); use `combiner`, never `apply`, for `FunctionRef.of`; map a stage
   to its edge index by identity (stages keep `Object`'s `==`, G30); expect `TopologyDefinition`'s `ArgumentError`
-  for the corner below and let it propagate from `definition`.
+  for the corner below and let it propagate from `definition`. From S135's Task 3 review: sort claims with
+  `compareClaimKeys((source: c.source, scope: c.scope, writes: c.writes))` and topologies with `compareTopologyIds`
+  (both in `lib/src/ir/canonical_order.dart`); the id order alone neither dedupes equal definitions nor rejects
+  unequal ones sharing an id (G11, G15), which `TopologyGraph` must do. From S135's final review: make
+  `canonical_order_test.dart`'s ir/-never-imports-graph/ check recursive (`listSync(recursive: true)`); reword the
+  rendered-alike corner's "second sink edge on a state topic" message, which misleads an author who declared two
+  `Topic`s; `elementsEqual` takes `List`s, so `ShellClaim`'s `Set` writes need `.toList()` or a wider helper (and
+  its dartdoc names only envelopes and lineages); the "takes exactly 1 inputs" grammar in `definition.dart`.
+- nidana.model.12 (from S135's final review): the finding constructors keep repeated elements (G23); where the
+  contract implies distinct elements (a cycle's ids and topics, a self-reference's edges) the analyses pass
+  distinct values themselves.
+- nidana.model.13 (from S135's final review): the decoder checks a `StageInput` index before constructing (the
+  constructor's assert is an `AssertionError` under `dart test`; G21 allows only `FormatException`), converts the
+  IR factories' `ArgumentError` to `FormatException`, and checks raw repeats before `reads`/`writes` Sets and
+  `TopologyGraph` collapse them (`invalid/reads_repeat_topic.json`, `invalid/topologies_repeat.json`); the
+  round-trip generators avoid a dedup on an event or replay read and an empty `typeName`.
 - End of nidana.model, governance sweep (from S132's final review): two `StateTopic`s with one name and value
   types that render alike (one class name from two libraries) pass `planOf` (topology-dsl@v2 G14 compares by
   `Topic` equality, whose `valueType` is a `Type`) but break topology-ir@v1's well-formedness (`TopicRef`
@@ -389,7 +405,15 @@ that phase's writing-plans dispatch and strikes it here when the phase's plan co
   `StageInput` with a negative index has no fixture (a negative case needs assertions off, which `dart test` turns
   on) and the Validation section lacks the not-executable line ADR-001 item 3 asks for; the suite misses a
   `retry` accepted on combinators other than `map` and a definition equality that ignores edge order (seeded
-  defects D5 and D11, `docs/auto-run/experiments/ir-values-plan/`).
+  defects D5 and D11, `docs/auto-run/experiments/ir-values-plan/`). Also (S135 Task 1 review): G9's derivation
+  table says an extension tear-off is anonymous, which holds for instance members only; a static method of a named
+  extension renders `Ext|helper` and an extension-type constructor tear-off `ET|constructor#_#new#tearOff`, which
+  the text rule names (the schema accepts any non-empty name); a table clarification for hsdd-contract.
+- End of nidana.model, governance sweep (from S135's final review, hsdd-contract, low): `TopicInput` accepts a
+  `dedup` on an event or replay topic and `TopicRef` accepts an empty `typeName`, which the schema rejects
+  (`invalid/dedup_on_event_read.json`, `typeName` minLength 1), so G20's "decoding a graph's encoding gives the
+  graph back" fails for such hand-built graphs; either assert in the constructors as `StageInput` does or narrow
+  G20 to graphs the decoder accepts. Plan-made definitions never hold either.
 - nidana.tooling.codegen.6, .9, .11 and nidana.tooling.lint.4 (from S122): the first gates to run the 39 committed
   recorded invocations and topic-codegen's file replay for real (all PENDING until then); their `{files}` and
   `{root}` recordings and in-place `files/` runs are first exercised there.
