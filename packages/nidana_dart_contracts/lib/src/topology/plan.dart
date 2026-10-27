@@ -36,7 +36,7 @@ final class TopologyPlan {
 
   /// The IR projected from this plan (topology-ir@v1); equal to
   /// topology.buildDefinition() for a deterministic declaration.
-  TopologyDefinition get definition => throw UnimplementedError();
+  TopologyDefinition get definition => projectPlan(this);
 }
 
 /// Passes [stage] to the visitor method of its class, binding the stage's
