@@ -166,13 +166,15 @@ void main() {
       );
       expect(
         unavailableLine(
-          SetUnavailable(
-            CheckSet.behavior,
-            'sample',
-            notImplemented(CheckSet.behavior),
+          const SetUnavailable(
+            CheckSet.cli,
+            'gen',
+            'no flutter in the Flutter SDK of /sdk/bin/dart; '
+                'hsdd/contract/fixture/gen/invocation/flutter-version/ runs flutter',
           ),
         ),
-        'ERROR behavior sample: this version of nidana_contract_check does not implement the behavior set',
+        'ERROR cli gen: no flutter in the Flutter SDK of /sdk/bin/dart; '
+        'hsdd/contract/fixture/gen/invocation/flutter-version/ runs flutter',
       );
     });
     test('the summary counts passed, failed and pending fixtures', () {

@@ -1127,23 +1127,23 @@ ids: G{n} for the one slug named, or {slug}/G{n}''');
         err.toString().split('\n').first,
         'running dart pub get --enforce-lockfile',
       );
-      // Beyond the brief: once pub get passed, the file set plans its replay,
-      // PENDING on tool's absent generator, the cli set is still not
-      // implemented, and the progress line is written once.
+      // Beyond the brief: once pub get passed, the file set plans its replay
+      // and the cli set its recorded invocation, each PENDING on tool's
+      // absent generator, and the progress line is written once.
       expect(
         out.toString(),
-        contains(
-          'PENDING file hsdd/contract/fixture/tool/expected/: package tool is absent from .dart_tool/package_config.json\n',
+        allOf(
+          contains(
+            'PENDING file hsdd/contract/fixture/tool/expected/: package tool is absent from .dart_tool/package_config.json\n',
+          ),
+          contains(
+            'PENDING cli hsdd/contract/fixture/tool/invocation/generate-usage/: package tool is absent from .dart_tool/package_config.json\n',
+          ),
         ),
       );
       expect(
         err.toString(),
-        allOf(
-          isNot(contains('ERROR file ')),
-          contains(
-            'ERROR cli tool: this version of nidana_contract_check does not implement the cli set',
-          ),
-        ),
+        allOf(isNot(contains('ERROR file ')), isNot(contains('ERROR cli '))),
       );
       expect(
         'running dart pub get'.allMatches(err.toString()),

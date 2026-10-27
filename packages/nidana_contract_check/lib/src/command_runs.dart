@@ -1,19 +1,23 @@
-/// The runs of the sets that run commands (ADR-001 item 6; design decisions
-/// 4 to 7), part of the replay tool's imperative shell: the `file` set's
-/// generator started into a fresh `{output}`, `dart format` over it, and the
-/// two trees read, hidden entries included. Every decision is the pure
-/// core's (`file_set.dart` and `tree.dart`); each process starts through
-/// `processes.dart`. It is one of the libraries under `lib/src/` that import
-/// `dart:io`, which `test/purity_test.dart` lists.
+/// The runs of the sets that run commands (ADR-001 items 6 and 7; design
+/// decisions 1, 4 to 9 and 16), part of the replay tool's imperative shell:
+/// the `file` set's generator started into a fresh `{output}`, each of the
+/// `cli` set's recorded invocations started from its `files/` or the root
+/// with a fresh `{output}`, `dart format` over `{output}`, and the trees
+/// read, hidden entries included. Every decision is the pure core's
+/// (`file_set.dart`, `cli_set.dart`, `command.dart` and `tree.dart`); each
+/// process starts through `processes.dart`. It is one of the libraries under
+/// `lib/src/` that import `dart:io`, which `test/purity_test.dart` lists.
 library;
 
 import 'dart:io';
 
 import 'package:path/path.dart' as p;
 
+import 'cli_set.dart';
 import 'command.dart';
 import 'file_set.dart';
 import 'outcome.dart';
+import 'packages.dart';
 import 'processes.dart';
 import 'report.dart';
 import 'request.dart';
@@ -62,7 +66,8 @@ FileTree readTree(Directory directory) =>
 /// [fileOutcome] judges its exit code, the format's, the slug's `expected`
 /// tree and the tree at `{output}`, each read by [readTree]. The deletion of
 /// `{t}` is as far as it can go: a tree the generator left that cannot be
-/// deleted stays in the system temporary directory, and the outcome stands.
+/// deleted stays in the system temporary directory, a line `could not delete
+/// {t}: {reason}` goes to [progress], and the outcome stands.
 Future<SetRun> runFileSet(
   String slug,
   FilePlan plan, {
@@ -130,7 +135,7 @@ Future<SetRun> _runGenerator(
       },
     };
   } finally {
-    _attempt(() => temporary.deleteSync(recursive: true));
+    _deleteTemporary(temporary, progress);
   }
 }
 
@@ -140,6 +145,296 @@ SetChecked _fileChecked(String slug, FixtureOutcome outcome) => SetChecked(
   slug,
   List<FixtureOutcome>.unmodifiable(<FixtureOutcome>[outcome]),
 );
+
+/// The cli set over [slug]'s [plans], in order. Each run is resolved to its process first by
+/// [processOf] with [dart], [flutter], the package configuration under [root] and [roots]; the
+/// first that cannot be makes the set [SetUnavailable] with `no flutter in the Flutter SDK of
+/// {dart}; {path} runs flutter`, and no case of the slug starts. Otherwise each run gets a
+/// fresh `{t}`, its `{output}` arguments become `{t}/output`, it starts from its `files/` or
+/// [root] after a line `running cli {path}` to [progress], `{output}` is read (formatted first
+/// when the case has `expected/`), and [invocationOutcome] judges it with the placeholders of
+/// `{output}`, its `files/` and [root]; `{t}` is deleted after. A process that cannot start
+/// makes the set [SetUnavailable] with its reason, starting no case after it.
+///
+/// An [InvocationSettled] plan starts no process. A `{package}:{executable}`
+/// run whose package [roots] lacks, which the planner makes PENDING before
+/// it gets here, has no process either; its reason is `package {package} is
+/// absent from .dart_tool/package_config.json; {path} runs
+/// {package}:{executable}`.
+///
+/// `{t}` is a fresh temporary directory, and nothing exists at `{output}`
+/// when the run starts. The placeholders are resolved before the run, in
+/// ADR-001 item 7's order (design decision 9): `{output}`, given as the
+/// argument and resolved as `{t}` resolved and `output`, since nothing may be
+/// there after the run; `{files}`, only for a case with `files/`; `{root}`.
+/// After the run, a directory at `{output}` is an [OutputTree] read by
+/// [readTree], a file or a link an [OutputFile], and nothing a [NoOutput];
+/// `{dart} format {output}` runs from [root] only over a directory and only
+/// for a case with `expected/`, whose tree [readTree] reads after the run.
+/// The process's output is not printed: [invocationOutcome] compares it. A
+/// `{t}` that cannot be deleted, as when the command left a directory there
+/// that cannot be listed, stays in the system temporary directory, a line
+/// `could not delete {t}: {reason}` goes to [progress], and the outcome
+/// stands. Throws FileSystemException when the root or a case's `files/`
+/// cannot be resolved.
+Future<SetRun> runCliSet(
+  String slug,
+  List<InvocationPlan> plans, {
+  required Directory root,
+  required String dart,
+  required String? flutter,
+  required Map<String, Uri> roots,
+  required StringSink progress,
+}) async {
+  CommandProcess? resolve(Command command) => processOf(
+    command,
+    dart: dart,
+    flutter: flutter,
+    packageConfig: workspacePath(root, packageConfigPath),
+    roots: roots,
+  );
+  return switch (plans
+      .whereType<InvocationRun>()
+      .where((InvocationRun run) => resolve(run.command) == null)
+      .firstOrNull) {
+    final InvocationRun run => SetUnavailable(
+      CheckSet.cli,
+      slug,
+      _unresolvable(run, dart),
+    ),
+    null => await _runInvocations(
+      slug,
+      plans,
+      root: root,
+      dart: dart,
+      resolve: resolve,
+      progress: progress,
+    ),
+  };
+}
+
+/// The process that runs [command], as [processOf] resolves it; null when there is none.
+typedef _Resolve = CommandProcess? Function(Command command);
+
+/// What running one recorded invocation gave: its outcome, or the reason the slug's set cannot
+/// run.
+sealed class _CaseResult {
+  const _CaseResult();
+}
+
+/// The case's [outcome], judged by [invocationOutcome].
+final class _CaseConcluded extends _CaseResult {
+  const _CaseConcluded(this.outcome);
+
+  final FixtureOutcome outcome;
+}
+
+/// A process of the case could not start, as [reason] tells.
+final class _CaseUnavailable extends _CaseResult {
+  const _CaseUnavailable(this.reason);
+
+  final String reason;
+}
+
+/// Why [run] has no process: [processOf] gives none for a `{package}:{executable}` command whose
+/// package the package configuration lacks, and for a `flutter` command when the Flutter SDK of
+/// [dart] holds no flutter.
+String _unresolvable(InvocationRun run, String dart) => switch (run.command) {
+  PackageCommand(:final String package, :final String executable) =>
+    'package $package is absent from $packageConfigPath; '
+        '${run.path} runs $package:$executable',
+  _ => 'no flutter in the Flutter SDK of $dart; ${run.path} runs flutter',
+};
+
+/// [plans] of [slug]'s recorded invocations taken in order, after the [concluded] outcomes of the
+/// plans before them: [SetChecked] with every outcome, or [SetUnavailable] at the first process
+/// that cannot start, starting no case after it.
+Future<SetRun> _runInvocations(
+  String slug,
+  List<InvocationPlan> plans, {
+  required Directory root,
+  required String dart,
+  required _Resolve resolve,
+  required StringSink progress,
+  List<FixtureOutcome> concluded = const <FixtureOutcome>[],
+}) async => switch (plans) {
+  [] => SetChecked(
+    CheckSet.cli,
+    slug,
+    List<FixtureOutcome>.unmodifiable(concluded),
+  ),
+  [
+    InvocationSettled(:final FixtureOutcome outcome),
+    ...final List<InvocationPlan> rest,
+  ] =>
+    await _runInvocations(
+      slug,
+      rest,
+      root: root,
+      dart: dart,
+      resolve: resolve,
+      progress: progress,
+      concluded: <FixtureOutcome>[...concluded, outcome],
+    ),
+  [final InvocationRun run, ...final List<InvocationPlan> rest] =>
+    switch (await _runCase(
+      run,
+      root: root,
+      dart: dart,
+      resolve: resolve,
+      progress: progress,
+    )) {
+      _CaseConcluded(:final FixtureOutcome outcome) => await _runInvocations(
+        slug,
+        rest,
+        root: root,
+        dart: dart,
+        resolve: resolve,
+        progress: progress,
+        concluded: <FixtureOutcome>[...concluded, outcome],
+      ),
+      _CaseUnavailable(:final String reason) => SetUnavailable(
+        CheckSet.cli,
+        slug,
+        reason,
+      ),
+    },
+};
+
+/// [run] with a fresh `{t}`, deleted after as far as it can be: after its progress line, its
+/// process, `{output}` its `{t}/output`, started from its `files/` or [root], and its outcome
+/// judged by [_judged].
+Future<_CaseResult> _runCase(
+  InvocationRun run, {
+  required Directory root,
+  required String dart,
+  required _Resolve resolve,
+  required StringSink progress,
+}) async {
+  final Directory temporary = Directory.systemTemp.createTempSync('ncc_cli_');
+  try {
+    final String output = p.join(temporary.path, 'output');
+    final List<PathForms> forms = _formsOf(
+      run,
+      root: root,
+      temporary: temporary,
+      output: output,
+    );
+    progress.writeln('running cli ${run.path}');
+    return switch (resolve(withOutput(run.command, output))) {
+      // Not reached: runCliSet resolved every run before the first started,
+      // and substituting `{output}` changes no command's kind or package.
+      null => _CaseUnavailable(_unresolvable(run, dart)),
+      final CommandProcess process => switch (await runProcess(
+        process.executable,
+        process.arguments,
+        workingDirectory: switch (run.files) {
+          final String files => workspacePath(root, files),
+          null => root.path,
+        },
+      )) {
+        NotStarted(:final String reason) => _CaseUnavailable(reason),
+        Exited(:final ProcessExit exit) => await _judged(
+          run,
+          exit,
+          output: output,
+          forms: forms,
+          root: root,
+          dart: dart,
+        ),
+      },
+    };
+  } finally {
+    _deleteTemporary(temporary, progress);
+  }
+}
+
+/// The placeholders of [run]'s streams, in ADR-001 item 7's order (design decision 9):
+/// `{output}`, given as [output] and resolved as [temporary] resolved and `output`; `{files}`,
+/// for a case with `files/`; and `{root}`, each directory given as found and resolved. Throws
+/// FileSystemException when a directory cannot be resolved.
+List<PathForms> _formsOf(
+  InvocationRun run, {
+  required Directory root,
+  required Directory temporary,
+  required String output,
+}) => List<PathForms>.unmodifiable(<PathForms>[
+  (
+    given: output,
+    resolved: p.join(temporary.resolveSymbolicLinksSync(), 'output'),
+    placeholder: '{output}',
+  ),
+  if (run.files case final String files)
+    _formsOfDirectory(Directory(workspacePath(root, files)), '{files}'),
+  _formsOfDirectory(root, '{root}'),
+]);
+
+/// [directory]'s path as given and resolved, for [placeholder]. Throws FileSystemException.
+PathForms _formsOfDirectory(Directory directory, String placeholder) => (
+  given: directory.path,
+  resolved: directory.resolveSymbolicLinksSync(),
+  placeholder: placeholder,
+);
+
+/// The outcome of [run], which ended as [exit], by [invocationOutcome] with [forms] and with what
+/// is at [output], read once the run ended; [_CaseUnavailable] when `dart format` cannot start.
+///
+/// A directory is an [OutputTree]: for a case with `expected/`, formatted
+/// first by [dart] from [root] and compared with the case's `expected/` tree;
+/// for one without, read unformatted. Nothing is a [NoOutput]; a file, a
+/// link or any other entry is an [OutputFile].
+Future<_CaseResult> _judged(
+  InvocationRun run,
+  ProcessExit exit, {
+  required String output,
+  required List<PathForms> forms,
+  required Directory root,
+  required String dart,
+}) async {
+  _CaseResult judge(OutputState state) => _CaseConcluded(
+    invocationOutcome(
+      run,
+      exit: exit,
+      output: state,
+      expected: switch (run.expected) {
+        final String expected => readTree(
+          Directory(workspacePath(root, expected)),
+        ),
+        null => const <String, FileEntry>{},
+      },
+      forms: forms,
+    ),
+  );
+  return switch ((_typeOf(output, followLinks: false), run.expected)) {
+    (FileSystemEntityType.notFound, _) => judge(const NoOutput()),
+    (FileSystemEntityType.directory, null) => judge(
+      OutputTree(readTree(Directory(output)), null),
+    ),
+    (FileSystemEntityType.directory, String()) => switch (await runProcess(
+      dart,
+      <String>['format', output],
+      workingDirectory: root.path,
+    )) {
+      NotStarted(:final String reason) => _CaseUnavailable(reason),
+      Exited(exit: final ProcessExit format) => judge(
+        OutputTree(readTree(Directory(output)), format),
+      ),
+    },
+    _ => judge(const OutputFile()),
+  };
+}
+
+/// Deletes [temporary] and everything below it, as far as it can: when what a process left there
+/// cannot be deleted, it stays, with a line `could not delete {path}: {reason}` to [progress]. A
+/// [temporary] that no longer exists needs no deleting.
+void _deleteTemporary(Directory temporary, StringSink progress) {
+  if (_attempt(() => temporary.deleteSync(recursive: true))
+      case _Refused(:final String reason)
+      when _typeOf(temporary.path, followLinks: false) !=
+          FileSystemEntityType.notFound) {
+    progress.writeln('could not delete ${temporary.path}: $reason');
+  }
+}
 
 /// The entries below the directory at [path], whose symlink-resolved path is [resolved], each
 /// keyed by [key], `/` and its path relative to [path]; [descent] holds the resolved path of

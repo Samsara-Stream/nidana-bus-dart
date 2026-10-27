@@ -48,11 +48,6 @@ final class SetUnavailable extends SetRun {
   final String reason;
 }
 
-/// The reason of a set this version does not implement.
-String notImplemented(CheckSet set) =>
-    'this version of nidana_contract_check does not implement the '
-    '${set.name} set';
-
 /// The report line of [outcome] under [set]: `PASS {set} {path}`, or
 /// `PASS {set} {path}: {detail}` when the outcome has a detail,
 /// `FAIL {set} {path}: {rule} ({detail}); ...` with every problem in order,

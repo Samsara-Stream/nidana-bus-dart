@@ -374,7 +374,7 @@ void main() {
       ),
     );
     expect(undecodable.err, isEmpty);
-  });
+  }, skip: skipAsSuperuser);
   test("a binding of another slug's suite is PENDING on the suite's absent packages too", () async {
     final Replay r = await replay(
       <String>['host', '--set', 'behavior'],

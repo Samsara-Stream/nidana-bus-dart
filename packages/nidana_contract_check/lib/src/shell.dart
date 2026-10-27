@@ -5,12 +5,12 @@
 /// --enforce-lockfile` once before the `file` and `cli` sets, reads the
 /// package configuration, runs `dart analyze` once for the `surface` and
 /// `reject` sets of every slug, runs one test runner per binding the
-/// `behavior` set runs (through `runners.dart`) and one generator per file
-/// replay the `file` set runs (through `command_runs.dart`), runs the
-/// planned sets and prints the report. Every decision is the pure core's,
-/// and every process starts through `processes.dart`. It is one of the
-/// libraries under `lib/src/` that import `dart:io`, which
-/// `test/purity_test.dart` lists.
+/// `behavior` set runs (through `runners.dart`), one generator per file
+/// replay the `file` set runs and one command per recorded invocation the
+/// `cli` set runs (through `command_runs.dart`), runs the planned sets and
+/// prints the report. Every decision is the pure core's, and every process
+/// starts through `processes.dart`. It is one of the libraries under
+/// `lib/src/` that import `dart:io`, which `test/purity_test.dart` lists.
 library;
 
 import 'dart:convert';
@@ -20,6 +20,7 @@ import 'package:path/path.dart' as p;
 
 import 'analysis.dart';
 import 'behavior.dart';
+import 'cli_set.dart';
 import 'command_runs.dart';
 import 'contract.dart';
 import 'file_set.dart';
@@ -195,18 +196,20 @@ Map<String, String> _undecodable(Map<String, SourceDecoding> sources) =>
     });
 
 /// Parses, replays, prints one line per fixture to [out] and errors to [err]; returns the exit code.
-/// [dart] runs `dart pub get`, `dart analyze`, `dart test`, the file set's generators and
-/// `dart format`, and the flutter of its Flutter SDK runs `flutter test`; null means
-/// Platform.resolvedExecutable, the dart running the tool.
+/// [dart] runs `dart pub get`, `dart analyze`, `dart test`, the file set's generators, the
+/// recorded invocations' `dart` and `{package}:{executable}` commands and `dart format`, and the
+/// flutter of its Flutter SDK runs `flutter test` and the recorded invocations' `flutter`
+/// commands; null means Platform.resolvedExecutable, the dart running the tool.
 ///
 /// Outcome lines and the summary go to [out]; a set that could not run, a
-/// usage error, an environment error and one progress line before `pub get`
-/// and before each test runner and each generator starts go to [err]. The
-/// exit code is [exitCodeOf] the runs; [exitUsage] on a usage error, a
-/// command line [parseRequest] rejects or a restriction with an id its slug
-/// does not declare, even in a workspace with no slug directory; and
-/// [exitEnvironment] when no workspace root or no slug directory is found or
-/// reading fails.
+/// usage error, an environment error, one progress line before `pub get`
+/// and before each test runner, each generator and each recorded invocation
+/// starts, and one for each temporary directory that cannot be deleted go
+/// to [err]. The exit code is [exitCodeOf] the runs; [exitUsage] on a usage
+/// error, a command line [parseRequest] rejects or a restriction with an id
+/// its slug does not declare, even in a workspace with no slug directory;
+/// and [exitEnvironment] when no workspace root or no slug directory is
+/// found or reading fails.
 Future<int> runCli(
   List<String> arguments, {
   required Directory workingDirectory,
@@ -243,8 +246,8 @@ Future<int> runCli(
 /// restriction, reads every slug of the request and the slugs whose suites
 /// its bindings import, runs the one `pub get`, reads the package
 /// configuration, runs the one analysis and every planned set, the `file`
-/// set's generators among them, then prints each run in order and the
-/// summary.
+/// set's generators and the `cli` set's recorded invocations among them,
+/// then prints each run in order and the summary.
 ///
 /// The order is fixed: a usage error comes before the check for a slug
 /// directory, so a command line that does not parse exits [exitUsage] even
@@ -256,8 +259,8 @@ Future<int> runCli(
 /// rewrite the configuration (design decision 15); the configuration is read
 /// once, for every set that [readsPackages], before the analysis that needs
 /// its names. The sets run one after another, so the `behavior` set's
-/// runners and the `file` set's generators run one at a time, in plan
-/// order.
+/// runners, the `file` set's generators and the `cli` set's recorded
+/// invocations run one at a time, in plan order.
 ///
 /// Every run is computed before the first line is printed: the analysis
 /// serves every slug, so no slug's runs are known before it completes.
@@ -364,8 +367,9 @@ Set<int>? _declaredBy(Directory root, String slug) {
 /// slugs of the suites its bindings import; the request's [restriction]; the
 /// [dart] running the tool and the [flutter] beside it, null when its
 /// Flutter SDK holds none; the [progress] sink, `err`, that a line goes to
-/// before each runner starts; and the reason the replay's one `pub get`
-/// failed, [pubGetFailure], null when it passed or did not run.
+/// before each runner, generator and recorded invocation starts; and the
+/// reason the replay's one `pub get` failed, [pubGetFailure], null when it
+/// passed or did not run.
 typedef _Context = ({
   Directory root,
   _Packages packages,
@@ -621,9 +625,7 @@ AnalysisTarget _targetOf(Directory root, String path) {
 
 /// [set] run over [snapshot], the `surface`, `reject`, `behavior`, `file` and `cli` sets reading
 /// [context]. A `file` or `cli` set is [SetUnavailable] with the reason the replay's `pub get`
-/// failed when it did; the `cli` set, which this version does not implement, is otherwise
-/// [SetUnavailable] with the [notImplemented] reason, and the task that lands it replaces its
-/// branch.
+/// failed when it did.
 Future<SetRun> _run(
   CheckSet set,
   SlugSnapshot snapshot,
@@ -639,12 +641,7 @@ Future<SetRun> _run(
   CheckSet.behavior => await _behaviorRun(snapshot, context),
   CheckSet.schema => SetChecked(set, snapshot.slug, checkSchema(snapshot)),
   CheckSet.file => await _fileRun(snapshot, context),
-  // A later task of nidana.model.7 lands this; a failed pub get still comes first.
-  CheckSet.cli => SetUnavailable(
-    set,
-    snapshot.slug,
-    context.pubGetFailure ?? notImplemented(set),
-  ),
+  CheckSet.cli => await _cliRun(snapshot, context),
 };
 
 /// A set that judges libraries by the diagnostics reported in them:
@@ -727,6 +724,34 @@ Future<SetRun> _fileRun(SlugSnapshot snapshot, _Context context) async =>
         ),
         root: context.root,
         dart: context.dart,
+        progress: context.progress,
+      ),
+    };
+
+/// The `cli` set over [snapshot]: [SetUnavailable] with the reason the replay's `pub get`
+/// failed, else with the packages' reason when the package configuration cannot be read; else
+/// [runCliSet] runs the recorded invocations [planInvocations] plans with the package names and
+/// the restriction of [context], with the root, the dart, the flutter, the package roots and the
+/// progress sink of [context].
+///
+/// The `pub get` comes first even when the restriction admits no recorded
+/// invocation, so its failure is an environment error of every replay that
+/// holds the set (design decision 15).
+Future<SetRun> _cliRun(SlugSnapshot snapshot, _Context context) async =>
+    switch ((context.pubGetFailure, context.packages)) {
+      (final String reason, _) || (null, _NoPackages(:final String reason)) =>
+        SetUnavailable(CheckSet.cli, snapshot.slug, reason),
+      (null, final _PackageNames packages) => await runCliSet(
+        snapshot.slug,
+        planInvocations(
+          snapshot,
+          packages: packages.names,
+          restriction: context.restriction,
+        ),
+        root: context.root,
+        dart: context.dart,
+        flutter: context.flutter,
+        roots: packages.roots,
         progress: context.progress,
       ),
     };

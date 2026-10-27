@@ -22,17 +22,29 @@ Directory seed(Map<String, String> files) {
   return root;
 }
 
-/// Runs the bin script with [arguments] from [workingDirectory].
+/// The skip reason of a test that denies itself access with `chmod 000`: the superuser reads and
+/// lists what mode 000 denies, so such a test cannot see what it pins. Null for any other user.
+final String? skipAsSuperuser =
+    switch ((Process.runSync('id', <String>['-u']).stdout as String).trim()) {
+      '0' => 'chmod 000 denies the superuser nothing',
+      _ => null,
+    };
+
+/// Runs the bin script with [arguments] from [workingDirectory], with [environment] over the test
+/// run's own.
 ///
 /// Its flutter is the real one beside the running dart, so it never replays
 /// a Flutter binding that is not PENDING (see `seedWorkspace`).
 Future<ProcessResult> runTool(
   List<String> arguments, {
   required Directory workingDirectory,
-}) => Process.run(Platform.resolvedExecutable, <String>[
-  _bin,
-  ...arguments,
-], workingDirectory: workingDirectory.path);
+  Map<String, String>? environment,
+}) => Process.run(
+  Platform.resolvedExecutable,
+  <String>[_bin, ...arguments],
+  workingDirectory: workingDirectory.path,
+  environment: environment,
+);
 
 /// The bin script, by absolute path under the workspace that holds the test
 /// run: run from any working directory, it still resolves its packages
