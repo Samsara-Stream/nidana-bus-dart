@@ -1,0 +1,479 @@
+### A: the plan at HEAD (a8baa34)
+# model-gate-reach
+spec: {tmp}/nidana.model.HEAD.md
+
+## S1 stubs at HEAD: bodies under packages/nidana_dart_contracts/lib/ that throw UnimplementedError
+- findTopologyCycles  (packages/nidana_dart_contracts/lib/src/analysis/analyses.dart:6)  -> .12; Scope of .12 names `findTopologyCycles`
+- findSelfReferences  (packages/nidana_dart_contracts/lib/src/analysis/analyses.dart:8)  -> .12; Scope of .12 names `findSelfReferences`
+- findWriterConflicts  (packages/nidana_dart_contracts/lib/src/analysis/analyses.dart:10)  -> .12; Scope of .12 names `findWriterConflicts`
+- findScopeViolations  (packages/nidana_dart_contracts/lib/src/analysis/analyses.dart:12)  -> .12; Scope of .12 names `findScopeViolations`
+- analyzeTopologyGraph  (packages/nidana_dart_contracts/lib/src/analysis/analyses.dart:17)  -> .12; Scope of .12 names `analyzeTopologyGraph`
+- findTopicNameCollisions  (packages/nidana_dart_contracts/lib/src/analysis/analyses.dart:21)  -> .12; Scope of .12 names `findTopicNameCollisions`
+- ShellClaim()  (packages/nidana_dart_contracts/lib/src/graph/graph.dart:27)  -> .11; Scope of .11 names `ShellClaim`
+- TopologyGraph()  (packages/nidana_dart_contracts/lib/src/graph/graph.dart:51)  -> .11; Scope of .11 names `TopologyGraph`
+- TopologyGraph.render  (packages/nidana_dart_contracts/lib/src/graph/graph.dart:61)  -> .11; Scope of .11 names `render(r)`
+- TopologyDefinitionGraph.toGraph  (packages/nidana_dart_contracts/lib/src/graph/graph.dart:66)  -> .11; Scope of .11 names `toGraph()`
+- encodeTopologyGraph  (packages/nidana_dart_contracts/lib/src/json/codec.dart:7)  -> .13; Scope of .13 names `encodeTopologyGraph`
+- decodeTopologyGraph  (packages/nidana_dart_contracts/lib/src/json/codec.dart:12)  -> .13; Scope of .13 names `decodeTopologyGraph`
+- encodeTopologyDefinition  (packages/nidana_dart_contracts/lib/src/json/codec.dart:16)  -> .13; Scope of .13 names `encodeTopologyDefinition`
+- decodeTopologyDefinition  (packages/nidana_dart_contracts/lib/src/json/codec.dart:18)  -> .13; Scope of .13 names `decodeTopologyDefinition`
+- JsonRenderer.render  (packages/nidana_dart_contracts/lib/src/json/codec.dart:25)  -> .13; Scope of .13 names `JsonRenderer`
+- MermaidRenderer.render  (packages/nidana_dart_contracts/lib/src/render/renderers.dart:7)  -> .14; Scope of .14 names `MermaidRenderer`
+- GraphvizRenderer.render  (packages/nidana_dart_contracts/lib/src/render/renderers.dart:14)  -> .14; Scope of .14 names `GraphvizRenderer`
+- TopologyPlan.definition  (packages/nidana_dart_contracts/lib/src/topology/plan.dart:39)  -> .11; Scope of .11 names `TopologyPlan.definition`
+stubs: 18; unmapped: none
+Topology.buildDefinition() is planOf(this).definition: true
+
+## S2 phases, closures and gates (unshipped phases: no hsdd/verify doc)
+- .11 Projection, graphs and claims: depends on .9 .10; closure .1 .2 .3 .4 .5 .6 .8 .9 .10
+  - fvm dart run nidana_contract_check --all --set structure   (no behavior set)
+  - fvm dart run nidana_contract_check topic-model topology-dsl
+  - fvm dart run nidana_contract_check topology-ir --guarantee G2,G3,G5,G6,G7,G8,G9,G10,G11,G12
+- .12 Analyses: depends on .11; closure .1 .2 .3 .4 .5 .6 .8 .9 .10 .11
+  - fvm dart run nidana_contract_check --all --set structure   (no behavior set)
+  - fvm dart run nidana_contract_check topic-model topology-dsl
+  - fvm dart run nidana_contract_check topology-ir --guarantee G2,G3,G5,G6,G7,G8,G9,G10,G11,G12,G13,G14,G15,G16,G17,G18,G23
+- .13 JSON form: depends on .11; closure .1 .2 .3 .4 .5 .6 .8 .9 .10 .11
+  - fvm dart run nidana_contract_check --all --set structure   (no behavior set)
+  - fvm dart run nidana_contract_check topic-model topology-dsl
+  - fvm dart run nidana_contract_check topology-ir --guarantee G2,G3,G4,G5,G6,G7,G8,G9,G10,G11,G12,G19,G20,G21
+- .14 Mermaid and Graphviz renderers: depends on .12 .13; closure .1 .2 .3 .4 .5 .6 .8 .9 .10 .11 .12 .13
+  - fvm dart run nidana_contract_check --all --set structure   (no behavior set)
+  - fvm dart run nidana_contract_check topic-model topology-dsl topology-ir
+
+## S3 every case of every suite those gates bind: what it reaches that still throws
+(phases: the unshipped phases whose stubs the case reaches; "via" names the helper or sample)
+
+### hsdd/contract/fixture/topic-model/behavior/topic_model_conformance.dart (41 cases)
+- L65 G4 an envelope keeps an unmodifiable copy of its parent correlation ids -> needs -
+- L77 G4 a lineage keeps unmodifiable parent correlation ids -> needs -
+- L97 G6 a state topic defaults to equality dedup, not sensitive, traced -> needs -
+- L108 G6 event and replay topics default to not sensitive and traced -> needs -
+- L125 G7 topics with the same variant, name and value type are equal -> needs -
+- L146 G7 topics differing in variant, name or value type are not equal -> needs -
+- L164 G8 a topic reference carries the name, the variant and the type name -> needs -
+- L183 G8 topic references are equal exactly when all three fields are -> needs -
+- L215 G9 a constant initial value is returned as declared -> needs -
+- L226 G9 a computed initial value is computed on each createInitial call, never at construction -> needs -
+- L242 G10 a replay topic with a buffer smaller than one value fails an assertion -> needs -
+- L259 G11 well-formed topic names have two or three lowercase kebab segments -> needs -
+- L276 G11 other names are not well formed -> needs -
+- L301 G11 topic constructors accept any name -> needs -
+- L310 G13 envelopes with equal fields are equal and hash alike -> needs -
+- L322 G13 envelopes differing in any field are not equal -> needs -
+- L353 G14 a published envelope mirrors the destination topic sensitive flag -> needs -
+- L383 G14 a published envelope takes its metadata from its arguments and its lineage -> needs -
+- L410 G14 a lineage without a correlation id takes exactly one fresh id at publish -> needs -
+- L431 G15 a sensitive envelope renders its payload redacted -> needs -
+- L448 G15 redacted() replaces a sensitive payload and keeps every other field -> needs -
+- L473 G15 redacted() leaves a non-sensitive envelope equal to itself -> needs -
+- L483 G17 a source renders in the Spec 2.4 format -> needs -
+- L497 G17 tryParse reads back every rendered source -> needs -
+- L512 G17 tryParse returns null for text that is not a source -> needs -
+- L529 G17 sources are equal exactly when variant and name are -> needs -
+- L542 G18 a lineage caused by an envelope points at it and keeps its flow -> needs -
+- L558 G18 a root lineage has no cause and no parents -> needs -
+- L577 G19 a same-correlation combine keeps the correlation and takes the trigger as cause -> needs -
+- L594 G19 a cross-correlation combine takes one fresh correlation and records the inputs -> needs -
+- L612 G19 a cross-correlation combine records each distinct input correlation once, in input ... -> needs -
+- L631 G19 a same-correlation combine unites the inputs parent correlation ids in input order -> needs -
+- L651 G19 inputs without a correlation id contribute none -> needs -
+- L674 G19 a combine is sensitive when any input is -> needs -
+- L695 G19 a combine rejects an empty input list and a trigger out of range -> needs -
+- L717 G20 withLatestFrom keeps the primary cause and flow and unites sensitivity -> needs -
+- L735 G21 scopes are ordered application, module, page by lifetime -> needs -
+- L752 G23 observeAll admits non-sensitive envelopes only, observeSensitive sensitive ones only -> needs -
+- L778 G24 a redacted payload shows the runtime type and eight hex digits of the hash code -> needs -
+- L795 G24 equal payloads redact to equal values -> needs -
+- L809 G27 event and replay topics are multi-writer topics and a state topic is not -> needs -
+
+### hsdd/contract/fixture/topology-dsl/behavior/recording_conformance.dart (24 cases)
+- L264 G9 planOf runs declare once against a fresh builder and carries the id and scope -> needs -
+- L279 G9 buildDefinition runs declare once and equals the definition of a fresh plan -> needs .11  [TopologyPlan.definition]
+- L291 G9 the builder form runs its body on each planOf call and never at construction -> needs -
+- L310 G10 recording calls none of the functions a declaration passes -> needs .11  [TopologyPlan.definition]
+- L321 G10 recording creates no timer and schedules no microtask -> needs .11  [TopologyPlan.definition]
+- L353 G11 each combinator call adds one stage, in call order, of its combinator class -> needs -
+- L375 G11 a stage holds the handles, functions and durations it was given -> needs -
+- L430 G11 sinks list the write and reduceInto calls in call order with their topics and inputs -> needs -
+- L451 G11 the arity forms of combine and withLatestFrom apply the transformer to values in in... -> needs -
+- L478 G11 the stage and sink lists of a plan are unmodifiable -> needs -
+- L488 G12 the definition reads the topics of the read stages and writes the topics of the sinks -> needs .11  [TopologyPlan.definition]
+- L501 G12 a topic read twice is read once, and a declaration with no stages reads and writes ... -> needs .11  [TopologyPlan.definition]
+- L517 G13 a read records its dedup argument, null when none is given -> needs -
+- L527 G13 a dedup argument on an event or replay topic read throws ArgumentError -> needs -
+- L547 G14 a handle made by another declaration throws ArgumentError wherever it is passed -> needs -
+- L572 G14 a second sink on one StateTopic throws ArgumentError; event and replay topics take ... -> needs -
+- L597 G14 a negative duration throws ArgumentError and a zero duration is accepted -> needs -
+- L624 G14 an empty input list throws ArgumentError -> needs -
+- L640 G15 planOf throws StateError when a stage reaches no sink -> needs -
+- L658 G15 an empty topology id fails: ArgumentError from topology(), StateError from planOf -> needs .11  [TopologyPlan.definition]
+- L668 G15 a builder or a handle used after declare returned throws StateError -> needs -
+- L683 G16 visitStage and visitSink pass each stage and sink to the method of its class -> needs -
+- L706 G17 topology references are equal, with equal hash codes, exactly when their ids are -> needs -
+- L718 G30 stages, sinks, builders and plans are equal only when identical, with identity hash... -> needs -
+
+### hsdd/contract/fixture/topology-ir/behavior/topology_ir_conformance.dart (43 cases, samples checkout, claims_only, empty, escaping, every_combinator, forms, findings)
+- L500 G2 CombinatorKind has exactly the eighteen values, in order -> needs -
+- L508 G3 every collection the IR, graphs, claims and findings expose is unmodifiable -> needs .11 .12  [ShellClaim() via sample:findings; TopologyGraph() via sample:findings; TopologyPlan.definition via sample:findings; analyzeTopologyGraph]
+- L539 G3 the IR copies the lists it is given; later changes to them do not reach it -> needs .11  [ShellClaim(); TopologyGraph()]
+- L566 G4 every definition a plan projects to is pure data: it encodes to JSON and decodes bac... -> needs .11 .13  [ShellClaim() via sample:checkout; TopologyDefinitionGraph.toGraph via sample:every_combinator; TopologyGraph() via sample:checkout; TopologyPlan.definition via sample:checkout; decodeTopologyDefinition; encodeTopologyDefinition]
+- L581 G5 a stage edge takes the input count its combinator allows -> needs -
+- L607 G5 a stage edge carries a transformer, a duration and a retry exactly where its combina... -> needs -
+- L659 G5 a write and a reduceInto are sink edges; a reduceInto targets a state topic -> needs -
+- L687 G6 a definition derives reads and writes from its edges, in canonical order -> needs -
+- L714 G6 a definition rejects an empty id and ill-formed edges -> needs -
+- L774 G7 IR values are equal, with equal hash codes, exactly when their fields are -> needs -
+- L821 G7 graphs, claims, declarations and findings are equal, with equal hash codes, exactly ... -> needs .11 .12  [ShellClaim(); TopologyGraph(); TopologyPlan.definition via sample:findings; analyzeTopologyGraph]
+- L858 G8 a plan projects one stage edge per non-read stage, in stage order, then one sink edg... -> needs .11  [TopologyPlan.definition]
+- L875 G8 every combinator projects to its kind, its inputs in input order, its function, dura... -> needs .11  [TopologyPlan.definition]
+- L923 G8 recording one declaration twice projects equal definitions, inline closures included -> needs .11  [TopologyPlan.definition]
+- L934 G9 FunctionRef.of names a top-level function, a static method and a method tear-off, as... -> needs -
+- L945 G9 FunctionRef.of is anonymous for a closure and a local function, and never calls the ... -> needs -
+- L960 G9 FunctionRef.of names a private function and a private static method as the VM render... -> needs -
+- L972 G10 scan and reduceInto bear state; debounce, delay, sample and buffer bear it only wit... -> needs -
+- L1017 G11 a graph orders its topologies by id, keeps one of equal duplicates and lists every ... -> needs .11  [ShellClaim(); TopologyDefinitionGraph.toGraph; TopologyGraph()]
+- L1035 G11 a graph rejects two different definitions with one id -> needs .11  [TopologyGraph()]
+- L1044 G11 a graph orders its claims by source, scope and topics, and keeps equal claims as se... -> needs .11  [ShellClaim() via sample:claims_only; TopologyGraph() via sample:claims_only]
+- L1060 G12 a shell claim takes a service, page or executor source, application scope by defaul... -> needs .11  [ShellClaim()]
+- L1077 G13 findTopologyCycles reports each strongly connected set of two or more topologies, w... -> needs .11 .12  [TopologyGraph(); findTopologyCycles]
+- L1096 G13 shell claims take no part in cycles, and a graph without feedback has none -> needs .11 .12  [ShellClaim(); TopologyGraph(); TopologyPlan.definition via sample:checkout; findTopologyCycles]
+- L1112 G14 findSelfReferences reports a self-written topic read through no state-bearing edge,... -> needs .11 .12  [ShellClaim() via sample:findings; TopologyGraph() via sample:findings; TopologyPlan.definition via sample:findings; findSelfReferences]
+- L1130 G14 a self-read mediated by scan, reduceInto or a positive time stage, or never reachin... -> needs .11 .12  [TopologyPlan.definition; findSelfReferences]
+- L1150 G15 findWriterConflicts reports each state topic with two or more writers, topologies a... -> needs .11 .12  [ShellClaim(); TopologyGraph(); TopologyPlan.definition via sample:checkout; findWriterConflicts]
+- L1175 G16 findScopeViolations reports each owner of a state topic that a longer-lived topolog... -> needs .11 .12  [ShellClaim(); TopologyGraph(); TopologyPlan.definition via sample:checkout; findScopeViolations]
+- L1216 G17 analyzeTopologyGraph lists cycles, then self-references by topology, then writer co... -> needs .11 .12  [ShellClaim() via sample:findings; TopologyGraph() via sample:findings; TopologyPlan.definition via sample:findings; analyzeTopologyGraph]
+- L1243 G17 a graph with no finding stays without one when topologies or claims are removed -> needs .11 .12  [ShellClaim() via sample:checkout; TopologyGraph(); TopologyPlan.definition via sample:checkout; analyzeTopologyGraph]
+- L1262 G18 findTopicNameCollisions reports each name with two or more distinct declarations, w... -> needs .12  [findTopicNameCollisions]
+- L1279 G19 the encoding of every sample graph matches the schema and equals its valid/ file -> needs .11 .13  [ShellClaim() via sample:checkout; TopologyDefinitionGraph.toGraph via sample:every_combinator; TopologyGraph() via sample:checkout; TopologyPlan.definition via sample:checkout; encodeTopologyGraph]
+- L1291 G19 a definition encodes to the object its graph document lists -> needs .11 .13  [ShellClaim() via sample:checkout; TopologyGraph() via sample:checkout; TopologyPlan.definition via sample:checkout; encodeTopologyDefinition; encodeTopologyGraph]
+- L1304 G20 every valid/ file decodes and re-encodes to an equal JSON value -> needs .13  [decodeTopologyGraph; encodeTopologyGraph]
+- L1317 G20 decoding the encoding of a graph gives the graph back -> needs .11 .13  [ShellClaim() via sample:checkout; TopologyDefinitionGraph.toGraph via sample:every_combinator; TopologyGraph() via sample:checkout; TopologyPlan.definition via sample:checkout; decodeTopologyGraph; encodeTopologyGraph]
+- L1327 G20 the decoder accepts topologies, claims, reads, writes and claimed topics in any order -> needs .13  [decodeTopologyGraph; encodeTopologyGraph]
+- L1353 G21 every invalid/ file fails the schema and the decoder rejects it with a FormatException -> needs .13  [decodeTopologyGraph]
+- L1366 G21 the decoder rejects a schema-valid document that breaks a rule the schema cannot state -> needs .13  [decodeTopologyGraph]
+- L1422 G21 the decoder rejects any other value with a FormatException and no other error -> needs .13  [decodeTopologyDefinition; decodeTopologyGraph]
+- L1449 G22 the Mermaid and Graphviz renderings of every sample equal its render/ files -> needs .11 .14  [GraphvizRenderer.render; MermaidRenderer.render; ShellClaim() via sample:checkout; TopologyDefinitionGraph.toGraph via sample:every_combinator; TopologyGraph() via sample:checkout; TopologyGraph.render; TopologyPlan.definition via sample:checkout]
+- L1460 G22 the JSON rendering of every sample is its valid/ file, byte for byte -> needs .11 .13  [JsonRenderer.render; ShellClaim() via sample:checkout; TopologyDefinitionGraph.toGraph via sample:every_combinator; TopologyGraph() via sample:checkout; TopologyGraph.render; TopologyPlan.definition via sample:checkout]
+- L1469 G22 render passes the graph to the renderer, and renderers are pure -> needs .11 .12 .13 .14  [GraphvizRenderer.render; JsonRenderer.render; MermaidRenderer.render; ShellClaim() via sample:findings; TopologyGraph() via sample:findings; TopologyGraph.render; TopologyPlan.definition via sample:findings; analyzeTopologyGraph; decodeTopologyGraph; encodeTopologyGraph]
+- L1508 G23 finding and collision constructors put the lists they are given in the orders the I... -> needs .11 .12  [ShellClaim() via sample:findings; TopologyGraph() via sample:findings; TopologyPlan.definition via sample:findings; analyzeTopologyGraph; findTopicNameCollisions]
+
+## S4 per gate: the admitted cases, and whether its phase or its closure delivers what each reaches
+
+### .11 Projection, graphs and claims (delivered: .11 of .11 to .14)
+- topic-model, unrestricted; binding hsdd/contract/fixture/topic-model/behavior/nidana_dart_contracts_test.dart (suite of topic-model): 41 admitted, 41 reachable, 0 cannot pass
+- topology-dsl, unrestricted; binding hsdd/contract/fixture/topology-dsl/behavior/topology_builder_test.dart (suite of topology-dsl): 24 admitted, 24 reachable, 0 cannot pass
+- topology-ir, restricted to G2,G3,G5,G6,G7,G8,G9,G10,G11,G12; binding hsdd/contract/fixture/topology-ir/behavior/nidana_dart_contracts_test.dart (suite of topology-ir): 21 admitted, 19 reachable, 2 cannot pass
+  - CANNOT PASS L508 G3: needs .12, outside .11's closure
+  - CANNOT PASS L821 G7: needs .12, outside .11's closure
+
+### .12 Analyses (delivered: .11 .12 of .11 to .14)
+- topic-model, unrestricted; binding hsdd/contract/fixture/topic-model/behavior/nidana_dart_contracts_test.dart (suite of topic-model): 41 admitted, 41 reachable, 0 cannot pass
+- topology-dsl, unrestricted; binding hsdd/contract/fixture/topology-dsl/behavior/topology_builder_test.dart (suite of topology-dsl): 24 admitted, 24 reachable, 0 cannot pass
+- topology-ir, restricted to G2,G3,G5,G6,G7,G8,G9,G10,G11,G12,G13,G14,G15,G16,G17,G18,G23; binding hsdd/contract/fixture/topology-ir/behavior/nidana_dart_contracts_test.dart (suite of topology-ir): 31 admitted, 31 reachable, 0 cannot pass
+
+### .13 JSON form (delivered: .11 .13 of .11 to .14)
+- topic-model, unrestricted; binding hsdd/contract/fixture/topic-model/behavior/nidana_dart_contracts_test.dart (suite of topic-model): 41 admitted, 41 reachable, 0 cannot pass
+- topology-dsl, unrestricted; binding hsdd/contract/fixture/topology-dsl/behavior/topology_builder_test.dart (suite of topology-dsl): 24 admitted, 24 reachable, 0 cannot pass
+- topology-ir, restricted to G2,G3,G4,G5,G6,G7,G8,G9,G10,G11,G12,G19,G20,G21; binding hsdd/contract/fixture/topology-ir/behavior/nidana_dart_contracts_test.dart (suite of topology-ir): 30 admitted, 28 reachable, 2 cannot pass
+  - CANNOT PASS L508 G3: needs .12, outside .13's closure (numbered before .13, but not a dependency)
+  - CANNOT PASS L821 G7: needs .12, outside .13's closure (numbered before .13, but not a dependency)
+
+### .14 Mermaid and Graphviz renderers (delivered: .11 .12 .13 .14 of .11 to .14)
+- topic-model, unrestricted; binding hsdd/contract/fixture/topic-model/behavior/nidana_dart_contracts_test.dart (suite of topic-model): 41 admitted, 41 reachable, 0 cannot pass
+- topology-dsl, unrestricted; binding hsdd/contract/fixture/topology-dsl/behavior/topology_builder_test.dart (suite of topology-dsl): 24 admitted, 24 reachable, 0 cannot pass
+- topology-ir, unrestricted; binding hsdd/contract/fixture/topology-ir/behavior/nidana_dart_contracts_test.dart (suite of topology-ir): 43 admitted, 43 reachable, 0 cannot pass
+
+## S5 topology-ir@v1 by guarantee: the unshipped phases its cases need, and the first unshipped phase whose closure has them
+- G2 (1 case): needs -; reachable from nidana.model.10 on (needs no unshipped phase); replayed by .11 .12 .13 .14
+- G3 (2 cases): needs .11 .12; first reachable at .12; replayed by .11 .12 .13 .14
+- G4 (1 case): needs .11 .13; first reachable at .13; replayed by .13 .14
+- G5 (3 cases): needs -; reachable from nidana.model.10 on (needs no unshipped phase); replayed by .11 .12 .13 .14
+- G6 (2 cases): needs -; reachable from nidana.model.10 on (needs no unshipped phase); replayed by .11 .12 .13 .14
+- G7 (2 cases): needs .11 .12; first reachable at .12; replayed by .11 .12 .13 .14
+- G8 (3 cases): needs .11; first reachable at .11; replayed by .11 .12 .13 .14
+- G9 (3 cases): needs -; reachable from nidana.model.10 on (needs no unshipped phase); replayed by .11 .12 .13 .14
+- G10 (1 case): needs -; reachable from nidana.model.10 on (needs no unshipped phase); replayed by .11 .12 .13 .14
+- G11 (3 cases): needs .11; first reachable at .11; replayed by .11 .12 .13 .14
+- G12 (1 case): needs .11; first reachable at .11; replayed by .11 .12 .13 .14
+- G13 (2 cases): needs .11 .12; first reachable at .12; replayed by .12 .14
+- G14 (2 cases): needs .11 .12; first reachable at .12; replayed by .12 .14
+- G15 (1 case): needs .11 .12; first reachable at .12; replayed by .12 .14
+- G16 (1 case): needs .11 .12; first reachable at .12; replayed by .12 .14
+- G17 (2 cases): needs .11 .12; first reachable at .12; replayed by .12 .14
+- G18 (1 case): needs .12; first reachable at .12; replayed by .12 .14
+- G19 (2 cases): needs .11 .13; first reachable at .13; replayed by .13 .14
+- G20 (3 cases): needs .11 .13; first reachable at .13; replayed by .13 .14
+- G21 (3 cases): needs .13; first reachable at .13; replayed by .13 .14
+- G22 (3 cases): needs .11 .12 .13 .14; first reachable at .14; replayed by .14
+- G23 (1 case): needs .11 .12; first reachable at .12; replayed by .12 .14
+
+## Verdict
+- .11: CANNOT PASS: topology-ir:G3, topology-ir:G7
+- .12: every admitted case is reachable; the gate can pass
+- .13: CANNOT PASS: topology-ir:G3, topology-ir:G7
+- .14: every admitted case is reachable; the gate can pass
+
+### B: the plan in the working tree (S137's amend)
+# model-gate-reach
+spec: hsdd/spec/nidana.model.md
+
+## S1 stubs at HEAD: bodies under packages/nidana_dart_contracts/lib/ that throw UnimplementedError
+- findTopologyCycles  (packages/nidana_dart_contracts/lib/src/analysis/analyses.dart:6)  -> .12; Scope of .12 names `findTopologyCycles`
+- findSelfReferences  (packages/nidana_dart_contracts/lib/src/analysis/analyses.dart:8)  -> .12; Scope of .12 names `findSelfReferences`
+- findWriterConflicts  (packages/nidana_dart_contracts/lib/src/analysis/analyses.dart:10)  -> .12; Scope of .12 names `findWriterConflicts`
+- findScopeViolations  (packages/nidana_dart_contracts/lib/src/analysis/analyses.dart:12)  -> .12; Scope of .12 names `findScopeViolations`
+- analyzeTopologyGraph  (packages/nidana_dart_contracts/lib/src/analysis/analyses.dart:17)  -> .12; Scope of .12 names `analyzeTopologyGraph`
+- findTopicNameCollisions  (packages/nidana_dart_contracts/lib/src/analysis/analyses.dart:21)  -> .12; Scope of .12 names `findTopicNameCollisions`
+- ShellClaim()  (packages/nidana_dart_contracts/lib/src/graph/graph.dart:27)  -> .11; Scope of .11 names `ShellClaim`
+- TopologyGraph()  (packages/nidana_dart_contracts/lib/src/graph/graph.dart:51)  -> .11; Scope of .11 names `TopologyGraph`
+- TopologyGraph.render  (packages/nidana_dart_contracts/lib/src/graph/graph.dart:61)  -> .11; Scope of .11 names `render(r)`
+- TopologyDefinitionGraph.toGraph  (packages/nidana_dart_contracts/lib/src/graph/graph.dart:66)  -> .11; Scope of .11 names `toGraph()`
+- encodeTopologyGraph  (packages/nidana_dart_contracts/lib/src/json/codec.dart:7)  -> .13; Scope of .13 names `encodeTopologyGraph`
+- decodeTopologyGraph  (packages/nidana_dart_contracts/lib/src/json/codec.dart:12)  -> .13; Scope of .13 names `decodeTopologyGraph`
+- encodeTopologyDefinition  (packages/nidana_dart_contracts/lib/src/json/codec.dart:16)  -> .13; Scope of .13 names `encodeTopologyDefinition`
+- decodeTopologyDefinition  (packages/nidana_dart_contracts/lib/src/json/codec.dart:18)  -> .13; Scope of .13 names `decodeTopologyDefinition`
+- JsonRenderer.render  (packages/nidana_dart_contracts/lib/src/json/codec.dart:25)  -> .13; Scope of .13 names `JsonRenderer`
+- MermaidRenderer.render  (packages/nidana_dart_contracts/lib/src/render/renderers.dart:7)  -> .14; Scope of .14 names `MermaidRenderer`
+- GraphvizRenderer.render  (packages/nidana_dart_contracts/lib/src/render/renderers.dart:14)  -> .14; Scope of .14 names `GraphvizRenderer`
+- TopologyPlan.definition  (packages/nidana_dart_contracts/lib/src/topology/plan.dart:39)  -> .11; Scope of .11 names `TopologyPlan.definition`
+stubs: 18; unmapped: none
+Topology.buildDefinition() is planOf(this).definition: true
+
+## S2 phases, closures and gates (unshipped phases: no hsdd/verify doc)
+- .11 Projection, graphs and claims: depends on .9 .10; closure .1 .2 .3 .4 .5 .6 .8 .9 .10
+  - fvm dart run nidana_contract_check --all --set structure   (no behavior set)
+  - fvm dart run nidana_contract_check topic-model topology-dsl
+  - fvm dart run nidana_contract_check topology-ir --guarantee G2,G5,G6,G8,G9,G10,G11,G12
+- .12 Analyses: depends on .11; closure .1 .2 .3 .4 .5 .6 .8 .9 .10 .11
+  - fvm dart run nidana_contract_check --all --set structure   (no behavior set)
+  - fvm dart run nidana_contract_check topic-model topology-dsl
+  - fvm dart run nidana_contract_check topology-ir --guarantee G2,G3,G5,G6,G7,G8,G9,G10,G11,G12,G13,G14,G15,G16,G17,G18,G23
+- .13 JSON form: depends on .11; closure .1 .2 .3 .4 .5 .6 .8 .9 .10 .11
+  - fvm dart run nidana_contract_check --all --set structure   (no behavior set)
+  - fvm dart run nidana_contract_check topic-model topology-dsl
+  - fvm dart run nidana_contract_check topology-ir --guarantee G2,G4,G5,G6,G8,G9,G10,G11,G12,G19,G20,G21
+- .14 Mermaid and Graphviz renderers: depends on .12 .13; closure .1 .2 .3 .4 .5 .6 .8 .9 .10 .11 .12 .13
+  - fvm dart run nidana_contract_check --all --set structure   (no behavior set)
+  - fvm dart run nidana_contract_check topic-model topology-dsl topology-ir
+
+## S3 every case of every suite those gates bind: what it reaches that still throws
+(phases: the unshipped phases whose stubs the case reaches; "via" names the helper or sample)
+
+### hsdd/contract/fixture/topic-model/behavior/topic_model_conformance.dart (41 cases)
+- L65 G4 an envelope keeps an unmodifiable copy of its parent correlation ids -> needs -
+- L77 G4 a lineage keeps unmodifiable parent correlation ids -> needs -
+- L97 G6 a state topic defaults to equality dedup, not sensitive, traced -> needs -
+- L108 G6 event and replay topics default to not sensitive and traced -> needs -
+- L125 G7 topics with the same variant, name and value type are equal -> needs -
+- L146 G7 topics differing in variant, name or value type are not equal -> needs -
+- L164 G8 a topic reference carries the name, the variant and the type name -> needs -
+- L183 G8 topic references are equal exactly when all three fields are -> needs -
+- L215 G9 a constant initial value is returned as declared -> needs -
+- L226 G9 a computed initial value is computed on each createInitial call, never at construction -> needs -
+- L242 G10 a replay topic with a buffer smaller than one value fails an assertion -> needs -
+- L259 G11 well-formed topic names have two or three lowercase kebab segments -> needs -
+- L276 G11 other names are not well formed -> needs -
+- L301 G11 topic constructors accept any name -> needs -
+- L310 G13 envelopes with equal fields are equal and hash alike -> needs -
+- L322 G13 envelopes differing in any field are not equal -> needs -
+- L353 G14 a published envelope mirrors the destination topic sensitive flag -> needs -
+- L383 G14 a published envelope takes its metadata from its arguments and its lineage -> needs -
+- L410 G14 a lineage without a correlation id takes exactly one fresh id at publish -> needs -
+- L431 G15 a sensitive envelope renders its payload redacted -> needs -
+- L448 G15 redacted() replaces a sensitive payload and keeps every other field -> needs -
+- L473 G15 redacted() leaves a non-sensitive envelope equal to itself -> needs -
+- L483 G17 a source renders in the Spec 2.4 format -> needs -
+- L497 G17 tryParse reads back every rendered source -> needs -
+- L512 G17 tryParse returns null for text that is not a source -> needs -
+- L529 G17 sources are equal exactly when variant and name are -> needs -
+- L542 G18 a lineage caused by an envelope points at it and keeps its flow -> needs -
+- L558 G18 a root lineage has no cause and no parents -> needs -
+- L577 G19 a same-correlation combine keeps the correlation and takes the trigger as cause -> needs -
+- L594 G19 a cross-correlation combine takes one fresh correlation and records the inputs -> needs -
+- L612 G19 a cross-correlation combine records each distinct input correlation once, in input ... -> needs -
+- L631 G19 a same-correlation combine unites the inputs parent correlation ids in input order -> needs -
+- L651 G19 inputs without a correlation id contribute none -> needs -
+- L674 G19 a combine is sensitive when any input is -> needs -
+- L695 G19 a combine rejects an empty input list and a trigger out of range -> needs -
+- L717 G20 withLatestFrom keeps the primary cause and flow and unites sensitivity -> needs -
+- L735 G21 scopes are ordered application, module, page by lifetime -> needs -
+- L752 G23 observeAll admits non-sensitive envelopes only, observeSensitive sensitive ones only -> needs -
+- L778 G24 a redacted payload shows the runtime type and eight hex digits of the hash code -> needs -
+- L795 G24 equal payloads redact to equal values -> needs -
+- L809 G27 event and replay topics are multi-writer topics and a state topic is not -> needs -
+
+### hsdd/contract/fixture/topology-dsl/behavior/recording_conformance.dart (24 cases)
+- L264 G9 planOf runs declare once against a fresh builder and carries the id and scope -> needs -
+- L279 G9 buildDefinition runs declare once and equals the definition of a fresh plan -> needs .11  [TopologyPlan.definition]
+- L291 G9 the builder form runs its body on each planOf call and never at construction -> needs -
+- L310 G10 recording calls none of the functions a declaration passes -> needs .11  [TopologyPlan.definition]
+- L321 G10 recording creates no timer and schedules no microtask -> needs .11  [TopologyPlan.definition]
+- L353 G11 each combinator call adds one stage, in call order, of its combinator class -> needs -
+- L375 G11 a stage holds the handles, functions and durations it was given -> needs -
+- L430 G11 sinks list the write and reduceInto calls in call order with their topics and inputs -> needs -
+- L451 G11 the arity forms of combine and withLatestFrom apply the transformer to values in in... -> needs -
+- L478 G11 the stage and sink lists of a plan are unmodifiable -> needs -
+- L488 G12 the definition reads the topics of the read stages and writes the topics of the sinks -> needs .11  [TopologyPlan.definition]
+- L501 G12 a topic read twice is read once, and a declaration with no stages reads and writes ... -> needs .11  [TopologyPlan.definition]
+- L517 G13 a read records its dedup argument, null when none is given -> needs -
+- L527 G13 a dedup argument on an event or replay topic read throws ArgumentError -> needs -
+- L547 G14 a handle made by another declaration throws ArgumentError wherever it is passed -> needs -
+- L572 G14 a second sink on one StateTopic throws ArgumentError; event and replay topics take ... -> needs -
+- L597 G14 a negative duration throws ArgumentError and a zero duration is accepted -> needs -
+- L624 G14 an empty input list throws ArgumentError -> needs -
+- L640 G15 planOf throws StateError when a stage reaches no sink -> needs -
+- L658 G15 an empty topology id fails: ArgumentError from topology(), StateError from planOf -> needs .11  [TopologyPlan.definition]
+- L668 G15 a builder or a handle used after declare returned throws StateError -> needs -
+- L683 G16 visitStage and visitSink pass each stage and sink to the method of its class -> needs -
+- L706 G17 topology references are equal, with equal hash codes, exactly when their ids are -> needs -
+- L718 G30 stages, sinks, builders and plans are equal only when identical, with identity hash... -> needs -
+
+### hsdd/contract/fixture/topology-ir/behavior/topology_ir_conformance.dart (43 cases, samples checkout, claims_only, empty, escaping, every_combinator, forms, findings)
+- L500 G2 CombinatorKind has exactly the eighteen values, in order -> needs -
+- L508 G3 every collection the IR, graphs, claims and findings expose is unmodifiable -> needs .11 .12  [ShellClaim() via sample:findings; TopologyGraph() via sample:findings; TopologyPlan.definition via sample:findings; analyzeTopologyGraph]
+- L539 G3 the IR copies the lists it is given; later changes to them do not reach it -> needs .11  [ShellClaim(); TopologyGraph()]
+- L566 G4 every definition a plan projects to is pure data: it encodes to JSON and decodes bac... -> needs .11 .13  [ShellClaim() via sample:checkout; TopologyDefinitionGraph.toGraph via sample:every_combinator; TopologyGraph() via sample:checkout; TopologyPlan.definition via sample:checkout; decodeTopologyDefinition; encodeTopologyDefinition]
+- L581 G5 a stage edge takes the input count its combinator allows -> needs -
+- L607 G5 a stage edge carries a transformer, a duration and a retry exactly where its combina... -> needs -
+- L659 G5 a write and a reduceInto are sink edges; a reduceInto targets a state topic -> needs -
+- L687 G6 a definition derives reads and writes from its edges, in canonical order -> needs -
+- L714 G6 a definition rejects an empty id and ill-formed edges -> needs -
+- L774 G7 IR values are equal, with equal hash codes, exactly when their fields are -> needs -
+- L821 G7 graphs, claims, declarations and findings are equal, with equal hash codes, exactly ... -> needs .11 .12  [ShellClaim(); TopologyGraph(); TopologyPlan.definition via sample:findings; analyzeTopologyGraph]
+- L858 G8 a plan projects one stage edge per non-read stage, in stage order, then one sink edg... -> needs .11  [TopologyPlan.definition]
+- L875 G8 every combinator projects to its kind, its inputs in input order, its function, dura... -> needs .11  [TopologyPlan.definition]
+- L923 G8 recording one declaration twice projects equal definitions, inline closures included -> needs .11  [TopologyPlan.definition]
+- L934 G9 FunctionRef.of names a top-level function, a static method and a method tear-off, as... -> needs -
+- L945 G9 FunctionRef.of is anonymous for a closure and a local function, and never calls the ... -> needs -
+- L960 G9 FunctionRef.of names a private function and a private static method as the VM render... -> needs -
+- L972 G10 scan and reduceInto bear state; debounce, delay, sample and buffer bear it only wit... -> needs -
+- L1017 G11 a graph orders its topologies by id, keeps one of equal duplicates and lists every ... -> needs .11  [ShellClaim(); TopologyDefinitionGraph.toGraph; TopologyGraph()]
+- L1035 G11 a graph rejects two different definitions with one id -> needs .11  [TopologyGraph()]
+- L1044 G11 a graph orders its claims by source, scope and topics, and keeps equal claims as se... -> needs .11  [ShellClaim() via sample:claims_only; TopologyGraph() via sample:claims_only]
+- L1060 G12 a shell claim takes a service, page or executor source, application scope by defaul... -> needs .11  [ShellClaim()]
+- L1077 G13 findTopologyCycles reports each strongly connected set of two or more topologies, w... -> needs .11 .12  [TopologyGraph(); findTopologyCycles]
+- L1096 G13 shell claims take no part in cycles, and a graph without feedback has none -> needs .11 .12  [ShellClaim(); TopologyGraph(); TopologyPlan.definition via sample:checkout; findTopologyCycles]
+- L1112 G14 findSelfReferences reports a self-written topic read through no state-bearing edge,... -> needs .11 .12  [ShellClaim() via sample:findings; TopologyGraph() via sample:findings; TopologyPlan.definition via sample:findings; findSelfReferences]
+- L1130 G14 a self-read mediated by scan, reduceInto or a positive time stage, or never reachin... -> needs .11 .12  [TopologyPlan.definition; findSelfReferences]
+- L1150 G15 findWriterConflicts reports each state topic with two or more writers, topologies a... -> needs .11 .12  [ShellClaim(); TopologyGraph(); TopologyPlan.definition via sample:checkout; findWriterConflicts]
+- L1175 G16 findScopeViolations reports each owner of a state topic that a longer-lived topolog... -> needs .11 .12  [ShellClaim(); TopologyGraph(); TopologyPlan.definition via sample:checkout; findScopeViolations]
+- L1216 G17 analyzeTopologyGraph lists cycles, then self-references by topology, then writer co... -> needs .11 .12  [ShellClaim() via sample:findings; TopologyGraph() via sample:findings; TopologyPlan.definition via sample:findings; analyzeTopologyGraph]
+- L1243 G17 a graph with no finding stays without one when topologies or claims are removed -> needs .11 .12  [ShellClaim() via sample:checkout; TopologyGraph(); TopologyPlan.definition via sample:checkout; analyzeTopologyGraph]
+- L1262 G18 findTopicNameCollisions reports each name with two or more distinct declarations, w... -> needs .12  [findTopicNameCollisions]
+- L1279 G19 the encoding of every sample graph matches the schema and equals its valid/ file -> needs .11 .13  [ShellClaim() via sample:checkout; TopologyDefinitionGraph.toGraph via sample:every_combinator; TopologyGraph() via sample:checkout; TopologyPlan.definition via sample:checkout; encodeTopologyGraph]
+- L1291 G19 a definition encodes to the object its graph document lists -> needs .11 .13  [ShellClaim() via sample:checkout; TopologyGraph() via sample:checkout; TopologyPlan.definition via sample:checkout; encodeTopologyDefinition; encodeTopologyGraph]
+- L1304 G20 every valid/ file decodes and re-encodes to an equal JSON value -> needs .13  [decodeTopologyGraph; encodeTopologyGraph]
+- L1317 G20 decoding the encoding of a graph gives the graph back -> needs .11 .13  [ShellClaim() via sample:checkout; TopologyDefinitionGraph.toGraph via sample:every_combinator; TopologyGraph() via sample:checkout; TopologyPlan.definition via sample:checkout; decodeTopologyGraph; encodeTopologyGraph]
+- L1327 G20 the decoder accepts topologies, claims, reads, writes and claimed topics in any order -> needs .13  [decodeTopologyGraph; encodeTopologyGraph]
+- L1353 G21 every invalid/ file fails the schema and the decoder rejects it with a FormatException -> needs .13  [decodeTopologyGraph]
+- L1366 G21 the decoder rejects a schema-valid document that breaks a rule the schema cannot state -> needs .13  [decodeTopologyGraph]
+- L1422 G21 the decoder rejects any other value with a FormatException and no other error -> needs .13  [decodeTopologyDefinition; decodeTopologyGraph]
+- L1449 G22 the Mermaid and Graphviz renderings of every sample equal its render/ files -> needs .11 .14  [GraphvizRenderer.render; MermaidRenderer.render; ShellClaim() via sample:checkout; TopologyDefinitionGraph.toGraph via sample:every_combinator; TopologyGraph() via sample:checkout; TopologyGraph.render; TopologyPlan.definition via sample:checkout]
+- L1460 G22 the JSON rendering of every sample is its valid/ file, byte for byte -> needs .11 .13  [JsonRenderer.render; ShellClaim() via sample:checkout; TopologyDefinitionGraph.toGraph via sample:every_combinator; TopologyGraph() via sample:checkout; TopologyGraph.render; TopologyPlan.definition via sample:checkout]
+- L1469 G22 render passes the graph to the renderer, and renderers are pure -> needs .11 .12 .13 .14  [GraphvizRenderer.render; JsonRenderer.render; MermaidRenderer.render; ShellClaim() via sample:findings; TopologyGraph() via sample:findings; TopologyGraph.render; TopologyPlan.definition via sample:findings; analyzeTopologyGraph; decodeTopologyGraph; encodeTopologyGraph]
+- L1508 G23 finding and collision constructors put the lists they are given in the orders the I... -> needs .11 .12  [ShellClaim() via sample:findings; TopologyGraph() via sample:findings; TopologyPlan.definition via sample:findings; analyzeTopologyGraph; findTopicNameCollisions]
+
+## S4 per gate: the admitted cases, and whether its phase or its closure delivers what each reaches
+
+### .11 Projection, graphs and claims (delivered: .11 of .11 to .14)
+- topic-model, unrestricted; binding hsdd/contract/fixture/topic-model/behavior/nidana_dart_contracts_test.dart (suite of topic-model): 41 admitted, 41 reachable, 0 cannot pass
+- topology-dsl, unrestricted; binding hsdd/contract/fixture/topology-dsl/behavior/topology_builder_test.dart (suite of topology-dsl): 24 admitted, 24 reachable, 0 cannot pass
+- topology-ir, restricted to G2,G5,G6,G8,G9,G10,G11,G12; binding hsdd/contract/fixture/topology-ir/behavior/nidana_dart_contracts_test.dart (suite of topology-ir): 17 admitted, 17 reachable, 0 cannot pass
+
+### .12 Analyses (delivered: .11 .12 of .11 to .14)
+- topic-model, unrestricted; binding hsdd/contract/fixture/topic-model/behavior/nidana_dart_contracts_test.dart (suite of topic-model): 41 admitted, 41 reachable, 0 cannot pass
+- topology-dsl, unrestricted; binding hsdd/contract/fixture/topology-dsl/behavior/topology_builder_test.dart (suite of topology-dsl): 24 admitted, 24 reachable, 0 cannot pass
+- topology-ir, restricted to G2,G3,G5,G6,G7,G8,G9,G10,G11,G12,G13,G14,G15,G16,G17,G18,G23; binding hsdd/contract/fixture/topology-ir/behavior/nidana_dart_contracts_test.dart (suite of topology-ir): 31 admitted, 31 reachable, 0 cannot pass
+
+### .13 JSON form (delivered: .11 .13 of .11 to .14)
+- topic-model, unrestricted; binding hsdd/contract/fixture/topic-model/behavior/nidana_dart_contracts_test.dart (suite of topic-model): 41 admitted, 41 reachable, 0 cannot pass
+- topology-dsl, unrestricted; binding hsdd/contract/fixture/topology-dsl/behavior/topology_builder_test.dart (suite of topology-dsl): 24 admitted, 24 reachable, 0 cannot pass
+- topology-ir, restricted to G2,G4,G5,G6,G8,G9,G10,G11,G12,G19,G20,G21; binding hsdd/contract/fixture/topology-ir/behavior/nidana_dart_contracts_test.dart (suite of topology-ir): 26 admitted, 26 reachable, 0 cannot pass
+
+### .14 Mermaid and Graphviz renderers (delivered: .11 .12 .13 .14 of .11 to .14)
+- topic-model, unrestricted; binding hsdd/contract/fixture/topic-model/behavior/nidana_dart_contracts_test.dart (suite of topic-model): 41 admitted, 41 reachable, 0 cannot pass
+- topology-dsl, unrestricted; binding hsdd/contract/fixture/topology-dsl/behavior/topology_builder_test.dart (suite of topology-dsl): 24 admitted, 24 reachable, 0 cannot pass
+- topology-ir, unrestricted; binding hsdd/contract/fixture/topology-ir/behavior/nidana_dart_contracts_test.dart (suite of topology-ir): 43 admitted, 43 reachable, 0 cannot pass
+
+## S5 topology-ir@v1 by guarantee: the unshipped phases its cases need, and the first unshipped phase whose closure has them
+- G2 (1 case): needs -; reachable from nidana.model.10 on (needs no unshipped phase); replayed by .11 .12 .13 .14
+- G3 (2 cases): needs .11 .12; first reachable at .12; replayed by .12 .14
+- G4 (1 case): needs .11 .13; first reachable at .13; replayed by .13 .14
+- G5 (3 cases): needs -; reachable from nidana.model.10 on (needs no unshipped phase); replayed by .11 .12 .13 .14
+- G6 (2 cases): needs -; reachable from nidana.model.10 on (needs no unshipped phase); replayed by .11 .12 .13 .14
+- G7 (2 cases): needs .11 .12; first reachable at .12; replayed by .12 .14
+- G8 (3 cases): needs .11; first reachable at .11; replayed by .11 .12 .13 .14
+- G9 (3 cases): needs -; reachable from nidana.model.10 on (needs no unshipped phase); replayed by .11 .12 .13 .14
+- G10 (1 case): needs -; reachable from nidana.model.10 on (needs no unshipped phase); replayed by .11 .12 .13 .14
+- G11 (3 cases): needs .11; first reachable at .11; replayed by .11 .12 .13 .14
+- G12 (1 case): needs .11; first reachable at .11; replayed by .11 .12 .13 .14
+- G13 (2 cases): needs .11 .12; first reachable at .12; replayed by .12 .14
+- G14 (2 cases): needs .11 .12; first reachable at .12; replayed by .12 .14
+- G15 (1 case): needs .11 .12; first reachable at .12; replayed by .12 .14
+- G16 (1 case): needs .11 .12; first reachable at .12; replayed by .12 .14
+- G17 (2 cases): needs .11 .12; first reachable at .12; replayed by .12 .14
+- G18 (1 case): needs .12; first reachable at .12; replayed by .12 .14
+- G19 (2 cases): needs .11 .13; first reachable at .13; replayed by .13 .14
+- G20 (3 cases): needs .11 .13; first reachable at .13; replayed by .13 .14
+- G21 (3 cases): needs .13; first reachable at .13; replayed by .13 .14
+- G22 (3 cases): needs .11 .12 .13 .14; first reachable at .14; replayed by .14
+- G23 (1 case): needs .11 .12; first reachable at .12; replayed by .12 .14
+
+## Verdict
+- .11: every admitted case is reachable; the gate can pass
+- .12: every admitted case is reachable; the gate can pass
+- .13: every admitted case is reachable; the gate can pass
+- .14: every admitted case is reachable; the gate can pass
+
+### V: the static scan against today's replay
+replay exit: 1
+PASS behavior hsdd/contract/fixture/topic-model/behavior/nidana_dart_contracts_test.dart: 41 passed, 0 failed, 0 skipped under dart test
+FAIL behavior hsdd/contract/fixture/topology-dsl/behavior/topology_builder_test.dart: cases (19 passed, 5 failed, 0 skipped under dart test)
+  failed-case (G9 buildDefinition runs declare once and equals the definition of a fresh plan)
+  failed-case (G10 recording calls none of the functions a declaration passes)
+  failed-case (G10 recording creates no timer and schedules no microtask)
+  failed-case (G12 the definition reads the topics of the read stages and writes the topics of the sinks)
+  failed-case (G12 a topic read twice is read once, and a declaration with no stages reads and writes nothing)
+FAIL behavior hsdd/contract/fixture/topology-ir/behavior/nidana_dart_contracts_test.dart: cases (11 passed, 32 failed, 0 skipped under dart test)
+  failed-case (G3 every collection the IR, graphs, claims and findings expose is unmodifiable)
+  failed-case (G3 the IR copies the lists it is given; later changes to them do not reach it)
+  failed-case (G4 every definition a plan projects to is pure data: it encodes to JSON and decodes back equal)
+  failed-case (G7 graphs, claims, declarations and findings are equal, with equal hash codes, exactly when their fields are)
+  failed-case (G8 a plan projects one stage edge per non-read stage, in stage order, then one sink edge per sink, in sink order)
+  failed-case (G8 every combinator projects to its kind, its inputs in input order, its function, duration and retry)
+  failed-case (G8 recording one declaration twice projects equal definitions, inline closures included)
+  failed-case (G11 a graph orders its topologies by id, keeps one of equal duplicates and lists every topic in canonical order)
+  failed-case (G11 a graph rejects two different definitions with one id)
+  failed-case (G11 a graph orders its claims by source, scope and topics, and keeps equal claims as separate claimants)
+  failed-case (G12 a shell claim takes a service, page or executor source, application scope by default, and one or more state topics)
+  failed-case (G13 findTopologyCycles reports each strongly connected set of two or more topologies, with the topics between them)
+  failed-case (G13 shell claims take no part in cycles, and a graph without feedback has none)
+  failed-case (G14 findSelfReferences reports a self-written topic read through no state-bearing edge, with every edge on such a path)
+  failed-case (G14 a self-read mediated by scan, reduceInto or a positive time stage, or never reaching its write, is not reported)
+  failed-case (G15 findWriterConflicts reports each state topic with two or more writers, topologies and claims alike)
+  failed-case (G16 findScopeViolations reports each owner of a state topic that a longer-lived topology reads)
+  failed-case (G17 analyzeTopologyGraph lists cycles, then self-references by topology, then writer conflicts, then scope violations)
+  failed-case (G17 a graph with no finding stays without one when topologies or claims are removed)
+  failed-case (G18 findTopicNameCollisions reports each name with two or more distinct declarations, whatever their types)
+  failed-case (G19 the encoding of every sample graph matches the schema and equals its valid/ file)
+  failed-case (G19 a definition encodes to the object its graph document lists)
+  failed-case (G20 every valid/ file decodes and re-encodes to an equal JSON value)
+  failed-case (G20 decoding the encoding of a graph gives the graph back)
+  failed-case (G20 the decoder accepts topologies, claims, reads, writes and claimed topics in any order)
+  failed-case (G21 every invalid/ file fails the schema and the decoder rejects it with a FormatException)
+  failed-case (G21 the decoder rejects a schema-valid document that breaks a rule the schema cannot state)
+  failed-case (G21 the decoder rejects any other value with a FormatException and no other error)
+  failed-case (G22 the Mermaid and Graphviz renderings of every sample equal its render/ files)
+  failed-case (G22 the JSON rendering of every sample is its valid/ file, byte for byte)
+  failed-case (G22 render passes the graph to the renderer, and renderers are pure)
+  failed-case (G23 finding and collision constructors put the lists they are given in the orders the Interface names)
+# model-gate-reach --check: the static scan against today's replay
+failed cases in the replay: 37
+hsdd/contract/fixture/topic-model/behavior/topic_model_conformance.dart: 41 cases, 41 reach no stub, 0 reach one
+- conservative L658 G15: reaches a stub, passes today (throws before reaching it): G15 an empty topology id fails: ArgumentError from topology(), StateError from planOf
+hsdd/contract/fixture/topology-dsl/behavior/recording_conformance.dart: 24 cases, 18 reach no stub, 6 reach one
+hsdd/contract/fixture/topology-ir/behavior/topology_ir_conformance.dart: 43 cases, 11 reach no stub, 32 reach one
+misses (a case the scan says needs nothing that fails today): 0
+
+done
