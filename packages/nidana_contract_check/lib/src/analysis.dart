@@ -16,6 +16,7 @@ import 'package:path/path.dart' as p;
 import 'dart_library.dart';
 import 'packages.dart';
 import 'request.dart';
+import 'run.dart';
 import 'snapshot.dart';
 
 /// One diagnostic as `dart analyze --format=json` reports it.
@@ -175,10 +176,6 @@ bool readsAnalysis(CheckSet set) => switch (set) {
   CheckSet.file ||
   CheckSet.cli => false,
 };
-
-/// One slug of a replay: its [snapshot] and the sets planned over it, in
-/// order.
-typedef SlugPlan = ({SlugSnapshot snapshot, List<CheckSet> sets});
 
 /// What the replay's one `dart analyze` analyzes: [analysisTargets] of every set of every one of
 /// [plans], once each, ascending.

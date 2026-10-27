@@ -1,5 +1,6 @@
 import 'package:nidana_contract_check/src/analysis.dart';
 import 'package:nidana_contract_check/src/request.dart';
+import 'package:nidana_contract_check/src/run.dart';
 import 'package:nidana_contract_check/src/snapshot.dart';
 import 'package:test/test.dart';
 
@@ -225,6 +226,26 @@ void main() {
         <String>['${s}surface/more/core.dart'],
       );
     });
+    test('a source that is not UTF-8 is no library of surface/ or reject/', () {
+      final SlugSnapshot undecodable = snapshotOf(
+        'sample',
+        sampleFiles,
+        bytes: <String, List<int>>{
+          '${s}surface/latin1.dart': <int>[0xff],
+          '${s}reject/latin1.dart': <int>[0xff],
+        },
+      );
+      expect(
+        setLibraries(undecodable, CheckSet.surface, const <String>{
+          'sample',
+        }).map((SetLibrary l) => l.path),
+        <String>['${s}surface/use.dart'],
+      );
+      expect(
+        analysisTargets(undecodable, CheckSet.reject, const <String>{'sample'}),
+        <String>['${s}reject/sample_is_closed.dart'],
+      );
+    });
   });
   group('the replay\'s one analysis', () {
     test('readsAnalysis: surface and reject, no other set', () {
@@ -232,6 +253,33 @@ void main() {
         CheckSet.surface,
         CheckSet.reject,
       ]);
+    });
+
+    // Beyond the brief: the replay-level reads of run.dart that would
+    // otherwise go unpinned.
+    test('readsPackages: surface, reject and behavior, no other set', () {
+      expect(CheckSet.values.where(readsPackages), <CheckSet>[
+        CheckSet.surface,
+        CheckSet.reject,
+        CheckSet.behavior,
+      ]);
+    });
+    test('every set that readsAnalysis also readsPackages, so the analysis always has its names', () {
+      expect(
+        CheckSet.values.where(readsAnalysis),
+        everyElement(predicate<CheckSet>(readsPackages, 'reads packages')),
+      );
+    });
+    test('slugPlan: the snapshot and the sets plannedSets runs over it', () {
+      final SlugSnapshot sample = snapshotOf('sample', sampleFiles);
+      const Request request = Request(
+        slugs: <String>['sample'],
+        sets: <CheckSet>{CheckSet.reject, CheckSet.schema},
+        restriction: null,
+      );
+      final SlugPlan plan = slugPlan(request, sample);
+      expect(plan.snapshot, same(sample));
+      expect(plan.sets, <CheckSet>[CheckSet.structure, CheckSet.reject]);
     });
     test('replayTargets: analysisTargets of every planned set of every slug, once each, ascending', () {
       final SlugSnapshot sample = snapshotOf('sample', analysisFiles);

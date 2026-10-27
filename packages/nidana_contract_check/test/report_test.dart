@@ -115,6 +115,16 @@ void main() {
         'PASS structure hsdd/contract/fixture/sample/',
       );
     });
+    test('a passed outcome with a detail prints it after a colon', () {
+      expect(
+        outcomeLine(CheckSet.behavior, const Passed('p', detail: 'd')),
+        'PASS behavior p: d',
+      );
+      expect(
+        outcomeLine(CheckSet.behavior, const Passed('p')),
+        'PASS behavior p',
+      );
+    });
     test('a failed fixture lists every problem', () {
       expect(
         outcomeLine(

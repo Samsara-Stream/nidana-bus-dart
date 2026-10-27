@@ -51,11 +51,14 @@ String notImplemented(CheckSet set) =>
     'this version of nidana_contract_check does not implement the '
     '${set.name} set';
 
-/// The report line of [outcome] under [set]: `PASS {set} {path}`,
+/// The report line of [outcome] under [set]: `PASS {set} {path}`, or
+/// `PASS {set} {path}: {detail}` when the outcome has a detail,
 /// `FAIL {set} {path}: {rule} ({detail}); ...` with every problem in order,
 /// or `PENDING {set} {path}: ...` naming every absent package.
 String outcomeLine(CheckSet set, FixtureOutcome outcome) => switch (outcome) {
-  Passed(:final String path) => 'PASS ${set.name} $path',
+  Passed(:final String path, detail: null) => 'PASS ${set.name} $path',
+  Passed(:final String path, :final String detail) =>
+    'PASS ${set.name} $path: $detail',
   Failed(:final String path, :final List<Problem> problems) =>
     'FAIL ${set.name} $path: ${problems.map(_problemText).join('; ')}',
   Pending(:final String path, :final List<String> packages) =>

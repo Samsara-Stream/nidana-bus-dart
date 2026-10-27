@@ -1,7 +1,9 @@
 /// The `structure` set (ADR-001 item 9): marker and header syntax, item 3's
 /// coverage, the bindings listed in `## Validation` against the files
-/// present, the fixture directory's layout with its data directories, and the
-/// ban on `src/` imports.
+/// present, the fixture directory's layout with its data directories, the
+/// ban on `src/` imports, every Dart source read as UTF-8, and item 4's ban
+/// on a conformance library that imports `package:test` or
+/// `package:flutter_test`.
 ///
 /// It needs no implementation of the contract: it reads one [SlugSnapshot].
 library;
@@ -24,7 +26,9 @@ enum StructureRule implements Rule {
   caseName('case-name'),
   binding('binding'),
   invocationRow('invocation-row'),
-  srcImport('src-import');
+  srcImport('src-import'),
+  encoding('encoding'),
+  conformanceImport('conformance-import');
 
   const StructureRule(this.label);
 
@@ -35,11 +39,12 @@ enum StructureRule implements Rule {
 /// The `structure` set's outcomes for [snapshot].
 ///
 /// The contract text, the fixture directory and each Dart library the
-/// snapshot holds get a [Passed] or a [Failed]; any other path appears only
-/// when it fails. The contract text comes first, the fixture directory
-/// second, and every other path after them in ascending order. A [Failed]
-/// lists its problems in the order the checks run. Without a contract text,
-/// the contract text's [Failed] is the only outcome.
+/// snapshot holds get a [Passed] or a [Failed]; any other path, a Dart source
+/// that is not UTF-8 among them, appears only when it fails. The contract
+/// text comes first, the fixture directory second, and every other path
+/// after them in ascending order. A [Failed] lists its problems in the order
+/// the checks run. Without a contract text, the contract text's [Failed] is
+/// the only outcome.
 List<FixtureOutcome> checkStructure(SlugSnapshot snapshot) {
   final String? text = snapshot.contractText;
   if (text == null) {
@@ -58,6 +63,7 @@ List<FixtureOutcome> checkStructure(SlugSnapshot snapshot) {
     ..._listedBindingForms(slug),
     if (slug.contract.kind case final ContractKind kind) ..._layout(slug, kind),
     for (final _Library library in slug.libraries) ..._library(slug, library),
+    ..._undecodableSources(slug),
     ..._absentBindings(slug),
     ..._invocationDirectories(slug),
     ..._unknownIds(slug, citations),
@@ -129,8 +135,8 @@ final class _Slug {
   /// each relative to [directory].
   final Set<String> listedBindings;
 
-  /// The files [holdsSource] accepts, read as Dart libraries, by ascending
-  /// relative path.
+  /// The files [holdsSource] accepts whose bytes are UTF-8, read as Dart
+  /// libraries, by ascending relative path.
   final List<_Library> libraries;
 }
 
@@ -146,12 +152,8 @@ typedef _Found = ({String path, Problem problem});
 typedef _Citation = ({String path, Set<int> ids, bool covers});
 
 final RegExp _srcUri = RegExp(r'^package:[^/]+/src/');
-final RegExp _conformanceLibrary = RegExp(
-  r'^behavior/[^/]+_conformance\.dart$',
-);
-final RegExp _bindingLibrary = RegExp(r'^behavior/[^/]+_test\.dart$');
+final RegExp _testPackageUri = RegExp(r'^package:(test|flutter_test)/');
 final RegExp _invocationCase = RegExp(r'^invocation/([^/]+)$');
-final RegExp _caseNameId = RegExp(r'^G([1-9][0-9]*) ');
 
 /// The directories a file replay reads (ADR-001 item 6), in the order a
 /// problem names them.
@@ -277,17 +279,19 @@ Iterable<_Found> _layout(_Slug slug, ContractKind kind) {
 }
 
 /// One Dart library: its imports and exports, the header and markers of a
-/// `reject/` library, the case names of a conformance library, and whether a
-/// binding is listed.
+/// `reject/` library, the case names and the test-package imports of a
+/// conformance library, and whether a binding is listed.
 Iterable<_Found> _library(_Slug slug, _Library library) =>
     _at(library.path, <Problem>[
       for (final String uri in library.content.directives)
         if (_srcUri.hasMatch(uri)) Problem(StructureRule.srcImport, uri),
       if (library.relative.startsWith('reject/'))
         ..._rejectLibrary(library.content),
-      if (_conformanceLibrary.hasMatch(library.relative))
+      if (isConformancePath(library.relative)) ...<Problem>[
         ..._conformanceLibraryCases(library.content),
-      if (_bindingLibrary.hasMatch(library.relative) &&
+        ..._conformanceLibraryImports(library.content),
+      ],
+      if (isBindingPath(library.relative) &&
           !slug.listedBindings.contains(library.relative))
         const Problem(StructureRule.binding, 'not listed in ## Validation'),
     ]);
@@ -342,12 +346,36 @@ List<Problem> _conformanceLibraryCases(DartLibrary content) => <Problem>[
         'line ${name.line}: case name is not a string literal',
       ),
   for (final CaseName name in _cases(content))
-    if (name.name case final String text when _caseId(text) == null)
+    if (name.name case final String text when caseIdOf(text) == null)
       Problem(
         StructureRule.caseName,
         'line ${name.line}: case name does not begin with G{n} and a space: '
         '$text',
       ),
+];
+
+/// The imports and exports of a test package by a conformance library, in
+/// directive order: it imports neither `package:test` nor
+/// `package:flutter_test` (ADR-001 item 4), so a binding's own imports alone
+/// choose its runner.
+List<Problem> _conformanceLibraryImports(DartLibrary content) => <Problem>[
+  for (final String uri in content.directives)
+    if (_testPackageUri.hasMatch(uri))
+      Problem(StructureRule.conformanceImport, uri),
+];
+
+/// Each Dart source that is not UTF-8, at its path with the reason. It is no
+/// library, so no other rule reads it.
+Iterable<_Found> _undecodableSources(_Slug slug) => <_Found>[
+  for (final MapEntry<String, String>(
+        key: String relative,
+        value: String reason,
+      )
+      in slug.snapshot.undecodable.entries)
+    (
+      path: '${slug.directory}$relative',
+      problem: Problem(StructureRule.encoding, reason),
+    ),
 ];
 
 /// The listed bindings that are not files of the fixture directory.
@@ -426,9 +454,9 @@ List<_Citation> _citations(_Slug slug) => <_Citation>[
       ])
         (path: library.path, ids: ids, covers: true),
   for (final _Library library in slug.libraries)
-    if (_conformanceLibrary.hasMatch(library.relative))
+    if (isConformancePath(library.relative))
       for (final CaseName name in _cases(library.content))
-        if (_caseId(name.name) case final int id)
+        if (caseIdOf(name.name) case final int id)
           (path: library.path, ids: <int>{id}, covers: true),
 ];
 
@@ -514,15 +542,6 @@ Iterable<int> _repeated(List<int> ids) => ids.toSet().where(
 Iterable<CaseName> _cases(DartLibrary content) =>
     content.caseLists.expand((CaseList list) => list.cases);
 
-/// The id a case name begins with, `G{n}` and a space; null when it begins
-/// with none, or when [name] is null.
-int? _caseId(String? name) {
-  final String? digits = name == null
-      ? null
-      : _caseNameId.firstMatch(name)?.group(1);
-  return digits == null ? null : int.tryParse(digits);
-}
-
 /// What the set that [clause]'s bullet names lacks: the schema file for a
 /// `schema` bullet, `input/` and `expected/` for a `file` bullet. Empty when
 /// the set exists.
@@ -544,7 +563,5 @@ String? _bindingBelow(String directory, String binding) {
   final String? relative = binding.startsWith(directory)
       ? binding.substring(directory.length)
       : null;
-  return relative != null && _bindingLibrary.hasMatch(relative)
-      ? relative
-      : null;
+  return relative != null && isBindingPath(relative) ? relative : null;
 }

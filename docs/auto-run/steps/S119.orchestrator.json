@@ -1,0 +1,153 @@
+{
+  "step_ref": "S119",
+  "decisions": [
+    {
+      "at": "2026-10-27T03:34:11Z",
+      "artifact": null,
+      "question": "SDD pre-flight for nidana.model.6 (full-review): which model implements each task?",
+      "options": [
+        {
+          "label": "Opus for Tasks 1 to 5, sonnet for Task 6",
+          "consequence": "The replay plumbing, structure rules, binding plans, runner reports and process shell get the most capable model; the verification doc a mid-tier one."
+        },
+        {
+          "label": "Sonnet for the pure tasks 3 and 4",
+          "consequence": "Cheaper, but the binding plans and the runner-report reading decide what every later behavior gate reports."
+        }
+      ],
+      "chosen": "Opus for Tasks 1 to 5, sonnet for Task 6",
+      "why": "S97's allocation for full-review phases, as in nidana.model.1 and .2.",
+      "evidence": [
+        "docs/auto-run/steps/S97.orchestrator.json"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T03:34:11Z",
+      "artifact": "packages/nidana_contract_check/test/",
+      "question": "The pinned Flutter SDK has no engine artifacts on this machine (S118), so a real flutter test cannot run without downloading them. How do nidana.model.6's tests cover the Flutter runner?",
+      "options": [
+        {
+          "label": "Against the plan's stand-in SDK only; no test starts the real flutter; the real run is Outstanding, deferred to nidana.flutter.2",
+          "consequence": "The runner's selection, command line and report reading are tested deterministically; whether the real flutter tool behaves as its 3.47.7 source says waits for the first Flutter gate."
+        },
+        {
+          "label": "Fetch the artifacts (fvm flutter precache)",
+          "consequence": "A real run here, but a network download outside pub.dev, which the stop policy excludes; it is the owner's toolchain step."
+        }
+      ],
+      "chosen": "Against the plan's stand-in SDK only; no test starts the real flutter; the real run is Outstanding, deferred to nidana.flutter.2",
+      "why": "The stop policy names a network resource other than pub.dev; the run decides not to need it. The owner action (precache before the nidana.flutter lane) is in the report notes.",
+      "evidence": [
+        "docs/auto-run/steps/S118.json (environment finding)",
+        "docs/auto-run/experiments/behavior-set-plan/output.txt"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": true,
+      "stop_class": "external",
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T06:01:12Z",
+      "artifact": "packages/nidana_contract_check/lib/src/test_report.dart",
+      "question": "nidana.model.6 Task 4's review found that the runner-report reader ignores done.success false, so a case that errors after its own testDone (result success) reads PASS while dart test exits 1. The brief says only that done decides completeness. Fix it?",
+      "options": [
+        {
+          "label": "Fix: a visible test with any error event counts as failed; a complete report with done false and no counted failure fails; also an unknown result fails and a JSON event glued after raw stdout is salvaged",
+          "consequence": "The reader fails closed on every runner failure it can see; one fix round."
+        },
+        {
+          "label": "Keep the brief's counting rule",
+          "consequence": "A behavior gate can pass on a binding whose case failed asynchronously, the shape the bus's stream and timer suites take."
+        }
+      ],
+      "chosen": "Fix: a visible test with any error event counts as failed; a complete report with done false and no counted failure fails; also an unknown result fails and a JSON event glued after raw stdout is salvaged",
+      "why": "ADR-001 item 9 makes the tool exit 1 when any fixture fails; reading that as a binding failing when any of its cases fails, a false PASS is a defect whatever the brief's counting rule. Reproduced on real dart test output by the reviewer.",
+      "evidence": [
+        ".superpowers/sdd/nidana.model.6 ledger (archived as docs/auto-run/steps/S119.sdd-progress.md)",
+        "hsdd/adr/001-executable-contract-validation.md item 9"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T06:01:12Z",
+      "artifact": "packages/nidana_contract_check/test/test_report_test.dart",
+      "question": "A run in which every case is skipped: PASS or FAIL?",
+      "options": [
+        {
+          "label": "PASS, with the skip count in the line (the brief's own test)",
+          "consequence": "A conformance suite that skips everything passes visibly; bindings are authored only through hsdd-contract."
+        },
+        {
+          "label": "FAIL as no case ran",
+          "consequence": "Departs from the plan's pinned test; a gate could not skip a case deliberately."
+        }
+      ],
+      "chosen": "PASS, with the skip count in the line (the brief's own test)",
+      "why": "Plan-mandated and visible in the counts; package:test treats skipped as passing. The final review left it parked and flagged that the owner should know.",
+      "evidence": [
+        "docs/superpowers/plans/nidana.model.6.md Task 4"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T06:01:12Z",
+      "artifact": "packages/nidana_contract_check/lib/src/runners.dart",
+      "question": "nidana.model.6 Task 5 was Approved with shell.dart at 724 lines. Split the behavior runner out now, or leave it?",
+      "options": [
+        {
+          "label": "Split now in a controller-ruled fix round (runners.dart behind runBehavior; purity_test allows exactly runners, shell, workspace), with lenient dart analyze decoding and the dead branch removed",
+          "consequence": "One extra dispatch and re-review; the verification doc describes the final layout and nidana.model.7 adds file and cli to a 608-line shell."
+        },
+        {
+          "label": "Leave it to nidana.model.7",
+          "consequence": "Cheaper now; the verification doc would describe a layout the next phase changes, and the analyze decoding crash stays."
+        }
+      ],
+      "chosen": "Split now in a controller-ruled fix round (runners.dart behind runBehavior; purity_test allows exactly runners, shell, workspace), with lenient dart analyze decoding and the dead branch removed",
+      "why": "The reviewer recommended the split; the plan's file lists predate it and the change is behavior-neutral (replays byte-identical). The lenient decoding fixes a real crash class.",
+      "evidence": [
+        "docs/auto-run/steps/S119.sdd-progress.md (Task 5)"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T06:01:12Z",
+      "artifact": "hsdd/verify/nidana.model.6.verification.md",
+      "question": "After the one final fix wave, the re-review notes that the doc's decision 4 line says a defect in the suite slug's tree ends the replayed slug's replay with exit 2, when the whole command exits 2 with one error line and no fixture line for any slug. Another fix round?",
+      "options": [
+        {
+          "label": "Park it: the fix wave is spent; nidana.model.7 narrows the read (routed) and states the corrected behavior; the report flags it for sign-off",
+          "consequence": "The owner signs a sentence that understates the blast radius of one routed defect, with a note saying so."
+        },
+        {
+          "label": "A second doc fix round",
+          "consequence": "Exceeds the one-fix-wave cap the run follows."
+        }
+      ],
+      "chosen": "Park it: the fix wave is spent; nidana.model.7 narrows the read (routed) and states the corrected behavior; the report flags it for sign-off",
+      "why": "The SDD final review allows one fix wave and one re-review; the residual is wording, not a wrong verdict, and the routed nidana.model.7 change removes the behavior it describes.",
+      "evidence": [
+        "docs/auto-run/steps/S119.sdd-progress.md (final fix wave)",
+        "docs/auto-run/impl-execution-plan.md Routed to later phases (nidana.model.7)"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "would_upstream": false
+    }
+  ]
+}

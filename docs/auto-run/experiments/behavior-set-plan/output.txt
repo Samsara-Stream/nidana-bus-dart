@@ -1,0 +1,379 @@
+
+### T1 toolchain
+Dart SDK version: 3.13.5 (stable) (Tue Sep 29 01:00:52 2026 -0700) on "macos_arm64"
+Platform.resolvedExecutable: ~/fvm/versions/3.47.7/bin/cache/dart-sdk/bin/dart
+four directories up, then flutter: ~/fvm/versions/3.47.7/bin/flutter
+that file exists: true
+Flutter SDK holding that dart: ~/fvm/versions/3.47.7
+
+### T2 engine artifacts of that Flutter SDK on this machine
+bin/cache/pkg/sky_engine: absent
+bin/cache/artifacts/engine: absent
+matcher-0.12.20 test_api-0.7.12 test_api-0.7.15 test_core-0.6.18 test_core-0.6.21 test-1.31.1 test-1.33.0 
+
+### T3 flutter_tools 3.47.7 source: test command options and what it hands package:test
+93:        'name',
+96:        splitCommas: false,
+102:        splitCommas: false,
+176:        splitCommas: false,
+256:        allowed: <String>['compact', 'expanded', 'failures-only', 'github', 'json', 'silent'],
+421:        'Error: No pubspec.yaml file found in the current working directory.\n'
+444:    if (buildInfo.packageConfig['test_api'] == null) {
+77:      if (machine) ...<String>['-r', 'json'] else if (reporter != null) ...<String>['-r', reporter],
+82:      for (final String name in names) ...<String>['--name', name],
+123:        ..addAll(testFiles.map((Uri uri) => uri.toString()));
+153:      return exitCode;
+158:      ..addAll(testFiles.map((Uri uri) => uri.toString()));
+193:      // test.main() sets dart:io's exitCode global.
+196:      return exitCode;
+651:      if (machine) ...<String>['-r', 'json'] else if (reporter != null) ...<String>['-r', reporter],
+382:        testPath = globals.fs.path.absolute(testPath);
+747:      throwToolExit(null, exitCode: result);
+
+### W1 resolve the temporary workspace offline with the dart of T1 (no fvm inside it)
+pub get --offline exit: 0
+seconds: 0.2
++ yaml 3.1.4
+Changed 49 dependencies!
+configured packages: flutter_test, matcher, nidana_contract_check, sample, test, test_api
+
+### D0 the raw JSON lines of one run: a pass, an expectation failure, an error, a skip and a print
+{"protocolVersion":"0.1.1","runnerVersion":"1.33.0","pid":{pid},"type":"start","time":0}
+{"suite":{"id":0,"platform":"vm","path":"hsdd/contract/fixture/sample/behavior/raw_test.dart"},"type":"suite","time":0}
+{"test":{"id":1,"name":"loading hsdd/contract/fixture/sample/behavior/raw_test.dart","suiteID":0,"groupIDs":[],"metadata":{"skip":false,"skipReason":null},"line":null,"column":null,"url":null},"type":"testStart","time":1}
+{"count":1,"time":5,"type":"allSuites"}
+{"testID":1,"result":"success","skipped":false,"hidden":true,"type":"testDone","time":521}
+{"group":{"id":2,"suiteID":0,"parentID":null,"name":"","metadata":{"skip":false,"skipReason":null},"testCount":5,"line":null,"column":null,"url":null},"type":"group","time":522}
+{"test":{"id":3,"name":"G1 passes","suiteID":0,"groupIDs":[2],"metadata":{"skip":false,"skipReason":null},"line":4,"column":3,"url":"file://{ws-real}/hsdd/contract/fixture/sample/behavior/raw_test.dart"},"type":"testStart","time":522}
+{"testID":3,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":529}
+{"test":{"id":4,"name":"G2 fails","suiteID":0,"groupIDs":[2],"metadata":{"skip":false,"skipReason":null},"line":5,"column":3,"url":"file://{ws-real}/hsdd/contract/fixture/sample/behavior/raw_test.dart"},"type":"testStart","time":529}
+{"testID":4,"error":"Expected: <2>\n  Actual: <1>\n","stackTrace":"package:matcher                                           expect\nhsdd/contract/fixture/sample/behavior/raw_test.dart 5:26  main.<fn>\n","isFailure":true,"type":"error","time":536}
+{"testID":4,"result":"failure","skipped":false,"hidden":false,"type":"testDone","time":537}
+{"test":{"id":5,"name":"G3 throws","suiteID":0,"groupIDs":[2],"metadata":{"skip":false,"skipReason":null},"line":6,"column":3,"url":"file://{ws-real}/hsdd/contract/fixture/sample/behavior/raw_test.dart"},"type":"testStart","time":537}
+{"testID":5,"error":"UnimplementedError: x","stackTrace":"hsdd/contract/fixture/sample/behavior/raw_test.dart 6:27  main.<fn>\n","isFailure":false,"type":"error","time":538}
+{"testID":5,"result":"error","skipped":false,"hidden":false,"type":"testDone","time":538}
+{"test":{"id":6,"name":"G4 skipped","suiteID":0,"groupIDs":[2],"metadata":{"skip":true,"skipReason":"later"},"line":7,"column":3,"url":"file://{ws-real}/hsdd/contract/fixture/sample/behavior/raw_test.dart"},"type":"testStart","time":538}
+{"testID":6,"messageType":"skip","message":"Skip: later","type":"print","time":539}
+{"testID":6,"result":"success","skipped":true,"hidden":false,"type":"testDone","time":539}
+{"test":{"id":7,"name":"G5 prints","suiteID":0,"groupIDs":[2],"metadata":{"skip":false,"skipReason":null},"line":8,"column":3,"url":"file://{ws-real}/hsdd/contract/fixture/sample/behavior/raw_test.dart"},"type":"testStart","time":539}
+{"testID":7,"messageType":"print","message":"hello","type":"print","time":540}
+{"testID":7,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":540}
+{"success":false,"type":"done","time":544}
+exit: 1
+
+### D0b the raw JSON lines of a binding that does not load
+{"protocolVersion":"0.1.1","runnerVersion":"1.33.0","pid":{pid},"type":"start","time":0}
+{"suite":{"id":0,"platform":"vm","path":"hsdd/contract/fixture/sample/behavior/broken_test.dart"},"type":"suite","time":0}
+{"test":{"id":1,"name":"loading hsdd/contract/fixture/sample/behavior/broken_test.dart","suiteID":0,"groupIDs":[],"metadata":{"skip":false,"skipReason":null},"line":null,"column":null,"url":null},"type":"testStart","time":1}
+{"count":1,"time":5,"type":"allSuites"}
+{"testID":1,"error":"Failed to load \"hsdd/contract/fixture/sample/behavior/broken_test.dart\":\nhsdd/contract/fixture/sample/behavior/broken_test.dart:4:31: Error: Method not found: 'undefinedName'.\n  test('G1 never runs', () => undefinedName());\n                              ^^^^^^^^^^^^^","stackTrace":"package:test_core/src/runner/vm/platform.dart 605:7   VMPlatform._compileToKernel\n===== asynchronous gap ===========================\npackage:test_core/src/runner/vm/platform.dart 567:9   VMPlatform._spawnIsolate\n===== asynchronous gap ===========================\npackage:test_core/src/runner/vm/platform.dart 173:17  VMPlatform._loadSuite\n===== asynchronous gap ===========================\npackage:test_core/src/runner/vm/platform.dart 81:15   VMPlatform.load\n===== asynchronous gap ===========================\npackage:test_core/src/runner/loader.dart 313:25       Loader.loadFile.<fn>\n===== asynchronous gap ===========================\npackage:test_core/src/runner/load_suite.dart 112:21   new LoadSuite.<fn>.<fn>\n","isFailure":false,"type":"error","time":164}
+{"testID":1,"result":"error","skipped":false,"hidden":false,"type":"testDone","time":165}
+{"success":false,"type":"done","time":168}
+exit: 1
+
+### D1 every case: dart test --reporter json hsdd/contract/fixture/sample/behavior/sample_impl_test.dart
+exit: 1
+seconds: 0.6
+non-JSON stdout lines: 0
+events: allSuites 1, done 1, error 3, group 1, start 1, suite 1, testDone 7, testStart 7
+suite path: hsdd/contract/fixture/sample/behavior/sample_impl_test.dart (platform vm)
+hidden tests: 1 ('loading hsdd/contract/fixture/sample/behavior/sample_impl_test.dart' success)
+visible tests: 6: 3 passed, 3 failed, 0 skipped
+  success 'G1 twice doubles' groupIDs=[2]
+  success 'G2 a second passing case' groupIDs=[2]
+  success 'G25 a name a G2 filter must not admit' groupIDs=[2]
+  failure 'G3 an expectation fails' groupIDs=[2] | isFailure=True: Expected: <5>
+  error 'G4 a body throws UnimplementedError' groupIDs=[2] | isFailure=False: UnimplementedError: unimplemented
+  failure 'G5 equality is identity' groupIDs=[2] | isFailure=True: Expected: <Instance of 'Box'>
+done: success=False
+stderr lines: 0
+
+### D2 anchored filter for G2: dart test --reporter json --name ^(G2)  hsdd/contract/fixture/sample/behavior/sample_impl_test.dart
+exit: 0
+seconds: 0.5
+non-JSON stdout lines: 0
+events: allSuites 1, done 1, group 1, start 1, suite 1, testDone 2, testStart 2
+suite path: hsdd/contract/fixture/sample/behavior/sample_impl_test.dart (platform vm)
+hidden tests: 1 ('loading hsdd/contract/fixture/sample/behavior/sample_impl_test.dart' success)
+visible tests: 1: 1 passed, 0 failed, 0 skipped
+  success 'G2 a second passing case' groupIDs=[2]
+done: success=True
+stderr lines: 0
+
+### D3 anchored filter for G2 and G5: dart test --reporter json --name ^(G2|G5)  hsdd/contract/fixture/sample/behavior/sample_impl_test.dart
+exit: 1
+seconds: 0.5
+non-JSON stdout lines: 0
+events: allSuites 1, done 1, error 1, group 1, start 1, suite 1, testDone 3, testStart 3
+suite path: hsdd/contract/fixture/sample/behavior/sample_impl_test.dart (platform vm)
+hidden tests: 1 ('loading hsdd/contract/fixture/sample/behavior/sample_impl_test.dart' success)
+visible tests: 2: 1 passed, 1 failed, 0 skipped
+  success 'G2 a second passing case' groupIDs=[2]
+  failure 'G5 equality is identity' groupIDs=[2] | isFailure=True: Expected: <Instance of 'Box'>
+done: success=False
+stderr lines: 0
+
+### D4 a filter that admits no case: dart test --reporter json --name ^(G9)  hsdd/contract/fixture/sample/behavior/sample_impl_test.dart
+exit: 79
+seconds: 0.5
+non-JSON stdout lines: 0
+events: allSuites 1, done 1, start 1, suite 1, testDone 1, testStart 1
+suite path: hsdd/contract/fixture/sample/behavior/sample_impl_test.dart (platform vm)
+hidden tests: 1 ('loading hsdd/contract/fixture/sample/behavior/sample_impl_test.dart' success)
+visible tests: 0: 0 passed, 0 failed, 0 skipped
+done: success=True
+stderr lines: 1
+  ! No tests match regular expression "^(G9) ".
+
+### D5 a binding of another slug's suite, imported by ../../sample/behavior/: dart test --reporter json --name ^(G1)  hsdd/contract/fixture/host/behavior/host_impl_test.dart
+exit: 0
+seconds: 0.5
+non-JSON stdout lines: 0
+events: allSuites 1, done 1, group 1, start 1, suite 1, testDone 2, testStart 2
+suite path: hsdd/contract/fixture/host/behavior/host_impl_test.dart (platform vm)
+hidden tests: 1 ('loading hsdd/contract/fixture/host/behavior/host_impl_test.dart' success)
+visible tests: 1: 1 passed, 0 failed, 0 skipped
+  success 'G1 twice doubles' groupIDs=[2]
+done: success=True
+stderr lines: 0
+
+### D6 a binding that does not compile: dart test --reporter json hsdd/contract/fixture/sample/behavior/broken_test.dart
+exit: 1
+seconds: 0.4
+non-JSON stdout lines: 0
+events: allSuites 1, done 1, error 1, start 1, suite 1, testDone 1, testStart 1
+suite path: hsdd/contract/fixture/sample/behavior/broken_test.dart (platform vm)
+hidden tests: 0 ()
+visible tests: 1: 0 passed, 1 failed, 0 skipped
+  error 'loading hsdd/contract/fixture/sample/behavior/broken_test.dart' groupIDs=[] | isFailure=False: Failed to load "hsdd/contract/fixture/sample/behavior/broken_test.dart":
+done: success=False
+stderr lines: 0
+
+### D7 a binding that imports an absent package: dart test --reporter json hsdd/contract/fixture/sample/behavior/absent_test.dart
+exit: 1
+seconds: 0.4
+non-JSON stdout lines: 0
+events: allSuites 1, done 1, error 1, start 1, suite 1, testDone 1, testStart 1
+suite path: hsdd/contract/fixture/sample/behavior/absent_test.dart (platform vm)
+hidden tests: 0 ()
+visible tests: 1: 0 passed, 1 failed, 0 skipped
+  error 'loading hsdd/contract/fixture/sample/behavior/absent_test.dart' groupIDs=[] | isFailure=False: Failed to load "hsdd/contract/fixture/sample/behavior/absent_test.dart":
+done: success=False
+stderr lines: 0
+
+### D6b and D7b the whole error text of a load failure, first five lines
+  > Failed to load "hsdd/contract/fixture/sample/behavior/broken_test.dart":
+  > hsdd/contract/fixture/sample/behavior/broken_test.dart:4:31: Error: Method not found: 'undefinedName'.
+  >   test('G1 never runs', () => undefinedName());
+  >                               ^^^^^^^^^^^^^
+  > Failed to load "hsdd/contract/fixture/sample/behavior/absent_test.dart":
+  > Couldn't resolve the package 'producer' in 'package:producer/producer.dart'.
+  > hsdd/contract/fixture/sample/behavior/absent_test.dart:1:8: Error: Not found: 'package:producer/producer.dart'
+  > import 'package:producer/producer.dart';
+  >        ^
+
+### D8 a binding that registers no case: dart test --reporter json hsdd/contract/fixture/sample/behavior/empty_test.dart
+exit: 79
+seconds: 0.8
+non-JSON stdout lines: 0
+events: allSuites 1, done 1, start 1, suite 1, testDone 1, testStart 1
+suite path: hsdd/contract/fixture/sample/behavior/empty_test.dart (platform vm)
+hidden tests: 1 ('loading hsdd/contract/fixture/sample/behavior/empty_test.dart' success)
+visible tests: 0: 0 passed, 0 failed, 0 skipped
+done: success=True
+stderr lines: 1
+  ! No tests were found.
+
+### D9 a binding whose main throws: dart test --reporter json hsdd/contract/fixture/sample/behavior/throws_test.dart
+exit: 1
+seconds: 0.5
+non-JSON stdout lines: 0
+events: allSuites 1, done 1, error 1, start 1, suite 1, testDone 1, testStart 1
+suite path: hsdd/contract/fixture/sample/behavior/throws_test.dart (platform vm)
+hidden tests: 0 ()
+visible tests: 1: 0 passed, 1 failed, 0 skipped
+  error 'loading hsdd/contract/fixture/sample/behavior/throws_test.dart' groupIDs=[] | isFailure=False: Failed to load "hsdd/contract/fixture/sample/behavior/throws_test.dart": Bad state: a case list that fails to build
+done: success=False
+stderr lines: 0
+
+### D10 the testWidgets binding over the stand-in flutter_test, under dart test: dart test --reporter json --name ^(G2)  hsdd/contract/fixture/sample/behavior/widget_impl_test.dart
+exit: 0
+seconds: 0.5
+non-JSON stdout lines: 0
+events: allSuites 1, done 1, group 1, start 1, suite 1, testDone 2, testStart 2
+suite path: hsdd/contract/fixture/sample/behavior/widget_impl_test.dart (platform vm)
+hidden tests: 1 ('loading hsdd/contract/fixture/sample/behavior/widget_impl_test.dart' success)
+visible tests: 1: 1 passed, 0 failed, 0 skipped
+  success 'G2 a second passing case' groupIDs=[2]
+done: success=True
+stderr lines: 0
+
+### F1 a stand-in Flutter SDK: bin/flutter and bin/cache/dart-sdk/bin/dart are scripts over the real dart
+flutter beside the stand-in dart, four directories up: /var/folders/tn/_xzt8h5913dc3vhnfw95wq5c0000gn/T/bsp-sdk.dvFw2B/bin/flutter == /var/folders/tn/_xzt8h5913dc3vhnfw95wq5c0000gn/T/bsp-sdk.dvFw2B/bin/flutter
+exit: 1
+seconds: 0.6
+non-JSON stdout lines: 0
+events: allSuites 1, done 1, error 1, group 1, start 1, suite 1, testDone 3, testStart 3
+suite path: hsdd/contract/fixture/sample/behavior/widget_impl_test.dart (platform vm)
+hidden tests: 1 ('loading hsdd/contract/fixture/sample/behavior/widget_impl_test.dart' success)
+visible tests: 2: 1 passed, 1 failed, 0 skipped
+  success 'G2 a second passing case' groupIDs=[2]
+  failure 'G5 equality is identity' groupIDs=[2] | isFailure=True: Expected: <Instance of 'Box'>
+done: success=False
+recorded call: test --no-pub --reporter json --name ^(G2|G5)  hsdd/contract/fixture/sample/behavior/widget_impl_test.dart
+
+### F2 the stand-in dart script runs dart test like the real one
+exit: 0
+  success 'G1 twice doubles' groupIDs=[2]
+done: success=True
+
+### F3 what a dart test run leaves in the workspace root
+.dart_tool .err .out .pubget.log hsdd packages pubspec.lock pubspec.yaml 
+package_config.json package_graph.json pub test 
+
+### R0 the repository at
+2ee16c7 judgement: S117
+
+### R1 topic-model@v1's binding: fvm dart test --reporter json hsdd/contract/fixture/topic-model/behavior/nidana_dart_contracts_test.dart (from the repository root)
+exit: 1
+seconds: 0.9
+non-JSON stdout lines: 0
+events: allSuites 1, done 1, error 32, group 1, start 1, suite 1, testDone 42, testStart 42
+suite path: hsdd/contract/fixture/topic-model/behavior/nidana_dart_contracts_test.dart (platform vm)
+hidden tests: 1 ('loading hsdd/contract/fixture/topic-model/behavior/nidana_dart_contracts_test.dart' success)
+visible tests: 41: 9 passed, 32 failed, 0 skipped
+  UnimplementedError: 27
+    e.g. G4 a lineage keeps unmodifiable parent correlation ids | UnimplementedError
+    e.g. G8 a topic reference carries the name, the variant and the type name | UnimplementedError
+    e.g. G9 a constant initial value is returned as declared | UnimplementedError
+  expectation (isFailure): 5
+    e.g. G4 an envelope keeps an unmodifiable copy of its parent correlation ids | Expected: ['p-1'] Actual: ['p-1', 'p-2'] Which: at location [1] is ['p-1', 'p-2'] which longer than expected
+    e.g. G7 topics with the same variant, name and value type are equal | Expected: <Instance of 'StateTopic<int>'> Actual: <Instance of 'StateTopic<int>'>
+    e.g. G8 topic references are equal exactly when all three fields are | Expected: <Instance of 'TopicRef'> Actual: <Instance of 'TopicRef'>
+  other error: 0
+done: success=False
+stderr lines: 0
+
+### R2 topology-dsl@v2's recording binding: fvm dart test --reporter json hsdd/contract/fixture/topology-dsl/behavior/topology_builder_test.dart (from the repository root)
+exit: 1
+seconds: 0.9
+non-JSON stdout lines: 0
+events: allSuites 1, done 1, error 24, group 1, start 1, suite 1, testDone 25, testStart 25
+suite path: hsdd/contract/fixture/topology-dsl/behavior/topology_builder_test.dart (platform vm)
+hidden tests: 1 ('loading hsdd/contract/fixture/topology-dsl/behavior/topology_builder_test.dart' success)
+visible tests: 24: 0 passed, 24 failed, 0 skipped
+  UnimplementedError: 17
+    e.g. G9 planOf runs declare once against a fresh builder and carries the id and scope | UnimplementedError
+    e.g. G9 buildDefinition runs declare once and equals the definition of a fresh plan | UnimplementedError
+    e.g. G9 the builder form runs its body on each planOf call and never at construction | UnimplementedError
+  expectation (isFailure): 7
+    e.g. G13 a dedup argument on an event or replay topic read throws ArgumentError | Expected: throws <Instance of 'ArgumentError'> Actual: <Closure: () => TopologyPlan> Which: threw UnimplementedError:<UnimplementedError>
+    e.g. G14 a second sink on one StateTopic throws ArgumentError; event and replay topics take any number | Expected: throws <Instance of 'ArgumentError'> Actual: <Closure: () => TopologyPlan> Which: threw UnimplementedError:<UnimplementedError>
+    e.g. G14 a negative duration throws ArgumentError and a zero duration is accepted | Expected: throws <Instance of 'ArgumentError'> Actual: <Closure: () => TopologyPlan> Which: threw UnimplementedError:<UnimplementedError>
+  other error: 0
+done: success=False
+stderr lines: 0
+
+### R3 topology-ir@v1's binding: fvm dart test --reporter json hsdd/contract/fixture/topology-ir/behavior/nidana_dart_contracts_test.dart (from the repository root)
+exit: 1
+seconds: 1.1
+non-JSON stdout lines: 0
+events: allSuites 1, done 1, error 42, group 1, start 1, suite 1, testDone 44, testStart 44
+suite path: hsdd/contract/fixture/topology-ir/behavior/nidana_dart_contracts_test.dart (platform vm)
+hidden tests: 1 ('loading hsdd/contract/fixture/topology-ir/behavior/nidana_dart_contracts_test.dart' success)
+visible tests: 43: 1 passed, 42 failed, 0 skipped
+  UnimplementedError: 37
+    e.g. G3 every collection the IR, graphs, claims and findings expose is unmodifiable | UnimplementedError
+    e.g. G3 the IR copies the lists it is given; later changes to them do not reach it | UnimplementedError
+    e.g. G4 every definition a plan projects to is pure data: it encodes to JSON and decodes back equal | UnimplementedError
+  expectation (isFailure): 5
+    e.g. G5 a stage edge takes the input count its combinator allows | Expected: throws <Instance of 'ArgumentError'> Actual: <Closure: () => TransformEdge> Which: threw UnimplementedError:<UnimplementedError>
+    e.g. G5 a stage edge carries a transformer, a duration and a retry exactly where its combinator holds one | Expected: throws <Instance of 'ArgumentError'> Actual: <Closure: () => TransformEdge> Which: threw UnimplementedError:<UnimplementedError>
+    e.g. G21 every invalid/ file fails the schema and the decoder rejects it with a FormatException | Expected: throws <Instance of 'FormatException'> Actual: <Closure: () => TopologyGraph> Which: threw UnimplementedError:<UnimplementedError>
+  other error: 0
+done: success=False
+stderr lines: 0
+
+### R4 case names the fixture reader would read: lines holding a name: string literal per conformance library
+topic-model/behavior/topic_model_conformance.dart: 48
+topology-dsl/behavior/recording_conformance.dart: 24
+topology-ir/behavior/topology_ir_conformance.dart: 45
+topology-dsl/behavior/live_conformance.dart: 49
+
+### R6 the case names the tool's fixture reader reads (readDartLibrary), per conformance library: count, and whether every one begins with G{n} and a space
+hsdd/contract/fixture/topic-model/behavior/topic_model_conformance.dart: 1 case list(s), 41 case names, 41 begin with G{n} and a space, 18 distinct ids
+hsdd/contract/fixture/topology-dsl/behavior/recording_conformance.dart: 1 case list(s), 24 case names, 24 begin with G{n} and a space, 10 distinct ids
+hsdd/contract/fixture/topology-ir/behavior/topology_ir_conformance.dart: 1 case list(s), 43 case names, 43 begin with G{n} and a space, 22 distinct ids
+hsdd/contract/fixture/topology-dsl/behavior/live_conformance.dart: 1 case list(s), 49 case names, 49 begin with G{n} and a space, 12 distinct ids
+hsdd/contract/fixture/bus-api/behavior/bus_api_conformance.dart: 1 case list(s), 109 case names, 109 begin with G{n} and a space, 38 distinct ids
+hsdd/contract/fixture/navigation-api/behavior/navigation_executor_conformance.dart: 1 case list(s), 26 case names, 26 begin with G{n} and a space, 7 distinct ids
+
+### R5 does any committed conformance library import package:test or package:flutter_test
+none
+
+### U1 what utf8.decode reports for the bytes the plan's tests seed as a Dart source that is not UTF-8
+[47, 47, 32, 255, 10]: message "Invalid UTF-8 byte", offset 3
+[255]: message "Invalid UTF-8 byte", offset 0
+
+### R7 every committed binding's relative imports, its runner by a package:flutter_test import, and which conformance libraries no binding imports
+hsdd/contract/fixture/bus-api/behavior/bus_activation_test.dart: dart test; relative imports ['hsdd/contract/fixture/topology-dsl/behavior/live_conformance.dart']
+hsdd/contract/fixture/bus-api/behavior/nidana_dart_runtime_test.dart: dart test; relative imports ['hsdd/contract/fixture/bus-api/behavior/bus_api_conformance.dart']
+hsdd/contract/fixture/bus-testing/behavior/nidana_dart_runtime_test.dart: dart test; relative imports ['hsdd/contract/fixture/bus-testing/behavior/bus_testing_conformance.dart']
+hsdd/contract/fixture/flutter-binding/behavior/flutter_navigation_executor_test.dart: flutter test --no-pub; relative imports ['hsdd/contract/fixture/navigation-api/behavior/navigation_executor_conformance.dart']
+hsdd/contract/fixture/flutter-binding/behavior/nidana_dart_runtime_flutter_test.dart: flutter test --no-pub; relative imports ['hsdd/contract/fixture/flutter-binding/behavior/flutter_binding_conformance.dart']
+hsdd/contract/fixture/navigation-api/behavior/in_memory_router_test.dart: dart test; relative imports ['hsdd/contract/fixture/navigation-api/behavior/navigation_executor_conformance.dart']
+hsdd/contract/fixture/navigation-api/behavior/nidana_dart_navigation_test.dart: dart test; relative imports ['hsdd/contract/fixture/navigation-api/behavior/navigation_conformance.dart']
+hsdd/contract/fixture/topic-model/behavior/nidana_dart_contracts_test.dart: dart test; relative imports ['hsdd/contract/fixture/topic-model/behavior/topic_model_conformance.dart']
+hsdd/contract/fixture/topology-dsl/behavior/topology_builder_test.dart: dart test; relative imports ['hsdd/contract/fixture/topology-dsl/behavior/recording_conformance.dart']
+hsdd/contract/fixture/topology-ir/behavior/nidana_dart_contracts_test.dart: dart test; relative imports ['hsdd/contract/fixture/topology-ir/behavior/topology_ir_conformance.dart']
+conformance libraries no binding imports: none
+
+### P1 the plan's behavior samples (Task 3) in a workspace seeded as Task 5 seeds it, under dart test (the command the stand-in flutter of F1 runs)
+pub get --offline exit: 0
+-- sample_impl_test.dart, every case
+exit: 1
+visible tests: 4: 2 passed, 2 failed, 0 skipped
+  success 'G2 a sample counts from zero' groupIDs=[2]
+  success 'G2 a second case of G2' groupIDs=[2]
+  failure 'G3 a sample is redacted' groupIDs=[2] | isFailure=True: Expected: <1>
+  error 'G1 a body not implemented yet' groupIDs=[2] | isFailure=False: UnimplementedError: G1
+done: success=False
+-- sample_impl_test.dart, ^(G2) 
+exit: 0
+visible tests: 2: 2 passed, 0 failed, 0 skipped
+  success 'G2 a sample counts from zero' groupIDs=[2]
+  success 'G2 a second case of G2' groupIDs=[2]
+done: success=True
+-- widget_impl_test.dart under dart test (the stand-in flutter runs exactly this), ^(G2) 
+exit: 0
+visible tests: 2: 2 passed, 0 failed, 0 skipped
+  success 'G2 a sample counts from zero' groupIDs=[2]
+  success 'G2 a second case of G2' groupIDs=[2]
+done: success=True
+-- host_impl_test.dart, ^(G2|G3) 
+exit: 1
+visible tests: 3: 2 passed, 1 failed, 0 skipped
+  success 'G2 a sample counts from zero' groupIDs=[2]
+  success 'G2 a second case of G2' groupIDs=[2]
+  failure 'G3 a sample is redacted' groupIDs=[2] | isFailure=True: Expected: <1>
+done: success=False
+-- broken_impl_test.dart
+exit: 1
+visible tests: 1: 0 passed, 1 failed, 0 skipped
+  error 'loading hsdd/contract/fixture/host/behavior/broken_impl_test.dart' groupIDs=[] | isFailure=False: Failed to load "hsdd/contract/fixture/host/behavior/broken_impl_test.dart":
+done: success=False
+  load error, second line: hsdd/contract/fixture/host/behavior/broken_impl_test.dart:7:31: Error: Undefined name 'undefinedHarness'.
+
+### P2 the structure set of this phase's tool base over the plan's behavior and host samples (Task 3): both slugs pass
+PASS structure hsdd/contract/sample.md
+PASS structure hsdd/contract/fixture/sample/
+PASS structure hsdd/contract/fixture/sample/behavior/sample_conformance.dart
+PASS structure hsdd/contract/fixture/sample/behavior/sample_impl_test.dart
+PASS structure hsdd/contract/fixture/sample/behavior/widget_impl_test.dart
+PASS structure hsdd/contract/fixture/sample/reject/sample_is_closed.dart
+PASS structure hsdd/contract/fixture/sample/surface/use.dart
+PASS structure hsdd/contract/host.md
+PASS structure hsdd/contract/fixture/host/
+PASS structure hsdd/contract/fixture/host/behavior/host_impl_test.dart
+10 fixtures: 10 passed, 0 failed, 0 pending
+exit: 0

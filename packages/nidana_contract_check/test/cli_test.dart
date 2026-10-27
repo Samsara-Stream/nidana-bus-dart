@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:nidana_contract_check/src/request.dart' show usage;
 import 'package:nidana_contract_check/src/shell.dart';
 import 'package:test/test.dart';
 
@@ -114,6 +115,15 @@ void main() {
             },
             'FAIL structure ${s}surface/use.dart: src-import (package:sample/src/sample_base.dart)',
           ),
+          (
+            'a conformance library that imports package:test',
+            <String, String?>{
+              '${s}behavior/sample_conformance.dart':
+                  "import 'package:test/test.dart';\n"
+                  '${sampleFiles['${s}behavior/sample_conformance.dart']!}',
+            },
+            'FAIL structure ${s}behavior/sample_conformance.dart: conformance-import (package:test/test.dart)',
+          ),
         ]) {
       test(name, () async {
         final ProcessResult r = await runTool(<String>[
@@ -125,6 +135,24 @@ void main() {
         expect(lines(r), contains(line));
       });
     }
+  });
+  test('a Dart fixture that is not UTF-8 fails structure (1), never an environment error', () async {
+    final Directory root = seed(sampleFiles);
+    File('${root.path}/${s}reject/latin1.dart')
+        .writeAsBytesSync(<int>[0x2f, 0x2f, 0x20, 0xff, 0x0a]);
+    final ProcessResult r = await runTool(<String>[
+      'sample',
+      '--set',
+      'structure',
+    ], workingDirectory: root);
+    expect(r.exitCode, 1, reason: all(r));
+    expect(
+      lines(r),
+      contains(
+        'FAIL structure ${s}reject/latin1.dart: encoding (not UTF-8: Invalid UTF-8 byte (at offset 3))',
+      ),
+    );
+    expect(r.stderr as String, isEmpty);
   });
   group('the surface and reject sets over a seeded workspace, one dart analyze', () {
     late ProcessResult r;
@@ -232,7 +260,7 @@ void main() {
   });
   group('environment errors exit 2 and name the reason', () {
     test(
-      'no package configuration, and a set this version does not implement',
+      'no package configuration is a reason for every set that reads it',
       () async {
         final ProcessResult r = await runTool(<String>[
           'sample',
@@ -249,7 +277,7 @@ void main() {
               'ERROR reject sample: no package configuration at .dart_tool/package_config.json; run fvm dart pub get',
             ),
             contains(
-              'ERROR behavior sample: this version of nidana_contract_check does not implement the behavior set',
+              'ERROR behavior sample: no package configuration at .dart_tool/package_config.json; run fvm dart pub get',
             ),
           ),
         );
@@ -341,6 +369,155 @@ void main() {
     ], workingDirectory: root);
     expect(bare.exitCode, 64, reason: all(bare));
     expect(bare.stderr as String, contains("bare id 'G1'"));
+  });
+  test('a usage error exits 64 even when no slug directory exists; --all then exits 2', () async {
+    final Directory root = seed(const <String, String>{
+      'hsdd/contract/readme.md': 'x\n',
+    });
+    final ProcessResult named = await runTool(<String>[
+      'sample',
+    ], workingDirectory: root);
+    expect(named.exitCode, 64, reason: all(named));
+    expect(named.stderr as String, contains("unknown slug 'sample'"));
+    final ProcessResult every = await runTool(<String>[
+      '--all',
+    ], workingDirectory: root);
+    expect(every.exitCode, 2, reason: all(every));
+    expect(
+      every.stderr as String,
+      'error: no slug directory under hsdd/contract/fixture/\n',
+    );
+  });
+  test('the usage text follows the message, exactly', () async {
+    final ProcessResult r = await runTool(<String>[
+      'nosuch',
+    ], workingDirectory: seed(sampleFiles));
+    expect(r.exitCode, 64, reason: all(r));
+    expect(
+      r.stderr as String,
+      "error: unknown slug 'nosuch': no directory hsdd/contract/fixture/nosuch/\n$usage\n",
+    );
+    expect(usage, '''
+usage: fvm dart run nidana_contract_check {slug}... [--set {set},...] [--guarantee {id},...]
+       fvm dart run nidana_contract_check --all [--set {set},...] [--guarantee {id},...]
+sets: structure, surface, reject, behavior, schema, file, cli
+ids: G{n} for the one slug named, or {slug}/G{n}''');
+  });
+  test('an id its slug does not declare is a usage error (64); a qualified id is checked against its own slug', () async {
+    final Directory root = seed(<String, String>{...sampleFiles, ...toolFiles});
+    final ProcessResult bare = await runTool(<String>[
+      'sample',
+      '--set',
+      'structure',
+      '--guarantee',
+      'G9',
+    ], workingDirectory: root);
+    expect(bare.exitCode, 64, reason: all(bare));
+    expect(
+      bare.stderr as String,
+      allOf(
+        contains(
+          "error: unknown guarantee 'sample/G9': hsdd/contract/sample.md declares no G9",
+        ),
+        contains('usage: '),
+      ),
+    );
+    final ProcessResult other = await runTool(<String>[
+      'sample',
+      '--set',
+      'structure',
+      '--guarantee',
+      'tool/G2',
+    ], workingDirectory: root);
+    expect(other.exitCode, 0, reason: all(other));
+    final ProcessResult unknown = await runTool(<String>[
+      'sample',
+      '--set',
+      'structure',
+      '--guarantee',
+      'tool/G3',
+    ], workingDirectory: root);
+    expect(unknown.exitCode, 64, reason: all(unknown));
+    expect(
+      unknown.stderr as String,
+      contains(
+        "unknown guarantee 'tool/G3': hsdd/contract/tool.md declares no G3",
+      ),
+    );
+  });
+  test('a package configuration that is not UTF-8 is not a package configuration (2)', () async {
+    final Directory root = seed(sampleFiles);
+    File('${root.path}/.dart_tool/package_config.json')
+      ..parent.createSync(recursive: true)
+      ..writeAsBytesSync(<int>[0xff]);
+    final StringBuffer err = StringBuffer();
+    expect(
+      await runCli(
+        <String>['sample', '--set', 'surface'],
+        workingDirectory: root,
+        out: StringBuffer(),
+        err: err,
+      ),
+      2,
+    );
+    expect(
+      err.toString(),
+      contains(
+        'ERROR surface sample: .dart_tool/package_config.json is not a package configuration',
+      ),
+    );
+  });
+
+  // Beyond the brief: rules of the restriction's check that would otherwise
+  // go unpinned.
+  test('a slug the restriction names without a contract text declares nothing (64)', () async {
+    final StringBuffer out = StringBuffer();
+    final StringBuffer err = StringBuffer();
+    expect(
+      await runCli(
+        <String>['sample', '--set', 'structure', '--guarantee', 'G1'],
+        workingDirectory: seed(
+          changed(sampleFiles, <String, String?>{
+            'hsdd/contract/sample.md': null,
+          }),
+        ),
+        out: out,
+        err: err,
+      ),
+      64,
+    );
+    expect(
+      err.toString(),
+      "error: unknown guarantee 'sample/G1': no contract text at hsdd/contract/sample.md\n$usage\n",
+    );
+    expect(out.toString(), isEmpty);
+  });
+  test('the restriction is checked before any snapshot is read', () async {
+    const String d = 'hsdd/contract/fixture/doc/';
+    final Directory root = seed(docFiles);
+    Link('${root.path}/${d}valid/gone.json').createSync('${root.path}/gone');
+    Future<(int, String)> replay(String id) async {
+      final StringBuffer err = StringBuffer();
+      final int code = await runCli(
+        <String>['doc', '--guarantee', id],
+        workingDirectory: root,
+        out: StringBuffer(),
+        err: err,
+      );
+      return (code, err.toString());
+    }
+
+    final (int undeclared, String undeclaredErr) = await replay('G2');
+    expect(undeclared, 64, reason: undeclaredErr);
+    expect(
+      undeclaredErr,
+      contains(
+        "error: unknown guarantee 'doc/G2': hsdd/contract/doc.md declares no G2",
+      ),
+    );
+    final (int declared, String declaredErr) = await replay('G1');
+    expect(declared, 2, reason: declaredErr);
+    expect(declaredErr, contains('${d}valid/gone.json'));
   });
   test('no workspace root is an environment error (2)', () async {
     final ProcessResult r = await runTool(<String>[
@@ -583,6 +760,44 @@ void main() {
         ),
       );
     });
+    test(
+      'bytes dart analyze prints that are not UTF-8 stop no replay',
+      () async {
+        final Directory root = seed(<String, String>{
+          ...sampleFiles,
+          '.dart_tool/package_config.json': sampleConfiguration,
+        });
+        final String dart = '${seed(const <String, String>{}).path}/dart';
+        File(dart).writeAsStringSync(
+          <String>[
+            '#!/bin/sh',
+            r"printf '\377\n'",
+            r"printf '\377\n' >&2",
+            """echo '{"version":1,"diagnostics":[]}'""",
+            '',
+          ].join('\n'),
+        );
+        final ProcessResult chmod = Process.runSync('chmod', <String>[
+          '+x',
+          dart,
+        ]);
+        expect(chmod.exitCode, 0, reason: all(chmod));
+        final StringBuffer out = StringBuffer();
+        final StringBuffer err = StringBuffer();
+        expect(
+          await runCli(
+            <String>['sample', '--set', 'surface'],
+            workingDirectory: root,
+            out: out,
+            err: err,
+            dart: dart,
+          ),
+          0,
+          reason: '$out$err',
+        );
+        expect(out.toString(), contains('PASS surface ${s}surface/use.dart\n'));
+      },
+    );
     test('a reported file no fixture claims is an environment error (2), never dropped', () async {
       final Directory root = seed(<String, String>{
         ...sampleFiles,

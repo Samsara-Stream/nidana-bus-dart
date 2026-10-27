@@ -6,7 +6,7 @@ library;
 
 import 'dart:io';
 
-import 'package:nidana_contract_check/src/shell.dart';
+import 'package:nidana_contract_check/src/workspace.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
@@ -23,6 +23,9 @@ Directory seed(Map<String, String> files) {
 }
 
 /// Runs the bin script with [arguments] from [workingDirectory].
+///
+/// Its flutter is the real one beside the running dart, so it never replays
+/// a Flutter binding that is not PENDING (see `seedWorkspace`).
 Future<ProcessResult> runTool(
   List<String> arguments, {
   required Directory workingDirectory,

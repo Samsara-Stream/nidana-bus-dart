@@ -184,7 +184,10 @@ a `Task N: complete` line; never re-dispatch them.
 | S113 | implement | superpowers:subagent-driven-development | nidana.model.4: 5 tasks, 2 fix rounds (purity reader), final review with one fix wave; gate exit 0, 32 tests, 57/57 | done | ccac409; merged into impl/nidana.model as 3c147db |
 | S114 | config | hsdd-config | nidana.model.5 | done | d514fe4 |
 | S115 | code-plan | superpowers:writing-plans | nidana.model.5 (3 tasks; dry run 117/117) | done | 2088ab2 |
-| S116 | implement | superpowers:subagent-driven-development | nidana.model.5: 3 tasks, 1 doc fix round, final review ready to merge; gate exit 0, 38 tests, 117/117; end of the types band | done | 01991b3 (merge recorded in the next row) |
+| S116 | implement | superpowers:subagent-driven-development | nidana.model.5: 3 tasks, 1 doc fix round, final review ready to merge; gate exit 0, 38 tests, 117/117; end of the types band | done | 01991b3; merged into impl/nidana.model as 739c828 |
+| S117 | config | hsdd-config | nidana.model.6 | done | 631224a |
+| S118 | code-plan | superpowers:writing-plans | nidana.model.6 (6 tasks; routed items taken in; Flutter runner on a stand-in SDK) | done | 34ace02 |
+| S119 | implement | superpowers:subagent-driven-development | nidana.model.6: 6 tasks, fix rounds on Tasks 4 (late-error false PASS) and 5 (runners.dart split), final review with fixes, one fix wave; gate exit 0, 292 tests, 102/102; behavior --all 112: 102/3/7 | done | cc375a7 |
 
 ## Notes for the report
 
@@ -216,6 +219,18 @@ Findings the report must carry, written down when found so they survive context 
   private repository behind a personal SSH alias; the run does not fetch it (credential) and builds from
   the governance (decision in S113.orchestrator.json). Watch nidana.model.8, whose Verification cites Spec
   §2.4's worked examples.
+
+- S118: the pinned Flutter SDK has no engine artifacts (`bin/cache/pkg/sky_engine`, `bin/cache/artifacts`
+  absent), so no real `flutter test` runs on this machine; fetching them is a network action outside
+  pub.dev, which the run does not take. nidana.model.6 tests its Flutter runner against a stand-in SDK; the
+  real run is deferred to nidana.flutter.2. Owner action before the nidana.flutter lane: `fvm flutter precache`
+  (or any first `fvm flutter test`), which downloads the artifacts.
+
+- S119 (nidana.model.6): the owner should know before signing its verification doc:
+  - the doc's decision 4 line understates one routed defect (see nidana.model.7 below);
+  - a skipped-only binding run reads PASS, with the skip count in the line (plan-mandated, parked);
+  - the phase is about 13 times its estimate in lines (3988 insertions in 28 files, against about 300 in 5), as nidana.model.1 and .2 were;
+  - the Flutter runner is checked only against a stand-in SDK; the real run is Outstanding, deferred to nidana.flutter.2.
 
 ## Routed to later phases
 
@@ -280,6 +295,28 @@ that phase's writing-plans dispatch and strikes it here when the phase's plan co
   initializer lists that sort, keeping every parameter name and field type (no call site changes).
 - nidana.model.10 (from S112): remove the two `// ignore: unused_element` on `TransformEdge._` and
   `TopologyDefinition._`; `FunctionRef.named`'s empty-name `ArgumentError`.
+- nidana.model.7 (from S119's final review), since it edits the same shell and `structure.dart`:
+  `_snapshotsOf` reads a suite slug's whole snapshot, so a read defect in topology-dsl's tree (a dangling link
+  where a source is read, a contract text that is not UTF-8) makes a bus-api behavior replay exit 2 with one
+  `error:` line and no fixture line for any slug (reproduced in S119's last re-review; reading only the suite
+  file narrows it; nidana.model.6's verification doc understates this as ending the replayed slug's replay); `purity_test` pins direct
+  `dart:io` imports only and `relativeClosure` ignores own-package `package:` self-imports; `lenientUtf8` lives
+  in `runners.dart` though every process uses it; a contract text that is not UTF-8 exits 2 while an absent one
+  is a structure failure (exit 1).
+- End of nidana.model, governance sweep (from S119's final review): `structure` does not check that a binding
+  imports exactly one conformance library by relative path (`behavior` fails it as `suite (...)`, but
+  `--all --set structure`, which hsdd-contract authors run, passes it): an ADR-001 item 9 structure-list
+  touch; a conditional-configuration URI (`import 'a.dart' if (c) 'package:test/test.dart'`) escapes
+  `src-import`, `conformance-import` and PENDING (the directive reader reads only the first URI).
+- Later tool phases (from S119, nidana.model.6 Task 5 review): the runner process has no timeout, so a binding
+  whose case never yields hangs the gate; ADR-001 does not require one. Weigh it when a gate first runs a
+  suite with timers or isolates (nidana.runtime).
+- End of nidana.model, governance sweep (from S119): ADR-001 item 9's description of the `structure` set does
+  not name the two rules nidana.model.6 added: `encoding` (a Dart fixture that is not UTF-8) and
+  `conformance-import` (item 4's rule, which item 12 already covers); the hsdd-adr touch can name both.
+- End of nidana.model, governance sweep (from S118): "a conformance library that no binding in any slug imports
+  covers nothing" is a reading of ADR-001 item 3 for hsdd-adr (it gives structure a workspace-wide input); no
+  committed suite is unbound today (`docs/auto-run/experiments/behavior-set-plan/` R7).
 - End of nidana.model, governance sweep (from S115's dry run): topology-ir@v1's surface fixtures never build
   `ScopeViolation` with `const` (`surface/graphs.dart:105`), so a non-const constructor passes the replay; only
   the package's own test pins it (`TopicDeclaration` is built `const` at `graphs.dart:122`, so the replay pins
