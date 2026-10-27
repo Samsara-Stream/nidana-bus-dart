@@ -1,6 +1,8 @@
 import 'package:meta/meta.dart';
 
+import '../ir/canonical_order.dart';
 import '../ir/definition.dart';
+import '../topic/list_equality.dart';
 import '../topic/message_source.dart';
 import '../topic/scope.dart';
 import '../topic/topic.dart';
@@ -12,8 +14,6 @@ import '../topic/topic.dart';
 /// topic.
 @immutable
 final class ShellClaim {
-  // The factory constructs through this once nidana.model.11 lands it.
-  // ignore: unused_element
   const ShellClaim._({
     required this.source,
     required this.scope,
@@ -24,12 +24,56 @@ final class ShellClaim {
     required MessageSource source,
     Scope scope = Scope.application,
     required Set<TopicRef> writes,
-  }) => throw UnimplementedError();
+  }) {
+    if (!_isShellSource(source)) {
+      throw ArgumentError.value(
+        source,
+        'source',
+        'is not a service, page or executor source',
+      );
+    }
+    if (writes.isEmpty) {
+      throw ArgumentError.value(writes, 'writes', 'must not be empty');
+    }
+    for (final TopicRef topic in writes) {
+      if (topic.variant != TopicVariant.state) {
+        throw ArgumentError.value(
+          topic.name,
+          'writes',
+          'names a topic that is not a state topic',
+        );
+      }
+    }
+    return ShellClaim._(
+      source: source,
+      scope: scope,
+      writes: Set<TopicRef>.unmodifiable(sortedCopy(writes, compareTopicRefs)),
+    );
+  }
 
   final MessageSource source;
   final Scope scope;
   final Set<TopicRef> writes; // canonical order; unmodifiable copy
+
+  // source, scope and writes, element by element in canonical order
+  // (topology-ir@v1 G7)
+  @override
+  bool operator ==(Object other) =>
+      other is ShellClaim &&
+      other.source == source &&
+      other.scope == scope &&
+      elementsEqual(other.writes.toList(), writes.toList());
+
+  @override
+  int get hashCode => Object.hash(source, scope, Object.hashAll(writes));
 }
+
+// Whether a shell publisher may claim with [source] (G12): a topology owns
+// its topics through its definition, and an unknown source owns nothing.
+bool _isShellSource(MessageSource source) => switch (source) {
+  ServiceSource() || PageSource() || ExecutorSource() => true,
+  TopologySource() || UnknownSource() => false,
+};
 
 /// Topologies and shell claims (Spec §6.5, Appendix A.4, A.9): the active
 /// set behind bus.toGraph(), or the static set a catalog scans.
