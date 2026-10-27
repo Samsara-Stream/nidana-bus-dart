@@ -1,9 +1,11 @@
-/// The samples the file and cli set tests share: [commandText], and the `gen`
-/// slug (kind `file`) as strings keyed by their paths from the workspace root,
-/// `docs/auto-run/experiments/file-cli-sets-plan/samples/` as strings.
+/// The samples the file and cli set tests share: [commandText], [treeOf], and
+/// the `gen` slug (kind `file`) as strings keyed by their paths from the
+/// workspace root, `docs/auto-run/experiments/file-cli-sets-plan/samples/` as
+/// strings.
 library;
 
 import 'package:nidana_contract_check/src/command.dart';
+import 'package:nidana_contract_check/src/tree.dart';
 
 /// [command] as text: `dart [{arguments}]`, `flutter [{arguments}]` or
 /// `package {package}:{executable} [{arguments}]`, the arguments joined by `, `.
@@ -16,6 +18,14 @@ String commandText(Command command) {
       'package $package:$executable [$arguments]',
   };
 }
+
+/// The tree of [files], each file's bytes by its relative path, every entry a [FileBytes].
+FileTree treeOf(Map<String, List<int>> files) =>
+    Map<String, FileEntry>.unmodifiable(<String, FileEntry>{
+      for (final MapEntry<String, List<int>>(:String key, :List<int> value)
+          in files.entries)
+        key: FileBytes(value),
+    });
 
 /// `hsdd/contract/gen.md`.
 const String genContract = r'''

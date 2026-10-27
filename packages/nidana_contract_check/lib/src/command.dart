@@ -45,6 +45,9 @@ enum CommandRule implements Rule {
   /// A file in both trees has the same bytes in each.
   changedFile('changed-file'),
 
+  /// Every entry of either tree can be read.
+  unreadableFile('unreadable-file'),
+
   /// What is at `{output}` after the run is what the case expects there.
   output('output');
 

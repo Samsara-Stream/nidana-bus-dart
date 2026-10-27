@@ -561,6 +561,7 @@ void main() {
       'missing-file',
       'extra-file',
       'changed-file',
+      'unreadable-file',
       'output',
     ]);
   });

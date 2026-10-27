@@ -291,10 +291,12 @@ void main() {
       packages: const <String>{'gen'},
       restriction: null,
     ) as FileRun;
-    final FileTree e = <String, List<int>>{'notes.txt': utf8.encode(genNotes)};
-    final FileTree changedNotes = <String, List<int>>{
+    final FileTree e = treeOf(<String, List<int>>{
+      'notes.txt': utf8.encode(genNotes),
+    });
+    final FileTree changedNotes = treeOf(<String, List<int>>{
       'notes.txt': utf8.encode('from Hello\n'),
-    };
+    });
     const ProcessExit ok = (code: 0, stdout: '', stderr: '');
     const ProcessExit failedAfterWriting = (
       code: 1,
@@ -378,15 +380,31 @@ void main() {
         'exit (the generator exited 3); format (dart format exited 65)',
       );
     });
-    test('a non-zero exit with equal trees fails, and an empty tree written fails beside it', () {
+    test('a non-zero exit comes before the tree problems, a hidden file written among them', () {
       expect(
         outcome(
           generator: (code: 2, stdout: '', stderr: 'usage: generate\n'),
-          actual: const <String, List<int>>{'.hidden': <int>[]},
+          actual: treeOf(const <String, List<int>>{'.hidden': <int>[]}),
         ),
         'FAIL file hsdd/contract/fixture/gen/expected/: '
         'exit (the generator exited 2: usage: generate); '
         'extra-file (.hidden); missing-file (notes.txt)',
+      );
+    });
+
+    // The controller's ruling on Task 3: an entry the shell could not read
+    // fails the replay as its own problem, after the exits.
+    test('an entry the shell could not read is an unreadable-file problem', () {
+      expect(
+        outcome(
+          format: unparsed,
+          actual: const <String, FileEntry>{
+            'notes.txt': FileUnreadable('a dangling link'),
+          },
+        ),
+        'FAIL file hsdd/contract/fixture/gen/expected/: format (dart format '
+        'exited 65: Could not format because the source could not be '
+        'parsed:); unreadable-file (notes.txt in output: a dangling link)',
       );
     });
   });
