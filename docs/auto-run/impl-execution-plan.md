@@ -189,6 +189,7 @@ a `Task N: complete` line; never re-dispatch them.
 | S118 | code-plan | superpowers:writing-plans | nidana.model.6 (6 tasks; routed items taken in; Flutter runner on a stand-in SDK) | done | 34ace02 |
 | S119 | implement | superpowers:subagent-driven-development | nidana.model.6: 6 tasks, fix rounds on Tasks 4 (late-error false PASS) and 5 (runners.dart split), final review with fixes, one fix wave; gate exit 0, 292 tests, 102/102; behavior --all 112: 102/3/7 | done | cc375a7; merged into impl/nidana.model as 90116bd |
 | S120 | config | hsdd-config | nidana.model.7 (N=8, full-review; the known excerpt-ids warning) | done | e65c944 |
+| S121 | code-plan | superpowers:writing-plans | nidana.model.7 (8 tasks; script form for package commands; 2 contract gaps routed) | done | 0eacc99 |
 
 ## Notes for the report
 
@@ -304,6 +305,14 @@ that phase's writing-plans dispatch and strikes it here when the phase's plan co
   `dart:io` imports only and `relativeClosure` ignores own-package `package:` self-imports; `lenientUtf8` lives
   in `runners.dart` though every process uses it; a contract text that is not UTF-8 exits 2 while an absent one
   is a structure failure (exit 1).
+- End of nidana.model, governance sweep (from S121): ADR-001 item 9's `dart pub get --enforce-lockfile` does not
+  make a stale workspace fresh (pub's mtime rule; Dart 3.13.5), so its stated reason is wrong; the replay tool
+  runs a `{package}:{executable}` command as `bin/{executable}.dart` of the package's root under the running
+  `dart` with `--packages`, which runs either way. hsdd-adr: item 7 states the form, item 9's bullet restates its
+  reason; hsdd-spec: nidana.model.7's Scope (4) the same; hsdd-contract (compatible, v1): nidana-checks@v1's
+  Validation sentence "resolves nothing in place" (`docs/auto-run/experiments/file-cli-sets-plan/`, S121.json
+  contract_gaps). Also: behavior checks PENDING before the restriction, file and cli the restriction before
+  PENDING (nidana.model.6 decision 5 against nidana.model.7's); an ADR-001 item 9 touch can state one order.
 - End of nidana.model, governance sweep (from S119's final review): `structure` does not check that a binding
   imports exactly one conformance library by relative path (`behavior` fails it as `suite (...)`, but
   `--all --set structure`, which hsdd-contract authors run, passes it): an ADR-001 item 9 structure-list

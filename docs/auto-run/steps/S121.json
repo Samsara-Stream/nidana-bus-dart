@@ -1,0 +1,676 @@
+{
+  "step_ref": "S121",
+  "skill": "superpowers:writing-plans",
+  "target": "nidana.model.7",
+  "status": "completed",
+  "stop": null,
+  "artifacts": [
+    "docs/superpowers/plans/nidana.model.7.md",
+    "docs/auto-run/steps/S121.json",
+    "docs/auto-run/experiments/file-cli-sets-plan/"
+  ],
+  "decisions": [
+    {
+      "at": "2026-10-27T06:31:01Z",
+      "artifact": "docs/superpowers/plans/nidana.model.7.md",
+      "question": "A recorded invocation with files/ and a {package}:{executable} command: `dart run {package}:{executable}` from files/ exits 255 ('Could not find a file named \"pubspec.yaml\"') whenever pub's mtime check reads the resolution as stale, and neither `dart pub get` nor `dart pub get --enforce-lockfile` refreshes those mtimes when the resolution is unchanged, so ADR-001 item 9's one pub get cannot cure it; this repository reads stale now. How does the cli set run a {package}:{executable} command?",
+      "options": [
+        {
+          "label": "script under the running dart",
+          "consequence": "Runs `{dart} --packages={root}/.dart_tool/package_config.json {package root}/bin/{executable}.dart {args}` from the case's working directory, the root read from the package configuration: starts on a stale workspace, prints exactly what dart run prints in the same time; ADR-001 item 7 names the command, not how it runs. The governance's stated reason for the pub get is wrong and is reported as a contract gap."
+        },
+        {
+          "label": "dart run as the prototype did",
+          "consequence": "Literal to the prototypes, but the twelve committed {package}:{executable} cases with files/ exit 255 at nidana.tooling's gates whenever the workspace reads stale (after any checkout that touches a pubspec but not the lockfile), which reads as the cases' own exit code."
+        },
+        {
+          "label": "refresh the mtimes",
+          "consequence": "Touch pubspec.lock and then package_config.json after the pub get so dart run sees a fresh resolution: the tool writes into the workspace's files beyond what ADR-001 states, and depends on pub's private freshness rule."
+        },
+        {
+          "label": "stop for the owner",
+          "consequence": "The plan waits on an ADR-001 amendment although an implementation within the ADR's text exists."
+        }
+      ],
+      "chosen": "script under the running dart",
+      "why": "The experiment shows dart run from files/ fails on a stale workspace and that no pub command refreshes the mtimes; the script form passes every seeded case fresh and stale and matches dart run's output and time. It stays within ADR-001's text (item 7 names the command; how it runs is the tool's). The governance premise (pub get prevents stale runs) is reported as a contract gap so hsdd-adr can state the form. A careful engineer would have shown the owner this before departing from the prototype.",
+      "evidence": [
+        "docs/auto-run/experiments/file-cli-sets-plan/staleness-output.txt K1 to K8",
+        "docs/auto-run/experiments/file-cli-sets-plan/staleness2-output.txt M1 to M5",
+        "docs/auto-run/experiments/file-cli-sets-plan/staleness3-output.txt N1 to N8",
+        "docs/auto-run/experiments/file-cli-sets-plan/samples-output.txt Q4, Q5",
+        "docs/auto-run/experiments/file-cli-sets-plan/output.txt G3, G4",
+        "hsdd/adr/001-executable-contract-validation.md items 7 and 9",
+        "docs/auto-run/experiments/topic-codegen-invocations/run.sh (its comment on mtimes)"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": true,
+      "stop_class": "shape",
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T06:31:01Z",
+      "artifact": "docs/superpowers/plans/nidana.model.7.md",
+      "question": "The file replay's generator command: run as written (the leading `fvm dart` or `dart` replaced) or in the script form of the cli set?",
+      "options": [
+        {
+          "label": "as written",
+          "consequence": "`{dart} run nidana_dart_codegen:generate ...` from the root, as the scope states; dart run from the root re-resolves a stale workspace silently and runs."
+        },
+        {
+          "label": "script form",
+          "consequence": "Uniform with the cli set, but departs from the scope's 'a leading fvm dart or dart running as the dart that runs the tool' with no failure to cure."
+        }
+      ],
+      "chosen": "as written",
+      "why": "The governance states it; from the root dart run works stale or fresh.",
+      "evidence": [
+        "docs/auto-run/experiments/file-cli-sets-plan/output.txt G4",
+        "docs/auto-run/experiments/file-cli-sets-plan/staleness-output.txt K5",
+        "docs/auto-run/experiments/file-cli-sets-plan/staleness2-output.txt M4"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T06:31:01Z",
+      "artifact": "docs/superpowers/plans/nidana.model.7.md",
+      "question": "'The backticked span of the contract's - file: bullet that holds {output}' names three spans of topic-codegen@v1's bullet (the command and `{output}` alone twice). Which span is the generator command?",
+      "options": [
+        {
+          "label": "holds {output} and a space",
+          "consequence": "Exactly one span of the - file: bullets that holds {output} and a space; zero or several fail the replay with a command problem. Picks the command in the committed text and rejects bare placeholders and paths like {output}/x."
+        },
+        {
+          "label": "the first span holding {output}",
+          "consequence": "Works on the committed text but picks `{output}` if prose ever names it before the command."
+        },
+        {
+          "label": "a span starting with fvm dart or dart",
+          "consequence": "Most permissive to prose; a malformed command is then 'no command' instead of a loud wrong-command failure."
+        }
+      ],
+      "chosen": "holds {output} and a space",
+      "why": "A command has a program and an argument; the rule is crisp and the committed text satisfies it (pinned by a test reading the committed contract).",
+      "evidence": [
+        "hsdd/contract/topic-codegen.md Validation, file bullet",
+        "hsdd-context/superpowers/nidana.model.7.md Scope (1)"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T06:31:01Z",
+      "artifact": "docs/superpowers/plans/nidana.model.7.md",
+      "question": "What counts as a package a recorded invocation's command runs, for PENDING? nidana-checks@v1's eight analyze-* cases run `dart analyze` with the plugin enabled in files/analysis_options.yaml.",
+      "options": [
+        {
+          "label": "command package, dart run target, enabled plugins",
+          "consequence": "PackageCommand's package, a dart run target's package, and the keys of files/analysis_options.yaml's top-level plugins: section; the analyze-* cases are PENDING until nidana_dart_lint exists, as the phase Verification requires."
+        },
+        {
+          "label": "command package only",
+          "consequence": "The analyze-* cases run and fail on dart analyze's exit for a plugin that does not resolve (4), against the phase Verification."
+        }
+      ],
+      "chosen": "command package, dart run target, enabled plugins",
+      "why": "ADR-001 item 7 has a case that needs the plugin enable it there, and dart analyze runs the plugin, so the plugin is a package the command runs. Keys are read by hand: package:yaml is not in the tool's ADR-002 row.",
+      "evidence": [
+        "hsdd/adr/001-executable-contract-validation.md items 7 and 9",
+        "docs/auto-run/experiments/nidana-checks-ci-exit/output.txt A10",
+        "hsdd/contract/fixture/nidana-checks/invocation/*/files/analysis_options.yaml"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T06:47:53Z",
+      "artifact": "docs/superpowers/plans/nidana.model.7.md",
+      "question": "For file replays and recorded invocations, which comes first: the restriction or PENDING? (The behavior set has PENDING first.)",
+      "options": [
+        {
+          "label": "restriction first",
+          "consequence": "A not-admitted replay passes unrun whatever its packages; nidana.tooling.lint.1 to .4 and nidana.tooling.codegen.9 gate on their own shares of nidana-checks@v1 without waiting on the other producer's package; unrestricted replays still report PENDING."
+        },
+        {
+          "label": "PENDING first, as behavior",
+          "consequence": "Consistent with nidana.model.6, but each nidana-checks@v1 producer's restricted gate fails on the other producer's cases until that package exists, against ADR-001 Consequences ('no producer waits on another')."
+        },
+        {
+          "label": "defects after PENDING too",
+          "consequence": "A defective case outside the share would pass silently at the other producer's gates."
+        }
+      ],
+      "chosen": "restriction first",
+      "why": "ADR-001 item 10 lets a file or cli contract have several producers, each restricting to its share, and item 9 has a not-admitted replay 'not run and counts as passing'. Defects stay first so a contract gap is loud at every gate. Pinned on the committed tree by `nidana-checks --guarantee G1..G8` (8 PENDING, 9 not run).",
+      "evidence": [
+        "hsdd/adr/001-executable-contract-validation.md items 9 and 10, Consequences",
+        "hsdd/spec/nidana.tooling.md Replays",
+        "hsdd/spec/nidana.tooling.lint.md and nidana.tooling.codegen.md gates"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T06:31:01Z",
+      "artifact": "docs/superpowers/plans/nidana.model.7.md",
+      "question": "Admission of a replay that declares no guarantee id (a - file: bullet without a covers clause, a case without a table row).",
+      "options": [
+        {
+          "label": "runs only unrestricted",
+          "consequence": "Under any restriction it is not run: 'a slug with no id of its own in the restriction runs none of them'."
+        },
+        {
+          "label": "vacuously admitted",
+          "consequence": "'Every id it covers is in the restriction' is vacuously true, so it would run under any restriction, against the item's 'so' clause."
+        }
+      ],
+      "chosen": "runs only unrestricted",
+      "why": "Matches ADR-001 item 9's consequence clause; no committed replay declares none.",
+      "evidence": [
+        "hsdd/adr/001-executable-contract-validation.md item 9"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T06:31:01Z",
+      "artifact": "docs/superpowers/plans/nidana.model.7.md",
+      "question": "How does pub get's failure surface?",
+      "options": [
+        {
+          "label": "every file and cli set unavailable",
+          "consequence": "Each file and cli set of the replay is SetUnavailable with the reason (exit 2); structure, surface, reject, behavior and schema still run and print, as they do when the analysis fails."
+        },
+        {
+          "label": "the whole replay stops",
+          "consequence": "One error line and exit 2 with no fixture lines, hiding the sets that could run."
+        }
+      ],
+      "chosen": "every file and cli set unavailable",
+      "why": "Consistent with how an unavailable analysis or runner is reported; the exit code is the same.",
+      "evidence": [
+        "docs/auto-run/experiments/file-cli-sets-plan/output.txt P1 to P4",
+        "hsdd/spec/nidana.model.md D2 item 1"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T06:31:01Z",
+      "artifact": "docs/superpowers/plans/nidana.model.7.md",
+      "question": "Does a generator's non-zero exit fail the file replay when its tree matches?",
+      "options": [
+        {
+          "label": "fails, beside the tree comparison",
+          "consequence": "An exit problem first, then any tree problems."
+        },
+        {
+          "label": "tree only",
+          "consequence": "Literal to ADR-001 item 6's 'runs it ... and compares', but passes a run that failed."
+        }
+      ],
+      "chosen": "fails, beside the tree comparison",
+      "why": "topic-codegen@v1 G3 has generate write the tree; a tree written by a failed run is not that. No committed fixture changes verdict.",
+      "evidence": [
+        "hsdd/contract/topic-codegen.md G3",
+        "hsdd/adr/001-executable-contract-validation.md item 6"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T06:31:01Z",
+      "artifact": "docs/superpowers/plans/nidana.model.7.md",
+      "question": "Is the tree at a recorded invocation's {output} formatted before it is compared with expected/?",
+      "options": [
+        {
+          "label": "formatted",
+          "consequence": "'as item 6 compares', and the prototype formats; generate-no-graph's expected/topics.g.dart is the formatted file replay output."
+        },
+        {
+          "label": "not formatted",
+          "consequence": "A raw byte comparison; a generator's unformatted output would fail the case though the file replay passes."
+        }
+      ],
+      "chosen": "formatted",
+      "why": "ADR-001 item 7 refers to item 6's comparison, which formats.",
+      "evidence": [
+        "hsdd/adr/001-executable-contract-validation.md items 6 and 7",
+        "docs/auto-run/experiments/file-invocations/replay.dart"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T06:31:01Z",
+      "artifact": "docs/superpowers/plans/nidana.model.7.md",
+      "question": "The order of replacing a path's given and symlink-resolved forms in a recorded stream.",
+      "options": [
+        {
+          "label": "longer form first",
+          "consequence": "On macOS /var/... is inside /private/var/...; replacing the longer first never leaves /private{output}."
+        },
+        {
+          "label": "given first",
+          "consequence": "Leaves /private{output} and /private{files} for every resolved path."
+        }
+      ],
+      "chosen": "longer form first",
+      "why": "Shown by S2; ADR-001 item 7 fixes the order across placeholders, not within a pair.",
+      "evidence": [
+        "docs/auto-run/experiments/file-cli-sets-plan/output.txt S1, S2, A1"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T06:31:01Z",
+      "artifact": "docs/superpowers/plans/nidana.model.7.md",
+      "question": "How recorded streams and args are decoded.",
+      "options": [
+        {
+          "label": "strict for recordings, lenient for process output",
+          "consequence": "A recording that is not UTF-8 is a case defect (no run); process output never crashes the replay."
+        },
+        {
+          "label": "lenient for both",
+          "consequence": "Two different invalid byte sequences could compare equal as U+FFFD."
+        }
+      ],
+      "chosen": "strict for recordings, lenient for process output",
+      "why": "A recording is a fixture; a process's output is whatever the producer prints.",
+      "evidence": [
+        "docs/auto-run/experiments/file-cli-sets-plan/probe/replay_case.dart",
+        "packages/nidana_contract_check/lib/src/runners.dart lenientUtf8"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T06:31:01Z",
+      "artifact": "docs/superpowers/plans/nidana.model.7.md",
+      "question": "The args and exit_code forms the cli set accepts.",
+      "options": [
+        {
+          "label": "split at newlines, one final newline dropped; exit 0 to 255, optional newline",
+          "consequence": "Every committed case fits; an empty line is an empty argument; anything else fails before running."
+        },
+        {
+          "label": "trim and skip empty lines as the prototype did",
+          "consequence": "Cannot express an empty argument; hides malformed files."
+        }
+      ],
+      "chosen": "split at newlines, one final newline dropped; exit 0 to 255, optional newline",
+      "why": "ADR-001 item 7: one argument per line; all 39 committed cases checked against the rule while planning.",
+      "evidence": [
+        "hsdd/adr/001-executable-contract-validation.md item 7",
+        "hsdd/contract/fixture/*/invocation/*/args and exit_code"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T06:31:01Z",
+      "artifact": "docs/superpowers/plans/nidana.model.7.md",
+      "question": "Trees for the byte-for-byte comparisons: from the snapshot or read at run time, and with hidden entries?",
+      "options": [
+        {
+          "label": "read at run time, hidden entries included",
+          "consequence": "readTree reads expected/ and {output} fully; a .keep in expected/ counts (the routed S101 item); links read through; directories not compared."
+        },
+        {
+          "label": "from the snapshot",
+          "consequence": "The snapshot drops hidden entries, which the routed item forbids, and would load every expected/ tree into memory for every set."
+        }
+      ],
+      "chosen": "read at run time, hidden entries included",
+      "why": "Routed from S101; dart format skips hidden files (F1), so they compare as written.",
+      "evidence": [
+        "docs/auto-run/experiments/file-cli-sets-plan/output.txt F1",
+        "docs/auto-run/impl-execution-plan.md Routed to later phases"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T06:31:01Z",
+      "artifact": "docs/superpowers/plans/nidana.model.7.md",
+      "question": "A process timeout for generator and command runs (routed weigh item).",
+      "options": [
+        {
+          "label": "no timeout, left routed",
+          "consequence": "As every runner today; Process.run gives a child an end of input on stdin, so waiting for input cannot hang."
+        },
+        {
+          "label": "a fixed timeout",
+          "consequence": "Needs a value and an outcome class (FAIL or ERROR) the governance does not give, and Process.start plumbing and tests."
+        }
+      ],
+      "chosen": "no timeout, left routed",
+      "why": "ADR-001 requires none; I1 removes the commonest hang; routed to the first gate with timers or isolates.",
+      "evidence": [
+        "docs/auto-run/experiments/file-cli-sets-plan/output.txt I1",
+        "hsdd/verify/nidana.model.6.verification.md Learnings"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T06:31:01Z",
+      "artifact": "docs/superpowers/plans/nidana.model.7.md",
+      "question": "Where the new process code lives, and lenientUtf8 (routed).",
+      "options": [
+        {
+          "label": "processes.dart and command_runs.dart",
+          "consequence": "processes.dart is the one way any process starts (lenientUtf8 moved there); command_runs.dart runs the two sets; runners.dart stays the behavior runner; purity_test pins five dart:io libraries."
+        },
+        {
+          "label": "everything in runners.dart",
+          "consequence": "One process library, but the behavior runner and the command runs mix, and runners.dart grows past what one review reads."
+        },
+        {
+          "label": "everything in shell.dart",
+          "consequence": "shell.dart is already 603 lines; nidana.model.6 split the runner out for this phase."
+        }
+      ],
+      "chosen": "processes.dart and command_runs.dart",
+      "why": "Each file one responsibility; the routed lenientUtf8 item asks for one place every process uses.",
+      "evidence": [
+        "hsdd/verify/nidana.model.6.verification.md Observed (the runner moved out of shell.dart)",
+        "packages/nidana_contract_check/test/purity_test.dart"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T06:31:01Z",
+      "artifact": "docs/superpowers/plans/nidana.model.7.md",
+      "question": "How to narrow the read of a suite slug (routed _snapshotsOf item).",
+      "options": [
+        {
+          "label": "partial snapshots of the suite files",
+          "consequence": "The shell reads only the suite files into a snapshot that holds them alone; the planner is unchanged; an absent or dangling suite file fails its binding."
+        },
+        {
+          "label": "a path-keyed suites map",
+          "consequence": "A cleaner planner signature, but every behavior_test plan call (9 sites) changes."
+        },
+        {
+          "label": "leave routed",
+          "consequence": "A read defect in another slug's tree keeps ending the replay with no fixture line."
+        }
+      ],
+      "chosen": "partial snapshots of the suite files",
+      "why": "Fixes the defect with the least churn; this phase's verification doc corrects nidana.model.6's statement.",
+      "evidence": [
+        "docs/auto-run/impl-execution-plan.md Routed to later phases (S119)",
+        "packages/nidana_contract_check/lib/src/shell.dart _snapshotsOf"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T06:31:01Z",
+      "artifact": "docs/superpowers/plans/nidana.model.7.md",
+      "question": "A contract text that is not UTF-8 (routed): take it in this phase?",
+      "options": [
+        {
+          "label": "take it, Task 1",
+          "consequence": "decodeSource as for Dart sources; a structure contract-text failure (exit 1); the restriction check reads ids from a lenient decoding."
+        },
+        {
+          "label": "leave routed",
+          "consequence": "Exit 2 for a fixture defect stays; no later tool phase exists to take it."
+        }
+      ],
+      "chosen": "take it, Task 1",
+      "why": "Small, in readSnapshot which this phase changes anyway, and nidana.model has no later tool phase.",
+      "evidence": [
+        "docs/auto-run/impl-execution-plan.md Routed to later phases (S119)"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T06:31:01Z",
+      "artifact": "docs/superpowers/plans/nidana.model.7.md",
+      "question": "The test harness for the two sets.",
+      "options": [
+        {
+          "label": "stand-in generator package gen in a seeded workspace",
+          "consequence": "A dependency-free member whose generate writes unformatted Dart, prints paths, exits 2 on usage, and with --write-then-fail writes and exits 1; resolved offline, its pub get needs no network; the samples were validated case by case."
+        },
+        {
+          "label": "canned fake dart scripts only",
+          "consequence": "No real dart run, dart format or dart analyze; the facts the sets rest on would go untested."
+        }
+      ],
+      "chosen": "stand-in generator package gen in a seeded workspace",
+      "why": "The scope asks for a stand-in generator's cases with seeded defects; Q1 to Q6 show the samples behave as the plan's tests expect.",
+      "evidence": [
+        "docs/auto-run/experiments/file-cli-sets-plan/samples.sh",
+        "docs/auto-run/experiments/file-cli-sets-plan/samples-output.txt Q1 to Q6",
+        "docs/auto-run/experiments/file-cli-sets-plan/output.txt W1, P1, P2"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T06:31:01Z",
+      "artifact": "docs/superpowers/plans/nidana.model.7.md",
+      "question": "How many tasks, and how to split them.",
+      "options": [
+        {
+          "label": "8 tasks: reads, commands, file plan, cli plan, processes and pub get, file runs, cli runs, verification",
+          "consequence": "Pure before shell, each task one reviewable deliverable, at the cap."
+        },
+        {
+          "label": "6 tasks merging the pure plans with their runs",
+          "consequence": "Fewer reviews, larger diffs per task with process tests mixed into pure ones."
+        }
+      ],
+      "chosen": "8 tasks: reads, commands, file plan, cli plan, processes and pub get, file runs, cli runs, verification",
+      "why": "Follows the pure-core then shell order of nidana.model D2 item 5 and the tool phases' precedent.",
+      "evidence": [
+        "hsdd-context/superpowers/nidana.model.7.md Global Constraints 3"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T06:47:53Z",
+      "artifact": "docs/superpowers/plans/nidana.model.7.md",
+      "question": "The size estimate the report gives (checkpoint note).",
+      "options": [
+        {
+          "label": "3,500 to 4,500 lines, 8 to 10 times the estimate",
+          "consequence": "About 1,400 library and 2,500 test lines from the file map, against the phase's ~450."
+        },
+        {
+          "label": "the phase's 450",
+          "consequence": "Contradicted by every earlier tool phase (9 to 13 times)."
+        }
+      ],
+      "chosen": "3,500 to 4,500 lines, 8 to 10 times the estimate",
+      "why": "nidana.model.6 landed 3,988 lines for a smaller scope; this phase adds two sets, a process library and four routed fixes.",
+      "evidence": [
+        "hsdd/verify/nidana.model.6.verification.md Metrics",
+        "docs/auto-run/impl-execution-plan.md checkpoint note"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    }
+  ],
+  "experiments": [
+    {
+      "path": "docs/auto-run/experiments/file-cli-sets-plan/",
+      "question": "run.sh: the dart running the tool and fvm in a temporary directory (D1, D2); macOS temporary paths, what a child reads and prints, and the order of replacing a path's two forms (S1, S2); a child's stdin under Process.run (I1); dart format over a directory (F1 to F4); a stand-in generator workspace (W1); dart pub get --enforce-lockfile on success, offline, with a stale lockfile and without one (P1 to P4); dart run of a member from the root and from files/ (G1 to G6); dart analyze --format=machine paths (A1)",
+      "finding": "fvm runs no dart in a temporary directory; the running dart is ~/fvm/versions/3.47.7/bin/cache/dart-sdk/bin/dart. A temporary directory reads /var/... as given and /private/var/... resolved; a child reads its cwd resolved; replacing the given form first leaves /private{output}, the longer form first gives {output}. A child's stdin is at end of input. dart format formats .dart files recursively skipping hidden files and directories, exits 0 when it changes nothing, for an empty directory and an absent path, 65 for a file that does not parse while formatting the others, and formats in the tall style outside any package as at the workspace root. pub get --enforce-lockfile prints three lines and exits 0, needs no network with no hosted dependency, exits 65 ('Unable to satisfy `pubspec.yaml` using `pubspec.lock`.') on a lockfile lacking a dependency and 1 ('Retrieving dependencies failed.') without one. dart run of a workspace member prints only the program's output (0.2 s); from files/ it exits 255 on a stale workspace; a package the workspace lacks exits 255; a compile error exits 255. dart analyze --format=machine prints resolved paths."
+    },
+    {
+      "path": "docs/auto-run/experiments/file-cli-sets-plan/staleness.sh",
+      "question": "When does dart run {package}:{executable} from files/ fail, and which pub command cures it?",
+      "finding": "Fresh after pub get --offline (K1); stale once a pubspec.yaml is newer than pubspec.lock or pubspec.lock newer than package_config.json (K2, K5, K7); neither pub get --enforce-lockfile nor pub get rewrites either file when the resolution is unchanged, so they never cure it (K3, K4, K6, K8)."
+    },
+    {
+      "path": "docs/auto-run/experiments/file-cli-sets-plan/staleness2.sh",
+      "question": "What does cure it, and is this repository stale?",
+      "finding": "Only both mtimes refreshed in order (M3); regenerating one file is not enough (M1, M2); dart run from the root runs stale (M4). The repository reads stale now: dart run nidana_contract_check from scan-clean/files/ exits 255 (M5)."
+    },
+    {
+      "path": "docs/auto-run/experiments/file-cli-sets-plan/staleness3.sh",
+      "question": "Which way to run {package}:{executable} from files/ does not depend on the mtimes?",
+      "finding": "`dart {script}`, `dart run {script}` and `dart --packages={config} {script}` all run on a stale workspace (N2 to N5), the last printing exactly what dart run prints (N7) in the same time (N8); a missing script exits 254 (N6)."
+    },
+    {
+      "path": "docs/auto-run/experiments/file-cli-sets-plan/samples.sh",
+      "question": "Do the plan's seeded samples (the gen contract, its cases and the stand-in generator) behave as the plan's tests expect?",
+      "finding": "The workspace resolves offline (Q1); the tool's structure set passes the gen slug (Q2); the file replay passes by hand (Q3); probe/replay_case.dart, the plan's cli set in prototype, passes all four cases fresh and stale while dart run from files/ exits 255 (Q4, Q5); one changed byte, a missing and an extra file, a wrong exit code and output left at {output} each fail (Q6)."
+    }
+  ],
+  "self_check": [
+    {
+      "gate": "The plan's Global Constraints contain constraints 1 to 8 above, verbatim.",
+      "status": "pass",
+      "note": "copied from the derivative line for line; node docs/auto-run/tools/impl-gate.mjs code-plan nidana.model.7 reports 0 errors, 0 warnings"
+    },
+    {
+      "gate": "Every `### Task N:` except the last starts with a failing-test step.",
+      "status": "pass",
+      "note": "Tasks 1 to 7 open with 'Step 1: Write the failing tests' (Task 3 '... and the gen sample', Task 6 '... and the seeding') and record the failure in Step 2"
+    },
+    {
+      "gate": "The last task writes the verification doc named in constraint 5.",
+      "status": "pass",
+      "note": "Task 8 runs the gate first and writes hsdd/verify/nidana.model.7.verification.md at full-review depth, title '# Verification: nidana.model.7 - Replay tool: file and cli sets', the nidana.model.6 line legend extended, Learnings dispositioned, Sign-off empty"
+    },
+    {
+      "gate": "The plan has at most 8 tasks.",
+      "status": "pass",
+      "note": "8 tasks"
+    },
+    {
+      "gate": "The plan is saved under docs/superpowers/plans/.",
+      "status": "pass",
+      "note": "docs/superpowers/plans/nidana.model.7.md; its Spec line names hsdd-context/superpowers/nidana.model.7.md"
+    },
+    {
+      "gate": "writing-plans Self-Review 1: spec coverage",
+      "status": "pass",
+      "note": "Scope (1) Tasks 2, 3, 6; (2) Tasks 2, 4, 7; (3) Tasks 3, 4, 6, 7; (4) Task 5; (5) Tasks 3, 4, 6, 7; the Verification's three clauses in Task 6 tests 3 to 5, Task 7 tests 2 and 3, and Task 7 Step 5"
+    },
+    {
+      "gate": "writing-plans Self-Review 2: step scan",
+      "status": "pass",
+      "note": "fixed: firstTextLine moved to Task 3, which first uses it; one commandText renderer shared by Tasks 2 and 4; the Task 4 outcome cases state every exit they use; Task 7 test 6 names its command"
+    },
+    {
+      "gate": "writing-plans Self-Review 3: type consistency",
+      "status": "pass",
+      "note": "ProcessExit, FileRun, InvocationRun, OutputState, PathForms, processOf, runFileSet and runCliSet named and typed alike in every task that uses them"
+    },
+    {
+      "gate": "writing-plans Self-Review 4: Review Focus",
+      "status": "pass",
+      "note": "five lines, each with its test in the owning task"
+    },
+    {
+      "gate": "writing-plans Self-Review 5: proportion",
+      "status": "pass",
+      "note": "signatures, test names and exact values; code only for the two tests whose strings matter and the gen contract the tests seed"
+    },
+    {
+      "gate": "Every committed file and cli fixture checked against the plan's rules",
+      "status": "pass",
+      "note": "topic-codegen's file bullet holds exactly one span with {output} and a space, beginning fvm dart; all 39 recorded invocations have a valid command line, a {n}\\n exit_code, whole-argument {output}, UTF-8 recordings, a table row, no hidden entry; the eight analyze-* cases enable nidana_dart_lint"
+    },
+    {
+      "gate": "Prose rules (no em-dash, no banned phrase)",
+      "status": "pass",
+      "note": "checked by impl-gate.mjs over the plan"
+    }
+  ],
+  "contract_gaps": [
+    {
+      "contract": "ADR-001 (hsdd/adr/001-executable-contract-validation.md)",
+      "where": "item 9, 'Before the file or cli set, the tool runs dart pub get --enforce-lockfile once ... so that no case runs on a stale resolution'; item 7, the {package}:{executable} command; and hsdd/spec/nidana.model.md nidana.model.7 Scope (4), which gives as its reason that dart run from a files/ directory re-resolves a stale workspace and fails with exit 255",
+      "problem": "On Dart 3.13.5 dart pub get --enforce-lockfile (and dart pub get) rewrites neither pubspec.lock nor .dart_tool/package_config.json when the resolution is unchanged, so it does not make a stale workspace fresh: dart run {package}:{executable} from a files/ directory still exits 255 ('Could not find a file named \"pubspec.yaml\"'), which reads as the case's exit code. Freshness is pub's mtime rule (every pubspec.yaml no newer than pubspec.lock, pubspec.lock no newer than package_config.json), and this repository reads stale now. Twelve committed cases are affected: topic-codegen@v1's catalog-not-a-package, generate-graph-not-json, generate-graph-undecodable and generate-usage-output-is-a-file, and nidana-checks@v1's eight scan-* cases with files/. Evidence: docs/auto-run/experiments/file-cli-sets-plan/ staleness-output.txt K1 to K8, staleness2-output.txt M1 to M5, staleness3-output.txt N1 to N8.",
+      "proposed_fix": "hsdd-adr amends ADR-001 item 7: a {package}:{executable} command runs as the running dart with --packages={workspace root}/.dart_tool/package_config.json on bin/{executable}.dart of the package's root as that configuration gives it, from the case's working directory (which runs on a stale workspace and prints what dart run prints). Item 9's pub get bullet keeps its rule with its reason restated: it keeps the lockfile and the package configuration consistent with the pubspecs, so a case never runs on a resolution the lockfile does not hold. nidana.model.7's Scope (4) gets the same restatement through hsdd-spec. The plan already implements the form (its decision 1), so the amendment changes no code."
+    },
+    {
+      "contract": "nidana-checks@v1 (hsdd/contract/nidana-checks.md)",
+      "where": "## Validation, the scan cases' paragraph: 'files/ itself holds no pubspec.yaml, so that dart run from it finds the workspace's package configuration and resolves nothing in place'",
+      "problem": "That holds only on a workspace whose mtimes read fresh; on a stale one dart run from files/ fails with exit 255 before the scan starts (same evidence as the ADR-001 gap). No fixture changes: the replay tool runs the cases in the script form, which reads the workspace's package configuration from files/ either way.",
+      "proposed_fix": "A compatible hsdd-contract touch within v1 restating the sentence as: files/ holds no pubspec.yaml, so the scan, run from it, reads the workspace's package configuration and resolves nothing in place; the replay tool runs the command as ADR-001 item 7 states. Can ride the ADR-001 amendment."
+    }
+  ],
+  "notes_for_orchestrator": [
+    "STATUS completed. Plan: docs/superpowers/plans/nidana.model.7.md, 8 tasks (7 code tasks with failing-test first steps, Task 8 the gate and the verification doc). Plan check: node docs/auto-run/tools/impl-gate.mjs code-plan nidana.model.7 printed 0 errors, 0 warnings. Root fvm dart analyze --fatal-infos is clean with the experiment files present. Nothing committed; git state unchanged.",
+    "CONTRACT GAP (two entries, one cause): ADR-001 item 9's single pub get does not cure the stale-resolution failure it is there to prevent; dart run {package}:{executable} from files/ exits 255 on this repository today (M5). The plan's decision 1 runs such commands as the package's bin script with --packages, within ADR-001's text, so implementation is not blocked; the gap is for hsdd-adr (and a compatible hsdd-contract touch of nidana-checks@v1). Marked would_have_asked (shape).",
+    "Restriction before PENDING for file and cli (decision 12) differs from the behavior set's order on purpose: nidana-checks@v1's two producers gate on their own shares; Task 7 Step 5 pins it on the committed tree (nidana-checks --guarantee G1..G8: 19 fixtures, 11 passed, 8 pending).",
+    "Expected committed-tree lines after the phase: --all --set file 103 fixtures: 102 passed, 0 failed, 1 pending (exit 1); --all --set cli 141 fixtures: 102 passed, 0 failed, 39 pending (exit 1); topic-codegen nidana-checks 102 fixtures: 62 passed, 0 failed, 40 pending (exit 1); --all 321 fixtures: 235 passed, 3 failed, 83 pending (exit 1). The gate itself (--all --set structure) stays 102 fixtures: 102 passed. The gate runs neither --set file nor --set cli over the committed tree; those lines come from Task 7 Step 5 and Task 8 Step 2.",
+    "Routed items: _snapshotsOf whole-snapshot read taken (Task 1); purity_test closure taken (Task 5); lenientUtf8 home taken (Task 5, processes.dart); non-UTF-8 contract text taken (Task 1); hidden-entry filter vs comparisons taken (Tasks 6, 7); process timeout weighed and left routed (no governance home; stdin is at end of input, I1); checkpoint sizing reported. Strike them in impl-execution-plan.md except the timeout note.",
+    "SIZE: about 3,500 to 4,500 lines (about 1,400 library, 2,500 tests), 8 to 10 times the phase's ~450 estimate.",
+    "The experiment directory docs/auto-run/experiments/file-cli-sets-plan/ holds run.sh, staleness.sh, staleness2.sh, staleness3.sh, samples.sh with their outputs, probe/ (paths.dart, generate.dart, replay_case.dart) and samples/ (the plan's seeded gen slug and stand-in generator as files, one non-member pubspec.yaml under samples/hsdd/...; docs/** is excluded from the root analysis). It should be committed with the plan, as the plan cites its labels.",
+    "Execution: superpowers:subagent-driven-development. No task starts the real flutter (seeded flutter case through standInSdk()/plainDart() only). Task 7 Step 5's replays start pub get at the repository root (the gate does the same)."
+  ]
+}
