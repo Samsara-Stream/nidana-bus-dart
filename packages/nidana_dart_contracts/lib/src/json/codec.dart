@@ -3,6 +3,8 @@ import 'dart:convert';
 import '../graph/graph.dart';
 import '../ir/definition.dart';
 import '../ir/function_ref.dart';
+import '../topic/message_source.dart';
+import '../topic/scope.dart';
 import '../topic/topic.dart';
 
 /// The graph document of [graph] as a JSON value (maps, lists, strings,
@@ -22,7 +24,27 @@ Map<String, Object?> encodeTopologyGraph(TopologyGraph graph) =>
 /// The graph a graph document describes. Throws FormatException, and no
 /// other error, for any value that is not a graph document of this version
 /// or breaks a rule of the decoder.
-TopologyGraph decodeTopologyGraph(Object? json) => throw UnimplementedError();
+TopologyGraph decodeTopologyGraph(Object? json) {
+  final Map<String, Object?> document = _object(json, r'$', const <String>{
+    'format',
+    'topologies',
+    'claims',
+  });
+  if (document['format'] != _format) {
+    _reject(r'$.format', 'must be ${jsonEncode(_format)}');
+  }
+  final List<TopologyDefinition> topologies = _list(
+    document['topologies'],
+    r'$.topologies',
+    _decodeDefinition,
+  );
+  final List<ShellClaim> claims = _list(
+    document['claims'],
+    r'$.claims',
+    _decodeClaim,
+  );
+  return TopologyGraph(topologies: topologies, claims: claims);
+}
 
 /// The object a graph document lists for [definition], and its inverse.
 Map<String, Object?> encodeTopologyDefinition(
@@ -41,7 +63,7 @@ Map<String, Object?> encodeTopologyDefinition(
   ],
 };
 TopologyDefinition decodeTopologyDefinition(Object? json) =>
-    throw UnimplementedError();
+    _decodeDefinition(json, r'$');
 
 /// The graph document as JSON text (The JSON form).
 final class JsonRenderer implements GraphRenderer {
@@ -112,3 +134,255 @@ Map<String, Object?> _encodeClaim(ShellClaim claim) => <String, Object?>{
     for (final TopicRef topic in claim.writes) _encodeTopic(topic),
   ],
 };
+
+// Every decoder below reads the JSON value at its path, the JSONPath of that
+// value from the document's root `$` (`$` is the definition object itself for
+// decodeTopologyDefinition), and throws FormatException('$path: $problem') for
+// a value of the wrong shape: the path names the place, the problem says what
+// must be there, and neither renders the value found, which may be large.
+
+// The definition object at path: its id, scope and transforms. Its reads and
+// writes are read for their shape only; the definition derives its own.
+TopologyDefinition _decodeDefinition(Object? json, String path) {
+  final Map<String, Object?> object = _object(json, path, const <String>{
+    'topologyId',
+    'scope',
+    'reads',
+    'writes',
+    'transforms',
+  });
+  final String topologyId = _string(object['topologyId'], '$path.topologyId');
+  final Scope scope = _named(Scope.values, object['scope'], '$path.scope');
+  _decodeTopics(object['reads'], '$path.reads');
+  _decodeTopics(object['writes'], '$path.writes');
+  final List<TransformEdge> transforms = _list(
+    object['transforms'],
+    '$path.transforms',
+    _decodeEdge,
+  );
+  return TopologyDefinition(
+    topologyId: topologyId,
+    scope: scope,
+    transforms: transforms,
+  );
+}
+
+// The edge object at path: a write when it has no combinator, a reduceInto,
+// or a stage, each with exactly the keys its form allows.
+TransformEdge _decodeEdge(Object? json, String path) {
+  if (json is! Map || !json.containsKey('combinator')) {
+    final Map<String, Object?> write = _object(json, path, const <String>{
+      'inputs',
+      'output',
+    });
+    final EdgeInput input = _decodeOneInput(write['inputs'], '$path.inputs');
+    final TopicRef output = _decodeTopic(write['output'], '$path.output');
+    return TransformEdge.write(output, input);
+  }
+  final CombinatorKind combinator = _named(
+    CombinatorKind.values,
+    json['combinator'],
+    '$path.combinator',
+  );
+  if (combinator == CombinatorKind.reduceInto) {
+    final Map<String, Object?> reduce = _object(json, path, const <String>{
+      'combinator',
+      'inputs',
+      'output',
+      'transformer',
+    });
+    final EdgeInput events = _decodeOneInput(reduce['inputs'], '$path.inputs');
+    final TopicRef output = _decodeTopic(reduce['output'], '$path.output');
+    final FunctionRef reducer = _decodeFunction(
+      reduce['transformer'],
+      '$path.transformer',
+    );
+    return TransformEdge.reduceInto(output, events, reducer);
+  }
+  final Map<String, Object?> stage = _object(
+    json,
+    path,
+    const <String>{'combinator', 'inputs'},
+    const <String>{'transformer', 'durationMicros', 'retry'},
+  );
+  final List<EdgeInput> inputs = _list(
+    stage['inputs'],
+    '$path.inputs',
+    _decodeInput,
+  );
+  final FunctionRef? transformer = stage.containsKey('transformer')
+      ? _decodeFunction(stage['transformer'], '$path.transformer')
+      : null;
+  final Duration? duration = stage.containsKey('durationMicros')
+      ? Duration(
+          microseconds: _integer(
+            stage['durationMicros'],
+            '$path.durationMicros',
+          ),
+        )
+      : null;
+  final FunctionRef? retry = stage.containsKey('retry')
+      ? _decodeFunction(stage['retry'], '$path.retry')
+      : null;
+  return TransformEdge.stage(
+    combinator,
+    inputs,
+    transformer: transformer,
+    duration: duration,
+    retry: retry,
+  );
+}
+
+// The inputs array at path of a write or a reduceInto: exactly one input.
+EdgeInput _decodeOneInput(Object? json, String path) {
+  final List<EdgeInput> inputs = _list(json, path, _decodeInput);
+  if (inputs.length != 1) {
+    _reject(path, 'must hold exactly one input');
+  }
+  return inputs.single;
+}
+
+// The input object at path: {"edge": n}, or {"topic": ...} with a dedup when
+// the object has one.
+EdgeInput _decodeInput(Object? json, String path) {
+  if (json is Map && json.containsKey('edge')) {
+    final Map<String, Object?> stage = _object(json, path, const <String>{
+      'edge',
+    });
+    return StageInput(_integer(stage['edge'], '$path.edge'));
+  }
+  final Map<String, Object?> read = _object(
+    json,
+    path,
+    const <String>{'topic'},
+    const <String>{'dedup'},
+  );
+  final TopicRef topic = _decodeTopic(read['topic'], '$path.topic');
+  return read.containsKey('dedup')
+      ? TopicInput(
+          topic,
+          dedup: _named(Dedup.values, read['dedup'], '$path.dedup'),
+        )
+      : TopicInput(topic);
+}
+
+// The topic reference object at path: a name, which may be empty, a variant
+// by name and a type name.
+TopicRef _decodeTopic(Object? json, String path) {
+  final Map<String, Object?> topic = _object(json, path, const <String>{
+    'name',
+    'variant',
+    'typeName',
+  });
+  return TopicRef(
+    name: _string(topic['name'], '$path.name'),
+    variant: _named(TopicVariant.values, topic['variant'], '$path.variant'),
+    typeName: _string(topic['typeName'], '$path.typeName'),
+  );
+}
+
+// The array of topic references at path.
+List<TopicRef> _decodeTopics(Object? json, String path) =>
+    _list(json, path, _decodeTopic);
+
+// The function reference object at path: a name, or null for an anonymous
+// function.
+FunctionRef _decodeFunction(Object? json, String path) {
+  final Map<String, Object?> function = _object(json, path, const <String>{
+    'name',
+  });
+  return switch (function['name']) {
+    null => const FunctionRef.anonymous(),
+    final String name => FunctionRef.named(name),
+    _ => _reject('$path.name', 'must be a string or null'),
+  };
+}
+
+// The claim object at path: a source rendering, a scope and the topics it
+// writes.
+ShellClaim _decodeClaim(Object? json, String path) {
+  final Map<String, Object?> claim = _object(json, path, const <String>{
+    'source',
+    'scope',
+    'writes',
+  });
+  final MessageSource source =
+      MessageSource.tryParse(_string(claim['source'], '$path.source')) ??
+      _reject(
+        '$path.source',
+        'must be "service:", "page:" or "executor:" followed by a name',
+      );
+  final Scope scope = _named(Scope.values, claim['scope'], '$path.scope');
+  final List<TopicRef> writes = _decodeTopics(claim['writes'], '$path.writes');
+  return ShellClaim(source: source, scope: scope, writes: writes.toSet());
+}
+
+// json as a JSON object at path whose keys are all of required and some of
+// optional, and no other. A Map of any type is read, provided its keys are
+// all strings.
+Map<String, Object?> _object(
+  Object? json,
+  String path,
+  Set<String> required, [
+  Set<String> optional = const <String>{},
+]) {
+  if (json is! Map || json.keys.any((Object? key) => key is! String)) {
+    _reject(path, 'must be an object');
+  }
+  final Map<String, Object?> object = json.cast<String, Object?>();
+  for (final String key in required) {
+    if (!object.containsKey(key)) {
+      _reject('$path.$key', 'is missing');
+    }
+  }
+  for (final String key in object.keys) {
+    if (!required.contains(key) && !optional.contains(key)) {
+      _reject(path, 'must not have the key ${jsonEncode(key)}');
+    }
+  }
+  return object;
+}
+
+// json as a JSON array at path, each element decoded by decode at its own
+// path. A List of any type is read; a Set or another Iterable is no array.
+List<T> _list<T>(
+  Object? json,
+  String path,
+  T Function(Object? json, String path) decode,
+) {
+  if (json is! List) {
+    _reject(path, 'must be an array');
+  }
+  return <T>[
+    for (int i = 0; i < json.length; i++) decode(json[i], '$path[$i]'),
+  ];
+}
+
+// json as a string.
+String _string(Object? json, String path) =>
+    json is String ? json : _reject(path, 'must be a string');
+
+// json as an integer: an int, or a double with no fraction whose magnitude is
+// below 2^63, which JSON Schema also counts as an integer.
+int _integer(Object? json, String path) => switch (json) {
+  final int n => n,
+  final double d when d.abs() < _twoTo63 && d == d.truncateToDouble() =>
+    d.toInt(),
+  _ => _reject(path, 'must be an integer'),
+};
+
+// 2^63, the first double above every int.
+const double _twoTo63 = 9223372036854775808.0;
+
+// The value of values whose name is json. The lookup is a map of the names,
+// since byName throws ArgumentError for an unknown name.
+T _named<T extends Enum>(List<T> values, Object? json, String path) =>
+    (json is String ? values.asNameMap()[json] : null) ??
+    _reject(
+      path,
+      'must be one of ${values.map((T value) => value.name).join(', ')}',
+    );
+
+// Throws the FormatException that says what path must hold.
+Never _reject(String path, String problem) =>
+    throw FormatException('$path: $problem');
