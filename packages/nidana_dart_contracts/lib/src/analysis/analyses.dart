@@ -129,8 +129,62 @@ TopologyCycle _cycle(
   }.toList(),
 );
 
+// One self-reference per topic that [definition] both reads and writes, in
+// canonical order, with an unmediated path from a read of it to a write of
+// it, listing every edge on such a path (G14).
 List<SelfReference> findSelfReferences(TopologyDefinition definition) =>
-    throw UnimplementedError();
+    List<SelfReference>.unmodifiable(<SelfReference>[
+      for (final TopicRef topic in definition.reads)
+        if (definition.writes.contains(topic))
+          if (_unmediated(definition.transforms, topic)
+              case final List<int> edges when edges.isNotEmpty)
+            SelfReference(
+              topologyId: definition.topologyId,
+              topic: topic,
+              edges: edges,
+            ),
+    ]);
+
+// The indices, ascending and each once, of the edges on an unmediated path
+// from a read of [topic] to a write of it (G14): the edges that bear no
+// state, that a read of [topic] reaches through edges bearing none, and that
+// reach a write of [topic] through edges bearing none. A stage input names
+// an earlier edge (G6), so one pass forward and one backward decide both. A
+// read matches by its topic, whatever its dedup argument, and a reduceInto
+// bears state, so it ends no unmediated path.
+List<int> _unmediated(List<TransformEdge> edges, TopicRef topic) {
+  final List<bool> fromRead = <bool>[];
+  for (final TransformEdge edge in edges) {
+    fromRead.add(
+      !edge.isStateBearing &&
+          edge.inputs.any(
+            (EdgeInput input) => switch (input) {
+              TopicInput(topic: final TopicRef read) => read == topic,
+              StageInput(edge: final int stage) => fromRead[stage],
+            },
+          ),
+    );
+  }
+  final List<bool> toWrite = List<bool>.filled(edges.length, false);
+  final List<bool> feedsWrite = List<bool>.filled(edges.length, false);
+  for (int i = edges.length - 1; i >= 0; i--) {
+    final TransformEdge edge = edges[i];
+    toWrite[i] =
+        !edge.isStateBearing && (edge.output == topic || feedsWrite[i]);
+    if (toWrite[i]) {
+      for (final EdgeInput input in edge.inputs) {
+        if (input case StageInput(edge: final int stage)) {
+          feedsWrite[stage] = true;
+        }
+      }
+    }
+  }
+  return <int>[
+    for (int i = 0; i < edges.length; i++)
+      if (fromRead[i] && toWrite[i]) i,
+  ];
+}
+
 List<WriterConflict> findWriterConflicts(TopologyGraph graph) =>
     throw UnimplementedError();
 List<ScopeViolation> findScopeViolations(TopologyGraph graph) =>
