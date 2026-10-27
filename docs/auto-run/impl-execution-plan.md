@@ -203,7 +203,8 @@ a `Task N: complete` line; never re-dispatch them.
 | S132 | implement | superpowers:subagent-driven-development | nidana.model.9: 5 tasks, no fix rounds (one carried ruling), final review with doc fixes, one doc-only fix wave; gate exit 0, 147 tests; topology-dsl restricted 17/17 | done | 235c403; merged into impl/nidana.model as e9f2289 |
 | S133 | config | hsdd-config | nidana.model.10 (N=7, spot-check; every restricted case passable here, checked; baseline 1/10) | done | 03f8fd8 |
 | S134 | code-plan | superpowers:writing-plans | nidana.model.10 (6 tasks; dry run: restricted replay 1/10 to 10/10; 2 low contract gaps routed) | done | 3a9e427 |
-| S135 | implement | superpowers:subagent-driven-development | nidana.model.10: 6 tasks, no fix rounds (one carried ruling), final review ready to merge, one doc-only wave; gate exit 0, 200 tests; topology-ir restricted 10/10 | done | d8efc63 |
+| S135 | implement | superpowers:subagent-driven-development | nidana.model.10: 6 tasks, no fix rounds (one carried ruling), final review ready to merge, one doc-only wave; gate exit 0, 200 tests; topology-ir restricted 10/10 | done | d8efc63; merged into impl/nidana.model as 9fc5a72 |
+| S136 | config | hsdd-config | nidana.model.11 (N=7, spot-check; found the topology-ir restriction's G3 and G7 cases call analyzeTopologyGraph, .12's; governance route S137 to S139) | done | 6bd67bf |
 
 ## Notes for the report
 
