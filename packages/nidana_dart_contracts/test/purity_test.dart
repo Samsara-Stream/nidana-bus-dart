@@ -116,10 +116,10 @@ List<String> directiveUris(String source) => <String>[
 /// Whether the library at [path], in a package whose libraries are under
 /// [lib], may name [uri] (G25, G26): a `dart:` library, spelled as a name of
 /// lower-case letters and underscores, other than dart:io, dart:isolate,
-/// dart:ffi and dart:html, `package:meta`, this package, or a relative URI
-/// inside [lib] with no authority, query or fragment. A URI with a backslash
-/// or a percent sign is never allowed, because a string escape or a percent
-/// encoding can spell any URI.
+/// dart:ffi and dart:html, `package:meta`, a `.dart` library of this package,
+/// or a relative URI to a `.dart` file inside [lib], with no authority, query
+/// or fragment. A URI with a backslash or a percent sign is never allowed,
+/// because a string escape or a percent encoding can spell any URI.
 bool allowedUri(String uri, {required String path, required String lib}) {
   if (uri.contains(r'\') || uri.contains('%')) {
     return false;
@@ -135,7 +135,8 @@ bool allowedUri(String uri, {required String path, required String lib}) {
   }
   if (uri.startsWith('package:')) {
     return uri.startsWith('package:meta/') ||
-        uri.startsWith('package:nidana_dart_contracts/');
+        (uri.startsWith('package:nidana_dart_contracts/') &&
+            uri.endsWith('.dart'));
   }
   if (RegExp(r'^[A-Za-z][A-Za-z0-9+.-]*:').hasMatch(uri)) {
     return false;
@@ -144,6 +145,7 @@ bool allowedUri(String uri, {required String path, required String lib}) {
   return resolved.host.isEmpty &&
       !resolved.hasQuery &&
       !resolved.hasFragment &&
+      resolved.path.endsWith('.dart') &&
       resolved.toFilePath().startsWith('$lib/');
 }
 
@@ -343,6 +345,26 @@ void main() {
     );
   });
 
+  test('the directive reader hands a library that is not a .dart file to '
+      'allowedUri, which refuses it', () {
+    final List<String> uris = directiveUris(
+      "import 'src/impure.txt';\npart 'src/part.txt';\n"
+      "export 'package:nidana_dart_contracts/src/x.txt';\n",
+    );
+    expect(uris, <String>[
+      'src/impure.txt',
+      'src/part.txt',
+      'package:nidana_dart_contracts/src/x.txt',
+    ]);
+    for (final String uri in uris) {
+      expect(
+        allowedUri(uri, path: '/w/lib/a.dart', lib: '/w/lib'),
+        isFalse,
+        reason: uri,
+      );
+    }
+  });
+
   test('allowedUri admits the SDK but four libraries, meta, this package '
       'and lib/, and nothing else', () {
     bool allowed(String uri) => allowedUri(
@@ -377,6 +399,12 @@ void main() {
     expect(allowed('../../../test/purity_test.dart'), isFalse);
     expect(allowed('../../../lib_other/a.dart'), isFalse);
     expect(allowed('file:///w/lib/src/topic/topic.dart'), isFalse);
+    expect(allowed('src/impure.txt'), isFalse);
+    expect(allowed('src/part.txt'), isFalse);
+    expect(allowed('builder'), isFalse);
+    expect(allowed('src/'), isFalse);
+    expect(allowed('package:nidana_dart_contracts/src/x.txt'), isFalse);
+    expect(allowed('package:nidana_dart_contracts/'), isFalse);
   });
 
   test('allowedUri refuses a relative URI with a query, a fragment or an '
