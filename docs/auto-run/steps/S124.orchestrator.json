@@ -1,0 +1,30 @@
+{
+  "step_ref": "S124",
+  "decisions": [
+    {
+      "at": "2026-10-27T11:10:52Z",
+      "artifact": "docs/superpowers/plans/nidana.model.8.md",
+      "question": "S124 reports three topic-model@v1 contract gaps: G15 and G24's 'never contains the payload's own rendering' cannot hold for a very short rendering; G15's redaction of an already-redacted envelope wraps it again and loses the payload type; 'Everything here is a value or a total function' (topic-model line 18, nidana.model's Pure band) is inaccurate. Stop for hsdd-contract before implementing?",
+      "options": [
+        {
+          "label": "Implement G15 and G24 as written; route the three to the end-of-node governance sweep",
+          "consequence": "nidana.model.8 delivers the guarantees verbatim; the wording fixes (compatible within v1) and the re-redaction rule wait for the sweep, before any consumer node."
+        },
+        {
+          "label": "Insert an hsdd-contract step now",
+          "consequence": "Settles the re-redaction rule first; a governance step for wording that changes no case the gate replays."
+        }
+      ],
+      "chosen": "Implement G15 and G24 as written; route the three to the end-of-node governance sweep",
+      "why": "The plan follows the contract text and the conformance cases pass under it; the gaps are wording (compatible) and one rule choice that hsdd-contract owns. No consumer phase runs before the sweep.",
+      "evidence": [
+        "docs/auto-run/steps/S124.json contract_gaps",
+        "hsdd/contract/topic-model.md G15, G24"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "would_upstream": false
+    }
+  ]
+}

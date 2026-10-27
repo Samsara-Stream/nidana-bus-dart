@@ -1,6 +1,7 @@
 import 'package:meta/meta.dart';
 
 import 'envelope.dart';
+import 'list_equality.dart';
 
 /// The lineage fields of a pipeline value (Spec §2.4, §3.5): what the next
 /// published envelope's causationId, correlationId and parentCorrelationIds
@@ -17,12 +18,18 @@ final class Lineage {
   /// Caused by [cause], a published envelope: causationId is cause.id;
   /// correlationId, parentCorrelationIds and sensitive are cause's.
   Lineage.causedBy(MessageEnvelope<Object?> cause)
-    : causationId = null,
-      correlationId = null,
-      parentCorrelationIds = const <String>[],
-      sensitive = false {
-    throw UnimplementedError();
-  }
+    : causationId = cause.id,
+      correlationId = cause.correlationId,
+      parentCorrelationIds = cause.parentCorrelationIds,
+      sensitive = cause.sensitive;
+
+  // combine and withLatestFrom; parentCorrelationIds is unmodifiable.
+  const Lineage._({
+    required this.causationId,
+    required this.correlationId,
+    required this.parentCorrelationIds,
+    required this.sensitive,
+  });
 
   final String? causationId;
   final String? correlationId;
@@ -42,10 +49,65 @@ final class Lineage {
     List<Lineage> inputs, {
     required int trigger,
     required String Function() freshCorrelationId,
-  }) => throw UnimplementedError();
+  }) {
+    if (inputs.isEmpty) {
+      throw ArgumentError.value(inputs, 'inputs', 'must not be empty');
+    }
+    RangeError.checkValidIndex(trigger, inputs, 'trigger');
+    final Set<String> distinct = <String>{
+      for (final Lineage input in inputs) ?input.correlationId,
+    };
+    final String? causationId = inputs[trigger].causationId;
+    final bool sensitive = inputs.any((Lineage input) => input.sensitive);
+    return switch (distinct.length) {
+      0 => Lineage._(
+        causationId: causationId,
+        correlationId: null,
+        parentCorrelationIds: const <String>[],
+        sensitive: sensitive,
+      ),
+      1 => Lineage._(
+        causationId: causationId,
+        correlationId: distinct.single,
+        parentCorrelationIds: List<String>.unmodifiable(<String>{
+          for (final Lineage input in inputs)
+            if (input.correlationId != null) ...input.parentCorrelationIds,
+        }),
+        sensitive: sensitive,
+      ),
+      _ => Lineage._(
+        causationId: causationId,
+        correlationId: freshCorrelationId(),
+        parentCorrelationIds: List<String>.unmodifiable(distinct),
+        sensitive: sensitive,
+      ),
+    };
+  }
 
   /// withLatestFrom (Spec §2.4 table): causation, correlation and parents
   /// from [primary]; sensitive is the or of [primary] and [latest].
   static Lineage withLatestFrom(Lineage primary, List<Lineage> latest) =>
-      throw UnimplementedError();
+      Lineage._(
+        causationId: primary.causationId,
+        correlationId: primary.correlationId,
+        parentCorrelationIds: primary.parentCorrelationIds,
+        sensitive: primary.sensitive || latest.any((Lineage l) => l.sensitive),
+      );
+
+  // all four fields; parents element-wise
+  @override
+  bool operator ==(Object other) =>
+      other is Lineage &&
+      other.causationId == causationId &&
+      other.correlationId == correlationId &&
+      elementsEqual(other.parentCorrelationIds, parentCorrelationIds) &&
+      other.sensitive == sensitive;
+
+  @override
+  int get hashCode => Object.hash(
+    causationId,
+    correlationId,
+    Object.hashAll(parentCorrelationIds),
+    sensitive,
+  );
 }

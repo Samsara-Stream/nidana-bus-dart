@@ -1,0 +1,79 @@
+{
+  "step_ref": "S125",
+  "decisions": [
+    {
+      "at": "2026-10-27T11:11:57Z",
+      "artifact": null,
+      "question": "SDD pre-flight for nidana.model.8 (spot-check): which model implements each task?",
+      "options": [
+        {
+          "label": "Sonnet for every task",
+          "consequence": "The run's rule for non-full-review phases; the plan's Dart blocks are dry-run drafts, so implementation is transcription plus tests."
+        },
+        {
+          "label": "Opus for Task 4 (combine and its property tests)",
+          "consequence": "More capable on the one algorithmic task; departs from the run's rule."
+        }
+      ],
+      "chosen": "Sonnet for every task",
+      "why": "The run's model rule (impl-execution-plan, How a phase runs, item 3) and S107, S113, S116's precedent; every Dart block was checked against the dry run.",
+      "evidence": [
+        "docs/auto-run/impl-execution-plan.md How a phase runs item 3",
+        "docs/auto-run/experiments/topic-model-values-plan/"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T12:08:30Z",
+      "artifact": "packages/nidana_dart_contracts/lib/src/topic/",
+      "question": "nidana.model.8's final review: Topic, TopicRef and Lineage keep Object.toString (the Interface declares none), so later phases' test failures print Instance of 'TopicRef'. Add renderings now?",
+      "options": [
+        {
+          "label": "No; route to the end-of-node sweep as an hsdd-contract question",
+          "consequence": "The declared surface stays the contract's; later phases' tests may print opaque failures until a compatible contract touch adds renderings."
+        },
+        {
+          "label": "Add toString overrides now",
+          "consequence": "Changes the declared surface without the contract; D4 gives lib/src/topic/ no later owner to keep it consistent."
+        }
+      ],
+      "chosen": "No; route to the end-of-node sweep as an hsdd-contract question",
+      "why": "The Interface is the contract's; an undeclared override is an unrecorded surface change. The cost is diagnostic only.",
+      "evidence": [
+        "hsdd/contract/topic-model.md Interface",
+        "hsdd/spec/nidana.model.md D4"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T12:08:30Z",
+      "artifact": "hsdd/verify/nidana.model.8.verification.md",
+      "question": "nidana.model.8's final review (Important): the verification doc claimed Spec 2.4's worked examples reproduce as written and that every behavior guarantee holds, but ref/ is not checked out and the doc's own Learnings name wording no implementation meets. Fix before merge?",
+      "options": [
+        {
+          "label": "Fix in the one final fix wave: say the examples are checked as the G19 cases encode them, add an Outstanding compare-with-Spec item, say every behavior case passes",
+          "consequence": "The owner signs evidence the run actually has; two qualified phrases remain (parked)."
+        },
+        {
+          "label": "Merge as written",
+          "consequence": "The owner would sign a Spec comparison the run could not make."
+        }
+      ],
+      "chosen": "Fix in the one final fix wave: say the examples are checked as the G19 cases encode them, add an Outstanding compare-with-Spec item, say every behavior case passes",
+      "why": "The verification doc is owner-signed evidence; ref/ is outside the run's reach (S113). The re-review found the claims qualified, with two phrases parked for the owner's attention.",
+      "evidence": [
+        "docs/auto-run/steps/S125.sdd-progress.md (final review, final fix wave)"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "would_upstream": false
+    }
+  ]
+}

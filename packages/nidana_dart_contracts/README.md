@@ -6,11 +6,13 @@ and its lineage rules, scopes, the observer interfaces, sensitive-payload
 redaction, the topology DSL with its recording builder, and the
 `TopologyDefinition` IR with its graphs, renderers and analyses.
 
-Everything here is a value or a total function. The package depends on the
-Dart SDK and `package:meta` alone; it reads no clock, creates no timer or
-microtask, generates no id and performs no I/O, so a function that needs a
-timestamp or a fresh id takes it as an argument. Delivering messages is the
-runtime's work, in `nidana_dart_runtime`.
+Everything here is an immutable value, a pure function, one of the observer
+interfaces an application implements, or the recording builder a topology
+declaration runs against. The package depends on the Dart SDK and
+`package:meta` alone; it reads no clock, creates no timer or microtask,
+generates no id and performs no I/O, so a function that needs a timestamp or
+a fresh id takes it as an argument. Delivering messages is the runtime's
+work, in `nidana_dart_runtime`.
 
 ## Libraries
 

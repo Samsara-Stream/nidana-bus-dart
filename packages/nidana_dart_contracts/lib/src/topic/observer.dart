@@ -11,7 +11,7 @@ enum ObserverCapability {
   static bool permits(
     Set<ObserverCapability> capabilities, {
     required bool sensitive,
-  }) => throw UnimplementedError();
+  }) => capabilities.contains(sensitive ? observeSensitive : observeAll);
 }
 
 enum LogLevel { debug, info, warning, error }
