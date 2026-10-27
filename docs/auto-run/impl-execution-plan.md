@@ -199,6 +199,7 @@ a `Task N: complete` line; never re-dispatch them.
 | S128 | phase-plan | hsdd-phase-plan | nidana.model amend of .9's gate (G10 out of the restriction; .11 Scope names G10; one compatible Delivery amend pending) | done | 5caef25 |
 | S129 | reconcile | hsdd-reconcile | nidana.model pending section (amend of .9's gate): topology-dsl@v2 Delivery, compatible within v2 | done | c08820a |
 | S130 | config | hsdd-config | nidana.model.9 re-run after the gate amend (restriction G11,G13 to G17,G30) | done | 1d0b27d |
+| S131 | code-plan | superpowers:writing-plans | nidana.model.9 plan revised to the amended gate (constraint 4, Tasks 3 to 5) | done | bf18a44 |
 
 ## Notes for the report
 
