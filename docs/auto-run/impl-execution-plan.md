@@ -178,6 +178,7 @@ a `Task N: complete` line; never re-dispatch them.
 | S107 | implement | superpowers:subagent-driven-development | nidana.model.3: 4 tasks, no fix round, final review ready to merge; gate exit 0, topic-model 30/30 (first real surface and reject replay) | done | 881a18f; merged into impl/nidana.model as a8d43df |
 | S108 | config | hsdd-config | nidana.model.4 (found the scope cannot analyze: TransformEdge lands at .5) | done | 6c258b4 |
 | S109 | phase-plan (inserted) | hsdd-phase-plan | nidana.model re-plan of unshipped .4 and .5 (main library at .4, topology_ir.dart at .5) | done | 6f1d4b4 |
+| S110 | reconcile (inserted) | hsdd-reconcile | nidana.model pending section: three Delivery amends within version, conventions fp-progression | done | 87b473a |
 
 ## Notes for the report
 
@@ -252,6 +253,12 @@ that phase's writing-plans dispatch and strikes it here when the phase's plan co
   non-empty const set or const map keyed by topics, refs, sources, envelopes or lineages stops compiling
   (`const_set_element_not_primitive_equality`); consumer plans must not rely on such collections. For the
   report and the owner.
+- End of nidana.model, governance sweep (from S110): hsdd-adr touch of ADR-001 item 10 (its premise that a
+  contract's first producing phase lands every declaration, and its sub-bullet that nidana.model.4 lands only
+  `TopologyDefinition`, now understate the split); hsdd-spec touches of `hsdd/spec/nidana.md` line 211
+  (Development flow item 1) and `hsdd/spec/nidana.model.md` line 40 ("Inherited from the root"), which still
+  say "one contract per phase"; stale reasons (".5 completes the main library") in
+  `hsdd/spec/nidana.tooling.codegen.md` line 299 and `hsdd/spec/nidana.navigation.md` line 177, edges correct.
 - End of nidana.model, governance sweep (from S107's final review): nidana.model D6's purity token list misses
   `Random.secure(`, `DateTime.timestamp()`, `Timer.run(`, `runZoned`, `Stream.periodic(`; an hsdd-spec touch
   could make the list a floor ("at least").
