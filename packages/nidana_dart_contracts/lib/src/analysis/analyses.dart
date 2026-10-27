@@ -243,8 +243,8 @@ List<ScopeViolation> _scopeViolations(
 // A writer of a state topic with the scope it owns it in (Spec §3.11, §7.2).
 typedef _Owner = ({MessageSource source, Scope scope});
 
-// The owners of each state topic of a graph and the readers of each topic
-// it reads, keyed by topic.
+// The owners of each state topic and the readers of each topic, keyed by
+// topic.
 typedef _Ownership = ({
   Map<TopicRef, List<_Owner>> owners,
   Map<TopicRef, List<TopologyDefinition>> readers,

@@ -1,10 +1,11 @@
 // topology-ir@v1's findWriterConflicts (G15) and findScopeViolations (G16),
 // beyond the G15 and G16 cases of its conformance suite, which the gate
 // replays: a reduceInto as a writer, claims of one source in two scopes,
-// the canonical order of topics, every pair of scopes, the order of owners
-// by rendering and then scope with equal owners counted once, in a short
-// owner list and a long one, the owners that never violate, a topic of the
-// same name but another variant or type, and unmodifiable results (G3).
+// two equal claims as two writers and one owner, the canonical order of
+// topics, every pair of scopes, the order of owners by rendering and then
+// scope with equal owners counted once, in a short owner list and a long
+// one, the owners that never violate, a topic of the same name but another
+// variant or type, and unmodifiable results (G3).
 import 'package:nidana_dart_contracts/nidana_dart_contracts.dart';
 import 'package:nidana_dart_contracts/topology_ir.dart';
 import 'package:test/test.dart';
@@ -68,6 +69,54 @@ void main() {
         ],
       ),
     ]);
+  });
+
+  test('G15 G16 two equal claims are two writers of one conflict, and as '
+      'equal owners they give one violation', () {
+    final TopologyGraph g = TopologyGraph(
+      topologies: <TopologyDefinition>[
+        rw(
+          'reader',
+          <TopicRef>[state('eq.s')],
+          <TopicRef>[event('eq.out')],
+          scope: Scope.application,
+        ),
+      ],
+      claims: <ShellClaim>[
+        ShellClaim(
+          source: const ServiceSource('svc'),
+          scope: Scope.page,
+          writes: <TopicRef>{state('eq.s')},
+        ),
+        ShellClaim(
+          source: const ServiceSource('svc'),
+          scope: Scope.page,
+          writes: <TopicRef>{state('eq.s')},
+        ),
+      ],
+    );
+    final WriterConflict conflict = WriterConflict(
+      topic: state('eq.s'),
+      writers: const <MessageSource>[
+        ServiceSource('svc'),
+        ServiceSource('svc'),
+      ],
+    );
+    final ScopeViolation violated = violation(
+      state('eq.s'),
+      const ServiceSource('svc'),
+      Scope.page,
+      'reader',
+      Scope.application,
+    );
+    expect(g.claims, hasLength(2), reason: 'the graph keeps equal claims');
+    expect(findWriterConflicts(g), <WriterConflict>[conflict]);
+    expect(findWriterConflicts(g).single.writers, const <MessageSource>[
+      ServiceSource('svc'),
+      ServiceSource('svc'),
+    ]);
+    expect(findScopeViolations(g), <ScopeViolation>[violated]);
+    expect(analyzeTopologyGraph(g), <TopologyFinding>[conflict, violated]);
   });
 
   test('G15 conflicts come in canonical topic order, by name, then variant, '
