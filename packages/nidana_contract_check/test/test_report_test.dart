@@ -105,6 +105,43 @@ String text(TestReport r) => switch (r) {
     '$passed/$failed/$skipped ${failing.join('|')}',
 };
 
+/// `dart test --reporter json` of a case whose async work throws after the case
+/// ended (the task review's capture, its file URLs shortened to `file:///w/`):
+/// `G1 a` ends with `success`, then its errors arrive, then `done` is false.
+const String lateError = r'''
+{"protocolVersion":"0.1.1","runnerVersion":"1.33.0","pid":2963,"type":"start","time":0}
+{"suite":{"id":0,"platform":"vm","path":"test/late_error_test.dart"},"type":"suite","time":0}
+{"test":{"id":1,"name":"loading test/late_error_test.dart","suiteID":0,"groupIDs":[],"metadata":{"skip":false,"skipReason":null},"line":null,"column":null,"url":null},"type":"testStart","time":1}
+{"count":1,"time":6,"type":"allSuites"}
+{"testID":1,"result":"success","skipped":false,"hidden":true,"type":"testDone","time":244}
+{"group":{"id":2,"suiteID":0,"parentID":null,"name":"","metadata":{"skip":false,"skipReason":null},"testCount":2,"line":null,"column":null,"url":null},"type":"group","time":246}
+{"test":{"id":3,"name":"G1 a","suiteID":0,"groupIDs":[2],"metadata":{"skip":false,"skipReason":null},"line":4,"column":3,"url":"file:///w/test/late_error_test.dart"},"type":"testStart","time":246}
+{"testID":3,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":254}
+{"test":{"id":4,"name":"G2 b","suiteID":0,"groupIDs":[2],"metadata":{"skip":false,"skipReason":null},"line":7,"column":3,"url":"file:///w/test/late_error_test.dart"},"type":"testStart","time":254}
+{"testID":3,"error":"Bad state: late boom","stackTrace":"test/late_error_test.dart 5:66  main.<fn>.<fn>\n","isFailure":false,"type":"error","time":312}
+{"testID":3,"error":"This test failed after it had already completed.\nMake sure to use a matching library which informs the test runner\nof pending async work.","stackTrace":"test/late_error_test.dart 5:66  main.<fn>.<fn>\n","isFailure":false,"type":"error","time":313}
+{"testID":4,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":459}
+{"success":false,"type":"done","time":482}''';
+
+/// `dart test --reporter json` of three passing cases, the first writing
+/// `partial` to stdout and the second printing `whole line` (the task
+/// review's capture, its file URLs shortened to `file:///w/`).
+const String rawStdout = r'''
+{"protocolVersion":"0.1.1","runnerVersion":"1.33.0","pid":3010,"type":"start","time":0}
+{"suite":{"id":0,"platform":"vm","path":"test/raw_stdout_test.dart"},"type":"suite","time":0}
+{"test":{"id":1,"name":"loading test/raw_stdout_test.dart","suiteID":0,"groupIDs":[],"metadata":{"skip":false,"skipReason":null},"line":null,"column":null,"url":null},"type":"testStart","time":1}
+{"count":1,"time":5,"type":"allSuites"}
+{"testID":1,"result":"success","skipped":false,"hidden":true,"type":"testDone","time":232}
+{"group":{"id":2,"suiteID":0,"parentID":null,"name":"","metadata":{"skip":false,"skipReason":null},"testCount":3,"line":null,"column":null,"url":null},"type":"group","time":234}
+{"test":{"id":3,"name":"G1 a","suiteID":0,"groupIDs":[2],"metadata":{"skip":false,"skipReason":null},"line":4,"column":3,"url":"file:///w/test/raw_stdout_test.dart"},"type":"testStart","time":234}
+partial{"testID":3,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":245}
+{"test":{"id":4,"name":"G2 b","suiteID":0,"groupIDs":[2],"metadata":{"skip":false,"skipReason":null},"line":5,"column":3,"url":"file:///w/test/raw_stdout_test.dart"},"type":"testStart","time":246}
+whole line
+{"testID":4,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":246}
+{"test":{"id":5,"name":"G3 c","suiteID":0,"groupIDs":[2],"metadata":{"skip":false,"skipReason":null},"line":6,"column":3,"url":"file:///w/test/raw_stdout_test.dart"},"type":"testStart","time":246}
+{"testID":5,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":247}
+{"success":true,"type":"done","time":252}''';
+
 const BindingRun dartRun = BindingRun(
   path: 'p',
   runner: Runner.dart,
@@ -277,21 +314,87 @@ void main() {
         reason: 'a done without success is no done',
       );
     });
+    test('a testDone whose result is not success, failure or error counts as failed', () {
+      expect(
+        read(<Map<String, Object?>>[
+          opening,
+          loading(1),
+          ended(1, 'success', hidden: true),
+          started(3, 'G1 ends oddly'),
+          ended(3, 'skipped'),
+          started(4, 'G2 passes'),
+          ended(4, 'success'),
+          finished(true),
+        ]),
+        '1/1/0 G1 ends oddly',
+      );
+    });
     test(
-      'a testDone whose result is not success, failure or error is skipped',
+      'a case that reports an error after its testDone succeeded is failed',
       () {
+        expect(text(readTestReport(lateError)), '1/1/0 G1 a');
         expect(
-          read(<Map<String, Object?>>[
-            opening,
-            loading(1),
-            ended(1, 'success', hidden: true),
-            started(3, 'G1 ends oddly'),
-            ended(3, 'skipped'),
-            started(4, 'G2 passes'),
-            ended(4, 'success'),
-            finished(true),
-          ]),
+          line(dartRun, readTestReport(lateError) as Reported),
+          'FAIL behavior p: cases (1 passed, 1 failed, 0 skipped under dart test); '
+          'failed-case (G1 a)',
+        );
+      },
+    );
+    test('an error before a successful testDone fails the case too', () {
+      expect(
+        read(<Map<String, Object?>>[
+          opening,
+          loading(1),
+          ended(1, 'success', hidden: true),
+          started(3, 'G1 errs, then succeeds'),
+          failedWith(3, 'Bad state: early'),
+          ended(3, 'success'),
+          started(4, 'G2 is skipped and errs'),
+          failedWith(4, 'Bad state: x'),
+          ended(4, 'success', skipped: true),
+          started(5, 'G3 passes'),
+          ended(5, 'success'),
+          finished(false),
+        ]),
+        '1/2/0 G1 errs, then succeeds|G2 is skipped and errs',
+      );
+    });
+    test('the reader keeps whether done reported failure', () {
+      bool runnerFailed(bool success) => (readTestReport(
+        report(<Map<String, Object?>>[
+          ...d0.sublist(0, d0.length - 1),
+          finished(success),
+        ]),
+      ) as CasesRan).runnerFailed;
+      expect(runnerFailed(false), isTrue);
+      expect(runnerFailed(true), isFalse);
+    });
+    test(
+      'a JSON event glued after raw stdout text is read from its first {"',
+      () {
+        expect(text(readTestReport(rawStdout)), '3/0/0 ');
+        expect(
+          text(
+            readTestReport(
+              <String>[
+                ...LineSplitter.split(
+                  report(<Map<String, Object?>>[
+                    opening,
+                    loading(1),
+                    ended(1, 'success', hidden: true),
+                    started(3, 'G1 passes'),
+                  ]),
+                ),
+                'x{"broken',
+                'y{"type": "testDone"',
+                'z{"a": 1}',
+                'w${jsonEncode(ended(3, 'success'))}',
+                jsonEncode(finished(true)),
+              ].join('\n'),
+            ),
+          ),
           '1/0/0 ',
+          reason: 'text before {" that does not decode is skipped; a glued event is read',
         );
       },
     );
@@ -440,6 +543,61 @@ void main() {
       expect(
         line(restricted, const LoadFailed('x')),
         'FAIL behavior p: load (did not load under dart test: x)',
+      );
+    });
+    test('a run whose done reported failure fails though no case failed', () {
+      expect(
+        line(
+          dartRun,
+          readTestReport(
+            report(<Map<String, Object?>>[
+              opening,
+              loading(1),
+              ended(1, 'success', hidden: true),
+              started(3, 'G1 passes'),
+              ended(3, 'success'),
+              started(4, 'G2 passes'),
+              ended(4, 'success'),
+              finished(false),
+            ]),
+          ) as Reported,
+        ),
+        'FAIL behavior p: cases (the runner reported failure but no case failed: '
+        '2 passed, 0 failed, 0 skipped under dart test)',
+      );
+      expect(
+        line(
+          const BindingRun(
+            path: 'p',
+            runner: Runner.dart,
+            suiteSlug: 'sample',
+            admitted: <int>{2},
+          ),
+          const CasesRan(
+            passed: 0,
+            failed: 0,
+            skipped: 1,
+            failing: <String>[],
+            runnerFailed: true,
+          ),
+        ),
+        'FAIL behavior p: cases (the runner reported failure but no case failed: '
+        '0 passed, 0 failed, 1 skipped under dart test, restricted to sample G2)',
+      );
+    });
+    test('no case ran is reported as such, whatever done says', () {
+      expect(
+        line(
+          dartRun,
+          const CasesRan(
+            passed: 0,
+            failed: 0,
+            skipped: 0,
+            failing: <String>[],
+            runnerFailed: true,
+          ),
+        ),
+        'FAIL behavior p: cases (no case ran under dart test)',
       );
     });
     test("the outcome names the binding's path", () {

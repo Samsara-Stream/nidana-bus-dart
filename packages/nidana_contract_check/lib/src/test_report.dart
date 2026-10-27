@@ -33,26 +33,32 @@ sealed class Reported extends TestReport {
   const Reported();
 }
 
-/// The binding loaded and its visible tests ended: [passed], [failed] and [skipped] count them.
+/// The binding loaded and its visible tests ended: [passed], [failed] and [skipped] count them,
+/// and [runnerFailed] keeps what the runner's `done` event said.
 final class CasesRan extends Reported {
   const CasesRan({
     required this.passed,
     required this.failed,
     required this.skipped,
     required this.failing,
+    this.runnerFailed = false,
   });
 
-  /// The tests that succeeded and were not skipped.
+  /// The tests whose result is `success`, not skipped, that reported no error.
   final int passed;
 
-  /// The tests whose result is `failure` or `error`.
+  /// The tests that reported an error, before or after their `testDone`, and the tests not
+  /// skipped whose result is not `success`.
   final int failed;
 
-  /// The tests that were skipped.
+  /// The tests that were skipped and reported no error.
   final int skipped;
 
   /// The names of the failed cases, in the order they started.
   final List<String> failing;
+
+  /// Whether the runner's `done` event reported `success` false.
+  final bool runnerFailed;
 }
 
 /// The binding did not load.
@@ -65,18 +71,27 @@ final class LoadFailed extends Reported {
 
 /// The report in [stdout], what a runner printed with `--reporter json`.
 ///
-/// Each line that decodes to a JSON object with a string `type` is an event;
-/// every other line, and an event whose fields have other types, is skipped.
-/// The last `done` event decides whether the report is complete. A test
-/// counts once its `testDone` is visible (`hidden` false). The first visible
-/// failed test with no group is the load, and gives [LoadFailed]; otherwise
-/// the visible tests give [CasesRan], which may count none.
+/// Each line that decodes to a JSON object with a string `type` is an event.
+/// A line that does not decode is read again from its first `{"`, since a
+/// case that writes to stdout without a newline glues its text to the next
+/// event. Every other line, and an event whose fields have other types, is
+/// skipped. The last `done` event decides whether the report is complete.
+///
+/// A test counts once its `testDone` is visible (`hidden` false). It failed
+/// when it reported an `error`, before or after that `testDone` (async work
+/// a case started may throw after the case ended with `success`), or when it
+/// was not skipped and its result is not `success`. The first visible failed
+/// test with no group is the load, and gives [LoadFailed]; otherwise the
+/// visible tests give [CasesRan], which may count none.
 TestReport readTestReport(String stdout) {
   final List<_Event> events = List<_Event>.unmodifiable(
     LineSplitter.split(stdout).map(_eventOf).nonNulls,
   );
   return switch (events.whereType<_Done>().lastOrNull) {
-    _Done(success: bool()) => _reported(events),
+    _Done(success: final bool success) => _reported(
+      events,
+      runnerFailed: !success,
+    ),
     _Done(success: null) || null => const NoReport(),
   };
 }
@@ -96,11 +111,14 @@ String runnerFailure(BindingRun run, int exitCode, String stderr) {
 ///
 /// A load failure is a `load` problem. A run in which no case ran is a
 /// `cases` problem, whatever `done` says: a filter that admits no case name
-/// ends with a `done` whose `success` is true. A run with no failure passes,
-/// its counts the line's detail;
-/// otherwise a `cases` problem holds the counts and one `failed-case` problem
-/// names each failing case, in order. Every count prints, zero or not, and a
-/// restricted run names its restriction after the runner.
+/// ends with a `done` whose `success` is true. A run with no failed case
+/// passes, its counts the line's detail, unless the runner's `done` reported
+/// failure: then a `cases` problem says so before the counts (ADR-001 item 9
+/// fails a binding when any of its cases fails, and package:test fails `done`
+/// for a failure it reports in no `testDone`). Otherwise a `cases` problem
+/// holds the counts and one `failed-case` problem names each failing case, in
+/// order. Every count prints, zero or not, and a restricted run names its
+/// restriction after the runner.
 FixtureOutcome ranOutcome(BindingRun run, Reported report) {
   final String runner = run.runner.label;
   final String restriction = switch (run.admitted) {
@@ -115,6 +133,19 @@ FixtureOutcome ranOutcome(BindingRun run, Reported report) {
     CasesRan(passed: 0, failed: 0, skipped: 0) => _failed(run.path, <Problem>[
       Problem(BehaviorRule.cases, 'no case ran under $runner$restriction'),
     ]),
+    CasesRan(
+      :final int passed,
+      failed: 0,
+      :final int skipped,
+      runnerFailed: true,
+    ) =>
+      _failed(run.path, <Problem>[
+        Problem(
+          BehaviorRule.cases,
+          'the runner reported failure but no case failed: $passed passed, '
+          '0 failed, $skipped skipped under $runner$restriction',
+        ),
+      ]),
     CasesRan(:final int passed, failed: 0, :final int skipped) => Passed(
       run.path,
       detail:
@@ -145,7 +176,7 @@ const String _noErrorText = 'no error text';
 /// the start of the error's text, and `.` keeps it on the first line.
 final RegExp _failedToLoad = RegExp(r'^Failed to load ".*?":');
 
-/// How a test ended, by its `testDone`.
+/// How a test ended.
 enum _Result { passed, failed, skipped }
 
 /// One event of the report that the reader reads.
@@ -162,8 +193,8 @@ final class _Started extends _Event {
   final bool grouped;
 }
 
-/// A `testDone`: test [id] ended with [result], [hidden] when the runner hides it, as it hides
-/// a load that succeeds.
+/// A `testDone`: test [id] ended with [result] by the event alone, [hidden] when the runner
+/// hides it, as it hides a load that succeeds.
 final class _Ended extends _Event {
   const _Ended(this.id, this.result, {required this.hidden});
 
@@ -208,49 +239,68 @@ _Event? _eventOf(String line) => switch (_decoded(line)) {
     'skipped': final bool skipped,
     'hidden': final bool hidden,
   } =>
-    switch (_resultOf(result, skipped: skipped)) {
-      final _Result ending => _Ended(id, ending, hidden: hidden),
-      null => null,
-    },
+    _Ended(id, _resultOf(result, skipped: skipped), hidden: hidden),
   {'type': 'error', 'testID': final int id, 'error': final String text} =>
     _Errored(id, text),
   {'type': 'done', 'success': final bool? success} => _Done(success),
   _ => null,
 };
 
-/// [line] decoded as JSON; null when it is not JSON.
+/// [line] decoded as JSON, else its text from its first `{"` on when that decodes to an object;
+/// null when neither does.
 Object? _decoded(String line) {
   try {
     return jsonDecode(line);
+  } on FormatException {
+    final int start = line.indexOf('{"');
+    return start > 0 ? _decodedObject(line.substring(start)) : null;
+  }
+}
+
+/// [text] decoded as a JSON object; null when it is not one.
+Map<String, Object?>? _decodedObject(String text) {
+  try {
+    return switch (jsonDecode(text)) {
+      final Map<String, Object?> object => object,
+      _ => null,
+    };
   } on FormatException {
     return null;
   }
 }
 
-/// How a test whose `testDone` reports [result] and [skipped] ended; null for another result.
-_Result? _resultOf(String result, {required bool skipped}) =>
+/// How a test whose `testDone` reports [result] and [skipped] ended by that event alone: any
+/// result but `success` of a test not skipped is a failure, so a result the protocol does not
+/// name fails the binding.
+_Result _resultOf(String result, {required bool skipped}) =>
     switch ((skipped, result)) {
       (true, _) => _Result.skipped,
       (false, 'success') => _Result.passed,
-      (false, 'failure' || 'error') => _Result.failed,
-      (false, _) => null,
+      (false, _) => _Result.failed,
     };
 
-/// The complete report of [events]: the load's failure, else the counts of the visible tests.
-Reported _reported(List<_Event> events) {
+/// The complete report of [events], whose `done` reported failure when [runnerFailed]: the
+/// load's failure, else the counts of the visible tests.
+Reported _reported(List<_Event> events, {required bool runnerFailed}) {
   final Map<int, _Ended> ends = Map<int, _Ended>.unmodifiable(<int, _Ended>{
     for (final _Ended end in events.whereType<_Ended>()) end.id: end,
+  });
+  final Set<int> errored = Set<int>.unmodifiable(<int>{
+    for (final _Errored error in events.whereType<_Errored>()) error.id,
   });
   final List<_Visible> visible = List<_Visible>.unmodifiable(<_Visible>[
     for (final _Started start in events.whereType<_Started>())
       if (ends[start.id] case _Ended(hidden: false, :final _Result result))
-        (start: start, result: result),
+        (
+          start: start,
+          result: errored.contains(start.id) ? _Result.failed : result,
+        ),
   ]);
   return switch (visible.where(_failedLoad).firstOrNull) {
     final _Visible load => LoadFailed(
       _loadError(_firstError(events, load.start.id)),
     ),
-    null => _casesRan(visible),
+    null => _casesRan(visible, runnerFailed: runnerFailed),
   };
 }
 
@@ -274,7 +324,7 @@ String _loadError(String text) =>
     _noErrorText;
 
 /// The counts of [visible] and the names of its failed tests, in start order.
-CasesRan _casesRan(List<_Visible> visible) {
+CasesRan _casesRan(List<_Visible> visible, {required bool runnerFailed}) {
   int count(_Result result) =>
       visible.where((_Visible test) => test.result == result).length;
   return CasesRan(
@@ -285,6 +335,7 @@ CasesRan _casesRan(List<_Visible> visible) {
       for (final _Visible test in visible)
         if (test.result == _Result.failed) test.start.name,
     ]),
+    runnerFailed: runnerFailed,
   );
 }
 
