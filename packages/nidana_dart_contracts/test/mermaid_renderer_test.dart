@@ -3,8 +3,8 @@
 // their render/ files: the rules no sample shows, each pinned by the whole
 // text of a graph built for it. Durations in every unit, every time stage,
 // an anonymous retry, arrows from a repeated input, one topic name of two
-// variants, each escape in every kind of label, the characters left as they
-// are, and no scheduled work.
+// variants and of two type names, each escape in every kind of label, the
+// characters left as they are, and no scheduled work.
 import 'package:nidana_dart_contracts/topology_ir.dart';
 import 'package:test/test.dart';
 
@@ -137,6 +137,22 @@ flowchart LR
   s1 --> t1
   s1 --> t2
   s1 --> t4
+''');
+  });
+
+  test('G22 topics of one name and variant but two type names are two nodes, '
+      'and each arrow runs to its own', () {
+    expect(mermaid(typeNamesGraph()), r'''
+flowchart LR
+  t0(["a.x<br/>event String"])
+  t1(["a.x<br/>event int"])
+  subgraph p0["typed<br/>module"]
+    p0e0["map<br/>f"]
+    p0e1["write"]
+  end
+  t0 --> p0e0
+  p0e0 --> p0e1
+  p0e1 --> t1
 ''');
   });
 

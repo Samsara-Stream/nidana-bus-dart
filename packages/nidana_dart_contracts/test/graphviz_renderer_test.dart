@@ -3,8 +3,8 @@
 // their render/ files: the rules no sample shows, each pinned by the whole
 // text of a graph built for it. Durations in every unit, every time stage,
 // an anonymous retry, arrows from a repeated input, one topic name of two
-// variants, each escape in every kind of label, the characters left as they
-// are, and no scheduled work.
+// variants and of two type names, each escape in every kind of label, the
+// characters left as they are, and no scheduled work.
 import 'package:nidana_dart_contracts/topology_ir.dart';
 import 'package:test/test.dart';
 
@@ -149,6 +149,25 @@ digraph topologies {
   s1 -> t1;
   s1 -> t2;
   s1 -> t4;
+}
+''');
+  });
+
+  test('G22 topics of one name and variant but two type names are two nodes, '
+      'and each arrow runs to its own', () {
+    expect(graphviz(typeNamesGraph()), r'''
+digraph topologies {
+  rankdir=LR;
+  t0 [shape=ellipse, label="a.x\nevent String"];
+  t1 [shape=ellipse, label="a.x\nevent int"];
+  subgraph cluster_p0 {
+    label="typed\nmodule";
+    p0e0 [shape=box, label="map\nf"];
+    p0e1 [shape=box, label="write"];
+  }
+  t0 -> p0e0;
+  p0e0 -> p0e1;
+  p0e1 -> t1;
 }
 ''');
   });

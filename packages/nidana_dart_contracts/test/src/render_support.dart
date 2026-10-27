@@ -182,6 +182,23 @@ TopologyGraph arrowsGraph() => TopologyGraph(
   ],
 );
 
+/// One topic name and variant of two type names, String read by a stage and
+/// int written by a write, so that a topic's node is its type name's too.
+TopologyGraph typeNamesGraph() => TopologyGraph(
+  topologies: <TopologyDefinition>[
+    TopologyDefinition(
+      topologyId: 'typed',
+      scope: Scope.module,
+      transforms: <TransformEdge>[
+        TransformEdge.stage(CombinatorKind.map, <EdgeInput>[
+          TopicInput(eventRef('a.x', 'String')),
+        ], transformer: FunctionRef.named('f')),
+        TransformEdge.write(eventRef('a.x'), const StageInput(0)),
+      ],
+    ),
+  ],
+);
+
 /// Every character either renderer escapes, in every kind of label, beside
 /// characters neither escapes: a topic name holding an escape's own text,
 /// quotes and a newline, a backslash before a quote, a backslash before n.
@@ -226,6 +243,7 @@ List<TopologyGraph> everyGraph() => <TopologyGraph>[
   timeStagesGraph(),
   functionsGraph(),
   arrowsGraph(),
+  typeNamesGraph(),
   escapesGraph(),
   for (final String name in sampleNames()) sampleGraph(name),
 ];
