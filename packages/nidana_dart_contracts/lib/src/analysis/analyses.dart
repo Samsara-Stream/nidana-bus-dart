@@ -191,17 +191,23 @@ List<int> _unmediated(List<TransformEdge> edges, TopicRef topic) {
 // two or more owners: every topology that writes it, as its topology source,
 // and every claim that claims it, one entry per claim (G15).
 List<WriterConflict> findWriterConflicts(TopologyGraph graph) =>
-    List<WriterConflict>.unmodifiable(<WriterConflict>[
-      for (final TopicRef topic in graph.topics)
-        if (_owners(graph, topic) case final List<_Owner> owners
-            when owners.length > 1)
-          WriterConflict(
-            topic: topic,
-            writers: <MessageSource>[
-              for (final _Owner owner in owners) owner.source,
-            ],
-          ),
-    ]);
+    _writerConflicts(graph, _ownership(graph));
+
+// The writer conflicts of [graph], the owners taken from [ownership].
+List<WriterConflict> _writerConflicts(
+  TopologyGraph graph,
+  _Ownership ownership,
+) => List<WriterConflict>.unmodifiable(<WriterConflict>[
+  for (final TopicRef topic in graph.topics)
+    if (ownership.owners[topic] case final List<_Owner> owners
+        when owners.length > 1)
+      WriterConflict(
+        topic: topic,
+        writers: <MessageSource>[
+          for (final _Owner owner in owners) owner.source,
+        ],
+      ),
+]);
 
 // One scope violation per state topic, owner and reading topology where the
 // owner's scope is not at least as long as the reader's (G16): by topic in
@@ -209,38 +215,77 @@ List<WriterConflict> findWriterConflicts(TopologyGraph graph) =>
 // then reader in graph order. Equal owners, such as two equal claims, give
 // one violation per reader, so the set keeps each once, in that order.
 List<ScopeViolation> findScopeViolations(TopologyGraph graph) =>
-    List<ScopeViolation>.unmodifiable(<ScopeViolation>{
-      for (final TopicRef topic in graph.topics)
-        for (final _Owner owner in _owners(graph, topic)..sort(_byOwner))
-          for (final TopologyDefinition reader in graph.topologies)
-            if (reader.reads.contains(topic) &&
-                !owner.scope.isAtLeastAsLongAs(reader.scope))
-              ScopeViolation(
-                topic: topic,
-                owner: owner.source,
-                ownerScope: owner.scope,
-                readerId: reader.topologyId,
-                readerScope: reader.scope,
-              ),
-    });
+    _scopeViolations(graph, _ownership(graph));
+
+// The scope violations of [graph], the owners and readers taken from
+// [ownership]. The owners are sorted in a copy, so [ownership] is left as
+// it was.
+List<ScopeViolation> _scopeViolations(
+  TopologyGraph graph,
+  _Ownership ownership,
+) => List<ScopeViolation>.unmodifiable(<ScopeViolation>{
+  for (final TopicRef topic in graph.topics)
+    for (final _Owner owner in <_Owner>[
+      ...?ownership.owners[topic],
+    ]..sort(_byOwner))
+      for (final TopologyDefinition reader
+          in ownership.readers[topic] ?? const <TopologyDefinition>[])
+        if (!owner.scope.isAtLeastAsLongAs(reader.scope))
+          ScopeViolation(
+            topic: topic,
+            owner: owner.source,
+            ownerScope: owner.scope,
+            readerId: reader.topologyId,
+            readerScope: reader.scope,
+          ),
+});
 
 // A writer of a state topic with the scope it owns it in (Spec §3.11, §7.2).
 typedef _Owner = ({MessageSource source, Scope scope});
 
-// The owners of [topic] when it is a state topic: the topologies whose
-// writes hold it, as their topology sources with their scopes, in graph
-// order, then the claims whose writes hold it, one entry per claim, in graph
-// order. None for an event or replay topic, which has no owner (Spec §3.11).
-List<_Owner> _owners(TopologyGraph graph, TopicRef topic) => <_Owner>[
-  if (topic.variant == TopicVariant.state) ...<_Owner>[
-    for (final TopologyDefinition topology in graph.topologies)
-      if (topology.writes.contains(topic))
-        (source: TopologySource(topology.topologyId), scope: topology.scope),
-    for (final ShellClaim claim in graph.claims)
-      if (claim.writes.contains(topic))
-        (source: claim.source, scope: claim.scope),
-  ],
-];
+// The owners of each state topic of a graph and the readers of each topic
+// it reads, keyed by topic.
+typedef _Ownership = ({
+  Map<TopicRef, List<_Owner>> owners,
+  Map<TopicRef, List<TopologyDefinition>> readers,
+});
+
+// The ownership of [graph], from one pass over its topologies and then its
+// claims, so that the ownership analyses look up a topic's owners and
+// readers instead of scanning every topology and claim for each topic, a
+// cost quadratic in a catalog's size. A state topic's owners are the
+// topologies whose writes hold it, as their topology sources with their
+// scopes, in graph order, then the claims whose writes hold it, one entry
+// per claim, in graph order; an event or replay topic has no owner (Spec
+// §3.11), and a claim writes state topics only. A topic's readers are the
+// topologies whose reads hold it, in graph order.
+_Ownership _ownership(TopologyGraph graph) {
+  final Map<TopicRef, List<_Owner>> owners = <TopicRef, List<_Owner>>{};
+  final Map<TopicRef, List<TopologyDefinition>> readers =
+      <TopicRef, List<TopologyDefinition>>{};
+  for (final TopologyDefinition topology in graph.topologies) {
+    for (final TopicRef topic in topology.reads) {
+      (readers[topic] ??= <TopologyDefinition>[]).add(topology);
+    }
+    for (final TopicRef topic in topology.writes) {
+      if (topic.variant == TopicVariant.state) {
+        (owners[topic] ??= <_Owner>[]).add((
+          source: TopologySource(topology.topologyId),
+          scope: topology.scope,
+        ));
+      }
+    }
+  }
+  for (final ShellClaim claim in graph.claims) {
+    for (final TopicRef topic in claim.writes) {
+      (owners[topic] ??= <_Owner>[]).add((
+        source: claim.source,
+        scope: claim.scope,
+      ));
+    }
+  }
+  return (owners: owners, readers: readers);
+}
 
 // The order of owners in scope violations: by the source's rendering, then
 // by scope (application, module, page).
@@ -251,14 +296,16 @@ int _byOwner(_Owner a, _Owner b) {
 
 /// Every finding: cycles, then the self-references of each topology in graph
 /// order, then writer conflicts, then scope violations.
-List<TopologyFinding> analyzeTopologyGraph(TopologyGraph graph) =>
-    List<TopologyFinding>.unmodifiable(<TopologyFinding>[
-      ...findTopologyCycles(graph),
-      for (final TopologyDefinition topology in graph.topologies)
-        ...findSelfReferences(topology),
-      ...findWriterConflicts(graph),
-      ...findScopeViolations(graph),
-    ]);
+List<TopologyFinding> analyzeTopologyGraph(TopologyGraph graph) {
+  final _Ownership ownership = _ownership(graph);
+  return List<TopologyFinding>.unmodifiable(<TopologyFinding>[
+    ...findTopologyCycles(graph),
+    for (final TopologyDefinition topology in graph.topologies)
+      ...findSelfReferences(topology),
+    ..._writerConflicts(graph, ownership),
+    ..._scopeViolations(graph, ownership),
+  ]);
+}
 
 // One collision per name with two or more distinct declarations, whatever
 // their variants and types, ordered by name as String.compareTo orders it
