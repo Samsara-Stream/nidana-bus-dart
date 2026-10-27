@@ -49,7 +49,40 @@ final class Lineage {
     List<Lineage> inputs, {
     required int trigger,
     required String Function() freshCorrelationId,
-  }) => throw UnimplementedError();
+  }) {
+    if (inputs.isEmpty) {
+      throw ArgumentError.value(inputs, 'inputs', 'must not be empty');
+    }
+    RangeError.checkValidIndex(trigger, inputs, 'trigger');
+    final Set<String> distinct = <String>{
+      for (final Lineage input in inputs) ?input.correlationId,
+    };
+    final String? causationId = inputs[trigger].causationId;
+    final bool sensitive = inputs.any((Lineage input) => input.sensitive);
+    return switch (distinct.length) {
+      0 => Lineage._(
+        causationId: causationId,
+        correlationId: null,
+        parentCorrelationIds: const <String>[],
+        sensitive: sensitive,
+      ),
+      1 => Lineage._(
+        causationId: causationId,
+        correlationId: distinct.single,
+        parentCorrelationIds: List<String>.unmodifiable(<String>{
+          for (final Lineage input in inputs)
+            if (input.correlationId != null) ...input.parentCorrelationIds,
+        }),
+        sensitive: sensitive,
+      ),
+      _ => Lineage._(
+        causationId: causationId,
+        correlationId: freshCorrelationId(),
+        parentCorrelationIds: List<String>.unmodifiable(distinct),
+        sensitive: sensitive,
+      ),
+    };
+  }
 
   /// withLatestFrom (Spec §2.4 table): causation, correlation and parents
   /// from [primary]; sensitive is the or of [primary] and [latest].
