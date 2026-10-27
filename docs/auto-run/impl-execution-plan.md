@@ -186,6 +186,7 @@ a `Task N: complete` line; never re-dispatch them.
 | S115 | code-plan | superpowers:writing-plans | nidana.model.5 (3 tasks; dry run 117/117) | done | 2088ab2 |
 | S116 | implement | superpowers:subagent-driven-development | nidana.model.5: 3 tasks, 1 doc fix round, final review ready to merge; gate exit 0, 38 tests, 117/117; end of the types band | done | 01991b3; merged into impl/nidana.model as 739c828 |
 | S117 | config | hsdd-config | nidana.model.6 | done | 631224a |
+| S118 | code-plan | superpowers:writing-plans | nidana.model.6 (6 tasks; routed items taken in; Flutter runner on a stand-in SDK) | done | 34ace02 |
 
 ## Notes for the report
 
@@ -217,6 +218,12 @@ Findings the report must carry, written down when found so they survive context 
   private repository behind a personal SSH alias; the run does not fetch it (credential) and builds from
   the governance (decision in S113.orchestrator.json). Watch nidana.model.8, whose Verification cites Spec
   §2.4's worked examples.
+
+- S118: the pinned Flutter SDK has no engine artifacts (`bin/cache/pkg/sky_engine`, `bin/cache/artifacts`
+  absent), so no real `flutter test` runs on this machine; fetching them is a network action outside
+  pub.dev, which the run does not take. nidana.model.6 tests its Flutter runner against a stand-in SDK; the
+  real run is deferred to nidana.flutter.2. Owner action before the nidana.flutter lane: `fvm flutter precache`
+  (or any first `fvm flutter test`), which downloads the artifacts.
 
 ## Routed to later phases
 
@@ -281,6 +288,9 @@ that phase's writing-plans dispatch and strikes it here when the phase's plan co
   initializer lists that sort, keeping every parameter name and field type (no call site changes).
 - nidana.model.10 (from S112): remove the two `// ignore: unused_element` on `TransformEdge._` and
   `TopologyDefinition._`; `FunctionRef.named`'s empty-name `ArgumentError`.
+- End of nidana.model, governance sweep (from S118): "a conformance library that no binding in any slug imports
+  covers nothing" is a reading of ADR-001 item 3 for hsdd-adr (it gives structure a workspace-wide input); no
+  committed suite is unbound today (`docs/auto-run/experiments/behavior-set-plan/` R7).
 - End of nidana.model, governance sweep (from S115's dry run): topology-ir@v1's surface fixtures never build
   `ScopeViolation` with `const` (`surface/graphs.dart:105`), so a non-const constructor passes the replay; only
   the package's own test pins it (`TopicDeclaration` is built `const` at `graphs.dart:122`, so the replay pins
