@@ -51,9 +51,12 @@ final RegExp commentOrLiteral = RegExp(
 /// A string literal or a semicolon, whichever starts first.
 final RegExp literalOrSemicolon = RegExp('${stringLiteral.pattern}|;');
 
-/// The keyword that starts an import, export or part directive.
+/// The keyword that starts an import, export or part directive: at a line
+/// start, once comments are white space, and followed by a string literal. A
+/// name, a receiver or a named argument that happens to spell `part`,
+/// `import` or `export` is no directive.
 final RegExp directiveKeyword = RegExp(
-  r'^\s*(?:import|export|part)\b',
+  r'''^\s*(?:import|export|part(?:\s+of)?)\s*(?=r?['"])''',
   multiLine: true,
 );
 
@@ -113,9 +116,9 @@ List<String> directiveUris(String source) => <String>[
 /// Whether the library at [path], in a package whose libraries are under
 /// [lib], may name [uri] (G25, G26): a `dart:` library, spelled as a name of
 /// lower-case letters and underscores, other than dart:io, dart:isolate,
-/// dart:ffi and dart:html, `package:meta`, this package, or a
-/// relative URI that resolves inside [lib]. A URI with a backslash or a
-/// percent sign is never allowed, because a string escape or a percent
+/// dart:ffi and dart:html, `package:meta`, this package, or a relative URI
+/// inside [lib] with no authority, query or fragment. A URI with a backslash
+/// or a percent sign is never allowed, because a string escape or a percent
 /// encoding can spell any URI.
 bool allowedUri(String uri, {required String path, required String lib}) {
   if (uri.contains(r'\') || uri.contains('%')) {
@@ -137,7 +140,11 @@ bool allowedUri(String uri, {required String path, required String lib}) {
   if (RegExp(r'^[A-Za-z][A-Za-z0-9+.-]*:').hasMatch(uri)) {
     return false;
   }
-  return Uri.file(path).resolve(uri).toFilePath().startsWith('$lib/');
+  final Uri resolved = Uri.file(path).resolve(uri);
+  return resolved.host.isEmpty &&
+      !resolved.hasQuery &&
+      !resolved.hasFragment &&
+      resolved.toFilePath().startsWith('$lib/');
 }
 
 /// Every Dart library under this package's `lib/`.
@@ -310,6 +317,32 @@ void main() {
     );
   });
 
+  test('the directive reader skips a directive word that no string literal '
+      'follows', () {
+    expect(
+      directiveUris(
+        "final escaped = <String>[\n  for (final part in parts)\n    part\n"
+        "        .replaceAll('#', '#35;')\n"
+        "        .replaceAll('\\n', '#10;'),\n];\n"
+        "f(\n  part: 'https://example.com/a',\n  import: 'dart:io',\n"
+        "  export: \"dart:ffi\",\n);\n"
+        "part of my.library;\nimportant 'x';\nimport 'dart:async';\n",
+      ),
+      <String>['dart:async'],
+    );
+  });
+
+  test('the directive reader reads a directive word that a string literal '
+      'follows on the same line or the next', () {
+    expect(
+      directiveUris(
+        "import'dart:io';\nexport\n    'dart:ffi';\npart\n\n  r'p.dart';\n"
+        "part  of\t\"l.dart\";\n",
+      ),
+      <String>['dart:io', 'dart:ffi', 'p.dart', 'l.dart'],
+    );
+  });
+
   test('allowedUri admits the SDK but four libraries, meta, this package '
       'and lib/, and nothing else', () {
     bool allowed(String uri) => allowedUri(
@@ -344,6 +377,19 @@ void main() {
     expect(allowed('../../../test/purity_test.dart'), isFalse);
     expect(allowed('../../../lib_other/a.dart'), isFalse);
     expect(allowed('file:///w/lib/src/topic/topic.dart'), isFalse);
+  });
+
+  test('allowedUri refuses a relative URI with a query, a fragment or an '
+      'authority, and does not throw', () {
+    bool allowed(String uri) => allowedUri(
+      uri,
+      path: '/w/lib/src/topology/topology.dart',
+      lib: '/w/lib',
+    );
+    expect(allowed('builder.dart?x=1'), isFalse);
+    expect(allowed('builder.dart#part'), isFalse);
+    expect(allowed('../topic/topic.dart?v=1#s'), isFalse);
+    expect(allowed('//host/w/lib/builder.dart'), isFalse);
   });
 
   test('the effects scan finds every listed token, in a comment too', () {
