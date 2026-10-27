@@ -187,7 +187,8 @@ a `Task N: complete` line; never re-dispatch them.
 | S116 | implement | superpowers:subagent-driven-development | nidana.model.5: 3 tasks, 1 doc fix round, final review ready to merge; gate exit 0, 38 tests, 117/117; end of the types band | done | 01991b3; merged into impl/nidana.model as 739c828 |
 | S117 | config | hsdd-config | nidana.model.6 | done | 631224a |
 | S118 | code-plan | superpowers:writing-plans | nidana.model.6 (6 tasks; routed items taken in; Flutter runner on a stand-in SDK) | done | 34ace02 |
-| S119 | implement | superpowers:subagent-driven-development | nidana.model.6: 6 tasks, fix rounds on Tasks 4 (late-error false PASS) and 5 (runners.dart split), final review with fixes, one fix wave; gate exit 0, 292 tests, 102/102; behavior --all 112: 102/3/7 | done | cc375a7 |
+| S119 | implement | superpowers:subagent-driven-development | nidana.model.6: 6 tasks, fix rounds on Tasks 4 (late-error false PASS) and 5 (runners.dart split), final review with fixes, one fix wave; gate exit 0, 292 tests, 102/102; behavior --all 112: 102/3/7 | done | cc375a7; merged into impl/nidana.model as 90116bd |
+| S120 | config | hsdd-config | nidana.model.7 (N=8, full-review; the known excerpt-ids warning) | done | e65c944 |
 
 ## Notes for the report
 
