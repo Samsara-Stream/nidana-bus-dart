@@ -177,18 +177,10 @@ typedef _Inputs = ({
 /// A conformance library a binding imports: its path from the workspace root, and its slug.
 typedef _Suite = ({String path, String slug});
 
-/// A binding, by its path relative to its slug's fixture directory.
-final RegExp _bindingLibrary = RegExp(r'^behavior/[^/]+_test\.dart$');
-
-/// A conformance library, by its path from the workspace root; its slug in group 1.
-final RegExp _suiteLibrary = RegExp(
-  r'^hsdd/contract/fixture/([^/]+)/behavior/[^/]+_conformance\.dart$',
-);
-
 /// The relative paths of the bindings of [snapshot], ascending.
 List<String> _bindingsOf(SlugSnapshot snapshot) => <String>[
   for (final String relative in snapshot.files.keys)
-    if (_bindingLibrary.hasMatch(relative)) relative,
+    if (isBindingPath(relative)) relative,
 ]..sort();
 
 /// The source of the file at [relative] below [snapshot]'s fixture directory, as the shell
@@ -206,12 +198,18 @@ SourceDecoding? _decodingAt(SlugSnapshot snapshot, String relative) =>
 List<_Suite> _suitesOf(String path, DartLibrary binding) => <_Suite>[
   for (final String uri in binding.directives)
     if (Uri.tryParse(uri) case Uri(hasScheme: false) when !uri.startsWith('/'))
-      if (_suiteLibrary.firstMatch(
-            p.posix.normalize(p.posix.join(p.posix.dirname(path), uri)),
-          )
-          case final RegExpMatch match)
-        (path: match.group(0)!, slug: match.group(1)!),
+      ?_suiteAt(p.posix.normalize(p.posix.join(p.posix.dirname(path), uri))),
 ];
+
+/// The conformance library at [path], a `/`-separated path from the workspace root, with its
+/// slug: when [path] is `hsdd/contract/fixture/{slug}/{relative}` and [isConformancePath] accepts
+/// `{relative}`; null otherwise.
+_Suite? _suiteAt(String path) => switch (path.split('/')) {
+  ['hsdd', 'contract', 'fixture', final String slug, ...final List<String> rest]
+      when slug.isNotEmpty && isConformancePath(rest.join('/')) =>
+    (path: path, slug: slug),
+  _ => null,
+};
 
 /// The binding at [path] can be read; then [_planImports].
 BindingPlan _planBinding(_Inputs inputs, String path, SourceDecoding binding) =>

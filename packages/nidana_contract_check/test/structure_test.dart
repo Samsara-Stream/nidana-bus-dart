@@ -352,6 +352,48 @@ void main() {
         <String>['binding (not listed in ## Validation)'],
       );
     });
+    test('isBindingPath accepts behavior/{name}_test.dart directly under behavior/ alone', () {
+      for (final String path in <String>[
+        'behavior/sample_impl_test.dart',
+        'behavior/a_test.dart',
+      ]) {
+        expect(isBindingPath(path), isTrue, reason: path);
+      }
+      for (final String path in <String>[
+        'behavior/nested/sample_impl_test.dart',
+        'behavior/sample_impl_test.json',
+        'behavior/sample_impl_test.dart.orig',
+        'behavior/_test.dart',
+        'behavior/sample_impl_tests.dart',
+        'behavior/sample_impltest.dart',
+        'behavior/sample_conformance.dart',
+        'surface/sample_impl_test.dart',
+        'sample_impl_test.dart',
+      ]) {
+        expect(isBindingPath(path), isFalse, reason: path);
+      }
+    });
+    test('isConformancePath accepts behavior/{name}_conformance.dart directly under behavior/ alone', () {
+      for (final String path in <String>[
+        'behavior/sample_conformance.dart',
+        'behavior/a_conformance.dart',
+      ]) {
+        expect(isConformancePath(path), isTrue, reason: path);
+      }
+      for (final String path in <String>[
+        'behavior/nested/sample_conformance.dart',
+        'behavior/sample_conformance.json',
+        'behavior/sample_conformance.dart.orig',
+        'behavior/_conformance.dart',
+        'behavior/sample_conformances.dart',
+        'behavior/sampleconformance.dart',
+        'behavior/sample_impl_test.dart',
+        'surface/sample_conformance.dart',
+        'sample_conformance.dart',
+      ]) {
+        expect(isConformancePath(path), isFalse, reason: path);
+      }
+    });
     test('a src/ import or export', () {
       final String use = sampleFiles['${s}surface/use.dart']!;
       expect(

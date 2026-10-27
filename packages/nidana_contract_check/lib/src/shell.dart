@@ -148,7 +148,7 @@ Future<int> runCli(
   final Directory? root = findWorkspaceRoot(workingDirectory);
   if (root == null) {
     err.writeln(
-      'error: no ancestor of ${_absolute(workingDirectory).path} '
+      'error: no ancestor of ${absoluteDirectory(workingDirectory).path} '
       'holds hsdd/contract/',
     );
     return exitEnvironment;
@@ -588,11 +588,6 @@ typedef _Entry = ({String path, FileSystemEntity entity});
 /// Whether the snapshot records [entity] as a file: a file, or a symbolic
 /// link, which is never descended into.
 bool _isFile(FileSystemEntity entity) => entity is File || entity is Link;
-
-/// [directory] as an absolute, normalized path, as [findWorkspaceRoot]
-/// starts from it.
-Directory _absolute(Directory directory) =>
-    Directory(p.normalize(directory.absolute.path));
 
 /// [entity]'s path relative to [base], `/`-separated.
 String _relative(FileSystemEntity entity, Directory base) =>

@@ -113,12 +113,13 @@ String runnerFailure(BindingRun run, int exitCode, String stderr) {
 /// `cases` problem, whatever `done` says: a filter that admits no case name
 /// ends with a `done` whose `success` is true. A run with no failed case
 /// passes, its counts the line's detail, unless the runner's `done` reported
-/// failure: then a `cases` problem says so before the counts (ADR-001 item 9
-/// fails a binding when any of its cases fails, and package:test fails `done`
-/// for a failure it reports in no `testDone`). Otherwise a `cases` problem
-/// holds the counts and one `failed-case` problem names each failing case, in
-/// order. Every count prints, zero or not, and a restricted run names its
-/// restriction after the runner.
+/// failure, as package:test does for a failure it reports in no `testDone`:
+/// then a `cases` problem says so before the counts. That is the run's
+/// reading of ADR-001 item 9, under which the tool exits 1 when any fixture
+/// fails: a binding fails when any of its cases fails. Otherwise a `cases`
+/// problem holds the counts and one `failed-case` problem names each failing
+/// case, in order. Every count prints, zero or not, and a restricted run
+/// names its restriction after the runner.
 FixtureOutcome ranOutcome(BindingRun run, Reported report) {
   final String runner = run.runner.label;
   final String restriction = switch (run.admitted) {

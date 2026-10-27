@@ -92,6 +92,18 @@ bool holdsSource(String relativePath) =>
     relativePath.endsWith('.dart') &&
     _sourceDirectories.contains(relativePath.split('/').first);
 
+/// Whether a file is a binding: a `behavior/{name}_test.dart` directly under
+/// `behavior/`, by its `/`-separated path relative to its slug's fixture
+/// directory (ADR-001 item 4).
+bool isBindingPath(String relativePath) => _bindingPath.hasMatch(relativePath);
+
+/// Whether a file is a conformance library: a
+/// `behavior/{name}_conformance.dart` directly under `behavior/`, by its
+/// `/`-separated path relative to its slug's fixture directory (ADR-001
+/// item 4).
+bool isConformancePath(String relativePath) =>
+    _conformancePath.hasMatch(relativePath);
+
 /// Whether a file is a document the schema set judges: any file below
 /// `valid/` or `invalid/`, whatever its name, nested ones included (ADR-001
 /// item 5).
@@ -117,3 +129,7 @@ const Set<String> _sourceDirectories = <String>{
 };
 
 const Set<String> _documentDirectories = <String>{'valid', 'invalid'};
+
+final RegExp _bindingPath = RegExp(r'^behavior/[^/]+_test\.dart$');
+
+final RegExp _conformancePath = RegExp(r'^behavior/[^/]+_conformance\.dart$');

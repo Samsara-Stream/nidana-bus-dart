@@ -153,10 +153,6 @@ typedef _Citation = ({String path, Set<int> ids, bool covers});
 
 final RegExp _srcUri = RegExp(r'^package:[^/]+/src/');
 final RegExp _testPackageUri = RegExp(r'^package:(test|flutter_test)/');
-final RegExp _conformanceLibrary = RegExp(
-  r'^behavior/[^/]+_conformance\.dart$',
-);
-final RegExp _bindingLibrary = RegExp(r'^behavior/[^/]+_test\.dart$');
 final RegExp _invocationCase = RegExp(r'^invocation/([^/]+)$');
 
 /// The directories a file replay reads (ADR-001 item 6), in the order a
@@ -291,11 +287,11 @@ Iterable<_Found> _library(_Slug slug, _Library library) =>
         if (_srcUri.hasMatch(uri)) Problem(StructureRule.srcImport, uri),
       if (library.relative.startsWith('reject/'))
         ..._rejectLibrary(library.content),
-      if (_conformanceLibrary.hasMatch(library.relative)) ...<Problem>[
+      if (isConformancePath(library.relative)) ...<Problem>[
         ..._conformanceLibraryCases(library.content),
         ..._conformanceLibraryImports(library.content),
       ],
-      if (_bindingLibrary.hasMatch(library.relative) &&
+      if (isBindingPath(library.relative) &&
           !slug.listedBindings.contains(library.relative))
         const Problem(StructureRule.binding, 'not listed in ## Validation'),
     ]);
@@ -458,7 +454,7 @@ List<_Citation> _citations(_Slug slug) => <_Citation>[
       ])
         (path: library.path, ids: ids, covers: true),
   for (final _Library library in slug.libraries)
-    if (_conformanceLibrary.hasMatch(library.relative))
+    if (isConformancePath(library.relative))
       for (final CaseName name in _cases(library.content))
         if (caseIdOf(name.name) case final int id)
           (path: library.path, ids: <int>{id}, covers: true),
@@ -567,7 +563,5 @@ String? _bindingBelow(String directory, String binding) {
   final String? relative = binding.startsWith(directory)
       ? binding.substring(directory.length)
       : null;
-  return relative != null && _bindingLibrary.hasMatch(relative)
-      ? relative
-      : null;
+  return relative != null && isBindingPath(relative) ? relative : null;
 }
