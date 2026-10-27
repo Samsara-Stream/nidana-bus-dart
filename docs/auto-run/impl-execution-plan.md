@@ -212,6 +212,7 @@ a `Task N: complete` line; never re-dispatch them.
 | S141 | implement | superpowers:subagent-driven-development | nidana.model.11: 5 tasks, no fix rounds, final review with fixes, one fix wave; gate exit 0, 235 tests; topology-dsl@v2 fully produced (24/24 unrestricted); topology-ir restricted 17/17 | done | 9119de2; merged into impl/nidana.model as c021914 |
 | S142 | config | hsdd-config | nidana.model.12 (N=6, full-review; all 31 restricted topology-ir cases reachable, 12 for .12) | done | f0160dd |
 | S143 | code-plan | superpowers:writing-plans | nidana.model.12 (5 tasks; dry run: restricted 19/31 to 31/31, 264 tests; iterative cycle search) | done | 81214fd |
+| S144 | implement | superpowers:subagent-driven-development | nidana.model.12: 5 tasks, 1 fix round (Task 4, equal-claims test), the ownership index carried (linear), final review doc-only fixes, one doc wave; gate exit 0, 270 tests; topology-ir restricted 31/31 | done | 65dc152 |
 
 ## Notes for the report
 
@@ -443,11 +444,21 @@ that phase's writing-plans dispatch and strikes it here when the phase's plan co
   made a comment-only dartdoc edit to `list_equality.dart` (safe: no phase ran beside it).
 - End of nidana.model, governance sweep (from S140, hsdd-contract on topology-ir@v1, low): no case builds two claims
   that tie on source and scope, so the writes part of the claim order is never replayed; a compatible case.
-- End of nidana.model, governance sweep (from S143, hsdd-contract on topology-ir@v1, low): line 436 orders scope
-  violations "by topic, then owner, then reader" but not two owners with one source and different scopes (result
-  order is on the Breaking list); proposed compatible wording "then owner by its source's rendering and then its
-  scope", which the code implements; no conformance case is deep enough to reject a recursive cycle search (a
-  ring of 10000 overflows it under `dart test`), a compatible G13 case.
+- End of nidana.model, governance sweep (from S143, widened by S144's final review; hsdd-contract on
+  topology-ir@v1): line 436 orders scope violations "by topic, then owner, then reader" and lists "each owner (...)
+  and each topology that reads it, in graph order", which also reads as owners in graph order (topologies by id,
+  then claims); it leaves open both that and two owners of one source in different scopes (result order is on
+  the Breaking list). nidana.model.12's code orders owners by their source's rendering and then their scope
+  (claim sources such as `service:` before `topology:` owners); a sweep that wrote "owners in graph order" would
+  make the code and nidana-checks' scope-violation line order wrong. Proposed compatible wording, settling both:
+  "then owner by its source's rendering and then its scope". Also no conformance case is deep enough to reject a recursive cycle search (a
+  ring of 10000 overflows it under `dart test`), a compatible G13 case. Also (S144): seven seeded defects pass the
+  analyses' conformance cases and fail only nidana.model.12's package tests (the dry run's D1, D2, D4, D7, D8, D11
+  and D14: result orders, a dedup read not matched, a growable result, repeated cycle topics;
+  `docs/auto-run/experiments/analyses-plan/output.txt`); compatible cases would pin them in the suite.
+- nidana.tooling.codegen planning (from S144's final review, low): how nidana-checks picks the site for a scope
+  violation whose owner's source two equal claims share (equal claims collapse to one violation; "matched in site
+  order" leaves it open).
 - nidana.tooling.codegen.6, .9, .11 and nidana.tooling.lint.4 (from S122): the first gates to run the 39 committed
   recorded invocations and topic-codegen's file replay for real (all PENDING until then); their `{files}` and
   `{root}` recordings and in-place `files/` runs are first exercised there.
