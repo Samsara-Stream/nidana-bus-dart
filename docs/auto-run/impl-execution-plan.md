@@ -181,7 +181,8 @@ a `Task N: complete` line; never re-dispatch them.
 | S110 | reconcile (inserted) | hsdd-reconcile | nidana.model pending section: three Delivery amends within version, conventions fp-progression | done | 87b473a |
 | S111 | config | hsdd-config | nidana.model.4 re-run after the re-plan (N 6) | done | a78d464 |
 | S112 | code-plan | superpowers:writing-plans | nidana.model.4 (5 tasks; dry run 57/57; purity hardening routed in) | done | d3c8f85 |
-| S113 | implement | superpowers:subagent-driven-development | nidana.model.4: 5 tasks, 2 fix rounds (purity reader), final review with one fix wave; gate exit 0, 32 tests, 57/57 | done | ccac409 (merge recorded in the next row) |
+| S113 | implement | superpowers:subagent-driven-development | nidana.model.4: 5 tasks, 2 fix rounds (purity reader), final review with one fix wave; gate exit 0, 32 tests, 57/57 | done | ccac409; merged into impl/nidana.model as 3c147db |
+| S114 | config | hsdd-config | nidana.model.5 | done | d514fe4 |
 
 ## Notes for the report
 
