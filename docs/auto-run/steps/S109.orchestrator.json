@@ -1,0 +1,37 @@
+{
+  "step_ref": "S109",
+  "decisions": [
+    {
+      "at": "2026-10-26T23:40:14Z",
+      "artifact": "hsdd/spec/nidana.model.md",
+      "question": "S108 found nidana.model.4's scope cannot analyze: it lands topology-ir@v1's TopologyDefinition with its factory and getters, which name TransformEdge, and the plan lands TransformEdge, EdgeInput, TopicInput, StageInput, CombinatorKind and FunctionRef at nidana.model.5. How is it fixed?",
+      "options": [
+        {
+          "label": "Re-plan the unshipped nidana.model.4 and .5 through hsdd-phase-plan: .4 lands the whole main library (topology-dsl@v2 and topology-ir@v1's IR and Function references sections), .5 lands topology_ir.dart; reconcile rewrites topology-ir@v1's Delivery paragraph",
+          "consequence": "The plan states what the phases can do; the split follows the two public libraries; consumer edges still wait on .5; two governance steps and a re-run switch before .4's plan."
+        },
+        {
+          "label": "Rule that .4's implementers land the types its signatures name, leaving the plan text as it is",
+          "consequence": "No governance step, but the node plan, .4's and .5's contexts and topology-ir@v1's Delivery paragraph would all misstate where declarations land, and a phase would be deviating from its plan by order of the controller."
+        },
+        {
+          "label": "Land TopologyDefinition without its factory and getters at .4",
+          "consequence": "Breaks D3 (a type-level phase lands the declarations its contract's Interface states) and the scope's own words."
+        }
+      ],
+      "chosen": "Re-plan the unshipped nidana.model.4 and .5 through hsdd-phase-plan: .4 lands the whole main library (topology-dsl@v2 and topology-ir@v1's IR and Function references sections), .5 lands topology_ir.dart; reconcile rewrites topology-ir@v1's Delivery paragraph",
+      "why": "Governance changes only through its owning skill, and the phase context's Discipline says a plan that is wrong mid-phase goes back to the root; the intake segment re-planned unshipped phases in place the same way (S86, S92). A Dart declaration cannot name an undeclared type, so the closure of TopologyDefinition's signatures must land with it; the main library holds exactly that closure, which makes the split principled rather than ad hoc.",
+      "evidence": [
+        "docs/auto-run/steps/S108.json (contract_gaps)",
+        "hsdd/contract/topology-ir.md lines 26, 43, 45, 121-134",
+        "hsdd/adr/001-executable-contract-validation.md item 10",
+        "hsdd/spec/nidana.model.md D1, D3"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": true,
+      "stop_class": "axis",
+      "would_upstream": false
+    }
+  ]
+}

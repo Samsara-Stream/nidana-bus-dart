@@ -7,7 +7,7 @@
 #
 # Usage:
 #   step-commit.sh <step_ref> <ledger_step> <skill> <target> <started> <artifact_sha> <dispatches> \
-#                  [--note <text>] [report.json ...]
+#                  [--note <text>] [report.json | other file to commit ...]
 set -euo pipefail
 
 if [ $# -lt 7 ]; then
@@ -21,6 +21,7 @@ if [ "${1:-}" = "--note" ]; then note=$2; shift 2; fi
 
 L=docs/auto-run/tools/ledger.mjs
 for r in "$@"; do
+  case "$r" in *.json) ;; *) continue ;; esac
   n=$(node -e 'const p=JSON.parse(require("fs").readFileSync(process.argv[1],"utf8"));const d=Array.isArray(p)?p:(p.decisions||[]);console.log(d.length)' "$r")
   if [ "$n" -gt 0 ]; then node "$L" decisions "$lstep" "$ref" "$sha" "$r"; fi
 done

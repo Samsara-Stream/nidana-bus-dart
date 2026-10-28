@@ -1,0 +1,78 @@
+{
+  "step_ref": "S132",
+  "decisions": [
+    {
+      "at": "2026-10-27T13:13:05Z",
+      "artifact": null,
+      "question": "SDD pre-flight for nidana.model.9 (spot-check): which model implements each task?",
+      "options": [
+        {
+          "label": "Sonnet for every task",
+          "consequence": "The run's rule for non-full-review phases; the plan's code was dry-run."
+        },
+        {
+          "label": "Opus for Task 3 (multi-input calls and the typed apply closures)",
+          "consequence": "More capable on the subtlest task; departs from the run's rule."
+        }
+      ],
+      "chosen": "Sonnet for every task",
+      "why": "The run's model rule and nidana.model.8's precedent; every Dart block was checked against the dry run.",
+      "evidence": [
+        "docs/auto-run/impl-execution-plan.md How a phase runs item 3",
+        "docs/auto-run/experiments/recording-builder-plan/"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T14:05:40Z",
+      "artifact": "packages/nidana_dart_contracts/test/combining_stages_test.dart",
+      "question": "nidana.model.9 Task 3's review found two surviving mutants (a one-input withLatestFrom apply never exercised; a wrong-length check that rejects only too many). The Global Constraints say the phase edits no test file once written. Carry the fix into Task 4?",
+      "options": [
+        {
+          "label": "Carry into Task 4 as a separate commit editing Task 3's test file, by ruling",
+          "consequence": "Two mutants killed before the final review; one sanctioned deviation recorded in the verification doc."
+        },
+        {
+          "label": "Leave to the final review",
+          "consequence": "Cheaper now; the final fix wave would carry a code-adjacent change and a gate re-run."
+        }
+      ],
+      "chosen": "Carry into Task 4 as a separate commit editing Task 3's test file, by ruling",
+      "why": "The assertions are three lines and kill mutants the reviewer reproduced; doing it before the final review keeps the final wave doc-only (it was).",
+      "evidence": [
+        "docs/auto-run/steps/S132.sdd-progress.md (Task 3, Task 4)"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T14:05:40Z",
+      "artifact": "hsdd/verify/nidana.model.9.verification.md",
+      "question": "nidana.model.9's final review found no code issue and six wording corrections in the verification doc (the amended gate unstated, a miscounted set, an unnamed plan). Fix wave scope?",
+      "options": [
+        {
+          "label": "One doc-only fix wave; park every code Minor (message grammar, argument position) and route them to nidana.model.11, which edits the DSL library",
+          "consequence": "No gate re-run; the owner signs an accurate doc; two cosmetic code points wait one phase."
+        },
+        {
+          "label": "Include the code Minors",
+          "consequence": "Forces a gate re-run and a rewrite of Observed and Metrics for cosmetic changes."
+        }
+      ],
+      "chosen": "One doc-only fix wave; park every code Minor (message grammar, argument position) and route them to nidana.model.11, which edits the DSL library",
+      "why": "The reviewer's triage; the gate at 3d9b243 reproduces Observed, so a doc-only wave keeps the evidence true.",
+      "evidence": [
+        "docs/auto-run/steps/S132.sdd-progress.md (final review)"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "would_upstream": false
+    }
+  ]
+}

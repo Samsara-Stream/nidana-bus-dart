@@ -1,0 +1,79 @@
+{
+  "step_ref": "S141",
+  "decisions": [
+    {
+      "at": "2026-10-27T16:33:13Z",
+      "artifact": null,
+      "question": "SDD pre-flight for nidana.model.11 (spot-check): which model implements each task?",
+      "options": [
+        {
+          "label": "Sonnet for every task",
+          "consequence": "The run's rule for non-full-review phases; the plan's code was dry-run."
+        },
+        {
+          "label": "Opus for Task 1 (the projection)",
+          "consequence": "More capable on the cross-library projection; departs from the run's rule."
+        }
+      ],
+      "chosen": "Sonnet for every task",
+      "why": "The run's model rule and nidana.model.8 to .10's precedent; every Dart block was dry-run (docs/auto-run/experiments/projection-graphs-plan/).",
+      "evidence": [
+        "docs/auto-run/impl-execution-plan.md How a phase runs item 3"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T17:28:57Z",
+      "artifact": "packages/nidana_dart_contracts/lib/src/ir/definition.dart",
+      "question": "nidana.model.11's final review: the second-sink message (routed to nidana.model.13 after Task 4) blames value types that render alike even for a genuine repeat; D4 gives lib/src/ir/ to .4, .10 and .11, not .13. Where is it fixed?",
+      "options": [
+        {
+          "label": "In nidana.model.11's final fix wave (this phase's file under D4), with a test for a genuine repeat; .13 keeps only the FormatException conversion",
+          "consequence": ".13 stays inside json/; one more code commit and a gate re-run here."
+        },
+        {
+          "label": "Leave it routed to .13",
+          "consequence": ".13 would edit ir/ beside .12, repeating the D4 deviation already routed for list_equality.dart."
+        }
+      ],
+      "chosen": "In nidana.model.11's final fix wave (this phase's file under D4), with a test for a genuine repeat; .13 keeps only the FormatException conversion",
+      "why": "The final reviewer's triage; D4 keeps phases that run side by side on disjoint directories.",
+      "evidence": [
+        "docs/auto-run/steps/S141.sdd-progress.md (final review)",
+        "hsdd/spec/nidana.model.md D4"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T17:28:57Z",
+      "artifact": null,
+      "question": "nidana.model.11: the rendered-alike corner (two state topics of one name whose value types render alike pass planOf, and definition now throws ArgumentError named transforms). Stop the run for the owner?",
+      "options": [
+        {
+          "label": "No stop; it stays routed to the end-of-node governance sweep, with a nidana.runtime planning note to compute plan.definition before wiring",
+          "consequence": "activate throws ArgumentError before anything is claimed or wired; the program is already invalid under Spec 4.3; every likely governance fix keeps it rejected."
+        },
+        {
+          "label": "Stop for the owner",
+          "consequence": "Halts the node for a corner no fixture exercises and no next step depends on."
+        }
+      ],
+      "chosen": "No stop; it stays routed to the end-of-node governance sweep, with a nidana.runtime planning note to compute plan.definition before wiring",
+      "why": "The stop policy reserves stops for paths where every way forward is a guess; here no next step depends on which fix governance picks (final reviewer's analysis).",
+      "evidence": [
+        "docs/auto-run/steps/S141.sdd-progress.md (final review)",
+        "hsdd/contract/topology-ir.md From a plan"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "would_upstream": false
+    }
+  ]
+}

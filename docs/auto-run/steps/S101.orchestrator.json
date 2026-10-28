@@ -1,0 +1,252 @@
+{
+  "step_ref": "S101",
+  "skill": "superpowers:subagent-driven-development",
+  "target": "nidana.model.1",
+  "status": "completed",
+  "decisions": [
+    {
+      "at": "2026-10-26T17:47:24Z",
+      "artifact": "hsdd/verify/nidana.model.1.verification.md",
+      "question": "SDD pre-flight: the plan's Task 8 names no Learning for the governance change S100 made during this phase (bus-api@v2's G13 not-executable line gained its node clause). Does the verification doc record it, and with which disposition?",
+      "options": [
+        {
+          "label": "A Learning with disposition spec-updated",
+          "consequence": "The doc carries the one gate-time finding about the tree this phase produced; spec-updated is the nearest listed disposition for a compatible touch within a contract version."
+        },
+        {
+          "label": "No Learning; the ledger and the contract's Versioning entry already record it",
+          "consequence": "The owner reviewing the phase from its verification doc would not see that the phase changed governance."
+        }
+      ],
+      "chosen": "A Learning with disposition spec-updated",
+      "why": "The template defines Learnings as gate-time findings about the tree, which this is; the doc is where the owner signs off the phase. contract-bumped would misstate a touch that kept v2.",
+      "evidence": [
+        "hsdd/templates/verification.md, Learnings",
+        "hsdd/contract/bus-api.md, Versioning (touched within v2, 2026-10-26)",
+        "docs/auto-run/steps/S100.json"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-26T17:47:24Z",
+      "artifact": null,
+      "question": "SDD pre-flight: which model implements each of nidana.model.1's eight tasks?",
+      "options": [
+        {
+          "label": "Opus for Tasks 2 to 7, sonnet for Task 1 and Task 8",
+          "consequence": "The parser, readers, scanner, structure rules and shell get the most capable model; the root-file transcription and the verification doc a mid-tier one."
+        },
+        {
+          "label": "Opus for every task of a full-review phase",
+          "consequence": "S97's rule read literally; more cost on two tasks that need no design judgement."
+        }
+      ],
+      "chosen": "Opus for Tasks 2 to 7, sonnet for Task 1 and Task 8",
+      "why": "S97 put full-review implementers on opus for the design judgement those phases hold; SDD's complexity signals say a task whose plan text holds the complete content (Task 1's root files) or that writes a document takes a lower tier.",
+      "evidence": [
+        "superpowers subagent-driven-development SKILL.md, Model Selection",
+        "docs/superpowers/plans/nidana.model.1.md, Tasks 1 and 8"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-26T17:53:45Z",
+      "artifact": "packages/nidana_contract_check/",
+      "question": "Task 1's reviewer found its Dart files not formatted by `dart format`; no gate, ADR or run rule requires formatting. Does the run format code?",
+      "options": [
+        {
+          "label": "Every implementer formats the Dart files it creates or changes with fvm dart format before committing, from Task 2 on; the final fix wave formats Task 1's files",
+          "consequence": "One style across all phases, the Dart ecosystem's own; whitespace-only diffs."
+        },
+        {
+          "label": "Leave formatting to each implementer",
+          "consequence": "Style drifts across 14 phases and many implementers; a later formatting pass touches every file."
+        },
+        {
+          "label": "Add a format check to every gate",
+          "consequence": "Enforced, but gates are governance (the phase plans) and change only through hsdd-phase-plan; out of the run's reach mid-phase."
+        }
+      ],
+      "chosen": "Every implementer formats the Dart files it creates or changes with fvm dart format before committing, from Task 2 on; the final fix wave formats Task 1's files",
+      "why": "dart format is part of the pinned SDK and is the style Dart code is expected to have; applying it costs nothing and changes no behavior. Whether a gate should enforce it is a phase-plan question for the owner, noted for the report.",
+      "evidence": [
+        ".superpowers SDD review of nidana.model.1 Task 1 (Minor: formatting)"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-26T18:51:01Z",
+      "artifact": "packages/nidana_contract_check/lib/src/contract.dart",
+      "question": "Task 3's implementer reads the recorded-invocation Case table only inside ## Validation, where the brief says 'the first line matching ^| Case |' with no section limit. Accept the narrower reading?",
+      "options": [
+        {
+          "label": "Accept: the table is read inside ## Validation only",
+          "consequence": "Matches ADR-001 item 3, which puts the table in ## Validation; a table elsewhere in a contract is prose and declares nothing."
+        },
+        {
+          "label": "Rework to the brief's literal wording",
+          "consequence": "A table anywhere in the contract would count as the declaration, so prose or an example table could change what the structure set checks."
+        }
+      ],
+      "chosen": "Accept: the table is read inside ## Validation only",
+      "why": "ADR-001 item 3 is the binding authority and says the table sits in ## Validation; both real tables (nidana-checks, topic-codegen) are there. The task reviewer raised it as a warning, not a defect. Taken 2026-10-26T18:10Z, recorded here when the run's decide tool existed.",
+      "evidence": [
+        "hsdd/adr/001-executable-contract-validation.md item 3",
+        "hsdd/contract/nidana-checks.md, Validation",
+        "hsdd/contract/topic-codegen.md, Validation"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-26T18:51:01Z",
+      "artifact": "packages/nidana_contract_check/test/structure_test.dart",
+      "question": "Task 5's reviewer found eight rules of the structure set's table and the order of problems within a path untested (a mutation survey left the brief's verbatim 20 tests green), and a Case row with a malformed Case cell still covering its ids. The brief gave its test file verbatim. Are tests beyond the brief in scope, and is the coverage choice a defect?",
+      "options": [
+        {
+          "label": "Both in scope: fix the coverage rule and add tests for every untested rule and the problem order",
+          "consequence": "The gate infrastructure every later phase relies on pins every rule it states; one fix round of about 320 test lines."
+        },
+        {
+          "label": "Fix the coverage rule only; leave the brief's tests as the full suite",
+          "consequence": "Less work, but a later edit could drop a rule or reorder problems with every test green."
+        }
+      ],
+      "chosen": "Both in scope: fix the coverage rule and add tests for every untested rule and the problem order",
+      "why": "A plan's tests are a floor; the rules table and the order of problems are stated requirements, and this is a full-review phase whose code checks every contract of the tree. ADR-001 item 3 says a recorded invocation is covered by a row holding the case directory's name in backticks, so a row without one covers nothing. Taken 2026-10-26T18:46Z.",
+      "evidence": [
+        "hsdd/adr/001-executable-contract-validation.md item 3",
+        "docs/superpowers/plans/nidana.model.1.md, Task 5 Step 4 table"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-26T19:05:43Z",
+      "artifact": "packages/nidana_contract_check/lib/src/shell.dart",
+      "question": "The brief says readSnapshot records directories and files, and is silent on symbolic links; the implementation skips them, so a top-level link, a dangling link or a linked reject/*.dart passes the structure set unseen. What is the link policy?",
+      "options": [
+        {
+          "label": "A link is a file entry; a .dart link under a source directory is read through the link; a dangling link is a FileSystemException (exit 2)",
+          "consequence": "The layout check sees every entry, a linked fixture is replayed rather than skipped, and a broken link fails loudly. One small change in shell.dart and one test."
+        },
+        {
+          "label": "Follow links as their targets",
+          "consequence": "A linked directory's contents join the snapshot as if they lived there, so a fixture tree could pull in files from outside hsdd/contract/ and be replayed as its own."
+        },
+        {
+          "label": "Keep skipping links",
+          "consequence": "The gate that exists to catch layout drift passes trees it should fail, and nidana.model.2's surface and reject sets would never replay a linked library."
+        }
+      ],
+      "chosen": "A link is a file entry; a .dart link under a source directory is read through the link; a dangling link is a FileSystemException (exit 2)",
+      "why": "ADR-001 item 9's layout check fails on any entry that is not a set or data directory; a link is an entry. Recording it as a file keeps the check honest without letting a link import a foreign tree. The repository does commit symlinks (.claude/skills), so one under hsdd/ is plausible. The task reviewer reproduced all four silent passes.",
+      "evidence": [
+        "hsdd/adr/001-executable-contract-validation.md item 9 (layout)",
+        "S101 Task 7 review (probe over a copy of the topology-ir fixture)"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-26T19:09:10Z",
+      "artifact": "hsdd/verify/nidana.model.1.verification.md",
+      "question": "Which Learnings does nidana.model.1's verification doc carry, and which disposition does the run propose for each, given that dispositions execute at the root through the owning skill and the owner confirms them at sign-off?",
+      "options": [
+        {
+          "label": "Five Learnings: bus-api G13 touch (spec-updated); stray non-Dart files in set directories, symbolic links in fixture trees, ADR-002's dated analyzer version, the phase's size overrun (each dropped with a reason)",
+          "consequence": "Every gate-time finding about the tree is visible at sign-off; none triggers a governance step the night run would have to make, and the owner can turn any dropped one into an ADR or plan change."
+        },
+        {
+          "label": "Only the bus-api touch; the rest stay in the run's ledger",
+          "consequence": "A shorter doc, but the owner signing off the phase would not see four findings about the tree."
+        },
+        {
+          "label": "Propose ADR touches for the symlink and stray-file findings",
+          "consequence": "Two more governance steps tonight for cases no committed fixture has."
+        }
+      ],
+      "chosen": "Five Learnings: bus-api G13 touch (spec-updated); stray non-Dart files in set directories, symbolic links in fixture trees, ADR-002's dated analyzer version, the phase's size overrun (each dropped with a reason)",
+      "why": "The template asks for every gate-time finding about the tree with one disposition. None of the four dropped findings changes a replay result or a later phase's scope today; each reason says what would revive it. The size overrun (3968 inserted lines in 24 files against an estimate of about 450 in about 10, two thirds of it tests) matters for the node's remaining estimates, which are the owner's to revisit.",
+      "evidence": [
+        "hsdd/templates/verification.md, Learnings",
+        "git diff --stat 61e2e51..d7c8beb -- pubspec.yaml analysis_options.yaml packages/",
+        "hsdd/adr/001-executable-contract-validation.md item 9",
+        "hsdd/adr/002-package-workspace-layout.md, Consequences"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-26T19:33:56Z",
+      "artifact": "packages/nidana_contract_check/lib/src/structure.dart",
+      "question": "The final review found that a schema or file covers clause counts toward coverage even when its set is absent (no schema file; no input/ and expected/), and that a listed set directory that is absent is never flagged, so a gate stays green while declared coverage never runs. The plan's rules table limited 'absent' to data directories. Fix now, or route to nidana.model.2?",
+      "options": [
+        {
+          "label": "Fix in this phase's final fix wave",
+          "consequence": "About 15 lines and two tests; the structure set refuses coverage that no set can replay before any later phase relies on it; the committed tree stays at 102 PASS (the reviewer checked both rules against it)."
+        },
+        {
+          "label": "Route to nidana.model.2",
+          "consequence": "Merges a structure set that can report full coverage for a guarantee no set ever checks; every gate between now and nidana.model.2 inherits it."
+        }
+      ],
+      "chosen": "Fix in this phase's final fix wave",
+      "why": "ADR-001 item 3 defines coverage by a schema set or a file replay, which only exist when their material does; the phase context's spec is the binding authority and the plan's table is its argument. The other coverers (reject headers, case names, invocation rows) already need their material, so this makes the rule uniform. Cheap now, a silent false pass if left.",
+      "evidence": [
+        "hsdd/adr/001-executable-contract-validation.md items 3 and 9",
+        "S101 final review (probe: a file contract with covers clauses and no schema file, input/ or expected/ passes 2 of 2)"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-26T19:33:56Z",
+      "artifact": "hsdd/verify/nidana.model.1.verification.md",
+      "question": "Which of the final review's other findings go into the single final fix wave, and which wait?",
+      "options": [
+        {
+          "label": "Fix wave: the two must-fix triage items (format Task 1's files; correct the verification doc's Metrics and Learning 4 wording), Minor 2 (structure picks Dart libraries by holdsSource, not by non-null source), and a refreshed Observed after the fix; route Minors 3 to 7 and the recommendations to nidana.model.2, .6 and .7",
+          "consequence": "One fix dispatch; the doc the owner signs matches the merged code; the later tool phases receive the findings that belong to the code they will change."
+        },
+        {
+          "label": "Fix every minor now",
+          "consequence": "A larger fix wave over code that nidana.model.2 reworks anyway (the shell becomes async, the summary gains PENDING)."
+        }
+      ],
+      "chosen": "Fix wave: the two must-fix triage items (format Task 1's files; correct the verification doc's Metrics and Learning 4 wording), Minor 2 (structure picks Dart libraries by holdsSource, not by non-null source), and a refreshed Observed after the fix; route Minors 3 to 7 and the recommendations to nidana.model.2, .6 and .7",
+      "why": "SDD allows one fix wave; the reviewer triaged the must-fix items. Minor 2 is one line that keeps nidana.model.2 from turning JSON sources into Dart structure subjects, so it belongs before the code it guards changes. The rest fail loudly today or touch code the next tool phases rewrite.",
+      "evidence": [
+        "S101 final review, triage and recommendations",
+        "superpowers subagent-driven-development, Final Review"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "would_upstream": false
+    }
+  ],
+  "notes": [
+    "SDD controller rulings are the decisions below; the per-task review log is docs/auto-run/steps/S101.sdd-progress.md.",
+    "Dispatches: 8 implementers (Task 1 and 8 sonnet, Tasks 2 to 7 opus), 8 task reviews (sonnet), 3 fix rounds (Tasks 5, 7, 8, resumed implementers), 3 scoped re-reviews (sonnet), 1 final review (opus), 1 final fix wave (opus), 1 final re-review (sonnet)."
+  ]
+}

@@ -124,8 +124,11 @@ tech-skill constraint.
 as four ordered bands. The plan opens with the type-level band, after any
 gate infrastructure an ADR places first (the replay tool of ADR-001 item 9,
 in nidana.model): it lands the declarations of every contract the node
-produces, each contract's declarations in one phase, that contract's first
-producing phase (ADR-001 item 10). Pure-core phases precede every effect
+produces, one type-level phase per contract, every declaration of a contract
+having landed when its first producing phase merges (ADR-001 item 10); a
+declaration that another contract's declarations name lands with that
+contract, as nidana.model.4 lands topology-ir@v1's main-library declarations
+with topology-dsl@v2's. Pure-core phases precede every effect
 phase; the final phase is the imperative shell. Chosen for the owner's
 functional-first practice (pure core, imperative shell) and because a
 contract's first producing phase then unblocks every `contract` and

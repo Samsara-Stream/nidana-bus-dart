@@ -1,0 +1,124 @@
+{
+  "step_ref": "S100",
+  "skill": "hsdd-contract",
+  "target": "bus-api@v2 touch: G13 not-executable line",
+  "status": "completed",
+  "stop": null,
+  "artifacts": [
+    "hsdd/contract/bus-api.md"
+  ],
+  "decisions": [
+    {
+      "at": "2026-10-26T17:45:00Z",
+      "artifact": "hsdd/contract/bus-api.md",
+      "question": "Which node does the `checked by {node}'s gates` clause of G13's not-executable line name?",
+      "options": [
+        { "label": "nidana.runtime", "consequence": "Matches the contract's owner and producer and the form of its G38 and G39 lines; the node whose delivery code the sentence is about owns the check." },
+        { "label": "nidana.runtime.8", "consequence": "Names the phase whose gate first replays G13 (Delivery paragraph). ADR-001 item 3 says `{node}'s gates`, so a phase id departs from the grammar and from the contract's other lines, and the phase list of the contract can move." },
+        { "label": "Leave the line without a clause and relax the replay tool", "consequence": "Contradicts ADR-001 item 3 as written, which gives both forms of the line the clause; the tool would implement a reading the ADR does not state." }
+      ],
+      "chosen": "nidana.runtime",
+      "why": "G13's last sentence says an exception the bus's own delivery code raises is a defect of the runtime and is not swallowed. nidana.runtime owns bus-api@v2 (frontmatter owner) and is its only producer; its decision D5 ('Nothing else in a delivery is caught') leaves the registry, the queue, the fan-out and the delivery loop unguarded and rejects 'a guard around each whole delivery' citing G13; its phases nidana.runtime.7 and .8 (full-review) replay G13. No other node touches that code. The same node is already named by G38 and G39 in this Validation section. A caveat for the owner: no command can check the sentence itself (that is why the line exists), so the 'gates' here are the node's replay of G13's cases plus its review of the delivery code against D5, a looser sense than G38's package_properties_test. The line's reason says so; the Versioning entry records it. The signal that would have changed my mind: ADR-001 wanting the clause to name only nodes whose gates run a command on the part.",
+      "evidence": [
+        "hsdd/contract/bus-api.md G13, Validation lines for G38 and G39, frontmatter owner and produced_by",
+        "hsdd/spec/nidana.runtime.md D5 ('Nothing else in a delivery is caught'; alternative 'A guard around each whole delivery'), nidana.runtime.7 and .8 Gate and Review tier",
+        "hsdd/adr/001-executable-contract-validation.md item 3",
+        "docs/auto-run/experiments/structure-set-plan/output.txt S1 and S2"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-26T17:45:00Z",
+      "artifact": "hsdd/contract/bus-api.md",
+      "question": "How is the change classified and recorded: a touch within v2, an amendment, or a v3 bump, and does the Versioning section get an entry?",
+      "options": [
+        { "label": "Touch within v2, Compatible, with a Versioning entry", "consequence": "Follows the section's practice for earlier touches (2026-10-21 entries); version, status, phase_ids, produced_by and consumers stay as they are; the entry carries the reason and the evidence." },
+        { "label": "Touch within v2 with no entry", "consequence": "Leaves no trace of why a Validation line changed; the section's practice and the skill's anti-rationalization table both argue against silent edits." },
+        { "label": "Bump to v3", "consequence": "Not warranted: no declaration, guarantee text, default, delivery rule or fixture changes, so no consumer's code can break; a bump would force a migration note and every consumer reference to move." }
+      ],
+      "chosen": "Touch within v2, Compatible, with a Versioning entry",
+      "why": "The edit appends a clause to a Validation line; the guarantee text, the Interface, the fixtures, the frontmatter (id, version v2, status stable, phase_ids final, produced_by, consumers) are unchanged, which git diff confirms (3 changed lines, all under Versioning and Validation). The skill's versioning policy keeps the version for a backward-compatible change, and bus-api@v2's own Versioning section records each earlier touch as 'Touched within v2' or 'Amended within v2' with a date, its cause and a Compatible classification. The entry is dated 2026-10-26 from `date -u` (the session header says 2026-10-27; the run's rule is date -u). Registry regeneration leaves hsdd/contract/INDEX.md unchanged, as expected for an unchanged frontmatter.",
+      "evidence": [
+        "hsdd/contract/bus-api.md ## Versioning (Compatible list; entries of 2026-10-21)",
+        ".claude/skills/hsdd-contract/SKILL.md, Versioning Policy and Anti-Rationalization",
+        "git diff --stat: hsdd/contract/bus-api.md only; git status shows INDEX.md unchanged after gen-registry.mjs"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-26T17:45:00Z",
+      "artifact": "hsdd/contract/bus-api.md",
+      "question": "The Validation paragraphs that describe earlier experiments say 'S17's prototype found no problem in the nine contracts', which a strict reading of item 3 contradicts for this line. Sweep them, or leave them?",
+      "options": [
+        { "label": "Leave them and explain in the Versioning entry", "consequence": "Keeps the history each paragraph reports as written (the Versioning section says experiment paragraphs keep what they describe); the entry says why that prototype read past the line." },
+        { "label": "Edit the paragraphs to add a caveat", "consequence": "Four paragraphs change for a statement that was true of the prototype as run; more edit surface and more risk for no change in any guarantee." }
+      ],
+      "chosen": "Leave them and explain in the Versioning entry",
+      "why": "The statement is a record of what that prototype reported. I read it: docs/auto-run/experiments/file-invocations/structure_check.dart matches only a not-executable line that carries 'checked by {node}'s gates', so it ignored G13's line (G13 is covered by behavior cases, so no problem followed). The Versioning entry says exactly that, and cites structure-set-plan S1 and S2 for the strict reading.",
+      "evidence": [
+        "docs/auto-run/experiments/file-invocations/structure_check.dart line 150",
+        "hsdd/contract/bus-api.md Validation, experiment paragraphs",
+        "docs/auto-run/experiments/structure-set-plan/output.txt S1, S2, S2b"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-26T17:46:07Z",
+      "artifact": "hsdd/contract/bus-api.md",
+      "question": "Does the line take only the proposed clause, or a longer reason that says how the sentence is checked?",
+      "options": [
+        { "label": "Only `; checked by nidana.runtime's gates`", "consequence": "The same shape as G38 and G39; the experiment ran this exact text (S2); the structure set reads the node and permits more text, so nothing is lost, and the caveat lives in the Versioning entry." },
+        { "label": "A longer reason after the clause", "consequence": "Says more on the line itself but departs from the text S2 verified and from the sibling lines; the explanation belongs in Versioning." }
+      ],
+      "chosen": "Only `; checked by nidana.runtime's gates`",
+      "why": "Smallest edit that satisfies ADR-001 item 3, the text the evidence verified. After the edit I re-ran the strict structure prototype over the real tree: 9 slugs, 0 problems, bus-api now 2 whole and 1 in part.",
+      "evidence": [
+        "docs/auto-run/experiments/structure-set-plan/structure_proto.dart run over the repository: 9 slugs, 0 problem(s)"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    }
+  ],
+  "experiments": [],
+  "self_check": [
+    { "gate": "Frontmatter has id, version, status, kind, owner, compatibility, produced_by, consumers; external_consumers when any exist.", "status": "pass", "note": "Frontmatter untouched (id bus-api, v2, stable, api, nidana.runtime, versioned, produced_by, consumers, external_consumers)." },
+    { "gate": "`consumers` lists phase ids that actually consume this contract.", "status": "n/a", "note": "consumers not changed by this touch." },
+    { "gate": "The Interface section is concrete enough to mock against.", "status": "n/a", "note": "Interface not changed." },
+    { "gate": "At least one guarantee/invariant is stated.", "status": "pass", "note": "42 guarantees, unchanged." },
+    { "gate": "A breaking change bumped the version and added a migration note.", "status": "n/a", "note": "The change is Compatible: a Validation clause, no guarantee, declaration, default or delivery rule changed. Version stays v2." },
+    { "gate": "The registry was regenerated.", "status": "pass", "note": "node hsdd/scripts/gen-registry.mjs ran (contract: 9, adr: 3); hsdd/contract/INDEX.md and hsdd/adr/INDEX.md are unchanged, as expected for unchanged frontmatter." },
+    { "gate": "`phase_ids` is present (`provisional` until `hsdd-reconcile` finalizes it).", "status": "pass", "note": "phase_ids: final, unchanged." },
+    { "gate": "Every code-level artifact both sides consume (types file, fixtures, shared package) names its canonical path and its owner in the Interface or Validation section: the owning phase for code, `hsdd-contract` for validation artifacts.", "status": "pass", "note": "Interface and Validation unchanged apart from the one line's clause." },
+    { "gate": "A contract or version created by this run has its schema and its kind's fixtures written at the canonical paths.", "status": "n/a", "note": "No contract or version created; fixtures unchanged and present under hsdd/contract/fixture/bus-api/ (surface, reject, behavior)." },
+    { "gate": "Open questions are cited by ID only - never defined here; prose justifying behavior as \"pending OQ-x\" is swept when the OQ resolves (hsdd-reconcile).", "status": "pass", "note": "The new text cites no open question." },
+    { "gate": "A `stable` contract names a schema or a fixtures directory at the canonical paths and the artifact exists, or it carries `validation: grandfathered` (never on a contract authored after the upgrade).", "status": "pass", "note": "Validation names hsdd/contract/fixture/bus-api/, which exists; no grandfathered key." },
+    { "gate": "No version is `retired` while a consumer or an external consumer still names it.", "status": "n/a", "note": "No version retired." },
+    { "gate": "A `v0` contract carries `## Observed completeness`, and the block changed in any commit that added fixtures to it.", "status": "n/a", "note": "bus-api is v2, not v0; no fixture added." },
+    { "gate": "Prose rules (preamble): no em-dash character and none of the banned phrase in what is written.", "status": "pass", "note": "grep of hsdd/contract/bus-api.md finds neither." },
+    { "gate": "Structure of all nine contracts under ADR-001 item 3 as written (the purpose of the touch).", "status": "pass", "note": "structure_proto.dart over the repository after the edit: 9 slugs, 0 problem(s). Before the edit (output.txt S1) it reported the G13 line." },
+    { "gate": "docs/auto-run/tools/gate.mjs --skill hsdd-contract", "status": "pass", "note": "Four errors, all the known owner-file hash mismatches the orchestrator recorded (HARNESS.md, JUDGEMENT-LAYER.md, explorer/build.py, explorer/index.html); none added by this step; 2 changed files (bus-api.md and the untracked orchestrator file)." }
+  ],
+  "contract_gaps": [],
+  "notes_for_orchestrator": [
+    "Verified against the files: the claim holds. bus-api.md Validation line 437 was the only not-executable line of the nine contracts without '; checked by {node}'s gates' (grep: 20 lines across seven contracts, 19 carry the clause). structure-set-plan S1 fails exactly that line; S2 and my re-run over the real tree pass with 0 problems.",
+    "Write set respected: only hsdd/contract/bus-api.md changed (two lines added or changed: the G13 Validation line, and one new 'Touched within v2, 2026-10-26' bullet in Versioning, placed after the 2026-10-21 entries and before 'v1 history'). Registries regenerated, unchanged. Frontmatter unchanged: bus-api stays v2, stable, phase_ids final. No commit, no git state change; docs/auto-run/steps/S100.orchestrator.json is the orchestrator's untracked file and was not touched.",
+    "A caveat the owner may want to know: G13's last sentence has no command that checks it. 'checked by nidana.runtime's gates' means the node's replay of G13's cases and its review of the delivery code against nidana.runtime D5 (nidana.runtime.7 and .8 are full-review phases), not a test like G38's package_properties_test. ADR-001 item 3 requires the clause for both forms of the line and the structure set reads only the node, so the line is valid; the Versioning entry states the looser sense. If ADR-001 should say what 'gates' covers for a part no command reaches, that is an ADR matter, not raised here.",
+    "The earlier structure prototype (docs/auto-run/experiments/file-invocations/structure_check.dart) counted only not-executable lines that carry the clause, so it passed this contract while the line lacked it. Nothing else in the tree depends on that; the Validation paragraphs that quote its result are left as written.",
+    "nidana.model.1's plan can now rely on the strict reading of ADR-001 item 3 (both forms need the node clause) for the nine contracts as committed."
+  ]
+}

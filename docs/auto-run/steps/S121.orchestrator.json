@@ -1,0 +1,62 @@
+{
+  "step_ref": "S121",
+  "decisions": [
+    {
+      "at": "2026-10-27T06:51:11Z",
+      "artifact": "docs/superpowers/plans/nidana.model.7.md",
+      "question": "S121 found that ADR-001 item 9's one dart pub get --enforce-lockfile does not cure the exit 255 of dart run {package}:{executable} from a files/ directory on a workspace pub reads as stale (mtimes), and planned to run such a command as the package's bin script under the running dart with --packages. Accept the plan, or stop for the governance first?",
+      "options": [
+        {
+          "label": "Accept; route the ADR-001 items 7 and 9 restatement, nidana.model.md Scope (4) and nidana-checks@v1's Validation sentence to the end-of-node governance sweep",
+          "consequence": "Implementation proceeds; the tool's form stays within item 7's text (it names the command, not how it runs); the governance's stated reason stays wrong until the sweep, which changes no code."
+        },
+        {
+          "label": "Insert hsdd-adr, hsdd-spec and hsdd-contract touches before implementing",
+          "consequence": "Three governance steps now for wording that changes no code; delays the tool lane."
+        },
+        {
+          "label": "Run dart run as written",
+          "consequence": "Twelve committed recorded invocations read exit 255 as their exit code whenever the workspace reads stale, which it does now."
+        }
+      ],
+      "chosen": "Accept; route the ADR-001 items 7 and 9 restatement, nidana.model.md Scope (4) and nidana-checks@v1's Validation sentence to the end-of-node governance sweep",
+      "why": "The experiments (file-cli-sets-plan K, M, N) show the failure and that no pub command refreshes the mtimes; the script form prints what dart run prints. Item 7 fixes the command's name, not its mechanism, so no governance text is contradicted; only the reason item 9 and Scope (4) give is wrong, and nidana.tooling's gates, the first to run these cases, come after the sweep.",
+      "evidence": [
+        "docs/auto-run/steps/S121.json contract_gaps",
+        "docs/auto-run/experiments/file-cli-sets-plan/",
+        "hsdd/adr/001-executable-contract-validation.md items 7 and 9"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": true,
+      "stop_class": "upstream",
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T06:51:11Z",
+      "artifact": "docs/superpowers/plans/nidana.model.7.md",
+      "question": "The plan checks the restriction before PENDING for file and cli (nidana-checks@v1 has two producers, each gating on its own share), while nidana.model.6's behavior set checks PENDING first. Align the behavior set?",
+      "options": [
+        {
+          "label": "Keep both orders; record that every committed binding's packages exist by the first gate that runs it",
+          "consequence": "No gate fails on the asymmetry today; a future binding whose suite slug is restricted out but whose package comes later would read PENDING under behavior."
+        },
+        {
+          "label": "Reorder behavior now",
+          "consequence": "Reopens a merged, reviewed phase for no gate that needs it."
+        }
+      ],
+      "chosen": "Keep both orders; record that every committed binding's packages exist by the first gate that runs it",
+      "why": "Checked: flutter_navigation_executor_test.dart imports nidana_dart_navigation, created by nidana.navigation.1, on which nidana.flutter.1 depends; bus-api's bindings import the runtime that produces them. The behavior order is plan-reviewed (nidana.model.6 decision 5). The asymmetry goes to the report notes and the end-of-node sweep, where an ADR-001 touch can state one order.",
+      "evidence": [
+        "hsdd/contract/fixture/*/behavior/*_test.dart imports",
+        "hsdd/spec/nidana.flutter.md phase table",
+        "docs/superpowers/plans/nidana.model.6.md decision 5"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "would_upstream": false
+    }
+  ]
+}

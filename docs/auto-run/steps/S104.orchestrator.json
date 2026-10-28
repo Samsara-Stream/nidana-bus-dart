@@ -1,0 +1,188 @@
+{
+  "step_ref": "S104",
+  "decisions": [
+    {
+      "at": "2026-10-26T20:27:02Z",
+      "artifact": null,
+      "question": "SDD pre-flight for nidana.model.2: which model implements each of the seven tasks?",
+      "options": [
+        {
+          "label": "Opus for Tasks 1 to 6, sonnet for Task 7",
+          "consequence": "The schema set, analyzer attribution, async shell and structure polish get the most capable model; the verification doc a mid-tier one."
+        },
+        {
+          "label": "Sonnet for the smaller tasks (1, 6)",
+          "consequence": "Cheaper, but Task 1 defines the public fixture library every conformance suite imports and Task 6 changes rules the whole tree's gates read."
+        }
+      ],
+      "chosen": "Opus for Tasks 1 to 6, sonnet for Task 7",
+      "why": "Full-review phase of gate infrastructure, as S101's allocation; every code task here changes what later gates accept.",
+      "evidence": [
+        "docs/auto-run/steps/S97.orchestrator.json (model decision)",
+        "hsdd/spec/nidana.model.md, nidana.model.2 tier full-review"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-26T20:27:02Z",
+      "artifact": null,
+      "question": "SDD's pre-flight scan asks the controller to read the plan once and tabulate every task pair that shares a file or interface and every task's self-consistency. Over 14 phases, how much of each plan does the orchestrator read?",
+      "options": [
+        {
+          "label": "Each task's Files and Interfaces blocks plus the Global Constraints and Review Focus; per-task test-versus-code consistency left to the task reviewer, who reads the whole brief",
+          "consequence": "The shared-file and interface rows are complete; the orchestrator's context stays usable across 14 phases; a conflict inside one task's text surfaces in its review instead of before dispatch."
+        },
+        {
+          "label": "The whole plan, as for nidana.model.1",
+          "consequence": "About 30,000 tokens of context per phase, which forces context summaries every phase or two and loses the routing notes the orchestrator carries."
+        }
+      ],
+      "chosen": "Each task's Files and Interfaces blocks plus the Global Constraints and Review Focus; per-task test-versus-code consistency left to the task reviewer, who reads the whole brief",
+      "why": "In nidana.model.1 the full read found no conflict the task reviews did not also catch, while every Important finding came from a review. Cross-task conflicts live in the Files and Interfaces blocks, which the scan still reads whole.",
+      "evidence": [
+        "docs/auto-run/steps/S101.sdd-progress.md (pre-flight scan and the review findings)",
+        "superpowers subagent-driven-development, Setup (pre-flight scan)"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-26T21:34:31Z",
+      "artifact": "packages/nidana_contract_check/lib/src/shell.dart",
+      "question": "Task 5's review found that a surface or reject library linked to a file outside hsdd/contract/fixture/ is analyzed under the options at its real location, so it can pass where the same content in the fixture tree fails, and that the attribution rules (fan-out by resolved path, strays, target union) sit in the shell. What does the fix round do?",
+      "options": [
+        {
+          "label": "A target that resolves outside hsdd/contract/fixture/ is an environment error naming the link and its target; attribution moves into analysis.dart as a pure function with in-memory tests",
+          "consequence": "No false pass under foreign options; the rules that decide which fixture gets which diagnostic are pure and tested without the analyzer; the shell reads, resolves and runs."
+        },
+        {
+          "label": "Record the outside link as a known limitation in the verification doc",
+          "consequence": "No code change, but a latent false pass stays in the gate infrastructure and the shell keeps decisions the pure-core constraint gives to the core."
+        }
+      ],
+      "chosen": "A target that resolves outside hsdd/contract/fixture/ is an environment error naming the link and its target; attribution moves into analysis.dart as a pure function with in-memory tests",
+      "why": "The phase scope requires analysis under hsdd/contract/fixture/analysis_options.yaml, which the analyzer cannot apply to a file outside that tree; refusing loudly is the only reading that keeps the scope. The plan's Global Constraints put every decision in the pure core. No committed fixture is a link, so neither change moves a current result.",
+      "evidence": [
+        "hsdd-context/superpowers/nidana.model.2.md, Goal (2)",
+        "S104 Task 5 review (reproduction: linked.dart PASS where real.dart FAILs with invalid_assignment)",
+        ".superpowers plan Global Constraints (pure core, imperative shell)"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-26T21:54:46Z",
+      "artifact": "packages/nidana_contract_check/test/ids_test.dart",
+      "question": "Task 6 bounds an id range at most 1000 ids (b - a < 1000), as the brief's step and its own assertions require, but two test names the brief gave verbatim say 'fewer than 1000' and '1000 ids or more is malformed', which misstate the boundary. Rename them?",
+      "options": [
+        {
+          "label": "Rename both to state the rule as implemented, in the final fix wave",
+          "consequence": "Test names say what the code does; two strings change."
+        },
+        {
+          "label": "Keep the brief's names",
+          "consequence": "A reader of the test list learns a rule the code does not have."
+        }
+      ],
+      "chosen": "Rename both to state the rule as implemented, in the final fix wave",
+      "why": "The code, the brief's Step 3 and the brief's assertions agree; only the names are off by one. A test name is documentation the next phase reads.",
+      "evidence": [
+        "S104 Task 6 review, Judgement 1",
+        "packages/nidana_contract_check/lib/src/ids.dart (the bound)"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-26T21:54:46Z",
+      "artifact": "hsdd/verify/nidana.model.2.verification.md",
+      "question": "Which Outstanding item and Learnings does nidana.model.2's verification doc carry, with which proposed dispositions?",
+      "options": [
+        {
+          "label": "Outstanding: surface and reject verified only on seeded fixtures (deferred to nidana.model.3); Learnings: the range bound, the 2020-12 $schema refusal, the link-outside-fixtures refusal, the size overrun, each dropped with a reason",
+          "consequence": "The owner sees that the committed surface and reject fixtures have not yet met a real package, and every tool-side reading of ADR-001 this phase made."
+        },
+        {
+          "label": "No Outstanding item; the PENDING replay counts as verification",
+          "consequence": "Reads as if the surface and reject sets were proven against the contracts, which a PENDING replay does not do."
+        }
+      ],
+      "chosen": "Outstanding: surface and reject verified only on seeded fixtures (deferred to nidana.model.3); Learnings: the range bound, the 2020-12 $schema refusal, the link-outside-fixtures refusal, the size overrun, each dropped with a reason",
+      "why": "Outstanding is what this environment could not verify; the producing packages do not exist until nidana.model.3 to .5, so the committed surface and reject fixtures are PENDING by design. The Learnings are tool-side readings of ADR-001 that refuse inputs the ADR does not mention; none changes a committed result.",
+      "evidence": [
+        "hsdd/templates/verification.md, Outstanding and Learnings",
+        "S104 task reviews 1, 5 and 6"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-26T22:20:11Z",
+      "artifact": "hsdd/verify/nidana.model.2.verification.md",
+      "question": "nidana.model.2's final review is 'with fixes': three factual slips in the verification doc and the two ruled test renames must be fixed; it also rehearsed nidana.model.3's first real replay against the experiment stand-in (117 of 117, a seeded defect failing) and suggested recording it. What goes into the one fix wave?",
+      "options": [
+        {
+          "label": "The four must-fix items, plus the stand-in rehearsal recorded in Observed and the Outstanding wording softened to match it; the nidana.model.6 recommendations routed",
+          "consequence": "The doc the owner signs is accurate and carries the strongest evidence available before nidana.model.3; no code changes beyond two test names."
+        },
+        {
+          "label": "The four must-fix items only",
+          "consequence": "Accurate, but the doc keeps saying nothing in this phase can verify the surface and reject sets, which the rehearsal disproves."
+        }
+      ],
+      "chosen": "The four must-fix items, plus the stand-in rehearsal recorded in Observed and the Outstanding wording softened to match it; the nidana.model.6 recommendations routed",
+      "why": "The rehearsal is reproducible evidence that the sets behave on real fixtures against a package matching the Interface; the real verification still belongs to nidana.model.3 to .5, so the Outstanding disposition stays. Recording it costs one paragraph.",
+      "evidence": [
+        "S104 final review (rehearsal workspace in the session scratchpad, sim3)",
+        "docs/auto-run/experiments/topic-model-multi-writer/ (the stand-in package)"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-26T22:30:00Z",
+      "artifact": "hsdd/verify/nidana.model.2.verification.md",
+      "question": "The fix wave's re-review left two wording residues in the verification doc (an Outstanding clause lacking 'against a real package' beside the rehearsal; Metrics counting the fourth gate run while Observed holds a fifth). SDD allows one fix wave. Park or reopen?",
+      "options": [
+        {
+          "label": "Park both with rulings and merge",
+          "consequence": "Two wording imprecisions reach the owner, who signs the doc; no result is misstated, since every run exited 0 and the paragraph states the stand-in limit."
+        },
+        {
+          "label": "A second fix wave",
+          "consequence": "Against SDD's one-wave rule, for two clauses that change no result."
+        }
+      ],
+      "chosen": "Park both with rulings and merge",
+      "why": "SDD's final review allows exactly one fix wave and has the controller adjudicate residuals; both are wording, neither changes a disposition or a count the owner acts on. They are listed in the archived SDD ledger.",
+      "evidence": [
+        "superpowers subagent-driven-development, Final Review",
+        "docs/auto-run/steps/S104.sdd-progress.md"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "would_upstream": false
+    }
+  ],
+  "skill": "superpowers:subagent-driven-development",
+  "target": "nidana.model.2",
+  "status": "completed",
+  "notes": [
+    "SDD controller rulings are the decisions here; the per-task review log is docs/auto-run/steps/S104.sdd-progress.md.",
+    "Dispatches: 7 implementers (Tasks 1 to 6 opus, Task 7 sonnet), 7 task reviews (sonnet), 2 fix rounds (Tasks 1 and 5), 2 scoped re-reviews, 1 final review (opus), 1 final fix wave (sonnet), 1 final re-review (sonnet)."
+  ]
+}

@@ -1,0 +1,283 @@
+{
+  "step_ref": "S131",
+  "skill": "superpowers:writing-plans",
+  "target": "nidana.model.9 (revision after the gate amend)",
+  "status": "completed",
+  "stop": null,
+  "artifacts": [
+    "docs/superpowers/plans/nidana.model.9.md",
+    "docs/auto-run/steps/S131.json"
+  ],
+  "decisions": [
+    {
+      "at": "2026-10-27T13:10:13Z",
+      "artifact": "docs/superpowers/plans/nidana.model.9.md",
+      "question": "Task 3's replay ran the ids G10,G11,G13,G14,G15, the prefix of the old restriction, and expected the two G10 cases to stay failing as the known gap. The Gate no longer names G10 and the gap is closed upstream. Keep G10 in that replay, or follow the restriction?",
+      "options": [
+        {
+          "label": "Drop G10 from Task 3's replay: ids G11,G13,G14,G15, expected 5 passed 9 failed before and 12 passed 2 failed after",
+          "consequence": "Task 3's replay shows only cases this phase can turn green; the expected counts are the experiment's T3.2 and T3.4 less the two G10 cases (which fail identically in both runs), re-measured in a scratch copy of the dry run; Task 3's intro and the table row change with it."
+        },
+        {
+          "label": "Keep G10 in Task 3's replay and reword the two failures as nidana.model.11's",
+          "consequence": "Fewest lines changed, but the implementer reads two red cases at every Task 3 replay that are not a defect and cannot turn green here; the replay would keep an id the Gate has dropped."
+        }
+      ],
+      "chosen": "Drop G10 from Task 3's replay: ids G11,G13,G14,G15, expected 5 passed 9 failed before and 12 passed 2 failed after",
+      "why": "The brief says to keep Tasks 1 to 4 unless a line states the old gate; this replay's ids are the old restriction's prefix through G15 and its expected lines described the old gap, so it states G10's place in the restriction. The numbers are measured, not derived by hand: a scratch run of the dry run's own task states (T3.2 state: builder.t1, handle.t2, stages.t1 plus the combining test; T3.4 state: builder, handle.t3, stages.t3) printed 'cases (5 passed, 9 failed ...)' with nine failed names and 'cases (12 passed, 2 failed ...)' with the two G11 names. A reviewer who wanted Tasks 1 to 4 byte-identical to S127 apart from the Gate would have changed this.",
+      "evidence": [
+        "/private/tmp/claude-501/-Users-purbo-gitx-nidana-bus-dart/85f9e562-8f26-4698-9a0d-b20fbf7dec1f/scratchpad/g10seed/run2.sh",
+        "/private/tmp/claude-501/-Users-purbo-gitx-nidana-bus-dart/85f9e562-8f26-4698-9a0d-b20fbf7dec1f/scratchpad/g10seed/output2.txt",
+        "docs/auto-run/experiments/recording-builder-plan/output.txt T3.2, T3.4"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T13:10:13Z",
+      "artifact": "docs/superpowers/plans/nidana.model.9.md",
+      "question": "Task 4's last replay ran the old restriction and expected exit 1 with the two G10 cases failing (the known gap). What does it run and expect now?",
+      "options": [
+        {
+          "label": "Replay the amended restriction G11,G13,G14,G15,G16,G17,G30 and expect exit 0, 17 passed, 28 fixtures passed",
+          "consequence": "The step shows the Gate's topology-dsl line passing before Task 5 runs the whole Gate; matches the experiment's G section for this replay."
+        },
+        {
+          "label": "Delete the replay from Task 4",
+          "consequence": "Task 5's gate run covers it, but Task 4 is the task that completes the 17 and should show it."
+        }
+      ],
+      "chosen": "Replay the amended restriction G11,G13,G14,G15,G16,G17,G30 and expect exit 0, 17 passed, 28 fixtures passed",
+      "why": "A line in Task 4 stated the old gate and its failing output, so it must change; keeping the replay keeps the plan's rule that every task's passing step replays its ids. Expected lines come from the experiment's G section (the full amended Gate printed 'PASS behavior ... 17 passed, 0 failed, 0 skipped under dart test, restricted to topology-dsl G11, G13 to G17, G30' and '28 fixtures: 28 passed, 0 failed, 0 pending') and from a scratch re-run of exactly this replay at the final draft state, which printed the 2 surface and 9 reject PASS lines, the same behavior line and exit 0.",
+      "evidence": [
+        "docs/auto-run/experiments/recording-builder-plan/output.txt section G (gate with G10 dropped)",
+        "/private/tmp/claude-501/-Users-purbo-gitx-nidana-bus-dart/85f9e562-8f26-4698-9a0d-b20fbf7dec1f/scratchpad/g10seed/output2.txt (T4.4 state)"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T13:10:13Z",
+      "artifact": "docs/superpowers/plans/nidana.model.9.md",
+      "question": "S127's Task 5 Step 1 said to read the Gate line of the phase context at run time and listed two expected forms, with a DONE_WITH_CONCERNS path for the form naming G10. How does the amended plan state it?",
+      "options": [
+        {
+          "label": "Run the gate of Global Constraint 4 exactly (the Gate line of the Phase block, identical text), with one expected result: exit 0 and the nine lines",
+          "consequence": "One form, no branch, no concern path; the Gate line and constraint 4 are the same string today (checked against hsdd/spec/nidana.model.md)."
+        },
+        {
+          "label": "Keep 'read the Gate line at run time' with the single amended expected result",
+          "consequence": "Closer to S127's wording, and tolerant of a later amend, but the expected lines would then describe a gate the plan does not name; the plan would need a revision after any amend anyway."
+        }
+      ],
+      "chosen": "Run the gate of Global Constraint 4 exactly (the Gate line of the Phase block, identical text), with one expected result: exit 0 and the nine lines",
+      "why": "The two-form reading existed only because the Gate might be amended while the plan was being executed; it has been (S128, S129, S130). A script check shows constraint 4 equals the Gate line of ### nidana.model.9 in hsdd/spec/nidana.model.md and equals the experiment's second gate form (run.sh derivation at line 168), so the single result is the one the dry run measured (G). Because the chain now exits 0, the old instruction to run the last command on its own is dropped. A reviewer who wanted the run-time read kept would have changed this; I judged it low stakes.",
+      "evidence": [
+        "hsdd/spec/nidana.model.md ### nidana.model.9 Gate",
+        "docs/auto-run/experiments/recording-builder-plan/run.sh line 168",
+        "docs/auto-run/experiments/recording-builder-plan/output.txt section G"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T13:10:13Z",
+      "artifact": "docs/superpowers/plans/nidana.model.9.md",
+      "question": "The 'Known contract gap' section (S127's lines 48 to 50) described a gap that S128 and S129 closed. Delete it, fold it into the G9 paragraph, or replace it?",
+      "options": [
+        {
+          "label": "Replace it with a short section 'G10 is not in the gate's restriction' and add 'nor is G10' to the G9 paragraph",
+          "consequence": "An implementer who reads Task 3's test and the Gate sees why the two suite cases are out and where G10 is checked; keeps the one place that names the mechanism (buildDefinition() is planOf(this).definition, so it raises UnimplementedError for every declaration planOf accepts) and the line numbers of the two cases."
+        },
+        {
+          "label": "Delete the section and rely on the Scope in the derivative",
+          "consequence": "Shortest, but the derivative's Scope is one 2800-character line and the plan would stop saying why Task 3 owns a G10 test the Gate does not replay."
+        }
+      ],
+      "chosen": "Replace it with a short section 'G10 is not in the gate's restriction' and add 'nor is G10' to the G9 paragraph",
+      "why": "S128's notes name lines 48 to 50 to become the 'G10 dropped' form only. The new section states the amended facts (restriction list, why neither G9 nor G10 is in it, who replays the two cases first, where this phase checks G10) and keeps one sentence of history so a reader of S127's dry-run labels (T4.4, G) understands them; it carries no instruction to act on a gap.",
+      "evidence": [
+        "docs/auto-run/steps/S128.json notes_for_orchestrator",
+        "hsdd-context/superpowers/nidana.model.9.md Scope"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T13:10:13Z",
+      "artifact": "docs/superpowers/plans/nidana.model.9.md",
+      "question": "Does the evidence show that the package tests the plan already has cover G10 for planOf (no declared function is called, nothing is scheduled), now that the Gate's replay no longer runs G10? Add a test, or keep Task 3 as it is?",
+      "options": [
+        {
+          "label": "Keep Task 3's G10 test as it is; no test added",
+          "consequence": "The plan stays as S127 wrote it. The test is the fixture's own G10 design (functions that throw, a zone counter with a positive control) applied to planOf with 24 stages covering all 18 stage classes and 4 sinks; the experiment shows it red before Task 3's code (T3.2) and green after (C, G); a scratch run seeding four G10 defects shows it is the one test that catches each."
+        },
+        {
+          "label": "Add a counting variant of _called so a swallowed call is caught too",
+          "consequence": "Catches a recording call that invokes a function inside try/catch, which the throwing form misses; but the fixture's own G10 case misses it too, so the plan would test more than the contract states, and the defect is contrived."
+        }
+      ],
+      "chosen": "Keep Task 3's G10 test as it is; no test added",
+      "why": "The experiment's own evidence: T3.2 lists 'G10 recording every combinator ...' failing before the code, C prints it passing alone ('--name ^G10', +1, exit 0) and the full package run passes 122 after Task 4 (T4.4, G). The experiment has no seeded G10 defect, so I ran one in a scratch copy of the final draft (outside the repository, my write set): S1 catchError calls its recover function, S2 read evaluates a computed initial value, S3 debounce schedules a microtask, S4 planOf creates a timer. Each run ended 121 passed, 1 failed, and the failed test was that G10 test in combining_stages_test.dart. S5, a reducer called inside try/catch, passed: a swallowed call, which the contract's own G10 case would also miss, so I did not strengthen the test beyond the contract. A reviewer who wanted calls counted rather than thrown would have changed this.",
+      "evidence": [
+        "/private/tmp/claude-501/-Users-purbo-gitx-nidana-bus-dart/85f9e562-8f26-4698-9a0d-b20fbf7dec1f/scratchpad/g10seed/run.sh",
+        "/private/tmp/claude-501/-Users-purbo-gitx-nidana-bus-dart/85f9e562-8f26-4698-9a0d-b20fbf7dec1f/scratchpad/g10seed/output.txt",
+        "docs/auto-run/experiments/recording-builder-plan/output.txt T3.2, C, G",
+        "hsdd/contract/fixture/topology-dsl/behavior/recording_conformance.dart lines 308 to 350"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T13:10:13Z",
+      "artifact": "docs/superpowers/plans/nidana.model.9.md",
+      "question": "Task 5's Observed bullet names the five unrestricted-suite failures but no command shows them, and the gate no longer prints any failed case. Add a checklist command that replays the unrestricted behavior set?",
+      "options": [
+        {
+          "label": "No new command; the bullet states the five as the plan always did, with 'pass count (17 of 17)' for the gate's replay",
+          "consequence": "Keeps the checklist as S127 wrote it; the human reads the five from the plan, as before for the G9 and G12 cases, which no S127 output displayed."
+        },
+        {
+          "label": "Add `fvm dart run nidana_contract_check topology-dsl --set behavior` expecting 19 passed, 5 failed",
+          "consequence": "The reviewer sees the five red cases and their names, but it adds a command whose expected exit is 1 to a verification doc and changes more of Task 5 than the gate change requires."
+        }
+      ],
+      "chosen": "No new command; the bullet states the five as the plan always did, with 'pass count (17 of 17)' for the gate's replay",
+      "why": "The brief limits the change to what the amended gate touches; the G9 and G12 failures were never displayed by a plan command, so the bullet's assertion is as observed as before. The orchestrator can add the command if it wants the five shown.",
+      "evidence": [
+        "docs/auto-run/experiments/recording-builder-plan/output.txt T4.4 (unrestricted: 19 passed, 5 failed)"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T13:10:13Z",
+      "artifact": "docs/superpowers/plans/nidana.model.9.md",
+      "question": "Task 5's Learnings first line recorded the Gate defect with 'dropped (reported as a contract gap by S127 ...)' or 'spec-updated if the gate that ran had G10 dropped', and Outstanding carried a G10 item. What do they say now?",
+      "options": [
+        {
+          "label": "Learnings line in the past tense with the disposition spec-updated (S128 restated the Gate and Scope, S129 amended Delivery); Outstanding is None unless a command could not run",
+          "consequence": "The finding planning made is kept for the verification doc's Learnings, with the disposition the upstream fix gives it; no concern path remains."
+        },
+        {
+          "label": "Drop the Learnings line",
+          "consequence": "The Gate defect is fixed before execution, so it is no longer a gate-time finding; but the Learnings section feeds the tree's retrospective and the amend is the disposition it needs."
+        }
+      ],
+      "chosen": "Learnings line in the past tense with the disposition spec-updated (S128 restated the Gate and Scope, S129 amended Delivery); Outstanding is None unless a command could not run",
+      "why": "The brief asks to drop the 'G10 under Outstanding / DONE_WITH_CONCERNS' path; spec-updated is one of the four dispositions the Learnings format allows and is what the S128 in-place amend and S129 reconcile were. The other three Learnings lines and the sizing line are untouched.",
+      "evidence": [
+        "docs/auto-run/steps/S128.json",
+        "docs/auto-run/steps/S130.json"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    }
+  ],
+  "experiments": [
+    {
+      "path": "/private/tmp/claude-501/-Users-purbo-gitx-nidana-bus-dart/85f9e562-8f26-4698-9a0d-b20fbf7dec1f/scratchpad/g10seed/",
+      "question": "Do the plan's package tests catch a G10 defect for planOf (a recording call that calls a declared function, or schedules a timer or microtask), now that the Gate's replay no longer runs G10, and what do Task 3's replay and Task 4's restricted replay print without the two G10 cases? (Scratch copy of the dry run's final draft, outside the repository because this step's write set is the plan and the report.)",
+      "finding": "Baseline 122 tests pass. Seeds S1 (catchError calls recover), S2 (read evaluates a computed initial value), S3 (debounce schedules a microtask) and S4 (planOf creates a timer) each fail exactly the G10 package test in combining_stages_test.dart; S5 (a reducer called inside try/catch) passes, as it would for the fixture's own G10 case. Replay G11,G13,G14,G15: 5 passed 9 failed at the Task 3 failing step, 12 passed 2 failed after Task 3 (the two G11 cases of Task 4). Amended restriction at the final state: exit 0, 17 passed, 28 fixtures passed."
+    }
+  ],
+  "self_check": [
+    {
+      "gate": "Spec coverage: Skim each section/requirement in the spec. Can you point to a task that implements it? List any gaps.",
+      "status": "pass",
+      "note": "Unchanged by the revision except the one Scope item the amend moved: the Gate's G10 replay is gone, G10 for planOf stays Task 3's test, and G10's two suite cases are nidana.model.11's (section 'G10 is not in the gate's restriction')."
+    },
+    {
+      "gate": "Step scan: Every step must let the implementer write exactly one reasonable thing, and no step may carry more than that",
+      "status": "pass",
+      "note": "The changed steps are Task 3 Steps 2 and 4, Task 4 Step 4 and Task 5 Steps 1 to 3; each names one command and one expected result, and Task 5 Step 1 has no branch."
+    },
+    {
+      "gate": "Type consistency: Do the types, method signatures, and property names you used in later tasks match what you defined in earlier tasks?",
+      "status": "pass",
+      "note": "No code block, signature or name changed."
+    },
+    {
+      "gate": "Review Focus: For each input class or failure mode the spec implies, is there a task whose tests exercise it?",
+      "status": "pass",
+      "note": "Review Focus section untouched; its five lines keep their tests."
+    },
+    {
+      "gate": "Proportion: Compare the plan's length to the spec's.",
+      "status": "pass",
+      "note": "1740 lines before, 1737 after; git diff --numstat: 24 insertions, 27 deletions."
+    },
+    {
+      "gate": "Plan check: The plan's Global Constraints contain constraints 1 to 8 above, verbatim.",
+      "status": "pass",
+      "note": "Lines 15 to 31 of the plan were replaced by lines 10 to 26 of hsdd-context/superpowers/nidana.model.9.md by script; only constraint 4 differed (the topology-dsl restriction lost G10). Constraint 4 also equals the Gate line of ### nidana.model.9 in hsdd/spec/nidana.model.md and the experiment's second gate form (script check, both True)."
+    },
+    {
+      "gate": "Plan check: Every `### Task N:` except the last starts with a failing-test step.",
+      "status": "pass",
+      "note": "impl-gate code-plan."
+    },
+    {
+      "gate": "Plan check: The last task writes the verification doc named in constraint 5.",
+      "status": "pass",
+      "note": "impl-gate code-plan."
+    },
+    {
+      "gate": "Plan check: The plan has at most 7 tasks.",
+      "status": "pass",
+      "note": "5 tasks."
+    },
+    {
+      "gate": "Plan check: The plan is saved under docs/superpowers/plans/.",
+      "status": "pass",
+      "note": "docs/superpowers/plans/nidana.model.9.md."
+    },
+    {
+      "gate": "node docs/auto-run/tools/impl-gate.mjs code-plan nidana.model.9",
+      "status": "pass",
+      "note": "Output: 'code-plan nidana.model.9: 0 error(s), 0 warning(s)', exit 0, run after the last plan edit and again after this report was written. grep finds no em-dash character and none of the run's banned phrases in the plan or this report."
+    },
+    {
+      "gate": "Phase Verification: recording a declaration calls none of its functions and schedules nothing; each misuse G14 and G15 name throws the named error at the call that commits it; the gate's restricted topology-dsl replay passes.",
+      "status": "pass",
+      "note": "S127 marked the third fail. Now all three hold in the dry run: Task 3's G10 test and the 13 G14 and G15 package tests, and the Gate with the restriction G11,G13,G14,G15,G16,G17,G30 exits 0 with 17 passed (output.txt G, second form, byte-identical to constraint 4)."
+    },
+    {
+      "gate": "Stale-gate sweep: no line of the plan states the old gate, its old expected output or G10's place in the restriction.",
+      "status": "pass",
+      "note": "grep of the plan for 'known gap', 'Known contract', 'orchestrator', 'DONE_WITH', 'G10,G11', '17 of 19', '19 cases' and 'names G10' finds nothing; every remaining 'G10' line was read (the new section, table notes, Task 3's G10 test and notes, Task 5's checklist, Observed bullet and Learnings line)."
+    }
+  ],
+  "contract_gaps": [],
+  "notes_for_orchestrator": [
+    "PLAN REVISED, NOT COMMITTED. Changed files: docs/superpowers/plans/nidana.model.9.md (git diff --numstat: 24 insertions, 27 deletions; 1740 lines to 1737) and this report. Tasks 1 and 2 are byte-identical to S127's (no diff hunk between the table notes and Task 3's intro); Task 3 changed in its intro, Step 2 and Step 4 (replay ids and counts); Task 4 changed in its Step 4 (the restriction replay); Task 5 changed in Steps 1 to 3. No code block, test file or signature changed.",
+    "CHANGES AND REASONS. (1) Global Constraint 4: copied from the regenerated derivative (S130), G10 gone from the restriction. (2) Contract gaps constraint: the dry run's only failures are now the five cases that call buildDefinition() or read definition, which the restriction leaves out. (3) The 'Known contract gap' section is now 'G10 is not in the gate's restriction' (S128's note on lines 48 to 50). (4) The table intro says 17 cases, not 19; table rows 3 and 4, the paragraph on the five failing cases and the G9 paragraph are restated. (5) Task 3 intro, Step 2 and Step 4: replay ids G11,G13,G14,G15 with 5 passed 9 failed and 12 passed 2 failed. (6) Task 4 Step 4: replay of the amended restriction, exit 0, 17 passed, 28 fixtures passed. (7) Task 5 Step 1: one form, exit 0 and the nine lines; Step 2's G10 bullet; Step 3's Expected output, Observed bullets, Outstanding (None) and Learnings first line (spec-updated).",
+    "THE GATE'S EXPECTED LINES (Task 5 Step 1, from the experiment's G section, second form): exit 0; 'Got dependencies!', 'No issues found!', '102 fixtures: 102 passed, 0 failed, 0 pending', '+122: All tests passed!', topic-model '41 passed', '31 fixtures: 31 passed', 'PASS behavior ...topology_builder_test.dart: 17 passed, 0 failed, 0 skipped under dart test, restricted to topology-dsl G11, G13 to G17, G30', '28 fixtures: 28 passed', '60 fixtures: 60 passed'. The experiment ran the HEAD 53ebe2a tree; packages/, pubspec and .fvmrc are unchanged between 53ebe2a and the branch tip (git diff --stat empty), and hsdd/contract differs only by S129's Delivery paragraph.",
+    "G10 COVERAGE (brief item 3): confirmed, no test added. The experiment's evidence is T3.2 (the G10 package test red before Task 3's code), C and G (green alone and in the 122-test package run). The experiment has no seeded G10 defect, so I added a scratch one: /private/tmp/claude-501/-Users-purbo-gitx-nidana-bus-dart/85f9e562-8f26-4698-9a0d-b20fbf7dec1f/scratchpad/g10seed/run.sh and output.txt, outside the repository (my write set is the plan and this report), on the final draft in a git-archive copy of HEAD. Seeds S1 to S4 (a recording call invoking a declared function, a computed initial value evaluated by read, a microtask scheduled by debounce, a timer created by planOf) each fail exactly 'G10 recording every combinator ...'; S5 (a reducer called inside try/catch) passes, a limit shared with the fixture's own G10 case. If the orchestrator wants the seeded runs kept, copy the scratch files into docs/auto-run/experiments/recording-builder-plan/ in a step whose write set allows it.",
+    "SCRATCH EVIDENCE FOR THE NEW COUNTS: /private/tmp/claude-501/-Users-purbo-gitx-nidana-bus-dart/85f9e562-8f26-4698-9a0d-b20fbf7dec1f/scratchpad/g10seed/run2.sh and output2.txt: T3.2 state 'cases (5 passed, 9 failed ...)' restricted to G11, G13 to G15; T3.4 state '(12 passed, 2 failed ...)' with the two G11 names; T4.4 state exit 0 for the amended restriction with the 2 surface and 9 reject PASS lines, 17 passed, 28 fixtures passed.",
+    "S127 contract_gaps[0] (the Gate's G10) is closed by S128, S129 and this plan; this revision reports no new gap. S127's contract_gaps[1] (the recording suite misses seeded defects D1 to D9) and [2] (StateError precedence on a closed builder; apply with a wrong-length list) remain unrouted hsdd-contract matters, as S128 noted; the plan's Learnings lines 2 and 3 still carry them.",
+    "FOR THE IMPLEMENT STEP: the plan still has 5 tasks. The Gate should exit 0 at the end of Task 4, and Task 5 no longer has a DONE_WITH_CONCERNS path for G10.",
+    "The derivative hsdd-context/superpowers/nidana.model.9.md was only read; nothing under hsdd/ or hsdd-context/ changed. No git state changed."
+  ]
+}

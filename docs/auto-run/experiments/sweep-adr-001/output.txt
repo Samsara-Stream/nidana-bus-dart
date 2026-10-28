@@ -1,0 +1,173 @@
+
+### S0 setup: the committed tree
+tree from 48f34fa judgement: S154
+packages/ changes in the working tree: 0
+Dart SDK version: 3.13.5 (stable) (Tue Sep 29 01:00:52 2026 -0700) on "macos_arm64"
+
+### L checks.py over the committed hsdd/contract/
+### L1 conformance libraries and the bindings that import them
+hsdd/contract/fixture/bus-api/behavior/bus_api_conformance.dart: 1 binding(s) ['hsdd/contract/fixture/bus-api/behavior/nidana_dart_runtime_test.dart']
+hsdd/contract/fixture/bus-testing/behavior/bus_testing_conformance.dart: 1 binding(s) ['hsdd/contract/fixture/bus-testing/behavior/nidana_dart_runtime_test.dart']
+hsdd/contract/fixture/flutter-binding/behavior/flutter_binding_conformance.dart: 1 binding(s) ['hsdd/contract/fixture/flutter-binding/behavior/nidana_dart_runtime_flutter_test.dart']
+hsdd/contract/fixture/navigation-api/behavior/navigation_conformance.dart: 1 binding(s) ['hsdd/contract/fixture/navigation-api/behavior/nidana_dart_navigation_test.dart']
+hsdd/contract/fixture/navigation-api/behavior/navigation_executor_conformance.dart: 2 binding(s) ['hsdd/contract/fixture/flutter-binding/behavior/flutter_navigation_executor_test.dart', 'hsdd/contract/fixture/navigation-api/behavior/in_memory_router_test.dart']
+hsdd/contract/fixture/topic-model/behavior/topic_model_conformance.dart: 1 binding(s) ['hsdd/contract/fixture/topic-model/behavior/nidana_dart_contracts_test.dart']
+hsdd/contract/fixture/topology-dsl/behavior/live_conformance.dart: 1 binding(s) ['hsdd/contract/fixture/bus-api/behavior/bus_activation_test.dart']
+hsdd/contract/fixture/topology-dsl/behavior/recording_conformance.dart: 1 binding(s) ['hsdd/contract/fixture/topology-dsl/behavior/topology_builder_test.dart']
+hsdd/contract/fixture/topology-ir/behavior/topology_ir_conformance.dart: 1 binding(s) ['hsdd/contract/fixture/topology-ir/behavior/nidana_dart_contracts_test.dart']
+conformance libraries: 9; imported by no binding: 0
+
+### L2 Dart fixtures with a configured import or export
+Dart libraries the replay tool reads: 84; with a configuration: 0 []
+
+### L3 Case tables that name a case twice
+nidana-checks.md: 17 rows, repeated []
+topic-codegen.md: 22 rows, repeated []
+
+### L4 plugins sections of files/analysis_options.yaml
+hsdd/contract/fixture/nidana-checks/invocation/analyze-clean/files/analysis_options.yaml: ['plugins:'] exact=True
+hsdd/contract/fixture/nidana-checks/invocation/analyze-configuration/files/analysis_options.yaml: ['plugins:'] exact=True
+hsdd/contract/fixture/nidana-checks/invocation/analyze-explicit-topic-type-arguments/files/analysis_options.yaml: ['plugins:'] exact=True
+hsdd/contract/fixture/nidana-checks/invocation/analyze-global-bus-accessor/files/analysis_options.yaml: ['plugins:'] exact=True
+hsdd/contract/fixture/nidana-checks/invocation/analyze-human/files/analysis_options.yaml: ['plugins:'] exact=True
+hsdd/contract/fixture/nidana-checks/invocation/analyze-raw-string-topic/files/analysis_options.yaml: ['plugins:'] exact=True
+hsdd/contract/fixture/nidana-checks/invocation/analyze-sensitive-fatal-infos/files/analysis_options.yaml: ['plugins:'] exact=True
+hsdd/contract/fixture/nidana-checks/invocation/analyze-unflagged-sensitive-topic/files/analysis_options.yaml: ['plugins:'] exact=True
+hsdd/contract/fixture/nidana-checks/invocation/analyze-clean/files/analysis_options.yaml: ['plugins:'] exact=True
+hsdd/contract/fixture/nidana-checks/invocation/analyze-configuration/files/analysis_options.yaml: ['plugins:'] exact=True
+hsdd/contract/fixture/nidana-checks/invocation/analyze-explicit-topic-type-arguments/files/analysis_options.yaml: ['plugins:'] exact=True
+hsdd/contract/fixture/nidana-checks/invocation/analyze-global-bus-accessor/files/analysis_options.yaml: ['plugins:'] exact=True
+hsdd/contract/fixture/nidana-checks/invocation/analyze-human/files/analysis_options.yaml: ['plugins:'] exact=True
+hsdd/contract/fixture/nidana-checks/invocation/analyze-raw-string-topic/files/analysis_options.yaml: ['plugins:'] exact=True
+hsdd/contract/fixture/nidana-checks/invocation/analyze-sensitive-fatal-infos/files/analysis_options.yaml: ['plugins:'] exact=True
+hsdd/contract/fixture/nidana-checks/invocation/analyze-unflagged-sensitive-topic/files/analysis_options.yaml: ['plugins:'] exact=True
+(an options file without a plugins line is not listed)
+
+### L5 file replays and recorded invocations that declare no id
+nidana-checks.md: rows whose Covers cell begins with no ids: []
+topic-codegen.md - file: bullet covers clause: G3 to G8, G12, G13 and G15 to G18
+topic-codegen.md: rows whose Covers cell begins with no ids: []
+
+### L6 and L7 recorded invocations: files/ and the command
+  8 dart analyze with files/
+ 19 {package}:{executable}  from the root
+ 12 {package}:{executable}  with files/
+recorded invocations whose command is dart run: 0
+
+### S0 the probes added: probe_tool in the workspace, the probe slugs, resolved offline
+Try `dart pub outdated` for more information.
+
+### A structure over the probe slugs
+-- nidana_contract_check probe-cli probe-file probe-api --set structure
+PASS structure hsdd/contract/probe-cli.md
+PASS structure hsdd/contract/probe-file.md
+PASS structure hsdd/contract/probe-api.md
+15 fixtures: 15 passed, 0 failed, 0 pending
+exit: 0
+
+### B the behavior set, unrestricted
+-- nidana_contract_check probe-api --set behavior
+PASS structure hsdd/contract/probe-api.md
+PENDING behavior hsdd/contract/fixture/probe-api/behavior/absent_test.dart: package absent_pkg is absent from .dart_tool/package_config.json
+PASS behavior hsdd/contract/fixture/probe-api/behavior/bound_test.dart: 1 passed, 0 failed, 0 skipped under dart test
+FAIL behavior hsdd/contract/fixture/probe-api/behavior/conditional_test.dart: load (did not load under dart test: Couldn't resolve the package 'absent_pkg' in 'package:absent_pkg/absent.dart'.)
+FAIL behavior hsdd/contract/fixture/probe-api/behavior/none_test.dart: suite (imports no conformance library)
+FAIL behavior hsdd/contract/fixture/probe-api/behavior/two_test.dart: suite (imports 2 conformance libraries: hsdd/contract/fixture/probe-api/behavior/absent_conformance.dart, hsdd/contract/fixture/probe-api/behavior/bound_conformance.dart)
+16 fixtures: 12 passed, 3 failed, 1 pending
+exit: 1
+
+### B the behavior set, restricted to G1
+-- nidana_contract_check probe-api --set behavior --guarantee G1
+PASS structure hsdd/contract/probe-api.md
+PENDING behavior hsdd/contract/fixture/probe-api/behavior/absent_test.dart: package absent_pkg is absent from .dart_tool/package_config.json
+PASS behavior hsdd/contract/fixture/probe-api/behavior/bound_test.dart: 1 passed, 0 failed, 0 skipped under dart test, restricted to probe-api G1
+PASS behavior hsdd/contract/fixture/probe-api/behavior/conditional_test.dart: not run: the restriction admits no case of hsdd/contract/fixture/probe-api/behavior/conditional_conformance.dart
+FAIL behavior hsdd/contract/fixture/probe-api/behavior/none_test.dart: suite (imports no conformance library)
+FAIL behavior hsdd/contract/fixture/probe-api/behavior/two_test.dart: suite (imports 2 conformance libraries: hsdd/contract/fixture/probe-api/behavior/absent_conformance.dart, hsdd/contract/fixture/probe-api/behavior/bound_conformance.dart)
+16 fixtures: 13 passed, 2 failed, 1 pending
+exit: 1
+
+### C the cli set, unrestricted
+-- nidana_contract_check probe-cli --set cli
+PASS structure hsdd/contract/probe-cli.md
+PENDING cli hsdd/contract/fixture/probe-cli/invocation/absent/: package absent_pkg is absent from .dart_tool/package_config.json
+FAIL cli hsdd/contract/fixture/probe-cli/invocation/bad-exit/: exit-code (exit_code holds "x\n", expected a decimal exit code from 0 to 255 and an optional newline)
+PASS cli hsdd/contract/fixture/probe-cli/invocation/dup/
+PASS cli hsdd/contract/fixture/probe-cli/invocation/facts/
+PASS cli hsdd/contract/fixture/probe-cli/invocation/plugin-comment/
+PENDING cli hsdd/contract/fixture/probe-cli/invocation/plugin-plain/: package absent_lint is absent from .dart_tool/package_config.json
+8 fixtures: 5 passed, 1 failed, 2 pending
+exit: 1
+-- below facts/files/ after the run:
+./left.txt
+./README.txt
+written by probe_tool:facts
+
+### C the cli set, restricted to G5 (the second row of dup)
+-- nidana_contract_check probe-cli --set cli --guarantee G5
+PASS structure hsdd/contract/probe-cli.md
+PASS cli hsdd/contract/fixture/probe-cli/invocation/absent/: not run: the restriction does not admit all of G6
+FAIL cli hsdd/contract/fixture/probe-cli/invocation/bad-exit/: exit-code (exit_code holds "x\n", expected a decimal exit code from 0 to 255 and an optional newline)
+PASS cli hsdd/contract/fixture/probe-cli/invocation/dup/: not run: the restriction does not admit all of G4
+PASS cli hsdd/contract/fixture/probe-cli/invocation/facts/: not run: the restriction does not admit all of G1
+PASS cli hsdd/contract/fixture/probe-cli/invocation/plugin-comment/: not run: the restriction does not admit all of G2
+PASS cli hsdd/contract/fixture/probe-cli/invocation/plugin-plain/: not run: the restriction does not admit all of G3
+8 fixtures: 7 passed, 1 failed, 0 pending
+exit: 1
+
+### C the cli set, restricted to G4 (the first row of dup)
+-- nidana_contract_check probe-cli --set cli --guarantee G4
+PASS structure hsdd/contract/probe-cli.md
+PASS cli hsdd/contract/fixture/probe-cli/invocation/absent/: not run: the restriction does not admit all of G6
+FAIL cli hsdd/contract/fixture/probe-cli/invocation/bad-exit/: exit-code (exit_code holds "x\n", expected a decimal exit code from 0 to 255 and an optional newline)
+PASS cli hsdd/contract/fixture/probe-cli/invocation/dup/
+PASS cli hsdd/contract/fixture/probe-cli/invocation/facts/: not run: the restriction does not admit all of G1
+PASS cli hsdd/contract/fixture/probe-cli/invocation/plugin-comment/: not run: the restriction does not admit all of G2
+PASS cli hsdd/contract/fixture/probe-cli/invocation/plugin-plain/: not run: the restriction does not admit all of G3
+8 fixtures: 7 passed, 1 failed, 0 pending
+exit: 1
+
+### D the file set, unrestricted
+-- nidana_contract_check probe-file --set file
+PASS structure hsdd/contract/probe-file.md
+PASS file hsdd/contract/fixture/probe-file/expected/
+3 fixtures: 3 passed, 0 failed, 0 pending
+exit: 0
+
+### D the file set, restricted to G1
+-- nidana_contract_check probe-file --set file --guarantee G1
+PASS structure hsdd/contract/probe-file.md
+PASS file hsdd/contract/fixture/probe-file/expected/: not run: it covers no declared guarantee, and the replay is restricted
+3 fixtures: 3 passed, 0 failed, 0 pending
+exit: 0
+
+### E a stale workspace: a member pubspec.yaml newer than pubspec.lock
+pubspec.yaml=1793144237 packages/probe_tool/pubspec.yaml=1793144237 pubspec.lock=1793144237 .dart_tool/package_config.json=1793144237 
+pubspec.yaml=1793144237 packages/probe_tool/pubspec.yaml=1793144250 pubspec.lock=1793144237 .dart_tool/package_config.json=1793144237 
+-- nidana_contract_check probe-cli --set cli --guarantee G1
+PASS structure hsdd/contract/probe-cli.md
+PASS cli hsdd/contract/fixture/probe-cli/invocation/absent/: not run: the restriction does not admit all of G6
+FAIL cli hsdd/contract/fixture/probe-cli/invocation/bad-exit/: exit-code (exit_code holds "x\n", expected a decimal exit code from 0 to 255 and an optional newline)
+PASS cli hsdd/contract/fixture/probe-cli/invocation/dup/: not run: the restriction does not admit all of G4
+PASS cli hsdd/contract/fixture/probe-cli/invocation/facts/
+PASS cli hsdd/contract/fixture/probe-cli/invocation/plugin-comment/: not run: the restriction does not admit all of G2
+PASS cli hsdd/contract/fixture/probe-cli/invocation/plugin-plain/: not run: the restriction does not admit all of G3
+8 fixtures: 7 passed, 1 failed, 0 pending
+exit: 1
+-- after the replay's dart pub get --enforce-lockfile:
+pubspec.yaml=1793144237 packages/probe_tool/pubspec.yaml=1793144250 pubspec.lock=1793144250 .dart_tool/package_config.json=1793144237 
+Try `dart pub outdated` for more information.
+-- after one more dart pub get --enforce-lockfile --offline:
+pubspec.yaml=1793144237 packages/probe_tool/pubspec.yaml=1793144250 pubspec.lock=1793144250 .dart_tool/package_config.json=1793144237 
+dart run probe_tool:facts from facts/files/: exit 255
+Could not find a file named "pubspec.yaml" in "{ws}/hsdd/contract/fixture/probe-cli/invocation/facts/files".
+dart --packages=... bin/facts.dart from facts/files/: exit 0
+script {ws}/packages/probe_tool/bin/facts.dart
+packages file://{ws}/.dart_tool/package_config.json
+cwd {ws}/hsdd/contract/fixture/probe-cli/invocation/facts/files
+
+### F dart analyze . from analyze-clean's files/, its plugins section removed
+dart analyze .: exit 3
+11 issues found.
+entries below files/ before: 10, after: 10
+no entry added or removed

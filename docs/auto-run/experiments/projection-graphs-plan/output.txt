@@ -1,0 +1,512 @@
+
+### S0 setup: the committed tree, resolved offline
+tree from 3979408 judgement: S139
+Dart SDK version: 3.13.5 (stable) (Tue Sep 29 01:00:52 2026 -0700) on "macos_arm64"
+Try `dart pub outdated` for more information.
+graph.t2.dart: 117 lines
+
+### S1 the committed tree
+-- dart test packages/nidana_dart_contracts
++200: All tests passed!
+exit: 0
+-- nidana_contract_check topic-model topology-dsl
+PASS structure lines: 33
+PASS behavior hsdd/contract/fixture/topic-model/behavior/nidana_dart_contracts_test.dart: 41 passed, 0 failed, 0 skipped under dart test
+FAIL behavior hsdd/contract/fixture/topology-dsl/behavior/topology_builder_test.dart: cases (19 passed, 5 failed, 0 skipped under dart test)
+    failed-case (G9 buildDefinition runs declare once and equals the definition of a fresh plan)
+    failed-case (G10 recording calls none of the functions a declaration passes)
+    failed-case (G10 recording creates no timer and schedules no microtask)
+    failed-case (G12 the definition reads the topics of the read stages and writes the topics of the sinks)
+    failed-case (G12 a topic read twice is read once, and a declaration with no stages reads and writes nothing)
+59 fixtures: 58 passed, 1 failed, 0 pending
+exit: 1
+-- nidana_contract_check topology-ir --guarantee G2,G5,G6,G8,G9,G10,G11,G12
+PASS structure lines: 9
+FAIL behavior hsdd/contract/fixture/topology-ir/behavior/nidana_dart_contracts_test.dart: cases (10 passed, 7 failed, 0 skipped under dart test, restricted to topology-ir G2, G5, G6, G8 to G12)
+    failed-case (G8 a plan projects one stage edge per non-read stage, in stage order, then one sink edge per sink, in sink order)
+    failed-case (G8 every combinator projects to its kind, its inputs in input order, its function, duration and retry)
+    failed-case (G8 recording one declaration twice projects equal definitions, inline closures included)
+    failed-case (G11 a graph orders its topologies by id, keeps one of equal duplicates and lists every topic in canonical order)
+    failed-case (G11 a graph rejects two different definitions with one id)
+    failed-case (G11 a graph orders its claims by source, scope and topics, and keeps equal claims as separate claimants)
+    failed-case (G12 a shell claim takes a service, page or executor source, application scope by default, and one or more state topics)
+61 fixtures: 60 passed, 1 failed, 0 pending
+exit: 1
+
+### B every fixture diagnostic before any body lands (surface, reject and behavior of every slug)
+diagnostics: 3143 in 70 libraries
+
+### T1.2 Task 1's failing step: test/projection_test.dart and the cases that call definition
+-- dart test packages/nidana_dart_contracts/test/projection_test.dart
++0 -1: G8 the search topology of topology-ir@v1's JSON example projects to its debounce, switchMap and write [E]
++0 -2: G8 G12 the forms sample projects to the edges of its valid/ document: one read handle feeds a map, a merge and a reduceInto [E]
++0 -3: G8 the quiet topology of the findings sample: one read feeds two stages, whose edges a merge takes by index [E]
++0 -4: G8 every arity form of combine and withLatestFrom names the combiner the declaration passed, its inputs in input order [E]
++0 -5: G8 a read written as it is projects to a write of a topic input with the read's dedup argument, and an inline closure is anonymous [E]
++0 -6: G9 a plan projects again at each read of its definition, equal each time and equal to buildDefinition [E]
++0 -7: G8 two state topics whose value types render alike pass planOf, and definition and buildDefinition throw TopologyDefinition's ArgumentError naming the transforms [E]
++0 -7: Some tests failed.
+exit: 1
+   1   Expected: throws <Instance of 'ArgumentError'> with `name`: 'transforms'
+   6   UnimplementedError
+-- nidana_contract_check topology-dsl --set behavior
+PASS structure lines: 16
+FAIL behavior hsdd/contract/fixture/topology-dsl/behavior/topology_builder_test.dart: cases (19 passed, 5 failed, 0 skipped under dart test)
+    failed-case (G9 buildDefinition runs declare once and equals the definition of a fresh plan)
+    failed-case (G10 recording calls none of the functions a declaration passes)
+    failed-case (G10 recording creates no timer and schedules no microtask)
+    failed-case (G12 the definition reads the topics of the read stages and writes the topics of the sinks)
+    failed-case (G12 a topic read twice is read once, and a declaration with no stages reads and writes nothing)
+17 fixtures: 16 passed, 1 failed, 0 pending
+exit: 1
+-- nidana_contract_check topology-ir --set behavior --guarantee G8
+PASS structure lines: 9
+FAIL behavior hsdd/contract/fixture/topology-ir/behavior/nidana_dart_contracts_test.dart: cases (0 passed, 3 failed, 0 skipped under dart test, restricted to topology-ir G8)
+    failed-case (G8 a plan projects one stage edge per non-read stage, in stage order, then one sink edge per sink, in sink order)
+    failed-case (G8 every combinator projects to its kind, its inputs in input order, its function, duration and retry)
+    failed-case (G8 recording one declaration twice projects equal definitions, inline closures included)
+10 fixtures: 9 passed, 1 failed, 0 pending
+exit: 1
+
+### T1.4 Task 1's library: the projection, the definition body, the recursive boundary test
+applied t1: 3 edits
+Formatted 50 files (0 changed) in 0.14 seconds.
+-- dart test packages/nidana_dart_contracts
++207: All tests passed!
+exit: 0
+Analyzing pgp.IWiaX1...
+No issues found!
+analyze exit: 0
+-- nidana_contract_check topology-dsl --set behavior
+PASS structure lines: 16
+PASS behavior hsdd/contract/fixture/topology-dsl/behavior/topology_builder_test.dart: 24 passed, 0 failed, 0 skipped under dart test
+17 fixtures: 17 passed, 0 failed, 0 pending
+exit: 0
+-- nidana_contract_check topology-ir --set behavior --guarantee G8
+PASS structure lines: 9
+PASS behavior hsdd/contract/fixture/topology-ir/behavior/nidana_dart_contracts_test.dart: 3 passed, 0 failed, 0 skipped under dart test, restricted to topology-ir G8
+10 fixtures: 10 passed, 0 failed, 0 pending
+exit: 0
+
+### T2.2 Task 2's failing step: test/shell_claim_test.dart and the G12 case
+-- dart test packages/nidana_dart_contracts/test/shell_claim_test.dart
++0 -1: G12 a claim takes a service, page or executor source at any scope, and rejects a topology or unknown source naming the source [E]
++0 -2: G12 a claim rejects an empty set, and a set with any topic that is not a state topic, naming the writes [E]
++0 -3: G3 a claim keeps an unmodifiable copy of its writes, in canonical order, whatever order they were given in [E]
++0 -4: G7 claims are equal, with equal hash codes, exactly when their source, scope and writes are [E]
++0 -4: Some tests failed.
+exit: 1
+   1   Expected: throws <Instance of 'ArgumentError'> with `name`: 'writes'
+   3   UnimplementedError
+-- nidana_contract_check topology-ir --set behavior --guarantee G12
+PASS structure lines: 9
+FAIL behavior hsdd/contract/fixture/topology-ir/behavior/nidana_dart_contracts_test.dart: cases (0 passed, 1 failed, 0 skipped under dart test, restricted to topology-ir G12)
+    failed-case (G12 a shell claim takes a service, page or executor source, application scope by default, and one or more state topics)
+10 fixtures: 9 passed, 1 failed, 0 pending
+exit: 1
+
+### T2.4 Task 2's library: ShellClaim
+applied t2: 1 edits
+Formatted 51 files (0 changed) in 0.15 seconds.
+-- dart test packages/nidana_dart_contracts
++211: All tests passed!
+exit: 0
+Analyzing pgp.IWiaX1...
+No issues found!
+analyze exit: 0
+-- nidana_contract_check topology-ir --set behavior --guarantee G12
+PASS structure lines: 9
+PASS behavior hsdd/contract/fixture/topology-ir/behavior/nidana_dart_contracts_test.dart: 1 passed, 0 failed, 0 skipped under dart test, restricted to topology-ir G12
+10 fixtures: 10 passed, 0 failed, 0 pending
+exit: 0
+ignore lines in graph.dart: 1
+
+### T3.2 Task 3's failing step: test/topology_graph_test.dart and the G11 cases
+-- dart test packages/nidana_dart_contracts/test/topology_graph_test.dart
++0 -1: G11 a graph lists its topologies by id, each equal definition counted once however often and in whatever order it comes [E]
++0 -2: G11 two unequal definitions with one id throw ArgumentError naming the topologies, in either order and beside an equal copy [E]
++0 -3: G11 claims sort by source rendering, then scope, then writes element by element, a prefix first, with equal claims kept [E]
++0 -4: G11 topics are every topic read, written or claimed, each once, in canonical order [E]
++0 -5: G3 a graph keeps unmodifiable copies of its lists; later changes to its arguments do not reach it [E]
++0 -6: G7 a graph built from lazy iterables equals one built from lists, and reads each argument once [E]
++0 -7: G7 graphs are equal, with equal hash codes, exactly when their topologies and claims are, whatever order the arguments came in [E]
++0 -8: G11 toGraph is the graph of the one definition; render passes the graph itself to the renderer and returns its text [E]
++0 -8: Some tests failed.
+exit: 1
+   1   Expected: throws <Instance of 'ArgumentError'> with `name`: 'topologies'
+   7   UnimplementedError
+-- nidana_contract_check topology-ir --set behavior --guarantee G11
+PASS structure lines: 9
+FAIL behavior hsdd/contract/fixture/topology-ir/behavior/nidana_dart_contracts_test.dart: cases (0 passed, 3 failed, 0 skipped under dart test, restricted to topology-ir G11)
+    failed-case (G11 a graph orders its topologies by id, keeps one of equal duplicates and lists every topic in canonical order)
+    failed-case (G11 a graph rejects two different definitions with one id)
+    failed-case (G11 a graph orders its claims by source, scope and topics, and keeps equal claims as separate claimants)
+10 fixtures: 9 passed, 1 failed, 0 pending
+exit: 1
+
+### T3.4 Task 3's library: TopologyGraph, toGraph and render
+Formatted 52 files (0 changed) in 0.15 seconds.
+-- dart test packages/nidana_dart_contracts
++219: All tests passed!
+exit: 0
+Analyzing pgp.IWiaX1...
+No issues found!
+analyze exit: 0
+-- nidana_contract_check topology-ir --set behavior --guarantee G11
+PASS structure lines: 9
+PASS behavior hsdd/contract/fixture/topology-ir/behavior/nidana_dart_contracts_test.dart: 3 passed, 0 failed, 0 skipped under dart test, restricted to topology-ir G11
+10 fixtures: 10 passed, 0 failed, 0 pending
+exit: 0
+-- nidana_contract_check topology-ir --guarantee G2,G5,G6,G8,G9,G10,G11,G12
+PASS structure lines: 9
+PASS behavior hsdd/contract/fixture/topology-ir/behavior/nidana_dart_contracts_test.dart: 17 passed, 0 failed, 0 skipped under dart test, restricted to topology-ir G2, G5, G6, G8 to G12
+61 fixtures: 61 passed, 0 failed, 0 pending
+exit: 0
+ignore lines in graph.dart: 0
+
+### T4.2 Task 4's failing step: test/error_messages_test.dart
+-- dart test packages/nidana_dart_contracts/test/error_messages_test.dart
++0 -1: G14 a foreign handle is named by the parameter it was passed as, or by its index in a list [E]
++0 -2: G13 a dedup argument on an event or replay read names the read's variant with its article [E]
++0 -3: G5 an edge given the wrong number of inputs says how many its combinator takes [E]
++0 -4: G6 a second sink edge on a state topic names the topic and its type, and says that value types rendering alike are one topic [E]
++0 -4: Some tests failed.
+exit: 1
+   1   Expected: throws <Instance of 'ArgumentError'> with `name`: 'dedup' and `message`: (contains 'msg.log is a replay topic')
+   1   Expected: throws <Instance of 'ArgumentError'> with `name`: 'inputs' and `message`: 'a map edge takes exactly 1 input'
+   1   Expected: throws <Instance of 'ArgumentError'> with `name`: 'stream' and `message`: (contains 'another builder')
+   1   Expected: throws <Instance of 'ArgumentError'> with `name`: 'transforms' and `message`: (contains 'second sink edge' and contains 'Cart' and contains 'render alike')
+
+### T4.4 Task 4's library: the messages
+applied t4: 15 edits
+Formatted 53 files (1 changed) in 0.15 seconds.
+-- dart test packages/nidana_dart_contracts
++223: All tests passed!
+exit: 0
+Analyzing pgp.IWiaX1...
+No issues found!
+analyze exit: 0
+-- nidana_contract_check topology-dsl --set behavior
+PASS structure lines: 16
+PASS behavior hsdd/contract/fixture/topology-dsl/behavior/topology_builder_test.dart: 24 passed, 0 failed, 0 skipped under dart test
+17 fixtures: 17 passed, 0 failed, 0 pending
+exit: 0
+
+### X the new files against draft/ (formatter-stable), and the edited files against HEAD
+same: lib/src/ir/projection.dart
+same: lib/src/graph/graph.dart
+same: test/projection_test.dart
+same: test/shell_claim_test.dart
+same: test/topology_graph_test.dart
+same: test/error_messages_test.dart
+-- diff HEAD lib/src/topology/topology.dart
+3a4
+> import '../ir/projection.dart';
+-- diff HEAD lib/src/topology/plan.dart
+39c39
+<   TopologyDefinition get definition => throw UnimplementedError();
+---
+>   TopologyDefinition get definition => projectPlan(this);
+-- diff HEAD lib/src/topology/builder.dart
+34,37c34,41
+<   // (G14); returns them as an unmodifiable copy.
+<   List<H> _checkMade<H extends TopicStream<Object?>>(List<H> handles) {
+<     for (final H handle in handles) {
+<       if (!identical(handle._builder, this)) {
+---
+>   // (G14), naming the first foreign one by its parameter, the element of
+>   // [names] at its index; returns [handles] as an unmodifiable copy.
+>   List<H> _checkMade<H extends TopicStream<Object?>>(
+>     List<H> handles,
+>     List<String> names,
+>   ) {
+>     for (int i = 0; i < handles.length; i++) {
+>       if (!identical(handles[i]._builder, this)) {
+39,40c43,44
+<           handle,
+<           'handle',
+---
+>           handles[i],
+>           names[i],
+42c46
+<               'planOf call of this one',
+---
+>           'planOf call of this one',
+113,114c117,118
+<         'applies to a state topic read only, and ${topic.name} is an '
+<             '${topic.variant.name} topic',
+---
+>         'applies to a state topic read only, and ${topic.name} is '
+>             '${_variantOf(topic)}',
+127c131
+<     _checkMade(<TopicStream<Object?>>[stream]);
+---
+>     _checkMade(<TopicStream<Object?>>[stream], const <String>['stream']);
+141c145
+<     _checkMade(<TopicStream<Object?>>[events]);
+---
+>     _checkMade(<TopicStream<Object?>>[events], const <String>['events']);
+152,155c156,159
+<     final List<TopicStream<Object?>> inputs = _checkMade(<TopicStream<Object?>>[
+<       a,
+<       b,
+<     ]);
+---
+>     final List<TopicStream<Object?>> inputs = _checkMade(
+>       <TopicStream<Object?>>[a, b],
+>       const <String>['a', 'b'],
+>     );
+174,178c178,181
+<     final List<TopicStream<Object?>> inputs = _checkMade(<TopicStream<Object?>>[
+<       a,
+<       b,
+<       c,
+<     ]);
+---
+>     final List<TopicStream<Object?>> inputs = _checkMade(
+>       <TopicStream<Object?>>[a, b, c],
+>       const <String>['a', 'b', 'c'],
+>     );
+199,204c202,205
+<     final List<TopicStream<Object?>> inputs = _checkMade(<TopicStream<Object?>>[
+<       a,
+<       b,
+<       c,
+<       d,
+<     ]);
+---
+>     final List<TopicStream<Object?>> inputs = _checkMade(
+>       <TopicStream<Object?>>[a, b, c, d],
+>       const <String>['a', 'b', 'c', 'd'],
+>     );
+229c230,233
+<     final List<TopicStream<T>> made = _checkMade(inputs);
+---
+>     final List<TopicStream<T>> made = _checkMade(
+>       inputs,
+>       _elementNames('inputs', inputs.length),
+>     );
+246c250,253
+<     final List<TopicStream<T>> made = _checkMade(inputs);
+---
+>     final List<TopicStream<T>> made = _checkMade(
+>       inputs,
+>       _elementNames('inputs', inputs.length),
+>     );
+256a264,275
+> 
+> // The names of the elements of the list parameter [name], by index:
+> // 'inputs[0]', 'inputs[1]' and so on.
+> List<String> _elementNames(String name, int length) => <String>[
+>   for (int i = 0; i < length; i++) '$name[$i]',
+> ];
+> 
+> // [topic]'s variant with its article, for a message.
+> String _variantOf(MultiWriterTopic<Object?> topic) => switch (topic) {
+>   EventTopic<Object?>() => 'an event topic',
+>   ReplayTopic<Object?>() => 'a replay topic',
+> };
+-- diff HEAD lib/src/topology/handle.dart
+33a34
+>       const <String>['latest'],
+54a56
+>       const <String>['b', 'c'],
+77a80
+>       const <String>['b', 'c', 'd'],
+-- diff HEAD lib/src/ir/definition.dart
+105a106,108
+>       final String noun = (rule.maxInputs ?? rule.minInputs) == 1
+>           ? 'input'
+>           : 'inputs';
+109c112
+<         'a ${combinator.name} edge takes $count inputs',
+---
+>         'a ${combinator.name} edge takes $count $noun',
+410c413,416
+<           'edge $i is a second sink edge on a state topic',
+---
+>           'edge $i is a second sink edge on this state topic, of type '
+>               '${output.typeName}; two state topics of one name whose value '
+>               'types render alike, one class name in two libraries, are one '
+>               'topic in the IR',
+-- diff HEAD lib/src/topic/list_equality.dart
+1,3c1,6
+< /// The element-wise comparison of parent correlation ids that envelope and
+< /// lineage equality use (G13): true when [a] and [b] have the same length and
+< /// `a[i] == b[i]` at every index. A `List`'s own `==` is identity.
+---
+> /// The element-wise comparison that value equality uses for the lists a
+> /// value holds: an envelope's and a lineage's parent correlation ids
+> /// (topic-model@v1 G13), and the lists and sets of the IR values, findings,
+> /// claims and graphs (topology-ir@v1 G7), a set compared as its list: true
+> /// when [a] and [b] have the same length and `a[i] == b[i]` at every index.
+> /// A `List`'s own `==` is identity.
+-- diff HEAD test/canonical_order_test.dart
+267c267
+<       for (final FileSystemEntity f in ir.listSync())
+---
+>       for (final FileSystemEntity f in ir.listSync(recursive: true))
+
+### G the phase gate, exactly as the phase context writes it
+gate exit: 0
+Got dependencies!
+No issues found!
+102 fixtures: 102 passed, 0 failed, 0 pending
++223: All tests passed!
+PASS behavior hsdd/contract/fixture/topic-model/behavior/nidana_dart_contracts_test.dart: 41 passed, 0 failed, 0 skipped under dart test
+PASS behavior hsdd/contract/fixture/topology-dsl/behavior/topology_builder_test.dart: 24 passed, 0 failed, 0 skipped under dart test
+59 fixtures: 59 passed, 0 failed, 0 pending
+PASS behavior hsdd/contract/fixture/topology-ir/behavior/nidana_dart_contracts_test.dart: 17 passed, 0 failed, 0 skipped under dart test, restricted to topology-ir G2, G5, G6, G8 to G12
+61 fixtures: 61 passed, 0 failed, 0 pending
+
+### U both behavior sets unrestricted, and the G3 case this phase reaches
+-- nidana_contract_check topology-dsl --set behavior
+PASS structure lines: 16
+PASS behavior hsdd/contract/fixture/topology-dsl/behavior/topology_builder_test.dart: 24 passed, 0 failed, 0 skipped under dart test
+17 fixtures: 17 passed, 0 failed, 0 pending
+exit: 0
+-- nidana_contract_check topology-ir --set behavior
+PASS structure lines: 9
+FAIL behavior hsdd/contract/fixture/topology-ir/behavior/nidana_dart_contracts_test.dart: cases (19 passed, 24 failed, 0 skipped under dart test)
+    failed-case (G3 every collection the IR, graphs, claims and findings expose is unmodifiable)
+    failed-case (G4 every definition a plan projects to is pure data: it encodes to JSON and decodes back equal)
+    failed-case (G7 graphs, claims, declarations and findings are equal, with equal hash codes, exactly when their fields are)
+    failed-case (G13 findTopologyCycles reports each strongly connected set of two or more topologies, with the topics between them)
+    failed-case (G13 shell claims take no part in cycles, and a graph without feedback has none)
+    failed-case (G14 findSelfReferences reports a self-written topic read through no state-bearing edge, with every edge on such a path)
+    failed-case (G14 a self-read mediated by scan, reduceInto or a positive time stage, or never reaching its write, is not reported)
+    failed-case (G15 findWriterConflicts reports each state topic with two or more writers, topologies and claims alike)
+    failed-case (G16 findScopeViolations reports each owner of a state topic that a longer-lived topology reads)
+    failed-case (G17 analyzeTopologyGraph lists cycles, then self-references by topology, then writer conflicts, then scope violations)
+    failed-case (G17 a graph with no finding stays without one when topologies or claims are removed)
+    failed-case (G18 findTopicNameCollisions reports each name with two or more distinct declarations, whatever their types)
+    failed-case (G19 the encoding of every sample graph matches the schema and equals its valid/ file)
+    failed-case (G19 a definition encodes to the object its graph document lists)
+    failed-case (G20 every valid/ file decodes and re-encodes to an equal JSON value)
+    failed-case (G20 decoding the encoding of a graph gives the graph back)
+    failed-case (G20 the decoder accepts topologies, claims, reads, writes and claimed topics in any order)
+    failed-case (G21 every invalid/ file fails the schema and the decoder rejects it with a FormatException)
+    failed-case (G21 the decoder rejects a schema-valid document that breaks a rule the schema cannot state)
+    failed-case (G21 the decoder rejects any other value with a FormatException and no other error)
+    failed-case (G22 the Mermaid and Graphviz renderings of every sample equal its render/ files)
+    failed-case (G22 the JSON rendering of every sample is its valid/ file, byte for byte)
+    failed-case (G22 render passes the graph to the renderer, and renderers are pure)
+    failed-case (G23 finding and collision constructors put the lists they are given in the orders the Interface names)
+10 fixtures: 9 passed, 1 failed, 0 pending
+exit: 1
++1: All tests passed!
+exit: 0
+
+### C the last task's checklist
++0: G8 a plan projects one stage edge per non-read stage, in stage order, then one sink edge per sink, in sink order
++1: G8 every combinator projects to its kind, its inputs in input order, its function, duration and retry
++2: G8 recording one declaration twice projects equal definitions, inline closures included
++3: G11 a graph orders its topologies by id, keeps one of equal duplicates and lists every topic in canonical order
++4: G11 a graph rejects two different definitions with one id
++5: G11 a graph orders its claims by source, scope and topics, and keeps equal claims as separate claimants
++6: G12 a shell claim takes a service, page or executor source, application scope by default, and one or more state topics
++7: All tests passed!
+exit: 0
++0: G9 planOf runs declare once against a fresh builder and carries the id and scope
++1: G9 buildDefinition runs declare once and equals the definition of a fresh plan
++2: G9 the builder form runs its body on each planOf call and never at construction
++3: G10 recording calls none of the functions a declaration passes
++4: G10 recording creates no timer and schedules no microtask
++5: G12 the definition reads the topics of the read stages and writes the topics of the sinks
++6: G12 a topic read twice is read once, and a declaration with no stages reads and writes nothing
++7: All tests passed!
+exit: 0
++0: packages/nidana_dart_contracts/test/projection_test.dart: G8 the search topology of topology-ir@v1's JSON example projects to its debounce, switchMap and write
++1: packages/nidana_dart_contracts/test/projection_test.dart: G8 G12 the forms sample projects to the edges of its valid/ document: one read handle feeds a map, a merge and a reduceInto
++2: packages/nidana_dart_contracts/test/projection_test.dart: G8 the quiet topology of the findings sample: one read feeds two stages, whose edges a merge takes by index
++3: packages/nidana_dart_contracts/test/projection_test.dart: G8 every arity form of combine and withLatestFrom names the combiner the declaration passed, its inputs in input order
++4: packages/nidana_dart_contracts/test/projection_test.dart: G8 a read written as it is projects to a write of a topic input with the read's dedup argument, and an inline closure is anonymous
++5: packages/nidana_dart_contracts/test/projection_test.dart: G9 a plan projects again at each read of its definition, equal each time and equal to buildDefinition
++6: packages/nidana_dart_contracts/test/projection_test.dart: G8 two state topics whose value types render alike pass planOf, and definition and buildDefinition throw TopologyDefinition's ArgumentError naming the transforms
++7: packages/nidana_dart_contracts/test/shell_claim_test.dart: G12 a claim takes a service, page or executor source at any scope, and rejects a topology or unknown source naming the source
++8: packages/nidana_dart_contracts/test/shell_claim_test.dart: G12 a claim rejects an empty set, and a set with any topic that is not a state topic, naming the writes
++9: packages/nidana_dart_contracts/test/shell_claim_test.dart: G3 a claim keeps an unmodifiable copy of its writes, in canonical order, whatever order they were given in
++10: packages/nidana_dart_contracts/test/shell_claim_test.dart: G7 claims are equal, with equal hash codes, exactly when their source, scope and writes are
++11: packages/nidana_dart_contracts/test/topology_graph_test.dart: G11 a graph lists its topologies by id, each equal definition counted once however often and in whatever order it comes
++12: packages/nidana_dart_contracts/test/topology_graph_test.dart: G11 two unequal definitions with one id throw ArgumentError naming the topologies, in either order and beside an equal copy
++13: packages/nidana_dart_contracts/test/topology_graph_test.dart: G11 claims sort by source rendering, then scope, then writes element by element, a prefix first, with equal claims kept
++14: packages/nidana_dart_contracts/test/topology_graph_test.dart: G11 topics are every topic read, written or claimed, each once, in canonical order
++15: packages/nidana_dart_contracts/test/topology_graph_test.dart: G3 a graph keeps unmodifiable copies of its lists; later changes to its arguments do not reach it
++16: packages/nidana_dart_contracts/test/topology_graph_test.dart: G7 a graph built from lazy iterables equals one built from lists, and reads each argument once
++17: packages/nidana_dart_contracts/test/topology_graph_test.dart: G7 graphs are equal, with equal hash codes, exactly when their topologies and claims are, whatever order the arguments came in
++18: packages/nidana_dart_contracts/test/topology_graph_test.dart: G11 toGraph is the graph of the one definition; render passes the graph itself to the renderer and returns its text
++19: packages/nidana_dart_contracts/test/error_messages_test.dart: G14 a foreign handle is named by the parameter it was passed as, or by its index in a list
++20: packages/nidana_dart_contracts/test/error_messages_test.dart: G13 a dedup argument on an event or replay read names the read's variant with its article
++21: packages/nidana_dart_contracts/test/error_messages_test.dart: G5 an edge given the wrong number of inputs says how many its combinator takes
++22: packages/nidana_dart_contracts/test/error_messages_test.dart: G6 a second sink edge on a state topic names the topic and its type, and says that value types rendering alike are one topic
++23: All tests passed!
+exit: 0
+exit: 1
+exit: 1
+exit: 1
+exit: 1
+-- lines: library, then tests
+lib/src/ir/projection.dart: 0 at HEAD, 179 after
+lib/src/graph/graph.dart: 73 at HEAD, 171 after
+lib/src/topology/topology.dart: 94 at HEAD, 95 after
+lib/src/topology/plan.dart: 74 at HEAD, 74 after
+lib/src/topology/builder.dart: 256 at HEAD, 275 after
+lib/src/topology/handle.dart: 190 at HEAD, 193 after
+lib/src/ir/definition.dart: 430 at HEAD, 436 after
+     331 packages/nidana_dart_contracts/test/projection_test.dart
+     147 packages/nidana_dart_contracts/test/shell_claim_test.dart
+     296 packages/nidana_dart_contracts/test/topology_graph_test.dart
+     195 packages/nidana_dart_contracts/test/error_messages_test.dart
+     969 total
+
+### A every fixture diagnostic after this phase's bodies, compared with B
+diagnostics: 3143 in 70 libraries
+same as B
+const sets or maps in the new test files:
+grep exit: 1
+
+### D seeded defects, each restored after
+-- D1 the projection names a combine stage's apply, not its combiner
+   package tests: +222 -1: Some tests failed.
+   failing: packages/nidana_dart_contracts/test/projection_test.dart: G8 every arity form of combine and withLatestFrom names the combiner the declaration passed, its inputs in input order
+   gate topology-ir replay: cases (15 passed, 2 failed, 0 skipped under dart test, restricted to topology-ir G2, G5, G6, G8 to G12) | G8 a plan projects one stage edge per non-read stage, in stage order, then one sink edge per sink, in sink order) | G8 every combinator projects to its kind, its inputs in input order, its funct
+   gate topology-dsl replay: 24 passed, 0 failed, 0 skipped under dart test
+-- D2 a claim keeps a view of the caller's set, not a copy
+   package tests: +221 -2: Some tests failed.
+   failing: packages/nidana_dart_contracts/test/shell_claim_test.dart: G3 a claim keeps an unmodifiable copy of its writes, in canonical order, whatever order they were given in
+   failing: packages/nidana_dart_contracts/test/shell_claim_test.dart: G7 claims are equal, with equal hash codes, exactly when their source, scope and writes are
+   gate topology-ir replay: cases (16 passed, 1 failed, 0 skipped under dart test, restricted to topology-ir G2, G5, G6, G8 to G12) | G11 a graph orders its claims by source, scope and topics, and keeps equal claims as separate claimants)
+   gate topology-dsl replay: 24 passed, 0 failed, 0 skipped under dart test
+-- D3 a claim hashes its writes by identity
+   package tests: +222 -1: Some tests failed.
+   failing: packages/nidana_dart_contracts/test/shell_claim_test.dart: G7 claims are equal, with equal hash codes, exactly when their source, scope and writes are
+   gate topology-ir replay: 17 passed, 0 failed, 0 skipped under dart test, restricted to topology-ir G2, G5, G6, G8 to G12
+   gate topology-dsl replay: 24 passed, 0 failed, 0 skipped under dart test
+-- D4 claims sort by source and scope only
+   package tests: +222 -1: Some tests failed.
+   failing: packages/nidana_dart_contracts/test/topology_graph_test.dart: G11 claims sort by source rendering, then scope, then writes element by element, a prefix first, with equal claims kept
+   gate topology-ir replay: 17 passed, 0 failed, 0 skipped under dart test, restricted to topology-ir G2, G5, G6, G8 to G12
+   gate topology-dsl replay: 24 passed, 0 failed, 0 skipped under dart test
+-- D5 a graph's equality compares its topologies only
+   package tests: +222 -1: Some tests failed.
+   failing: packages/nidana_dart_contracts/test/topology_graph_test.dart: G7 graphs are equal, with equal hash codes, exactly when their topologies and claims are, whatever order the arguments came in
+   gate topology-ir replay: 17 passed, 0 failed, 0 skipped under dart test, restricted to topology-ir G2, G5, G6, G8 to G12
+   gate topology-dsl replay: 24 passed, 0 failed, 0 skipped under dart test
+-- D6 a graph hashes its lists by identity
+   package tests: +222 -1: Some tests failed.
+   failing: packages/nidana_dart_contracts/test/topology_graph_test.dart: G7 graphs are equal, with equal hash codes, exactly when their topologies and claims are, whatever order the arguments came in
+   gate topology-ir replay: 17 passed, 0 failed, 0 skipped under dart test, restricted to topology-ir G2, G5, G6, G8 to G12
+   gate topology-dsl replay: 24 passed, 0 failed, 0 skipped under dart test
+-- D7 a claim's writes keep the order they were given in
+   package tests: +221 -2: Some tests failed.
+   failing: packages/nidana_dart_contracts/test/shell_claim_test.dart: G3 a claim keeps an unmodifiable copy of its writes, in canonical order, whatever order they were given in
+   failing: packages/nidana_dart_contracts/test/shell_claim_test.dart: G7 claims are equal, with equal hash codes, exactly when their source, scope and writes are
+   gate topology-ir replay: cases (16 passed, 1 failed, 0 skipped under dart test, restricted to topology-ir G2, G5, G6, G8 to G12) | G11 a graph orders its claims by source, scope and topics, and keeps equal claims as separate claimants)
+   gate topology-dsl replay: 24 passed, 0 failed, 0 skipped under dart test
+-- D8 a graph reads its topologies argument twice
+   package tests: +222 -1: Some tests failed.
+   failing: packages/nidana_dart_contracts/test/topology_graph_test.dart: G7 a graph built from lazy iterables equals one built from lists, and reads each argument once
+   gate topology-ir replay: 17 passed, 0 failed, 0 skipped under dart test, restricted to topology-ir G2, G5, G6, G8 to G12
+   gate topology-dsl replay: 24 passed, 0 failed, 0 skipped under dart test
+
+### done

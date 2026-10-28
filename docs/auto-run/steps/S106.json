@@ -1,0 +1,549 @@
+{
+  "step_ref": "S106",
+  "skill": "superpowers:writing-plans",
+  "target": "nidana.model.3",
+  "status": "completed",
+  "stop": null,
+  "artifacts": [
+    "docs/superpowers/plans/nidana.model.3.md",
+    "docs/auto-run/experiments/topic-model-declarations-plan/run.sh",
+    "docs/auto-run/experiments/topic-model-declarations-plan/output.txt",
+    "docs/auto-run/experiments/topic-model-declarations-plan/draft/pubspec.yaml",
+    "docs/auto-run/experiments/topic-model-declarations-plan/draft/README.md",
+    "docs/auto-run/experiments/topic-model-declarations-plan/draft/CHANGELOG.md",
+    "docs/auto-run/experiments/topic-model-declarations-plan/draft/lib/nidana_dart_contracts.dart",
+    "docs/auto-run/experiments/topic-model-declarations-plan/draft/lib/nidana_dart_contracts.stage1.dart",
+    "docs/auto-run/experiments/topic-model-declarations-plan/draft/lib/nidana_dart_contracts.stage2.dart",
+    "docs/auto-run/experiments/topic-model-declarations-plan/draft/lib/src/topic/topic.dart",
+    "docs/auto-run/experiments/topic-model-declarations-plan/draft/lib/src/topic/scope.dart",
+    "docs/auto-run/experiments/topic-model-declarations-plan/draft/lib/src/topic/message_source.dart",
+    "docs/auto-run/experiments/topic-model-declarations-plan/draft/lib/src/topic/envelope.dart",
+    "docs/auto-run/experiments/topic-model-declarations-plan/draft/lib/src/topic/lineage.dart",
+    "docs/auto-run/experiments/topic-model-declarations-plan/draft/lib/src/topic/redacted_payload.dart",
+    "docs/auto-run/experiments/topic-model-declarations-plan/draft/lib/src/topic/observer.dart",
+    "docs/auto-run/experiments/topic-model-declarations-plan/draft/test/purity_test.dart",
+    "docs/auto-run/experiments/topic-model-declarations-plan/draft/test/declarations_test.dart",
+    "docs/auto-run/experiments/topic-model-declarations-plan/draft/test/declarations_test.stage2.dart"
+  ],
+  "decisions": [
+    {
+      "at": "2026-10-26T22:54:04Z",
+      "artifact": "docs/superpowers/plans/nidana.model.3.md",
+      "question": "How is the phase cut into at most 5 tasks?",
+      "options": [
+        {
+          "label": "four tasks",
+          "consequence": "1 the package, its workspace entry and the purity test; 2 topics, topic references, names and scopes; 3 sources, envelopes, lineage, redaction and observers; 4 gate and verification doc. Each declaration task turns a named group of fixtures green; one review sitting fewer than five"
+        },
+        {
+          "label": "five tasks, observers alone",
+          "consequence": "observers (about 45 lines of interfaces) get their own task and review; the cap is reached for a gate-only phase"
+        },
+        {
+          "label": "three tasks",
+          "consequence": "every declaration in one task: the surface and reject sets go from 13 failing to green in one step, so a reviewer cannot accept the topic family while rejecting the envelope"
+        }
+      ],
+      "chosen": "four tasks",
+      "why": "The fixtures split cleanly by what they import: topics.dart and six reject libraries need only topic.dart and scope.dart (dry run T2.4: 24 of 30 pass), the other six need the envelope family. Observers are small interfaces whose only fixtures also need MessageEnvelope, so they ride with Task 3. The signal that would have split observers out: a full-review tier.",
+      "evidence": [
+        "hsdd-context/superpowers/nidana.model.3.md Global Constraint 3",
+        "docs/auto-run/experiments/topic-model-declarations-plan/output.txt T2.4 and T3.4"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-26T22:54:04Z",
+      "artifact": "docs/superpowers/plans/nidana.model.3.md",
+      "question": "How are topic-model@v1's declarations split into files under lib/src/topic/ (nidana.model D4 names only the directory)?",
+      "options": [
+        {
+          "label": "one library per Interface section",
+          "consequence": "seven files: topic.dart (Topics, and Topic references and names), message_source.dart, envelope.dart, lineage.dart, scope.dart, observer.dart, redacted_payload.dart; each sealed family sits in one library as Dart requires; nidana.model.8 fills them section by section"
+        },
+        {
+          "label": "one file",
+          "consequence": "lib/src/topic/topic_model.dart, the stand-ins' shape; about 300 lines that nidana.model.8 then grows to about 700"
+        },
+        {
+          "label": "eight files, TopicRef alone",
+          "consequence": "topic_ref.dart for the Topic references and names section; Topic.ref and every observer import it"
+        }
+      ],
+      "chosen": "one library per Interface section",
+      "why": "Files follow the Interface's headings, so a reviewer compares each file with one section. TopicRef and the name predicate share topic.dart because Topic.ref returns a TopicRef and the predicate is about topic names; a separate file would hold 15 lines. The envelope and lineage libraries import each other, which Dart allows.",
+      "evidence": [
+        "hsdd/spec/nidana.model.md D4",
+        "hsdd/contract/topic-model.md ## Interface section headings"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-26T22:54:04Z",
+      "artifact": "docs/superpowers/plans/nidana.model.3.md",
+      "question": "How does the main library export the declarations: whole files or show lists?",
+      "options": [
+        {
+          "label": "show lists",
+          "consequence": "export 'src/topic/{file}.dart' show {names}, files in path order, names ascending; the export list names exactly the 25 Interface names, so a helper that nidana.model.8 adds to a src file stays private to the package"
+        },
+        {
+          "label": "whole files",
+          "consequence": "shorter lines; every public name a later phase adds under lib/src/topic/ becomes public API without an export edit"
+        }
+      ],
+      "chosen": "show lists",
+      "why": "D3 makes the export lists part of what a type-level phase lands, and nidana.model.5's Verification checks that the public libraries export exactly what the Interfaces list; a show list states that in the file. Cost: nidana.model.4 and .5 add names to the same lines (they collide on the export list anyway).",
+      "evidence": [
+        "hsdd/spec/nidana.model.md D3, phase nidana.model.5 Verification",
+        "hsdd-context/superpowers/nidana.model.3.md Verification"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-26T22:54:26Z",
+      "artifact": "docs/superpowers/plans/nidana.model.3.md",
+      "question": "Which members does a type-level body deliver, and which throw UnimplementedError (D3: every body that computes throws)?",
+      "options": [
+        {
+          "label": "stored arguments and declaration constants delivered",
+          "consequence": "every getter the reject set assigns to is a final field holding its argument as given; variant returns its class's TopicVariant and valueType returns T; Lineage.root, a const constructor with no body, initializes its constant fields; ref, createInitial, isWellFormedTopicName, tryParse, publishedTo, redacted, causedBy, combine, withLatestFrom, isAtLeastAsLongAs, permits and RedactedPayload.of throw"
+        },
+        {
+          "label": "throw everywhere a getter is not a field",
+          "consequence": "variant and valueType throw too; a switch on topic.variant in a consumer throws until nidana.model.8, whose scope does not list them"
+        },
+        {
+          "label": "deliver every trivial body",
+          "consequence": "causedBy and RedactedPayload.of land now; nidana.model.8's scope, which lists them, shrinks and D3 is bent"
+        }
+      ],
+      "chosen": "stored arguments and declaration constants delivered",
+      "why": "nidana.model.8's scope lists ref, createInitial, causedBy, RedactedPayload.of and the rest, but never variant or valueType, so the node plan expects those two from this phase; each is a constant of its declaration, not a computation. The rule gives the implementer one test: does the body derive a value from arguments or other values?",
+      "evidence": [
+        "hsdd/spec/nidana.model.md D3 and phase nidana.model.8 Scope",
+        "hsdd/contract/topic-model.md G6, G7"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-26T22:54:26Z",
+      "artifact": "docs/superpowers/plans/nidana.model.3.md",
+      "question": "The Interface declares toString() on MessageEnvelope (G15) and RedactedPayload (G24), and MessageSource's renderings (G17) are toString too. Does this phase declare them?",
+      "options": [
+        {
+          "label": "toString stays Object's",
+          "consequence": "like == and hashCode under D3, no override until nidana.model.8; printing or interpolating a value shows Instance of ..., never a throw"
+        },
+        {
+          "label": "declare toString throwing UnimplementedError",
+          "consequence": "the Interface's toString lines exist now; every string interpolation, debug print and test-failure description of an envelope, source or redacted payload throws until nidana.model.8"
+        }
+      ],
+      "chosen": "toString stays Object's",
+      "why": "D3 keeps the Object members that value semantics override as Object's until the delivering phase; toString is the third of them and its override is G15, G17 and G24 behavior, which nidana.model.8's scope lists (the source renderings, the redacting toString). A throwing toString would break matcher's failure messages in every consumer test. Nothing a surface or reject fixture checks depends on the override.",
+      "evidence": [
+        "hsdd/spec/nidana.model.md D3 and phase nidana.model.8 Scope",
+        "docs/auto-run/experiments/topic-model-declarations-plan/output.txt T3.4 (surface passes without the overrides)"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-26T22:54:26Z",
+      "artifact": "docs/superpowers/plans/nidana.model.3.md",
+      "question": "Do StateTopic's constructors store initial, and does MessageEnvelope copy parentCorrelationIds, before nidana.model.8 implements createInitial (G9) and the unmodifiable copies (G4)?",
+      "options": [
+        {
+          "label": "store neither now",
+          "consequence": "initial is a parameter with no field (a private field nobody reads is an unused_field warning under --fatal-infos while createInitial throws); parentCorrelationIds is an initializing formal holding the list as given; nidana.model.8 adds the storage and the copy without changing either signature"
+        },
+        {
+          "label": "store and copy now",
+          "consequence": "private initial fields with an ignore comment, and List.unmodifiable in the initializer; G4's list half and part of G9 land a phase early"
+        }
+      ],
+      "chosen": "store neither now",
+      "why": "nidana.model.8's scope lists unmodifiable copies of every list (G4) and createInitial (G9). Leaving both out keeps this phase free of suppressions for state it does not read, and the public signatures, which are what the surface and reject sets and every consumer compile against, are identical either way. The Interface's trailing comment `copied, unmodifiable` stays beside the parameter as the contract's statement.",
+      "evidence": [
+        "hsdd/spec/nidana.model.md D3 and phase nidana.model.8 Scope",
+        "docs/auto-run/experiments/topic-model-declarations-plan/output.txt T3.4 (analyze clean)"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-26T22:54:26Z",
+      "artifact": "docs/superpowers/plans/nidana.model.3.md",
+      "question": "Lineage.causedBy is a generative constructor whose final fields must be initialized; how does it throw UnimplementedError?",
+      "options": [
+        {
+          "label": "constant initializers and a throwing body",
+          "consequence": "the four fields take null, null, const [] and false, and the body throws; the signature stays generative as the Interface writes it"
+        },
+        {
+          "label": "throw in the initializer list",
+          "consequence": "causationId = throw UnimplementedError() leaves the remaining initializers after an expression that never completes"
+        },
+        {
+          "label": "deliver it",
+          "consequence": "four field reads from cause; G18's causedBy half lands a phase early, against D3"
+        }
+      ],
+      "chosen": "constant initializers and a throwing body",
+      "why": "It keeps the Interface's generative form and D3's rule with code that reads plainly; the dry run analyzes clean. nidana.model.8 replaces the initializers and drops the body.",
+      "evidence": [
+        "docs/auto-run/experiments/topic-model-declarations-plan/output.txt T3.4"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-26T22:54:51Z",
+      "artifact": "docs/superpowers/plans/nidana.model.3.md",
+      "question": "RedactedPayload needs final fields typeName and hash (values_are_immutable.dart expects assignment_to_final) and so a private generative constructor, which nothing calls while RedactedPayload.of throws; the root analyze reports it as unused_element (a WARNING). How is the analyzer kept clean?",
+      "options": [
+        {
+          "label": "an ignore with its reason",
+          "consequence": "one `// ignore: unused_element` above `const RedactedPayload._(this.typeName, this.hash);`, under a line saying RedactedPayload.of constructs through it once nidana.model.8 lands it; nidana.model.8 removes both lines"
+        },
+        {
+          "label": "implement RedactedPayload.of now",
+          "consequence": "no suppression; G24's computation lands a phase early, against D3 and nidana.model.8's scope"
+        }
+      ],
+      "chosen": "an ignore with its reason",
+      "why": "D3 asks for the final field behind every getter and a throwing body together; for a class whose only public constructor is a factory these two leave the private constructor unused. The suppression is the smaller departure, local to one line, and it is the only ignore the plan allows. Observed: the first draft without it reported `warning ... The declaration 'RedactedPayload._' isn't referenced ... unused_element`.",
+      "evidence": [
+        "hsdd/spec/nidana.model.md D3",
+        "hsdd/contract/fixture/topic-model/reject/values_are_immutable.dart line 30",
+        "docs/auto-run/experiments/topic-model-declarations-plan/ (draft/lib/src/topic/redacted_payload.dart; analyze clean in T3.4)"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-26T22:54:51Z",
+      "artifact": "docs/superpowers/plans/nidana.model.3.md",
+      "question": "MessageSource's dartdoc in the Interface writes the renderings as 'topology:<id>', 'service:<name>', 'page:<routeOrName>' and 'executor:<name>'; copied as written, the root lint set (lints 6.1.0 recommended) reports four unintended_html_in_doc_comment INFOs, which fail fvm dart analyze --fatal-infos. What does the copy say?",
+      "options": [
+        {
+          "label": "backtick the renderings",
+          "consequence": "each of the five quoted renderings, unknown included, becomes a code span, quotes kept inside the backticks; every other character is the Interface's; reported as a contract gap so hsdd-contract can make the Interface text match"
+        },
+        {
+          "label": "ignore_for_file",
+          "consequence": "the dartdoc stays byte-for-byte, under a file-wide suppression of a lint that also guards every later doc comment in message_source.dart"
+        },
+        {
+          "label": "stop for hsdd-contract",
+          "consequence": "the phase waits on a text touch that changes no semantics"
+        }
+      ],
+      "chosen": "backtick the renderings",
+      "why": "The run rule copies Interface dartdoc as written; the lint makes that impossible for these lines, and a code span is the dartdoc form of literal text, so the reading is unchanged. A file-wide ignore would hide later real defects. The gap does not block: the copy differs only by markup, and an Interface touch would converge on the same text.",
+      "evidence": [
+        "hsdd/contract/topic-model.md Interface, Message sources",
+        "docs/auto-run/experiments/topic-model-declarations-plan/ (first draft analysis: 4 unintended_html_in_doc_comment at message_source.dart lines 4 and 5)",
+        "docs/auto-run/impl-step-preamble.md Prose rules"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-26T22:54:52Z",
+      "artifact": "docs/superpowers/plans/nidana.model.3.md",
+      "question": "How is the package README worded, given that D4 has nidana.model.3 write it once and no phase is planned to edit it?",
+      "options": [
+        {
+          "label": "the whole package at 0.1.0",
+          "consequence": "purpose (topics, envelopes and lineage, scopes, observers, redaction, the topology DSL with its recording builder, the IR with graphs, renderers and analyses), the purity promise of G25 and G26, the three public libraries ADR-002 item 3 fixes, one registry example, the license; at this commit two of the three libraries do not exist yet"
+        },
+        {
+          "label": "only what exists now",
+          "consequence": "topics and envelopes only; true at this commit, stale after nidana.model.4 and .5 unless those phases edit a file D4 says is written once"
+        }
+      ],
+      "chosen": "the whole package at 0.1.0",
+      "why": "D4 writes README, CHANGELOG and LICENSE once, and ADR-002 item 3 and D4 fix the three public libraries, so the README can state the package as released without a later edit. No phase-dependent status (UnimplementedError, identity equality) goes in it, because that would go stale at nidana.model.8. The example uses only declarations this phase lands.",
+      "evidence": [
+        "hsdd/spec/nidana.model.md D4 and Purpose",
+        "hsdd/adr/002-package-workspace-layout.md items 3 and 9"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-26T22:54:52Z",
+      "artifact": "docs/superpowers/plans/nidana.model.3.md",
+      "question": "What do CHANGELOG.md and the pubspec's description say, and does the pubspec carry homepage or repository?",
+      "options": [
+        {
+          "label": "minimal, no repository",
+          "consequence": "CHANGELOG `## 0.1.0` then `- Initial version.`, which the release bump rewrites; a one-sentence description of 60 to 180 characters as pub recommends; no homepage or repository field"
+        },
+        {
+          "label": "per-phase changelog",
+          "consequence": "a line per phase; D4 says no phase edits CHANGELOG.md"
+        }
+      ],
+      "chosen": "minimal, no repository",
+      "why": "D4: no phase edits CHANGELOG.md, which the version bump at release writes. ADR-002 item 9: the repository field and publishing are owner actions outside the tree.",
+      "evidence": [
+        "hsdd/spec/nidana.model.md D4",
+        "hsdd/adr/002-package-workspace-layout.md item 9"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-26T22:55:16Z",
+      "artifact": "docs/superpowers/plans/nidana.model.3.md",
+      "question": "Do the package's own tests stop at purity_test.dart (D6), or does the plan add a test file for the Review Focus lines?",
+      "options": [
+        {
+          "label": "add declarations_test.dart, lasting facts only",
+          "consequence": "seven tests of what the declarations already fix and nidana.model.8 keeps: G6 defaults, variant and valueType (G6, G7), a computed topic's factory not called at construction (G9), the runtime asserts of G10 and of the non-empty source fields, envelope defaults, Lineage.root (G18's root half); no test pins a throwing body or identity equality"
+        },
+        {
+          "label": "purity_test.dart alone",
+          "consequence": "the surface and reject sets check types only, so a wrong default or a missing runtime assert would pass this phase's gate unseen until nidana.model.8's behavior replay"
+        }
+      ],
+      "chosen": "add declarations_test.dart, lasting facts only",
+      "why": "writing-plans requires each Review Focus line to get its test in the owning task. Every test here stays true when nidana.model.8 implements the bodies, so no later phase deletes one; asserting UnimplementedError or identity would be churn. `dart test` runs with assertions on (dry run T2.4: the G10 test passes).",
+      "evidence": [
+        "hsdd/spec/nidana.model.md D3, D6",
+        "docs/auto-run/experiments/topic-model-declarations-plan/output.txt T2.4, T3.4"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-26T22:55:17Z",
+      "artifact": "docs/superpowers/plans/nidana.model.3.md",
+      "question": "How does purity_test.dart read the pubspec and the libraries (D6 fixes what it checks, not how)?",
+      "options": [
+        {
+          "label": "line readers over the text",
+          "consequence": "a pubspec section reader (keys indented two spaces under a top-level key) instead of package:yaml, which dev_dependencies exactly test excludes and depend_on_referenced_packages would report; import and export directives, single or double quoted, prefixed or not; the forbidden tokens searched over the whole source, comments included; a self-test of the readers"
+        },
+        {
+          "label": "package:yaml and imports only",
+          "consequence": "a yaml dev dependency breaks G26's own check; export directives unread"
+        }
+      ],
+      "chosen": "line readers over the text",
+      "why": "G26 makes test the only dev dependency, so the test cannot depend on a YAML parser. An export pulls a library in as an import does. D6 says none contains the tokens, so comments count. Seeded violations (an aliased dart:io import, Timer( in a comment, path as a second dependency) each fail the test (dry run T1.5).",
+      "evidence": [
+        "hsdd/spec/nidana.model.md D6",
+        "docs/auto-run/experiments/topic-model-declarations-plan/output.txt T1.5"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-26T22:55:17Z",
+      "artifact": "docs/superpowers/plans/nidana.model.3.md",
+      "question": "The Interface carries trailing // comments beside members (`// Spec §9.2`, `// non-empty`, `// copied, unmodifiable`, the enum value notes). How are they carried?",
+      "options": [
+        {
+          "label": "as line comments, as written",
+          "consequence": "they stay beside the field, parameter or value they annotate; dart format realigns their spacing only; the comments on == and hashCode go with the members this phase does not declare"
+        },
+        {
+          "label": "rewritten as dartdoc",
+          "consequence": "richer API docs, but new text the Interface does not have"
+        }
+      ],
+      "chosen": "as line comments, as written",
+      "why": "The run rule copies Interface text as written; the trailing comments are not dartdoc, so keeping them as comments is the faithful copy.",
+      "evidence": [
+        "docs/auto-run/impl-step-preamble.md Prose rules",
+        "hsdd/contract/topic-model.md ## Interface"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-26T22:55:17Z",
+      "artifact": "docs/superpowers/plans/nidana.model.3.md",
+      "question": "Routed item: ADR-001 item 4's marker form cannot express two diagnostics on one line, and the structure set rejects stacked markers; how does the plan handle the first real reject replay?",
+      "options": [
+        {
+          "label": "stop condition, checked in the dry run",
+          "consequence": "Tasks 2 to 4 stop and report a reject line that carries a marked and an unmarked code as a contract gap for hsdd-adr, never working around it; the dry run against the planned declarations reports one code per line in all ten reject libraries, so none is expected"
+        },
+        {
+          "label": "propose a marker form now",
+          "consequence": "an ADR change before any line needs it"
+        }
+      ],
+      "chosen": "stop condition, checked in the dry run",
+      "why": "The routed note asks for a stop condition. Experiment step R lists every (line, code) pair the analyzer reports in the ten reject libraries against the planned declarations: no line has two codes, so the gap stays latent for this contract; topology-dsl@v2 and topology-ir@v1 meet the same question at nidana.model.4 and .5.",
+      "evidence": [
+        "docs/auto-run/impl-execution-plan.md Routed to later phases",
+        "docs/auto-run/experiments/topic-model-declarations-plan/output.txt R"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-26T22:55:17Z",
+      "artifact": "docs/superpowers/plans/nidana.model.3.md",
+      "question": "Which sections does the gate-only verification doc keep: the slim list (gate command, expected output, a 3 to 5 line checklist, Learnings, Sign-off), or the headings the implement gate checks?",
+      "options": [
+        {
+          "label": "the gate's six headings, slim content, one Metrics line",
+          "consequence": "Commands to run, Expected output, Observed (dated gate output and the checklist), Outstanding, Learnings, Sign-off, all short, plus a one-line Metrics with the product diff against the estimate"
+        },
+        {
+          "label": "only the slim list",
+          "consequence": "fails impl-gate.mjs implement, which requires Observed and Outstanding headings"
+        }
+      ],
+      "chosen": "the gate's six headings, slim content, one Metrics line",
+      "why": "docs/auto-run/tools/impl-gate.mjs implement errors on a missing Commands to run, Expected output, Observed, Outstanding, Learnings or Sign-off heading. The Metrics line is optional in the template; it feeds the open checkpoint question about the node's line estimates.",
+      "evidence": [
+        "docs/auto-run/tools/impl-gate.mjs (implement)",
+        "hsdd/templates/verification.md",
+        "docs/auto-run/impl-execution-plan.md Routed to later phases (Checkpoint)"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    }
+  ],
+  "experiments": [
+    {
+      "path": "docs/auto-run/experiments/topic-model-declarations-plan/",
+      "question": "Does the planned task sequence produce the failing and passing outputs the plan states, do the planned declarations pass all 30 topic-model fixtures against the real replay tool with a clean root analyze, does any reject line carry two codes, and does adding the member change the lockfile?",
+      "finding": "In a temporary copy of HEAD (cd476bf): before the package, 13 PENDING and exit 1 (S1); the purity test alone fails 3 of 4 on PathNotFoundException (T1.2); adding the member leaves pubspec.lock byte-identical (T1.3); an empty main library turns PENDING into 13 FAIL (T1.4); seeded violations (aliased dart:io import, Timer( in a comment, a second dependency) each fail the purity test (T1.5); topic.dart and scope.dart pass 24 of 30 (T2.4); the full draft passes 30 of 30 with analyze clean and format stable (T3.4); the phase gate exits 0 (G); every reject library reports one code per line (R); the behavior binding loads and runs 9 passing, 32 failing cases (B). The first draft also showed two facts the governance does not state: RedactedPayload._ is reported as unused_element while RedactedPayload.of throws, and the Interface dartdoc of MessageSource trips unintended_html_in_doc_comment (four INFOs)."
+    }
+  ],
+  "self_check": [
+    {
+      "gate": "The plan's Global Constraints contain constraints 1 to 8 above, verbatim.",
+      "status": "pass",
+      "note": "node docs/auto-run/tools/impl-gate.mjs code-plan nidana.model.3: 0 error(s), 0 warning(s)"
+    },
+    {
+      "gate": "Every `### Task N:` except the last starts with a failing-test step.",
+      "status": "pass",
+      "note": "Tasks 1 to 3 open with Step 1: Write the failing test; Task 4 opens with the gate run"
+    },
+    {
+      "gate": "The last task writes the verification doc named in constraint 5.",
+      "status": "pass",
+      "note": "Task 4 writes hsdd/verify/nidana.model.3.verification.md with title # Verification: nidana.model.3 - topic-model@v1 declarations and an empty Sign-off"
+    },
+    {
+      "gate": "The plan has at most 5 tasks.",
+      "status": "pass",
+      "note": "4 tasks"
+    },
+    {
+      "gate": "The plan is saved under docs/superpowers/plans/.",
+      "status": "pass",
+      "note": "docs/superpowers/plans/nidana.model.3.md; its Spec line names hsdd-context/superpowers/nidana.model.3.md"
+    },
+    {
+      "gate": "Self-review 1. Spec coverage: Skim each section/requirement in the spec. Can you point to a task that implements it?",
+      "status": "pass",
+      "note": "package, workspace entry, README, CHANGELOG, LICENSE and purity test: Task 1; topic family, MultiWriterTopic, TopicVariant, Dedup, Tracing, TopicRef, isWellFormedTopicName, Scope: Task 2; sources, envelope, lineage, redaction, observers: Task 3; G5 by declaration and the Task 4 checklist; gate and Verification (reject codes confirmed, nothing reached except through the main library): Task 4; routed item: Global Constraints, Contract gaps"
+    },
+    {
+      "gate": "Self-review 2. Step scan: every step lets the implementer write exactly one reasonable thing, and no step carries more.",
+      "status": "pass",
+      "note": "declaration blocks are the Interface with D3 applied (exact copy the spec fixes); every code block in the plan is byte-identical to the draft the dry run passed, checked by script; Task 4 checklist commands run against the draft with the stated output"
+    },
+    {
+      "gate": "Self-review 3. Type consistency across tasks.",
+      "status": "pass",
+      "note": "names and signatures compiled together in the dry run (T3.4)"
+    },
+    {
+      "gate": "Self-review 4. Review Focus: five uncovered input classes, each with its test in the owning task.",
+      "status": "pass",
+      "note": "runtime asserts (Tasks 2, 3), defaults (Tasks 2, 3), constant members through Topic<Object?> (Task 2), factory not called at construction (Task 2), purity readers' forms (Task 1)"
+    },
+    {
+      "gate": "Self-review 5. Proportion: plan length against the spec.",
+      "status": "pass",
+      "note": "1070 lines against the 706-line derivative; about 550 lines are the declarations (half dartdoc copied from the Interface) and the tests, which a type-level plan must state exactly"
+    },
+    {
+      "gate": "Run rules prose: no em-dash, not the banned phrase.",
+      "status": "pass",
+      "note": "impl-gate prose check and grep: none"
+    }
+  ],
+  "contract_gaps": [
+    {
+      "contract": "topic-model@v1",
+      "where": "hsdd/contract/topic-model.md ## Interface, Message sources: the MessageSource dartdoc renderings 'topology:<id>', 'service:<name>', 'page:<routeOrName>', 'executor:<name>'",
+      "problem": "Copied as written (the run rule for Interface dartdoc), the four renderings are reported by the root lint set (package:lints 6.1.0 recommended) as unintended_html_in_doc_comment INFOs, which fail fvm dart analyze --fatal-infos. Non-blocking: the plan backticks them in the copy. No fixture is affected; every committed surface and reject fixture is consistent with the Interface (30 of 30 pass against the planned declarations).",
+      "proposed_fix": "hsdd-contract touch, no version bump: put each rendering of the MessageSource dartdoc in a code span, quotes inside the backticks (`'topology:<id>'`, `'service:<name>'`, `'page:<routeOrName>'`, `'executor:<name>'`, `'unknown'`), so the producer's copy is verbatim."
+    }
+  ],
+  "notes_for_orchestrator": [
+    "Routed item (ADR-001 item 4, two diagnostics on one line) disposition: planned as a stop condition in Global Constraints (Contract gaps), referenced from Tasks 2 to 4; the dry run (output.txt R) reports one code per line in all ten topic-model reject libraries against the planned declarations, so no gap for topic-model@v1. Carry the item on to nidana.model.4 and .5, whose reject sets are still unreplayed.",
+    "Learning for the verification doc and the owner: nidana.model.3's Scope says the package joins the lockfile, but adding the member leaves pubspec.lock byte-identical (a workspace lockfile records no member; meta 1.19.0 and test were already transitive). The plan commits pubspec.lock only if git shows it modified.",
+    "Learning: D3 (final field behind every getter, throwing bodies) leaves RedactedPayload._ unused while RedactedPayload.of throws; the plan carries one // ignore: unused_element, which nidana.model.8 removes when it lands RedactedPayload.of. Worth a line in nidana.model.8's plan.",
+    "For nidana.model.6's plan: against these declarations topic-model@v1's behavior binding already loads and analyzes clean (output.txt B); 9 cases pass and 32 fail, not all on UnimplementedError: some fail on identity equality or on Object.toString (for example Expected topology:checkout-flow, Actual Instance of TopologySource). nidana.model.6's Verification sentence (cases fail on UnimplementedError, not on loading) holds only loosely.",
+    "For nidana.model.8's plan: it must add StateTopic's initial storage, the unmodifiable copy of MessageEnvelope.parentCorrelationIds, the ==, hashCode and toString overrides, and replace Lineage.causedBy's placeholder initializers; the package tests of this phase (declarations_test.dart, purity_test.dart) pin only facts that stay true after it.",
+    "The experiment keeps a draft pubspec.yaml named nidana_dart_contracts under docs/ (excluded from the root analyze by docs/**, not a workspace member); run.sh copies it into a temporary workspace only.",
+    "Commit scope in the plan: feat(dart_contracts), following the contract_check precedent (package name without nidana_)."
+  ]
+}

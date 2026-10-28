@@ -1,0 +1,422 @@
+
+### S0 setup: the committed tree, resolved offline
+tree from 58ac350 judgement: S142
+Dart SDK version: 3.13.5 (stable) (Tue Sep 29 01:00:52 2026 -0700) on "macos_arm64"
+Try `dart pub outdated` for more information.
+variants written: t1, t2, t3 and the final
+analyses.t1.dart is formatter-stable
+analyses.t2.dart is formatter-stable
+analyses.t3.dart is formatter-stable
+
+### S1 the committed tree
+-- dart test packages/nidana_dart_contracts
++235: All tests passed!
+exit: 0
+-- nidana_contract_check topic-model topology-dsl
+PASS structure lines: 33
+PASS behavior hsdd/contract/fixture/topic-model/behavior/nidana_dart_contracts_test.dart: 41 passed, 0 failed, 0 skipped under dart test
+PASS behavior hsdd/contract/fixture/topology-dsl/behavior/topology_builder_test.dart: 24 passed, 0 failed, 0 skipped under dart test
+59 fixtures: 59 passed, 0 failed, 0 pending
+exit: 0
+-- nidana_contract_check topology-ir --guarantee G2,G3,G5,G6,G7,G8,G9,G10,G11,G12,G13,G14,G15,G16,G17,G18,G23
+PASS structure lines: 9
+FAIL behavior hsdd/contract/fixture/topology-ir/behavior/nidana_dart_contracts_test.dart: cases (19 passed, 12 failed, 0 skipped under dart test, restricted to topology-ir G2, G3, G5 to G18, G23)
+    failed-case (G3 every collection the IR, graphs, claims and findings expose is unmodifiable)
+    failed-case (G7 graphs, claims, declarations and findings are equal, with equal hash codes, exactly when their fields are)
+    failed-case (G13 findTopologyCycles reports each strongly connected set of two or more topologies, with the topics between them)
+    failed-case (G13 shell claims take no part in cycles, and a graph without feedback has none)
+    failed-case (G14 findSelfReferences reports a self-written topic read through no state-bearing edge, with every edge on such a path)
+    failed-case (G14 a self-read mediated by scan, reduceInto or a positive time stage, or never reaching its write, is not reported)
+    failed-case (G15 findWriterConflicts reports each state topic with two or more writers, topologies and claims alike)
+    failed-case (G16 findScopeViolations reports each owner of a state topic that a longer-lived topology reads)
+    failed-case (G17 analyzeTopologyGraph lists cycles, then self-references by topology, then writer conflicts, then scope violations)
+    failed-case (G17 a graph with no finding stays without one when topologies or claims are removed)
+    failed-case (G18 findTopicNameCollisions reports each name with two or more distinct declarations, whatever their types)
+    failed-case (G23 finding and collision constructors put the lists they are given in the orders the Interface names)
+61 fixtures: 60 passed, 1 failed, 0 pending
+exit: 1
+stubs left under lib/src/analysis/: 6
+
+### B every fixture diagnostic before any body lands (surface, reject and behavior of every slug)
+diagnostics: 3143 in 70 libraries
+
+### T1.2 Task 1's failing step: test/src/analysis_support.dart, test/topology_cycles_test.dart and the G13 cases
+-- dart test packages/nidana_dart_contracts/test/topology_cycles_test.dart
++0 -1: G13 cycles come in the order of their first ids, whichever cycle a search from the first topology completes first [E]
++0 -2: G13 a cycle lists each topic one member writes and another member reads, of every variant, once; not a member's own self-read, nor a topic between a member and an outsider [E]
++0 -3: G13 a cycle is reported whatever stages its members pass values through: reduceInto, scan and positive time stages included [E]
++0 -4: G13 a ring of 20000 topologies, deeper than a recursive search can go, is one cycle of every id and every topic [E]
++0 -5: G3 findTopologyCycles returns an unmodifiable list, empty or not [E]
++0 -6: G13 the cycles of generated graphs are the strongly connected sets a brute-force reachability check finds, with or without their claims [E]
++0 -6: Some tests failed.
+exit: 1
+   6   UnimplementedError
+-- nidana_contract_check topology-ir --set behavior --guarantee G13
+PASS structure lines: 9
+FAIL behavior hsdd/contract/fixture/topology-ir/behavior/nidana_dart_contracts_test.dart: cases (0 passed, 2 failed, 0 skipped under dart test, restricted to topology-ir G13)
+    failed-case (G13 findTopologyCycles reports each strongly connected set of two or more topologies, with the topics between them)
+    failed-case (G13 shell claims take no part in cycles, and a graph without feedback has none)
+10 fixtures: 9 passed, 1 failed, 0 pending
+exit: 1
+
+### T1.4 Task 1's library: findTopologyCycles
+Formatted 55 files (0 changed) in 0.17 seconds.
+-- dart test packages/nidana_dart_contracts
++241: All tests passed!
+exit: 0
+Analyzing anp.zBm6jy...
+No issues found!
+analyze exit: 0
+-- nidana_contract_check topology-ir --set behavior --guarantee G13
+PASS structure lines: 9
+PASS behavior hsdd/contract/fixture/topology-ir/behavior/nidana_dart_contracts_test.dart: 2 passed, 0 failed, 0 skipped under dart test, restricted to topology-ir G13
+10 fixtures: 10 passed, 0 failed, 0 pending
+exit: 0
+
+### T2.2 Task 2's failing step: test/self_references_test.dart and the G14 cases
+-- dart test packages/nidana_dart_contracts/test/self_references_test.dart
++0 -1: G14 an edge a read of the topic reaches is not listed when it leads only to a write of another topic [E]
++0 -2: G14 an edge that reaches the write is not listed when no read of the topic reaches it [E]
++0 -3: G14 every stage that bears no state leaves a path unmediated, debounce, delay, sample and buffer with a zero duration included [E]
++0 -4: G14 scan, reduceInto, and debounce, delay, sample and buffer with the smallest positive duration mediate every path [E]
++0 -5: G14 a read with a dedup argument is a read of its topic [E]
++0 -6: G14 self-references come in canonical topic order, and an edge on several paths is listed once [E]
++0 -7: G3 findSelfReferences returns an unmodifiable list, empty or not [E]
++0 -8: G14 the self-references of generated definitions list exactly the edges a walk of every path from a read to a write finds [E]
++0 -8: Some tests failed.
+exit: 1
+   8   UnimplementedError
+-- nidana_contract_check topology-ir --set behavior --guarantee G14
+PASS structure lines: 9
+FAIL behavior hsdd/contract/fixture/topology-ir/behavior/nidana_dart_contracts_test.dart: cases (0 passed, 2 failed, 0 skipped under dart test, restricted to topology-ir G14)
+    failed-case (G14 findSelfReferences reports a self-written topic read through no state-bearing edge, with every edge on such a path)
+    failed-case (G14 a self-read mediated by scan, reduceInto or a positive time stage, or never reaching its write, is not reported)
+10 fixtures: 9 passed, 1 failed, 0 pending
+exit: 1
+
+### T2.4 Task 2's library: findSelfReferences
+Formatted 56 files (0 changed) in 0.18 seconds.
+-- dart test packages/nidana_dart_contracts
++249: All tests passed!
+exit: 0
+Analyzing anp.zBm6jy...
+No issues found!
+analyze exit: 0
+-- nidana_contract_check topology-ir --set behavior --guarantee G14
+PASS structure lines: 9
+PASS behavior hsdd/contract/fixture/topology-ir/behavior/nidana_dart_contracts_test.dart: 2 passed, 0 failed, 0 skipped under dart test, restricted to topology-ir G14
+10 fixtures: 10 passed, 0 failed, 0 pending
+exit: 0
+
+### T3.2 Task 3's failing step: test/ownership_test.dart and the G15 and G16 cases
+-- dart test packages/nidana_dart_contracts/test/ownership_test.dart
++0 -1: G15 a reduceInto makes its topology a writer, and two claims of one source in two scopes are two writers [E]
++0 -2: G15 conflicts come in canonical topic order, by name, then variant, then type, and a replay topic has none [E]
++0 -3: G16 an owner violates exactly when it lives shorter than its reader, for every pair of scopes [E]
++0 -4: G16 violations come by topic, then owner by its rendering and then its scope, then reader in graph order; equal owners count once [E]
++0 -5: G16 a topology reading the topic it owns, an application claim, and an event or replay topic never violate [E]
++0 -6: G3 findWriterConflicts and findScopeViolations return unmodifiable lists, empty or not [E]
++0 -6: Some tests failed.
+exit: 1
+   6   UnimplementedError
+-- nidana_contract_check topology-ir --set behavior --guarantee G15,G16
+PASS structure lines: 9
+FAIL behavior hsdd/contract/fixture/topology-ir/behavior/nidana_dart_contracts_test.dart: cases (0 passed, 2 failed, 0 skipped under dart test, restricted to topology-ir G15, G16)
+    failed-case (G15 findWriterConflicts reports each state topic with two or more writers, topologies and claims alike)
+    failed-case (G16 findScopeViolations reports each owner of a state topic that a longer-lived topology reads)
+10 fixtures: 9 passed, 1 failed, 0 pending
+exit: 1
+
+### T3.4 Task 3's library: findWriterConflicts and findScopeViolations
+Formatted 57 files (0 changed) in 0.18 seconds.
+-- dart test packages/nidana_dart_contracts
++255: All tests passed!
+exit: 0
+Analyzing anp.zBm6jy...
+No issues found!
+analyze exit: 0
+-- nidana_contract_check topology-ir --set behavior --guarantee G15,G16
+PASS structure lines: 9
+PASS behavior hsdd/contract/fixture/topology-ir/behavior/nidana_dart_contracts_test.dart: 2 passed, 0 failed, 0 skipped under dart test, restricted to topology-ir G15, G16
+10 fixtures: 10 passed, 0 failed, 0 pending
+exit: 0
+
+### T4.2 Task 4's failing step: test/analyze_graph_test.dart and the G3, G7, G17, G18 and G23 cases
+-- dart test packages/nidana_dart_contracts/test/analyze_graph_test.dart
++0 -1: G17 self-references come by topology in graph order, then by topic in canonical order [E]
++0 -2: G3 analyzeTopologyGraph returns an unmodifiable list, empty or not [E]
++0 -3: G18 collisions come in name order as String.compareTo orders names, and a repeated declaration counts once [E]
++0 -4: G18 findTopicNameCollisions reads its argument once, and later changes to the argument do not reach its result [E]
++0 -5: G3 findTopicNameCollisions returns an unmodifiable list, empty or not [E]
++0 -6: G17 a clean graph grown from generated parts has no finding after any one of its topologies or claims is removed [E]
++0 -7: G17 the findings of a generated graph are its cycles, then each topology's self-references in graph order, then its writer conflicts, then its scope violations, every kind reached [E]
++0 -8: G7 the findings of a generated graph, and the collisions of generated declarations, do not depend on the order their arguments came in [E]
++0 -9: G23 every finding of a generated graph holds distinct findings, distinct ids, topics and edges, and equals itself rebuilt in reverse [E]
++0 -9: Some tests failed.
+exit: 1
+   9   UnimplementedError
+-- nidana_contract_check topology-ir --set behavior --guarantee G3,G7,G17,G18,G23
+PASS structure lines: 9
+FAIL behavior hsdd/contract/fixture/topology-ir/behavior/nidana_dart_contracts_test.dart: cases (2 passed, 6 failed, 0 skipped under dart test, restricted to topology-ir G3, G7, G17, G18, G23)
+    failed-case (G3 every collection the IR, graphs, claims and findings expose is unmodifiable)
+    failed-case (G7 graphs, claims, declarations and findings are equal, with equal hash codes, exactly when their fields are)
+    failed-case (G17 analyzeTopologyGraph lists cycles, then self-references by topology, then writer conflicts, then scope violations)
+    failed-case (G17 a graph with no finding stays without one when topologies or claims are removed)
+    failed-case (G18 findTopicNameCollisions reports each name with two or more distinct declarations, whatever their types)
+    failed-case (G23 finding and collision constructors put the lists they are given in the orders the Interface names)
+10 fixtures: 9 passed, 1 failed, 0 pending
+exit: 1
+
+### T4.4 Task 4's library: analyzeTopologyGraph and findTopicNameCollisions
+Formatted 58 files (0 changed) in 0.19 seconds.
+-- dart test packages/nidana_dart_contracts
++264: All tests passed!
+exit: 0
+Analyzing anp.zBm6jy...
+No issues found!
+analyze exit: 0
+-- nidana_contract_check topology-ir --set behavior --guarantee G3,G7,G17,G18,G23
+PASS structure lines: 9
+PASS behavior hsdd/contract/fixture/topology-ir/behavior/nidana_dart_contracts_test.dart: 8 passed, 0 failed, 0 skipped under dart test, restricted to topology-ir G3, G7, G17, G18, G23
+10 fixtures: 10 passed, 0 failed, 0 pending
+exit: 0
+-- nidana_contract_check topology-ir --guarantee G2,G3,G5,G6,G7,G8,G9,G10,G11,G12,G13,G14,G15,G16,G17,G18,G23
+PASS structure lines: 9
+PASS behavior hsdd/contract/fixture/topology-ir/behavior/nidana_dart_contracts_test.dart: 31 passed, 0 failed, 0 skipped under dart test, restricted to topology-ir G2, G3, G5 to G18, G23
+61 fixtures: 61 passed, 0 failed, 0 pending
+exit: 0
+stubs left under lib/src/analysis/: 0
+
+### F1 how deep the cycle search goes under dart test: the final draft, then a recursive variant
+F1 ring 3000: 1 cycle of 3000 ids; graph built in 31 ms, cycles found in 16 ms
+F1 ring 10000: 1 cycle of 10000 ids; graph built in 19 ms, cycles found in 23 ms
+F1 ring 30000: 1 cycle of 30000 ids; graph built in 49 ms, cycles found in 45 ms
+F1 ring 100000: 1 cycle of 100000 ids; graph built in 197 ms, cycles found in 161 ms
+F1 ring 300000: 1 cycle of 300000 ids; graph built in 620 ms, cycles found in 676 ms
++5: All tests passed!
+-- the recursive variant
+F1 ring 3000: 1 cycle of 3000 ids; graph built in 31 ms, cycles found in 15 ms
+F1 ring 10000: StackOverflowError after 22 ms
+F1 ring 30000: StackOverflowError after 23 ms
+F1 ring 100000: StackOverflowError after 67 ms
+F1 ring 300000: StackOverflowError after 283 ms
++5: All tests passed!
+ Stack Overflow
++3 -1: G13 a ring of 20000 topologies, deeper than a recursive search can go, is one cycle of every id and every topic [E]
++5 -1: Some tests failed.
+-- nidana_contract_check topology-ir --guarantee G2,G3,G5,G6,G7,G8,G9,G10,G11,G12,G13,G14,G15,G16,G17,G18,G23
+PASS structure lines: 9
+PASS behavior hsdd/contract/fixture/topology-ir/behavior/nidana_dart_contracts_test.dart: 31 passed, 0 failed, 0 skipped under dart test, restricted to topology-ir G2, G3, G5 to G18, G23
+61 fixtures: 61 passed, 0 failed, 0 pending
+exit: 0
+
+### F2 what the generated graphs reach over the 500 seeds (the property tests' floors)
+F2 seeds: 500; topologies 1229, claims 481, edges 6700
+F2 cycles: graphs with a cycle 225, with a cycle of three or more 158
+F2 self-reads: with an unmediated path 180, without one 701
+F2 findings by kind over all seeds (cycles, self-references, conflicts, violations): [226, 180, 635, 553]
+F2 clean graphs: of three or more parts 90; parts kept 842; by size 0:43 1:179 2:188 3:75 4:13 5:2
++1: All tests passed!
+
+### F3 how long the new test files take, one file at a time
+topology_cycles_test: 1 s wall, compile included
+self_references_test: 1 s wall, compile included
+ownership_test: 0 s wall, compile included
+analyze_graph_test: 1 s wall, compile included
+the package's tests: 2 s wall
+
+### X the new files against draft/ (formatter-stable)
+same: test/src/analysis_support.dart
+same: test/topology_cycles_test.dart
+same: test/self_references_test.dart
+same: test/ownership_test.dart
+same: test/analyze_graph_test.dart
+same: lib/src/analysis/analyses.dart (variants.py's final)
+-- files changed against HEAD
+M lib/src/analysis/analyses.dart
+A test/analyze_graph_test.dart
+A test/ownership_test.dart
+A test/self_references_test.dart
+A test/src/analysis_support.dart
+A test/topology_cycles_test.dart
+
+### G the phase gate, exactly as the phase context writes it
+gate exit: 0
+Got dependencies!
+No issues found!
+102 fixtures: 102 passed, 0 failed, 0 pending
++264: All tests passed!
+PASS behavior hsdd/contract/fixture/topic-model/behavior/nidana_dart_contracts_test.dart: 41 passed, 0 failed, 0 skipped under dart test
+PASS behavior hsdd/contract/fixture/topology-dsl/behavior/topology_builder_test.dart: 24 passed, 0 failed, 0 skipped under dart test
+59 fixtures: 59 passed, 0 failed, 0 pending
+PASS behavior hsdd/contract/fixture/topology-ir/behavior/nidana_dart_contracts_test.dart: 31 passed, 0 failed, 0 skipped under dart test, restricted to topology-ir G2, G3, G5 to G18, G23
+61 fixtures: 61 passed, 0 failed, 0 pending
+
+### U the topology-ir behavior set unrestricted
+-- nidana_contract_check topology-ir --set behavior
+PASS structure lines: 9
+FAIL behavior hsdd/contract/fixture/topology-ir/behavior/nidana_dart_contracts_test.dart: cases (31 passed, 12 failed, 0 skipped under dart test)
+    failed-case (G4 every definition a plan projects to is pure data: it encodes to JSON and decodes back equal)
+    failed-case (G19 the encoding of every sample graph matches the schema and equals its valid/ file)
+    failed-case (G19 a definition encodes to the object its graph document lists)
+    failed-case (G20 every valid/ file decodes and re-encodes to an equal JSON value)
+    failed-case (G20 decoding the encoding of a graph gives the graph back)
+    failed-case (G20 the decoder accepts topologies, claims, reads, writes and claimed topics in any order)
+    failed-case (G21 every invalid/ file fails the schema and the decoder rejects it with a FormatException)
+    failed-case (G21 the decoder rejects a schema-valid document that breaks a rule the schema cannot state)
+    failed-case (G21 the decoder rejects any other value with a FormatException and no other error)
+    failed-case (G22 the Mermaid and Graphviz renderings of every sample equal its render/ files)
+    failed-case (G22 the JSON rendering of every sample is its valid/ file, byte for byte)
+    failed-case (G22 render passes the graph to the renderer, and renderers are pure)
+10 fixtures: 9 passed, 1 failed, 0 pending
+exit: 1
+
+### C the last task's checklist
++0: G3 every collection the IR, graphs, claims and findings expose is unmodifiable
++1: G3 the IR copies the lists it is given; later changes to them do not reach it
++2: G7 IR values are equal, with equal hash codes, exactly when their fields are
++3: G7 graphs, claims, declarations and findings are equal, with equal hash codes, exactly when their fields are
++4: G13 findTopologyCycles reports each strongly connected set of two or more topologies, with the topics between them
++5: G13 shell claims take no part in cycles, and a graph without feedback has none
++6: G14 findSelfReferences reports a self-written topic read through no state-bearing edge, with every edge on such a path
++7: G14 a self-read mediated by scan, reduceInto or a positive time stage, or never reaching its write, is not reported
++8: G15 findWriterConflicts reports each state topic with two or more writers, topologies and claims alike
++9: G16 findScopeViolations reports each owner of a state topic that a longer-lived topology reads
++10: G17 analyzeTopologyGraph lists cycles, then self-references by topology, then writer conflicts, then scope violations
++11: G17 a graph with no finding stays without one when topologies or claims are removed
++12: G18 findTopicNameCollisions reports each name with two or more distinct declarations, whatever their types
++13: G23 finding and collision constructors put the lists they are given in the orders the Interface names
++14: All tests passed!
+exit: 0
++0: packages/nidana_dart_contracts/test/topology_cycles_test.dart: G13 cycles come in the order of their first ids, whichever cycle a search from the first topology completes first
++1: packages/nidana_dart_contracts/test/topology_cycles_test.dart: G13 a cycle lists each topic one member writes and another member reads, of every variant, once; not a member's own self-read, nor a topic between a member and an outsider
++2: packages/nidana_dart_contracts/test/topology_cycles_test.dart: G13 a cycle is reported whatever stages its members pass values through: reduceInto, scan and positive time stages included
++3: packages/nidana_dart_contracts/test/topology_cycles_test.dart: G13 a ring of 20000 topologies, deeper than a recursive search can go, is one cycle of every id and every topic
++4: packages/nidana_dart_contracts/test/topology_cycles_test.dart: G3 findTopologyCycles returns an unmodifiable list, empty or not
++5: packages/nidana_dart_contracts/test/topology_cycles_test.dart: G13 the cycles of generated graphs are the strongly connected sets a brute-force reachability check finds, with or without their claims
++6: packages/nidana_dart_contracts/test/self_references_test.dart: G14 an edge a read of the topic reaches is not listed when it leads only to a write of another topic
++7: packages/nidana_dart_contracts/test/self_references_test.dart: G14 an edge that reaches the write is not listed when no read of the topic reaches it
++8: packages/nidana_dart_contracts/test/self_references_test.dart: G14 every stage that bears no state leaves a path unmediated, debounce, delay, sample and buffer with a zero duration included
++9: packages/nidana_dart_contracts/test/self_references_test.dart: G14 scan, reduceInto, and debounce, delay, sample and buffer with the smallest positive duration mediate every path
++10: packages/nidana_dart_contracts/test/self_references_test.dart: G14 a read with a dedup argument is a read of its topic
++11: packages/nidana_dart_contracts/test/self_references_test.dart: G14 self-references come in canonical topic order, and an edge on several paths is listed once
++12: packages/nidana_dart_contracts/test/self_references_test.dart: G3 findSelfReferences returns an unmodifiable list, empty or not
++13: packages/nidana_dart_contracts/test/self_references_test.dart: G14 the self-references of generated definitions list exactly the edges a walk of every path from a read to a write finds
++14: packages/nidana_dart_contracts/test/ownership_test.dart: G15 a reduceInto makes its topology a writer, and two claims of one source in two scopes are two writers
++15: packages/nidana_dart_contracts/test/ownership_test.dart: G15 conflicts come in canonical topic order, by name, then variant, then type, and a replay topic has none
++16: packages/nidana_dart_contracts/test/ownership_test.dart: G16 an owner violates exactly when it lives shorter than its reader, for every pair of scopes
++17: packages/nidana_dart_contracts/test/ownership_test.dart: G16 violations come by topic, then owner by its rendering and then its scope, then reader in graph order; equal owners count once
++18: packages/nidana_dart_contracts/test/ownership_test.dart: G16 a topology reading the topic it owns, an application claim, and an event or replay topic never violate
++19: packages/nidana_dart_contracts/test/ownership_test.dart: G3 findWriterConflicts and findScopeViolations return unmodifiable lists, empty or not
++20: packages/nidana_dart_contracts/test/analyze_graph_test.dart: G17 self-references come by topology in graph order, then by topic in canonical order
++21: packages/nidana_dart_contracts/test/analyze_graph_test.dart: G3 analyzeTopologyGraph returns an unmodifiable list, empty or not
++22: packages/nidana_dart_contracts/test/analyze_graph_test.dart: G18 collisions come in name order as String.compareTo orders names, and a repeated declaration counts once
++23: packages/nidana_dart_contracts/test/analyze_graph_test.dart: G18 findTopicNameCollisions reads its argument once, and later changes to the argument do not reach its result
++24: packages/nidana_dart_contracts/test/analyze_graph_test.dart: G3 findTopicNameCollisions returns an unmodifiable list, empty or not
++25: packages/nidana_dart_contracts/test/analyze_graph_test.dart: G17 a clean graph grown from generated parts has no finding after any one of its topologies or claims is removed
++26: packages/nidana_dart_contracts/test/analyze_graph_test.dart: G17 the findings of a generated graph are its cycles, then each topology's self-references in graph order, then its writer conflicts, then its scope violations, every kind reached
++27: packages/nidana_dart_contracts/test/analyze_graph_test.dart: G7 the findings of a generated graph, and the collisions of generated declarations, do not depend on the order their arguments came in
++28: packages/nidana_dart_contracts/test/analyze_graph_test.dart: G23 every finding of a generated graph holds distinct findings, distinct ids, topics and edges, and equals itself rebuilt in reverse
++29: All tests passed!
+exit: 0
+exit: 1
+packages/nidana_dart_contracts/lib/src/analysis/analyses.dart:1:import '../graph/graph.dart';
+packages/nidana_dart_contracts/lib/src/analysis/analyses.dart:2:import '../ir/canonical_order.dart';
+packages/nidana_dart_contracts/lib/src/analysis/analyses.dart:3:import '../ir/definition.dart';
+packages/nidana_dart_contracts/lib/src/analysis/analyses.dart:4:import '../topic/message_source.dart';
+packages/nidana_dart_contracts/lib/src/analysis/analyses.dart:5:import '../topic/scope.dart';
+packages/nidana_dart_contracts/lib/src/analysis/analyses.dart:6:import '../topic/topic.dart';
+packages/nidana_dart_contracts/lib/src/analysis/analyses.dart:7:import 'findings.dart';
+-- lines: library, then tests
+lib/src/analysis/analyses.dart: 21 at HEAD, 278 after
+     193 test/src/analysis_support.dart
+     227 test/topology_cycles_test.dart
+     257 test/self_references_test.dart
+     260 test/ownership_test.dart
+     359 test/analyze_graph_test.dart
+    1296 total
+
+### A every fixture diagnostic after this phase's bodies, compared with B
+diagnostics: 3143 in 70 libraries
+same as B
+const sets or maps in the new test files:
+grep exit: 1
+hash values pinned in the new test files (hashCode, then a literal):
+grep exit: 1
+
+### D seeded defects, each restored after
+-- D1 cycles in the order the search completes them, not by first id
+   package tests: +262 -2: Some tests failed.
+   failing: packages/nidana_dart_contracts/test/topology_cycles_test.dart: G13 cycles come in the order of their first ids, whichever cycle a search from the first topology completes first
+   failing: packages/nidana_dart_contracts/test/topology_cycles_test.dart: G13 the cycles of generated graphs are the strongly connected sets a brute-force reachability check finds, with or without their claims
+   gate topology-ir replay: 31 passed, 0 failed, 0 skipped under dart test, restricted to topology-ir G2, G3, G5 to G18, G23
+-- D2 a cycle's topics include a member's own self-read
+   package tests: +262 -2: Some tests failed.
+   failing: packages/nidana_dart_contracts/test/topology_cycles_test.dart: G13 a cycle lists each topic one member writes and another member reads, of every variant, once; not a member's own self-read, nor a topic betwee
+   failing: packages/nidana_dart_contracts/test/topology_cycles_test.dart: G13 the cycles of generated graphs are the strongly connected sets a brute-force reachability check finds, with or without their claims
+   gate topology-ir replay: 31 passed, 0 failed, 0 skipped under dart test, restricted to topology-ir G2, G3, G5 to G18, G23
+-- D3 self-reference edges: every edge a read reaches, once some write of the topic is reachable
+   package tests: +261 -3: Some tests failed.
+   failing: packages/nidana_dart_contracts/test/analyze_graph_test.dart: G17 self-references come by topology in graph order, then by topic in canonical order
+   failing: packages/nidana_dart_contracts/test/self_references_test.dart: G14 an edge a read of the topic reaches is not listed when it leads only to a write of another topic
+   failing: packages/nidana_dart_contracts/test/self_references_test.dart: G14 the self-references of generated definitions list exactly the edges a walk of every path from a read to a write finds
+   gate topology-ir replay: cases (30 passed, 1 failed, 0 skipped under dart test, restricted to topology-ir G2, G3, G5 to G18, G23) | G14 a self-read mediated by scan, reduceInto or a positive time stage, or never reaching its write, is not reported)
+-- D4 a read matches only when it has no dedup argument
+   package tests: +262 -2: Some tests failed.
+   failing: packages/nidana_dart_contracts/test/self_references_test.dart: G14 a read with a dedup argument is a read of its topic
+   failing: packages/nidana_dart_contracts/test/self_references_test.dart: G14 the self-references of generated definitions list exactly the edges a walk of every path from a read to a write finds
+   gate topology-ir replay: 31 passed, 0 failed, 0 skipped under dart test, restricted to topology-ir G2, G3, G5 to G18, G23
+-- D5 every time stage mediates, whatever its duration
+   package tests: +262 -2: Some tests failed.
+   failing: packages/nidana_dart_contracts/test/self_references_test.dart: G14 every stage that bears no state leaves a path unmediated, debounce, delay, sample and buffer with a zero duration included
+   failing: packages/nidana_dart_contracts/test/self_references_test.dart: G14 the self-references of generated definitions list exactly the edges a walk of every path from a read to a write finds
+   gate topology-ir replay: cases (29 passed, 2 failed, 0 skipped under dart test, restricted to topology-ir G2, G3, G5 to G18, G23) | G14 findSelfReferences reports a self-written topic read through no state-bearing edge, with every edge on such a path) | G17 analyzeTopologyGraph lists cycles, then self-references by topology, then writer conflicts, then scope violations)
+-- D6 scope violations keep the repeats of equal owners
+   package tests: +262 -2: Some tests failed.
+   failing: packages/nidana_dart_contracts/test/analyze_graph_test.dart: G23 every finding of a generated graph holds distinct findings, distinct ids, topics and edges, and equals itself rebuilt in reverse
+   failing: packages/nidana_dart_contracts/test/ownership_test.dart: G16 violations come by topic, then owner by its rendering and then its scope, then reader in graph order; equal owners count once
+   gate topology-ir replay: cases (30 passed, 1 failed, 0 skipped under dart test, restricted to topology-ir G2, G3, G5 to G18, G23) | G16 findScopeViolations reports each owner of a state topic that a longer-lived topology reads)
+-- D7 scope violations by owner in graph order: topologies, then claims
+   package tests: +263 -1: Some tests failed.
+   failing: packages/nidana_dart_contracts/test/ownership_test.dart: G16 violations come by topic, then owner by its rendering and then its scope, then reader in graph order; equal owners count once
+   gate topology-ir replay: 31 passed, 0 failed, 0 skipped under dart test, restricted to topology-ir G2, G3, G5 to G18, G23
+-- D8 findScopeViolations returns a growable list
+   package tests: +263 -1: Some tests failed.
+   failing: packages/nidana_dart_contracts/test/ownership_test.dart: G3 findWriterConflicts and findScopeViolations return unmodifiable lists, empty or not
+   gate topology-ir replay: 31 passed, 0 failed, 0 skipped under dart test, restricted to topology-ir G2, G3, G5 to G18, G23
+-- D9 writer conflicts count equal claims once
+   package tests: +263 -1: Some tests failed.
+   failing: packages/nidana_dart_contracts/test/ownership_test.dart: G15 a reduceInto makes its topology a writer, and two claims of one source in two scopes are two writers
+   gate topology-ir replay: cases (30 passed, 1 failed, 0 skipped under dart test, restricted to topology-ir G2, G3, G5 to G18, G23) | G15 findWriterConflicts reports each state topic with two or more writers, topologies and claims alike)
+-- D10 collisions count a repeated declaration twice
+   package tests: +262 -2: Some tests failed.
+   failing: packages/nidana_dart_contracts/test/analyze_graph_test.dart: G18 collisions come in name order as String.compareTo orders names, and a repeated declaration counts once
+   failing: packages/nidana_dart_contracts/test/analyze_graph_test.dart: G7 the findings of a generated graph, and the collisions of generated declarations, do not depend on the order their arguments came in
+   gate topology-ir replay: cases (30 passed, 1 failed, 0 skipped under dart test, restricted to topology-ir G2, G3, G5 to G18, G23) | G18 findTopicNameCollisions reports each name with two or more distinct declarations, whatever their types)
+-- D11 collisions in the order their names were first met
+   package tests: +262 -2: Some tests failed.
+   failing: packages/nidana_dart_contracts/test/analyze_graph_test.dart: G18 collisions come in name order as String.compareTo orders names, and a repeated declaration counts once
+   failing: packages/nidana_dart_contracts/test/analyze_graph_test.dart: G7 the findings of a generated graph, and the collisions of generated declarations, do not depend on the order their arguments came in
+   gate topology-ir replay: 31 passed, 0 failed, 0 skipped under dart test, restricted to topology-ir G2, G3, G5 to G18, G23
+-- D12 self-references by topology in reverse graph order
+   package tests: +262 -2: Some tests failed.
+   failing: packages/nidana_dart_contracts/test/analyze_graph_test.dart: G17 self-references come by topology in graph order, then by topic in canonical order
+   failing: packages/nidana_dart_contracts/test/analyze_graph_test.dart: G17 the findings of a generated graph are its cycles, then each topology's self-references in graph order, then its writer conflicts, then its scop
+   gate topology-ir replay: cases (30 passed, 1 failed, 0 skipped under dart test, restricted to topology-ir G2, G3, G5 to G18, G23) | G17 analyzeTopologyGraph lists cycles, then self-references by topology, then writer conflicts, then scope violations)
+-- D13 arcs only through state topics
+   package tests: +258 -6: Some tests failed.
+   failing: packages/nidana_dart_contracts/test/topology_cycles_test.dart: G13 a cycle is reported whatever stages its members pass values through: reduceInto, scan and positive time stages included
+   failing: packages/nidana_dart_contracts/test/topology_cycles_test.dart: G13 a cycle lists each topic one member writes and another member reads, of every variant, once; not a member's own self-read, nor a topic betwee
+   failing: packages/nidana_dart_contracts/test/topology_cycles_test.dart: G13 a ring of 20000 topologies, deeper than a recursive search can go, is one cycle of every id and every topic
+   failing: packages/nidana_dart_contracts/test/topology_cycles_test.dart: G13 cycles come in the order of their first ids, whichever cycle a search from the first topology completes first
+   failing: packages/nidana_dart_contracts/test/topology_cycles_test.dart: G13 the cycles of generated graphs are the strongly connected sets a brute-force reachability check finds, with or without their claims
+   failing: packages/nidana_dart_contracts/test/topology_cycles_test.dart: G3 findTopologyCycles returns an unmodifiable list, empty or not
+   gate topology-ir replay: cases (29 passed, 2 failed, 0 skipped under dart test, restricted to topology-ir G2, G3, G5 to G18, G23) | G13 findTopologyCycles reports each strongly connected set of two or more topologies, with the topics between them) | G17 analyzeTopologyGraph lists cycles, then self-references by topology, then writer conflicts, then scope violations)
+-- D14 a cycle's topics passed with repeats, one per writer and reader pair
+   package tests: +261 -3: Some tests failed.
+   failing: packages/nidana_dart_contracts/test/analyze_graph_test.dart: G23 every finding of a generated graph holds distinct findings, distinct ids, topics and edges, and equals itself rebuilt in reverse
+   failing: packages/nidana_dart_contracts/test/topology_cycles_test.dart: G13 a cycle lists each topic one member writes and another member reads, of every variant, once; not a member's own self-read, nor a topic betwee
+   failing: packages/nidana_dart_contracts/test/topology_cycles_test.dart: G13 the cycles of generated graphs are the strongly connected sets a brute-force reachability check finds, with or without their claims
+   gate topology-ir replay: 31 passed, 0 failed, 0 skipped under dart test, restricted to topology-ir G2, G3, G5 to G18, G23
+
+### done

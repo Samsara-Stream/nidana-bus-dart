@@ -1,0 +1,7 @@
+# sweep-topology-ir-text/ext: what Function.toString() carries for the
+# extension and extension-type function forms, per compiler, for the
+# derivation table of topology-ir@v1 G9. Standalone; never a workspace member.
+name: sweep_topology_ir_ext
+publish_to: none
+environment:
+  sdk: ^3.13.0

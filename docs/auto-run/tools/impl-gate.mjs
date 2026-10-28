@@ -51,6 +51,9 @@ const SKILL_TEMPLATE = ".agents/skills/hsdd-config/templates/verification.md";
 const NEVER = [/^ref\//, /^\.agents\//, /^\.claude\//, /^skills-lock\.json$/, /^\.fvmrc$/, /^hsdd\/judgement\//,
   /^docs\/auto-run\/(?!steps\/|experiments\/)/];
 const SCRATCH = [/^docs\/auto-run\/steps\//, /^docs\/auto-run\/experiments\//];
+// Orchestrator-owned run files, edited between steps and committed with judgement commits:
+// ignored in the working tree, never allowed in a step's own commits.
+const ORCH = [/^docs\/auto-run\/impl-(execution-plan|sdd-prompts|step-preamble)\.md$/, /^docs\/auto-run\/tools\//, /^docs\/auto-run\/REPORT-impl[^/]*\.md$/];
 const ALLOW = {
   config: [new RegExp(`^${esc(CTX)}$`), new RegExp(`^${esc(DER)}$`), new RegExp(`^${esc(TEMPLATE)}$`)],
   "code-plan": [new RegExp(`^${esc(PLAN)}$`)],
@@ -61,7 +64,8 @@ const ALLOW = {
 
 function uncommitted() {
   return git("status", "--porcelain", "--untracked-files=all").split("\n").filter(Boolean)
-    .map((l) => l.slice(3).replace(/^"|"$/g, "").split(" -> ").pop());
+    .map((l) => l.slice(3).replace(/^"|"$/g, "").split(" -> ").pop())
+    .filter((f) => !ORCH.some((r) => r.test(f)));
 }
 
 function checkWriteSet(files, label) {
@@ -200,7 +204,7 @@ if (kind === "implement") {
       const DISP = /(spec-updated|contract-bumped \([^)]+\)|adr-proposed \([^)]+\)|dropped \([^)]+\))\.?\s*$/;
       for (const e of entries) if (e.trim() !== "- none" && !DISP.test(e)) warn(`${VERIFY}: Learning without a trailing disposition: ${e.slice(0, 100)}`);
     }
-    if (/^- Reviewer \/ date:\s*\S/m.test(v)) warn(`${VERIFY}: Sign-off is filled; the run leaves it to the owner`);
+    if (/^- Reviewer \/ date:[ \t]*\S/m.test(v)) warn(`${VERIFY}: Sign-off is filled; the run leaves it to the owner`);
   }
   // prose rules on added lines of non-generated text
   const diff = git("diff", "-U0", `${base}..HEAD`, "--", ".", ":(exclude)pubspec.lock");

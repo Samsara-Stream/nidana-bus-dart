@@ -1,0 +1,377 @@
+
+### S0 setup: the committed tree, resolved offline
+tree from 799871f judgement: S151
+Dart SDK version: 3.13.5 (stable) (Tue Sep 29 01:00:52 2026 -0700) on "macos_arm64"
+Try `dart pub outdated` for more information.
+
+### F facts/facts.dart against the shipped package (packages/ is unchanged in the working tree)
+packages/ changes in the working tree: 0
+C1 closed builder, foreign handle: throws StateError
+C2 closed builder, second sink on its state topic: throws StateError
+C3 closed builder, dedup on an event read: throws StateError
+C4 closed builder, empty merge: throws StateError
+C5 closed builder, empty combineAll: throws StateError
+C6 closed handle, negative debounce: throws StateError
+C7 closed handle, negative timeout: throws StateError
+C8 closed handle, foreign withLatestFrom: throws StateError
+C9 open builder, closed handle (a foreign one): throws ArgumentError
+A1 combine2.apply([1]): throws ArgumentError
+A2 combineAll.apply([1]): throws ArgumentError
+A3 withLatestFrom2.apply(0, [1]): throws ArgumentError
+A1 combine2.apply([1, 2, 3]): throws ArgumentError
+A2 combineAll.apply([1, 2, 3]): throws ArgumentError
+A3 withLatestFrom2.apply(0, [1, 2, 3]): throws ArgumentError
+A1 combine2.apply([x, 2]): throws _TypeError
+A2 combineAll.apply([x, 2]): throws _TypeError
+A3 withLatestFrom2.apply(0, [x, 2]): throws _TypeError
+A4 combiner calls after the nine calls above: 0
+A5 RangeError is an ArgumentError: true
+A6 combine2.apply([1, 2]): returns 1
+R1 negative debounce throws ArgumentError
+R1 empty merge throws ArgumentError
+R1 dedup on an event read throws ArgumentError
+R1 foreign write to a state topic throws ArgumentError
+R1 second sink throws ArgumentError
+R2 plan after the caught calls: 1 stage(s), 1 sink(s)
+R3 a stage passed only to a rejected second sink: throws StateError
+S1 built apart: identical false, equal true
+S2 write, then write to the topic built apart: throws ArgumentError
+N1 a nested planOf given a handle of the running declaration: throws ArgumentError
+T1 planOf of a declaration that throws: throws _Failed
+T2 its builder after: throws StateError
+T3 its handle after: throws StateError
+L1 merge inputs after the caller cleared its list: 1
+L2 combineAll inputs after the caller cleared its list: 1
+L3 merge inputs add: throws UnsupportedError
+L4 withLatestFrom latest add: throws UnsupportedError
+L5 combineAll combiner adding to its list: throws UnsupportedError
+V1 stages: [read<int>, read<String>, map<int, String>, filter<String>, combine<bool>]
+V2 sinks: [write<String>, reduceInto<int, String>, write<bool>, write<Object?>]
+
+### B the committed fixtures, unrestricted
+-- nidana_contract_check topology-dsl
+PASS behavior hsdd/contract/fixture/topology-dsl/behavior/topology_builder_test.dart: 24 passed, 0 failed, 0 skipped under dart test
+28 fixtures: 28 passed, 0 failed, 0 pending
+exit: 0
+
+### N S152's conformance library (seven new cases), unrestricted
+-- cases added:
+name: 'G11 a stage holds an unmodifiable copy of the input list the call was given, and combineAll hands its combiner an unmodifiable list',
+name: 'G11 apply throws ArgumentError, without calling the combiner, for a list that does not hold one value per input',
+name: 'G14 a second sink on a state topic built apart, equal to the first, throws ArgumentError',
+name: 'G14 a handle of a declaration still running is another builder\'s',
+name: 'G14 a call that throws records nothing, so a declaration that catches its error plans as if it had not been made',
+name: 'G15 a builder and its handles throw StateError, whatever their arguments, once declare has returned or thrown',
+name: 'G16 visitStage and visitSink bind the type arguments of each stage\'s and sink\'s class',
+-- nidana_contract_check topology-dsl
+PASS behavior hsdd/contract/fixture/topology-dsl/behavior/topology_builder_test.dart: 31 passed, 0 failed, 0 skipped under dart test
+28 fixtures: 28 passed, 0 failed, 0 pending
+exit: 0
+
+### D seeded defects, each restored after
+
+-- D1 MapStage visits at Object? instead of its own type arguments
+24c24
+<   V _accept<V>(StageVisitor<V> visitor) => visitor.map<T, R>(this);
+---
+>   V _accept<V>(StageVisitor<V> visitor) => visitor.map<Object?, Object?>(this);
+- committed cases:
+-- nidana_contract_check topology-dsl --set behavior --guarantee G16
+PASS behavior hsdd/contract/fixture/topology-dsl/behavior/topology_builder_test.dart: 1 passed, 0 failed, 0 skipped under dart test, restricted to topology-dsl G16
+17 fixtures: 17 passed, 0 failed, 0 pending
+exit: 0
+- with S152's cases:
+-- nidana_contract_check topology-dsl --set behavior --guarantee G16
+FAIL behavior hsdd/contract/fixture/topology-dsl/behavior/topology_builder_test.dart: cases (1 passed, 1 failed, 0 skipped under dart test, restricted to topology-dsl G16)
+    failed-case (G16 visitStage and visitSink bind the type arguments of each stage's and sink's class)
+17 fixtures: 16 passed, 1 failed, 0 pending
+exit: 1
+
+-- D2 combineAll hands its combiner a modifiable cast view
+240c240
+<             combiner(List<T>.unmodifiable(values.cast<T>())),
+---
+>             combiner(values.cast<T>()),
+- committed cases:
+-- nidana_contract_check topology-dsl --set behavior --guarantee G11
+PASS behavior hsdd/contract/fixture/topology-dsl/behavior/topology_builder_test.dart: 5 passed, 0 failed, 0 skipped under dart test, restricted to topology-dsl G11
+17 fixtures: 17 passed, 0 failed, 0 pending
+exit: 0
+- with S152's cases:
+-- nidana_contract_check topology-dsl --set behavior --guarantee G11
+FAIL behavior hsdd/contract/fixture/topology-dsl/behavior/topology_builder_test.dart: cases (6 passed, 1 failed, 0 skipped under dart test, restricted to topology-dsl G11)
+    failed-case (G11 a stage holds an unmodifiable copy of the input list the call was given, and combineAll hands its combiner an unmodifiable list)
+17 fixtures: 16 passed, 1 failed, 0 pending
+exit: 1
+
+-- D3 merge checks for an empty list after recording its stage
+249d248
+<     _checkNotEmpty(inputs);
+254c253,255
+<     return _addStage(MergeStage<T>._(this, made), made);
+---
+>     final TopicStream<T> stage = _addStage(MergeStage<T>._(this, made), made);
+>     _checkNotEmpty(inputs);
+>     return stage;
+- committed cases:
+-- nidana_contract_check topology-dsl --set behavior --guarantee G14
+PASS behavior hsdd/contract/fixture/topology-dsl/behavior/topology_builder_test.dart: 4 passed, 0 failed, 0 skipped under dart test, restricted to topology-dsl G14
+17 fixtures: 17 passed, 0 failed, 0 pending
+exit: 0
+- with S152's cases:
+-- nidana_contract_check topology-dsl --set behavior --guarantee G14
+FAIL behavior hsdd/contract/fixture/topology-dsl/behavior/topology_builder_test.dart: cases (6 passed, 1 failed, 0 skipped under dart test, restricted to topology-dsl G14)
+    failed-case (G14 a call that throws records nothing, so a declaration that catches its error plans as if it had not been made)
+17 fixtures: 16 passed, 1 failed, 0 pending
+exit: 1
+
+-- D4 the one-sink check compares state topics by identity
+17c17
+<   final Set<StateTopic<Object?>> _written = <StateTopic<Object?>>{};
+---
+>   final Set<StateTopic<Object?>> _written = Set<StateTopic<Object?>>.identity();
+- committed cases:
+-- nidana_contract_check topology-dsl --set behavior --guarantee G14
+PASS behavior hsdd/contract/fixture/topology-dsl/behavior/topology_builder_test.dart: 4 passed, 0 failed, 0 skipped under dart test, restricted to topology-dsl G14
+17 fixtures: 17 passed, 0 failed, 0 pending
+exit: 0
+- with S152's cases:
+-- nidana_contract_check topology-dsl --set behavior --guarantee G14
+FAIL behavior hsdd/contract/fixture/topology-dsl/behavior/topology_builder_test.dart: cases (6 passed, 1 failed, 0 skipped under dart test, restricted to topology-dsl G14)
+    failed-case (G14 a second sink on a state topic built apart, equal to the first, throws ArgumentError)
+17 fixtures: 16 passed, 1 failed, 0 pending
+exit: 1
+
+-- D5 planOf closes the builder only when declare returns normally
+14,18c14,15
+<   try {
+<     topology.declare(builder);
+<   } finally {
+<     builder._open = false;
+<   }
+---
+>   topology.declare(builder);
+>   builder._open = false;
+- committed cases:
+-- nidana_contract_check topology-dsl --set behavior --guarantee G15
+PASS behavior hsdd/contract/fixture/topology-dsl/behavior/topology_builder_test.dart: 3 passed, 0 failed, 0 skipped under dart test, restricted to topology-dsl G15
+17 fixtures: 17 passed, 0 failed, 0 pending
+exit: 0
+- with S152's cases:
+-- nidana_contract_check topology-dsl --set behavior --guarantee G15
+FAIL behavior hsdd/contract/fixture/topology-dsl/behavior/topology_builder_test.dart: cases (3 passed, 1 failed, 0 skipped under dart test, restricted to topology-dsl G15)
+    failed-case (G15 a builder and its handles throw StateError, whatever their arguments, once declare has returned or thrown)
+17 fixtures: 16 passed, 1 failed, 0 pending
+exit: 1
+
+-- D6 a foreign handle is told apart by its closed builder, not by identity
+41c41
+<       if (!identical(handles[i]._builder, this)) {
+---
+>       if (!handles[i]._builder._open) {
+- committed cases:
+-- nidana_contract_check topology-dsl --set behavior --guarantee G14
+PASS behavior hsdd/contract/fixture/topology-dsl/behavior/topology_builder_test.dart: 4 passed, 0 failed, 0 skipped under dart test, restricted to topology-dsl G14
+17 fixtures: 17 passed, 0 failed, 0 pending
+exit: 0
+- with S152's cases:
+-- nidana_contract_check topology-dsl --set behavior --guarantee G14
+FAIL behavior hsdd/contract/fixture/topology-dsl/behavior/topology_builder_test.dart: cases (6 passed, 1 failed, 0 skipped under dart test, restricted to topology-dsl G14)
+    failed-case (G14 a handle of a declaration still running is another builder's)
+17 fixtures: 16 passed, 1 failed, 0 pending
+exit: 1
+
+-- D7 merge keeps the caller's list
+254c254
+<     return _addStage(MergeStage<T>._(this, made), made);
+---
+>     return _addStage(MergeStage<T>._(this, inputs), inputs);
+- committed cases:
+-- nidana_contract_check topology-dsl --set behavior --guarantee G11
+PASS behavior hsdd/contract/fixture/topology-dsl/behavior/topology_builder_test.dart: 5 passed, 0 failed, 0 skipped under dart test, restricted to topology-dsl G11
+17 fixtures: 17 passed, 0 failed, 0 pending
+exit: 0
+- with S152's cases:
+-- nidana_contract_check topology-dsl --set behavior --guarantee G11
+FAIL behavior hsdd/contract/fixture/topology-dsl/behavior/topology_builder_test.dart: cases (6 passed, 1 failed, 0 skipped under dart test, restricted to topology-dsl G11)
+    failed-case (G11 a stage holds an unmodifiable copy of the input list the call was given, and combineAll hands its combiner an unmodifiable list)
+17 fixtures: 16 passed, 1 failed, 0 pending
+exit: 1
+
+-- D8 a negative debounce duration recorded before it is checked
+127,128c127,128
+<     return _derive(
+<       DebounceStage<T>._(_builder, this, _checkNotNegative(duration)),
+---
+>     final TopicStream<T> stage = _derive(
+>       DebounceStage<T>._(_builder, this, duration),
+129a130,131
+>     _checkNotNegative(duration);
+>     return stage;
+- committed cases:
+-- nidana_contract_check topology-dsl --set behavior --guarantee G14
+PASS behavior hsdd/contract/fixture/topology-dsl/behavior/topology_builder_test.dart: 4 passed, 0 failed, 0 skipped under dart test, restricted to topology-dsl G14
+17 fixtures: 17 passed, 0 failed, 0 pending
+exit: 0
+- with S152's cases:
+-- nidana_contract_check topology-dsl --set behavior --guarantee G14
+FAIL behavior hsdd/contract/fixture/topology-dsl/behavior/topology_builder_test.dart: cases (6 passed, 1 failed, 0 skipped under dart test, restricted to topology-dsl G14)
+    failed-case (G14 a call that throws records nothing, so a declaration that catches its error plans as if it had not been made)
+17 fixtures: 16 passed, 1 failed, 0 pending
+exit: 1
+
+-- D9 a closed handle checks the debounce duration before it reports the closed builder
+125a126
+>     final Duration checked = _checkNotNegative(duration);
+128c129
+<       DebounceStage<T>._(_builder, this, _checkNotNegative(duration)),
+---
+>       DebounceStage<T>._(_builder, this, checked),
+- committed cases:
+-- nidana_contract_check topology-dsl --set behavior --guarantee G15
+PASS behavior hsdd/contract/fixture/topology-dsl/behavior/topology_builder_test.dart: 3 passed, 0 failed, 0 skipped under dart test, restricted to topology-dsl G15
+17 fixtures: 17 passed, 0 failed, 0 pending
+exit: 0
+- with S152's cases:
+-- nidana_contract_check topology-dsl --set behavior --guarantee G15
+FAIL behavior hsdd/contract/fixture/topology-dsl/behavior/topology_builder_test.dart: cases (3 passed, 1 failed, 0 skipped under dart test, restricted to topology-dsl G15)
+    failed-case (G15 a builder and its handles throw StateError, whatever their arguments, once declare has returned or thrown)
+17 fixtures: 16 passed, 1 failed, 0 pending
+exit: 1
+
+-- D10 a closed builder checks merge's empty list before it reports the closed builder
+248d247
+<     _checkOpen();
+249a249
+>     _checkOpen();
+- committed cases:
+-- nidana_contract_check topology-dsl --set behavior --guarantee G15
+PASS behavior hsdd/contract/fixture/topology-dsl/behavior/topology_builder_test.dart: 3 passed, 0 failed, 0 skipped under dart test, restricted to topology-dsl G15
+17 fixtures: 17 passed, 0 failed, 0 pending
+exit: 0
+- with S152's cases:
+-- nidana_contract_check topology-dsl --set behavior --guarantee G15
+FAIL behavior hsdd/contract/fixture/topology-dsl/behavior/topology_builder_test.dart: cases (3 passed, 1 failed, 0 skipped under dart test, restricted to topology-dsl G15)
+    failed-case (G15 a builder and its handles throw StateError, whatever their arguments, once declare has returned or thrown)
+17 fixtures: 16 passed, 1 failed, 0 pending
+exit: 1
+
+-- D11 WithLatestFromStage.apply without its length check
+87c87
+<     if (latest.length != this.latest.length) {
+---
+>     if (latest.length < 0) {
+- committed cases:
+-- nidana_contract_check topology-dsl --set behavior --guarantee G11
+PASS behavior hsdd/contract/fixture/topology-dsl/behavior/topology_builder_test.dart: 5 passed, 0 failed, 0 skipped under dart test, restricted to topology-dsl G11
+17 fixtures: 17 passed, 0 failed, 0 pending
+exit: 0
+- with S152's cases:
+-- nidana_contract_check topology-dsl --set behavior --guarantee G11
+FAIL behavior hsdd/contract/fixture/topology-dsl/behavior/topology_builder_test.dart: cases (6 passed, 1 failed, 0 skipped under dart test, restricted to topology-dsl G11)
+    failed-case (G11 apply throws ArgumentError, without calling the combiner, for a list that does not hold one value per input)
+17 fixtures: 16 passed, 1 failed, 0 pending
+exit: 1
+
+-- D12 CombineStage.apply without its length check
+54c54
+<     if (values.length != inputs.length) {
+---
+>     if (values.length < 0) {
+- committed cases:
+-- nidana_contract_check topology-dsl --set behavior --guarantee G11
+PASS behavior hsdd/contract/fixture/topology-dsl/behavior/topology_builder_test.dart: 5 passed, 0 failed, 0 skipped under dart test, restricted to topology-dsl G11
+17 fixtures: 17 passed, 0 failed, 0 pending
+exit: 0
+- with S152's cases:
+-- nidana_contract_check topology-dsl --set behavior --guarantee G11
+FAIL behavior hsdd/contract/fixture/topology-dsl/behavior/topology_builder_test.dart: cases (6 passed, 1 failed, 0 skipped under dart test, restricted to topology-dsl G11)
+    failed-case (G11 apply throws ArgumentError, without calling the combiner, for a list that does not hold one value per input)
+17 fixtures: 16 passed, 1 failed, 0 pending
+exit: 1
+
+-- D13 write marks its handle consumed before the second-sink check
+131a132
+>     _consumed.add(stream);
+- committed cases:
+-- nidana_contract_check topology-dsl --set behavior --guarantee G14
+PASS behavior hsdd/contract/fixture/topology-dsl/behavior/topology_builder_test.dart: 4 passed, 0 failed, 0 skipped under dart test, restricted to topology-dsl G14
+17 fixtures: 17 passed, 0 failed, 0 pending
+exit: 0
+- with S152's cases:
+-- nidana_contract_check topology-dsl --set behavior --guarantee G14
+FAIL behavior hsdd/contract/fixture/topology-dsl/behavior/topology_builder_test.dart: cases (6 passed, 1 failed, 0 skipped under dart test, restricted to topology-dsl G14)
+    failed-case (G14 a call that throws records nothing, so a declaration that catches its error plans as if it had not been made)
+17 fixtures: 16 passed, 1 failed, 0 pending
+exit: 1
+
+-- D14 reduceInto claims its state topic before the foreign-handle check
+145d144
+<     _checkMade(<TopicStream<Object?>>[events], const <String>['events']);
+146a146,147
+>     _written.add(topic);
+>     _checkMade(<TopicStream<Object?>>[events], const <String>['events']);
+- committed cases:
+-- nidana_contract_check topology-dsl --set behavior --guarantee G14
+PASS behavior hsdd/contract/fixture/topology-dsl/behavior/topology_builder_test.dart: 4 passed, 0 failed, 0 skipped under dart test, restricted to topology-dsl G14
+17 fixtures: 17 passed, 0 failed, 0 pending
+exit: 0
+- with S152's cases:
+-- nidana_contract_check topology-dsl --set behavior --guarantee G14
+FAIL behavior hsdd/contract/fixture/topology-dsl/behavior/topology_builder_test.dart: cases (6 passed, 1 failed, 0 skipped under dart test, restricted to topology-dsl G14)
+    failed-case (G14 a call that throws records nothing, so a declaration that catches its error plans as if it had not been made)
+17 fixtures: 16 passed, 1 failed, 0 pending
+exit: 1
+
+-- D15 ReduceIntoSink visits at Object? instead of its own type arguments
+34c34
+<   V _accept<V>(SinkVisitor<V> visitor) => visitor.reduceInto<S, E>(this);
+---
+>   V _accept<V>(SinkVisitor<V> visitor) => visitor.reduceInto<Object?, Object?>(this);
+- committed cases:
+-- nidana_contract_check topology-dsl --set behavior --guarantee G16
+PASS behavior hsdd/contract/fixture/topology-dsl/behavior/topology_builder_test.dart: 1 passed, 0 failed, 0 skipped under dart test, restricted to topology-dsl G16
+17 fixtures: 17 passed, 0 failed, 0 pending
+exit: 0
+- with S152's cases:
+-- nidana_contract_check topology-dsl --set behavior --guarantee G16
+FAIL behavior hsdd/contract/fixture/topology-dsl/behavior/topology_builder_test.dart: cases (1 passed, 1 failed, 0 skipped under dart test, restricted to topology-dsl G16)
+    failed-case (G16 visitStage and visitSink bind the type arguments of each stage's and sink's class)
+17 fixtures: 16 passed, 1 failed, 0 pending
+exit: 1
+
+### R restored: S152's cases against the shipped package once more
+the copy's lib/ equals HEAD's
+-- nidana_contract_check topology-dsl
+PASS behavior hsdd/contract/fixture/topology-dsl/behavior/topology_builder_test.dart: 31 passed, 0 failed, 0 skipped under dart test
+28 fixtures: 28 passed, 0 failed, 0 pending
+exit: 0
+
+### P nidana-checks@v1's scan cases: a {package}:{executable} command run from files/
+files/ holds a pubspec.yaml: no
+-- P1 fresh (seconds since the epoch, oldest rule first)
+pubspec.yaml=1793140263 packages/nidana_dart_contracts/pubspec.yaml=1793140263 pubspec.lock=1793140263 .dart_tool/package_config.json=1793140966 
+dart run nidana_contract_check nosuch: exit 64
+  | error: unknown slug 'nosuch': no directory hsdd/contract/fixture/nosuch/
+  | usage: fvm dart run nidana_contract_check {slug}... [--set {set},...] [--guarantee {id},...]
+dart --packages={ws}/.dart_tool/package_config.json bin/nidana_contract_check.dart nosuch: exit 64
+  | error: unknown slug 'nosuch': no directory hsdd/contract/fixture/nosuch/
+  | usage: fvm dart run nidana_contract_check {slug}... [--set {set},...] [--guarantee {id},...]
+files/ after: app topology-graph.json 
+-- P2 stale: a member pubspec.yaml touched after pubspec.lock
+pubspec.yaml=1793140263 packages/nidana_dart_contracts/pubspec.yaml=1793141005 pubspec.lock=1793140263 .dart_tool/package_config.json=1793140966 
+dart run nidana_contract_check nosuch: exit 255
+  | Could not find a file named "pubspec.yaml" in "{ws}/hsdd/contract/fixture/nidana-checks/invocation/scan-clean/files".
+dart --packages={ws}/.dart_tool/package_config.json bin/nidana_contract_check.dart nosuch: exit 64
+  | error: unknown slug 'nosuch': no directory hsdd/contract/fixture/nosuch/
+  | usage: fvm dart run nidana_contract_check {slug}... [--set {set},...] [--guarantee {id},...]
+files/ after: app topology-graph.json 
+-- P3 then dart pub get --enforce-lockfile (offline)
+  | Try `dart pub outdated` for more information.
+pubspec.yaml=1793140263 packages/nidana_dart_contracts/pubspec.yaml=1793141005 pubspec.lock=1793140263 .dart_tool/package_config.json=1793140966 
+dart run nidana_contract_check nosuch: exit 255
+  | Could not find a file named "pubspec.yaml" in "{ws}/hsdd/contract/fixture/nidana-checks/invocation/scan-clean/files".
+dart --packages={ws}/.dart_tool/package_config.json bin/nidana_contract_check.dart nosuch: exit 64
+  | error: unknown slug 'nosuch': no directory hsdd/contract/fixture/nosuch/
+  | usage: fvm dart run nidana_contract_check {slug}... [--set {set},...] [--guarantee {id},...]
+files/ after: app topology-graph.json 

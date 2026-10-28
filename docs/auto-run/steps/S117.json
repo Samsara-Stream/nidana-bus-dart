@@ -1,0 +1,113 @@
+{
+  "step_ref": "S117",
+  "skill": "hsdd-config",
+  "target": "nidana.model.6",
+  "status": "completed",
+  "stop": null,
+  "artifacts": [
+    "hsdd-context/nidana.model.6.md",
+    "hsdd-context/superpowers/nidana.model.6.md"
+  ],
+  "decisions": [
+    {
+      "at": "2026-10-27T02:48:10Z",
+      "artifact": "hsdd-context/nidana.model.6.md",
+      "question": "The self-contained gate (Rule 2: 'Every contract, ADR and OQ id the file names has its text inline in its section. Other phases' ids appear only in the Phase block's Dependencies and Collides with lines') flags ids that occur only inside verbatim excerpts. How does it apply, given S98's and S102's precedent? The set here: contract ids bus-api@v2, flutter-binding@v2, navigation-api@v1, nidana-checks@v1, topic-codegen@v1, topic-model@v1, topology-dsl@v2, topology-ir@v1; OQ ids OQ8, OQ9, OQ12, OQ-T2, OQ-F1; other-phase ids nidana.flutter.1, nidana.model.1 to .5 and .7 outside Dependencies and Collides with. Unlike nidana.model.1 and .2, this phase's own Verification names topic-model@v1 (its binding loads once nidana.model.5 has merged), and its Scope names slugs and guarantee ids (bus-api, topology-dsl/G{n}, bus_activation_test.dart) that are neither consumed nor produced.",
+      "options": [
+        {
+          "label": "Apply the gate to ids the file selects; excerpt-internal citations stay as the source's words",
+          "consequence": "Follows S98 and S102. The file stays verbatim excerpts and template text; ADR-001 and ADR-002, the only ids at selected positions, are inline. The orchestrator's gate prints its one known warning (contract ids named without a Contracts subsection)."
+        },
+        {
+          "label": "Add a Contracts subsection for topic-model@v1",
+          "consequence": "Would inline topic-model@v1's Interface and Guarantees for a phase that consumes and produces none, contradicting the Contracts selection rule (only those Consumes or Produces names) and adding text the replay tool never reads as Interface."
+        },
+        {
+          "label": "Paraphrase or drop the excerpt text that carries the ids",
+          "consequence": "Breaks Rule 1 (verbatim, no truncation) and would hand the session a Scope or Verification that is not the plan's."
+        },
+        {
+          "label": "Stop and ask",
+          "consequence": "Blocks the run on a question S98 and S102 already answered the same way."
+        }
+      ],
+      "chosen": "Apply the gate to ids the file selects; excerpt-internal citations stay as the source's words",
+      "why": "Same reasoning as S98 and S102: the Contracts and Open questions selection rules and Rule 1 cannot all hold under a reading of Rule 2 that counts every id inside a mandated excerpt. What differs here is the reference to topic-model@v1 in the phase's Verification line. It is a statement about what the replay of a binding shows once the declarations exist, not an Interface this phase implements: the phase's Scope states the whole behavior it builds (the binding rule, the runner choice by the flutter_test import, the PENDING rule, the restriction by ids read from the conformance library's import path, the anchored name filter and the not-run-counts-as-passing rule), and the fixtures it runs are data under hsdd/contract/fixture/. The synthetic suites its tests bind live in a temporary workspace. So nothing the implementer builds is missing from the file. A skill wording that scoped Rule 2 to selected ids, or told the writer to inline cited contracts, would have changed my mind.",
+      "evidence": [
+        ".claude/skills/hsdd-config/SKILL.md Rules 1, 2 and 4 and 'Filling it'",
+        "docs/auto-run/steps/S98.json decision at 2026-10-26T17:03:14Z",
+        "docs/auto-run/steps/S102.json decision at 2026-10-26T19:48:58Z",
+        "hsdd/spec/nidana.model.md ### nidana.model.6 Scope and Verification",
+        "docs/auto-run/experiments/empty-guarantee-selection/ (cited by the Scope)"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": true
+    }
+  ],
+  "experiments": [],
+  "self_check": [
+    {
+      "gate": "The generic file exists at `hsdd-context/{phase-id}.md`, named by the full phase id, with a stamp naming the spec SHA (and `-dirty` when it applies).",
+      "status": "pass",
+      "note": "hsdd-context/nidana.model.6.md; stamp {\"phase\":\"nidana.model.6\",\"spec\":\"739c828\",\"date\":\"2026-10-27\"}. `git -C hsdd status --porcelain -- spec contract adr conventions.md` printed nothing, so no -dirty."
+    },
+    {
+      "gate": "Every line in it is a verbatim excerpt, template text, or a link.",
+      "status": "pass",
+      "note": "Assembled by script from the node field block, the phase block, and the Decision and Consequences bodies of ADR-001 and ADR-002, plus the skill's template text. The same script run for nidana.model.2 with S102's SHA and date reproduced S102's two files byte for byte. A line-origin check found every line in a source file except the 16 expected ones: the stamp, the title, the Goal (the Scope value without its label), the `- Node`, `- Owns:`, `- Does not own` and `- Isolation strategy` lines, the two ADR headings, the verification-doc bullet with the phase id and tier substituted, and the Links block. Zero em-dash characters and zero uses of the banned phrase in both files."
+    },
+    {
+      "gate": "The self-contained gate passed: every contract, ADR and OQ id named has its text inline, or its external one-liner.",
+      "status": "pass",
+      "note": "Passes under the decision recorded in this report, the reading S98 and S102 applied: ADR-001 and ADR-002, the only ids at selected positions, have their Decision and Consequences inline. A literal reading flags 8 contract ids, 5 OQ ids and 7 other-phase ids that occur only inside verbatim excerpts (the node's Owns and Isolation strategy, the phase's own Verification for topic-model@v1, ADR-001 and ADR-002 Decision and Consequences text); they stay as the sources' citations. See notes_for_orchestrator."
+    },
+    {
+      "gate": "The derivative for the method was written, and the equality check printed nothing.",
+      "status": "pass",
+      "note": "hsdd-context/superpowers/nidana.model.6.md. The skill's step 11 diff command printed nothing."
+    },
+    {
+      "gate": "For OpenSpec, the project-wide context and `rules:` are unchanged.",
+      "status": "n/a",
+      "note": "Coding method is superpowers; there is no openspec/ directory and none is created (conventions, Execution setup)."
+    },
+    {
+      "gate": "For superpowers, the Global Constraints and Plan check are filled, with no braces left.",
+      "status": "pass",
+      "note": "N=6 (Size estimate '<= 6 plan tasks'), the gate `fvm dart pub get --enforce-lockfile && fvm dart analyze --fatal-infos && fvm dart run nidana_contract_check --all --set structure && fvm dart test packages/nidana_contract_check`, the full-review tier line, no constraint 9, Plan check 'constraints 1 to 8'. The only brace in the derivative's head (before the begin marker) is the stamp's JSON. The head differs from nidana.model.2's derivative only in the stamp, title, N, gate and phase id."
+    },
+    {
+      "gate": "Every stop (missing ADR, missing default gate, contingent phase) was honored; every warning is in the report.",
+      "status": "pass",
+      "note": "No stop applied: the phase's Gate is explicit (no `node default`), ADR-001 and ADR-002 exist and are accepted, and the node's Governance updates section is reconciled and empty (reconciled 2026-10-27), so no request lists the phase as contingent. The switch emitted no warning (see notes_for_orchestrator)."
+    },
+    {
+      "gate": "`hsdd/templates/verification.md` exists after the switch and has `## Learnings` (copied in step 7 if missing, replaced if it was a pre-v0.10 copy), and the report says which.",
+      "status": "pass",
+      "note": "Already present (copied by S98); `cmp` against .claude/skills/hsdd-config/templates/verification.md reports identical; line 26 is `## Learnings`. Neither copied nor replaced in this step, and not touched."
+    },
+    {
+      "gate": "The Contract replay line names every produced contract, and every produced contract with `validation: grandfathered` has its own Grandfathered line; both omitted only when they have nothing to say.",
+      "status": "pass",
+      "note": "nidana.model.6 produces no contract (Produces: none), so both lines have nothing to say and are omitted."
+    }
+  ],
+  "contract_gaps": [],
+  "notes_for_orchestrator": [
+    "hsdd-config report, phase nidana.model.6, method superpowers. Files written: hsdd-context/nidana.model.6.md (generic phase context, 222 lines); hsdd-context/superpowers/nidana.model.6.md (superpowers derivative, 260 lines). hsdd/templates/verification.md already existed (S98) and is identical to the skill's template, so nothing was copied. Spec SHA: 739c828 (git -C hsdd rev-parse --short HEAD; hsdd/ is a plain directory, so this is the repository HEAD, the merge of nidana.model.5); clean, no -dirty warning. Warnings: none emitted by the switch. Profile check not applicable (standalone-spec-repo is not used). Gate is explicit. ADR-001 and ADR-002 exist and are accepted. Next-runnable check: hsdd/verify/nidana.model.6.verification.md does not exist, so the phase is not done; its one dependency, nidana.model.2, has hsdd/verify/nidana.model.2.verification.md and its merge commit 014959f is in HEAD (nidana.model.1 to .5 are all merged with verification docs). Reconcile check: no contract is consumed or produced, no request names the phase, and the node's Governance updates section is reconciled and empty.",
+    "SESSION START LINE: Use superpowers:writing-plans to plan hsdd-context/superpowers/nidana.model.6.md",
+    "Gate command the orchestrator runs: node docs/auto-run/tools/impl-gate.mjs config nidana.model.6. It printed 0 errors and 1 warning before this report was final: 'contract ids named without a Contracts subsection (inside excerpts?)' listing bus-api@v2, topic-model@v1, topology-dsl@v2, topology-ir@v1, topic-codegen@v1, nidana-checks@v1, flutter-binding@v2, navigation-api@v1. It is the same warning S98 and S102 produced, and the Rule 2 decision in this report answers it.",
+    "N = 6, from the phase's Size estimate '~5 files (~300 lines, tests included), <= 6 plan tasks', not the conventions' ceiling of 8.",
+    "SELF-CONTAINED GATE, interpretation applied (decision in this report, would_upstream true, same as S98 and S102). A literal Rule 2 flags, all inside verbatim excerpts: contract ids bus-api@v2, flutter-binding@v2, navigation-api@v1, nidana-checks@v1, topic-codegen@v1, topic-model@v1, topology-dsl@v2, topology-ir@v1 (the node's Owns and Isolation strategy, the phase's own Verification for topic-model@v1, ADR-001 and ADR-002 Decision and Consequences); OQ ids OQ8, OQ9, OQ12, OQ-T2, OQ-F1 (ADR texts); phase ids nidana.flutter.1 and nidana.model.1 to .5 and .7 (node Owns, ADR text, and the phase's own Dependencies parenthetical and Collides with). The plan writer should read these ids as references, not as contracts this phase consumes: Consumes and Produces are both none, so there is no Contracts section and no Open questions section. Nothing was paraphrased, dropped or inlined to satisfy the check. Suggested upstream wording for hsdd-config Rule 2 (unchanged from S98 and S102): scope it to ids the file selects (Consumes, Produces, Governed by, section headings), or say that ids inside a verbatim excerpt are exempt.",
+    "Followed S98 and S102 without a new decision: Decisions carries ADR-001 and ADR-002 (the phase's Governed by; ADR-003 is in the node's field block only, and nothing in this phase's text cites it); the Open questions section is omitted (the phase block cites no OQ id); Owns is a nested list under `- Owns:`; the Links heading quote keeps its `### ` marker; constraint 8 ends in one period; no constraint 9 (conventions: no Dart tech skill is installed).",
+    "FIXED TEMPLATE TEXT KEPT AS WRITTEN: the Discipline line 'Consume contracts only: build against the Interface and Guarantees above' stays although this phase has no Contracts section; the derivative's constraint 7 says '(if any)'. The Contract replay and Grandfathered lines are omitted (no produced contract).",
+    "STAMP DATE is the UTC date (2026-10-27), as in S98 and S102. At run time UTC read 2026-10-27T02:47Z and the machine's local date was also 2026-10-27, so the S98 choice (UTC) did not have to be taken again. The Spec SHA names the repository HEAD at the time of reading (739c828). The orchestrator's commit of these files moves HEAD; the cited text (spec, contract, adr, conventions.md) is unchanged by it, so the stamp stays accurate.",
+    "METHOD: the two files were assembled by a script in the session scratchpad, not in the repository. Before use the script was run for nidana.model.2 with S102's SHA (cab9039) and date and reproduced S102's hsdd-context/nidana.model.2.md and hsdd-context/superpowers/nidana.model.2.md exactly, which also shows that the node field block and ADR-001 and ADR-002 are unchanged since S102. No experiment was needed (the step turns on no runtime fact).",
+    "NOT COMMITTED. git status shows hsdd-context/nidana.model.6.md and hsdd-context/superpowers/nidana.model.6.md untracked, plus this report. No git state was changed.",
+    "SETUP, present for review. Docs used: hsdd/conventions.md (Coding method: superpowers; Profile: standalone-spec-repo not used; Phase design with the replay-tool landing list and the plan-task ceiling; Companion skills, no Dart tech skill); hsdd/spec/nidana.model.md (node field block, the Default gate line, the Phase Plan table, ### nidana.model.6 section, Governance updates section); hsdd/adr/001 and 002 (Decision and Consequences), hsdd/adr/INDEX.md not needed beyond the ADR files' own frontmatter (both status accepted); CLAUDE.md; hsdd/templates/verification.md (existence, `## Learnings` and cmp against the skill's template only). The other eight node specs were not read. Skill-to-step mapping is OpenSpec-only and was not used. Coding method: superpowers, from conventions.",
+    "FOR THE PLAN WRITER: hsdd/verify/nidana.model.6.verification.md does not exist yet; the plan's last task creates it from hsdd/templates/verification.md at full-review depth. State of the tool package from the merged phases: packages/nidana_contract_check/lib has fixture.dart and src/{analysis,contract,dart_library,dart_scanner,ids,json_document,outcome,packages,reject,report,request,run,schema,shell,snapshot,structure,surface}.dart; its tests are under packages/nidana_contract_check/test (with a support directory). The phase adds the behavior set and shares the set dispatch and the report with nidana.model.1, .2 and .7 (Collides with); nidana.model.7 follows it and depends on its process runner, PENDING for commands and restriction semantics. The committed behavior bindings the set will meet are under hsdd/contract/fixture/*/behavior/ (bus-api, bus-testing, flutter-binding, navigation-api, topic-model, topology-dsl; topology-ir has a behavior directory too). The Scope cites docs/auto-run/experiments/empty-guarantee-selection/ (E2 and E3) for the exit-79 fact; it is evidence the tree cites, readable by the plan writer. The phase gate does not replay --set behavior over the real fixtures (it ends with --all --set structure and the tool's own tests), so the Verification line's last clause (topic-model@v1's binding loading and failing on UnimplementedError once nidana.model.5 has merged, which it has) is something the tests or a recorded manual replay must show; a defect found in a committed fixture or binding is a contract gap to report, not edit (ADR-001 item 8)."
+  ]
+}

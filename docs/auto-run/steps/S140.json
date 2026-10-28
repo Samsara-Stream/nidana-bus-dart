@@ -1,0 +1,269 @@
+{
+  "step_ref": "S140",
+  "skill": "superpowers:writing-plans",
+  "target": "nidana.model.11",
+  "status": "completed",
+  "stop": null,
+  "artifacts": [
+    "docs/superpowers/plans/nidana.model.11.md",
+    "docs/auto-run/experiments/projection-graphs-plan/run.sh",
+    "docs/auto-run/experiments/projection-graphs-plan/edits.py",
+    "docs/auto-run/experiments/projection-graphs-plan/output.txt",
+    "docs/auto-run/experiments/projection-graphs-plan/draft/lib/src/ir/projection.dart",
+    "docs/auto-run/experiments/projection-graphs-plan/draft/lib/src/graph/graph.dart",
+    "docs/auto-run/experiments/projection-graphs-plan/draft/test/projection_test.dart",
+    "docs/auto-run/experiments/projection-graphs-plan/draft/test/shell_claim_test.dart",
+    "docs/auto-run/experiments/projection-graphs-plan/draft/test/topology_graph_test.dart",
+    "docs/auto-run/experiments/projection-graphs-plan/draft/test/error_messages_test.dart",
+    "docs/auto-run/steps/S140.json"
+  ],
+  "decisions": [
+    {
+      "at": "2026-10-27T16:30:35Z",
+      "artifact": "docs/superpowers/plans/nidana.model.11.md",
+      "question": "Where does the projection live, given that D4 puts the projection and its visitor under lib/src/ir/ while TopologyPlan.definition, which must call it, is a part file of the topology library under lib/src/topology/, which the projection must import for the stage classes and visitStage?",
+      "options": [
+        { "label": "A library lib/src/ir/projection.dart, imported back by topology.dart", "consequence": "Follows D4 to the letter and keeps the projection out of the DSL library; topology.dart and projection.dart import each other, a cycle Dart allows. Costs one import line in topology.dart." },
+        { "label": "A part file of the topology library placed under lib/src/ir/", "consequence": "No import cycle, but a part of the DSL library sitting in ir/ blurs D4's directory split and gives the projection access to the DSL's private members it does not need." },
+        { "label": "Inject the projection into TopologyPlan from outside", "consequence": "Breaks the cycle with a registration step or a function-typed global, which is mutable state in a package that must stay pure and adds an initialization order." }
+      ],
+      "chosen": "A library lib/src/ir/projection.dart, imported back by topology.dart",
+      "why": "D4 names lib/src/ir/ for the projection and lib/src/topology/ for the definition body, and the phase Scope says the visitor is under lib/src/ir/. The dry run shows the cycle analyzes clean under the root lint set and every test and replay passes (T1.4: No issues found!, +207, topology-dsl 24 of 24, topology-ir G8 3 of 3). An analyzer or lint that reported the cycle would have changed my mind.",
+      "evidence": ["hsdd/spec/nidana.model.md D4", "hsdd-context/superpowers/nidana.model.11.md (Scope)", "docs/auto-run/experiments/projection-graphs-plan/output.txt (T1.4)"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T16:30:35Z",
+      "artifact": "docs/superpowers/plans/nidana.model.11.md",
+      "question": "Does TopologyPlan.definition project on each read, cache its definition, or does planOf project eagerly?",
+      "options": [
+        { "label": "A getter that projects on each read", "consequence": "No state in an @immutable plan; equal definitions each read; the rendered-alike ArgumentError surfaces at definition, not at planOf, as the routed item asks. Costs a projection per read, which live activation does once." },
+        { "label": "A late final cached field", "consequence": "One projection per plan, but a lazily assigned field in an @immutable value and an error that is cached or retried depending on Dart's late semantics." },
+        { "label": "Project inside planOf", "consequence": "planOf would throw ArgumentError for the rendered-alike corner, changing planOf's stated errors (StateError for an empty id or an unreached stage, declare's own errors)." }
+      ],
+      "chosen": "A getter that projects on each read",
+      "why": "topology-dsl@v2 states planOf's errors and has buildDefinition() return planOf(this).definition; the routed item says to let TopologyDefinition's ArgumentError propagate from definition. A getter keeps the plan inert. The package test 'G9 a plan projects again at each read of its definition ...' pins equality across reads. A contract sentence asking for one definition per plan object would have changed my mind.",
+      "evidence": ["hsdd/contract/topology-dsl.md (The plan; G9; G15)", "docs/auto-run/impl-execution-plan.md (Routed to later phases, nidana.model.11 from S132)"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T16:30:35Z",
+      "artifact": "docs/superpowers/plans/nidana.model.11.md",
+      "question": "How does the visitor tell read stages, which are not edges, from the others, and how many visitor classes are there?",
+      "options": [
+        { "label": "One class implementing StageVisitor<TransformEdge?> and SinkVisitor<TransformEdge>, read returning null", "consequence": "One 'stage and sink visitor', as the Scope says; no unreachable method; a stage adds its edge exactly when the visitor returns one." },
+        { "label": "Filter reads with an is-test before visiting, read throwing", "consequence": "An unreachable visitor method that throws, and the read test duplicated outside the visitor." },
+        { "label": "Two classes, one per visitor interface", "consequence": "Two classes sharing the edge list and the identity map." }
+      ],
+      "chosen": "One class implementing StageVisitor<TransformEdge?> and SinkVisitor<TransformEdge>, read returning null",
+      "why": "The two interfaces share no member name, the null result encodes rule 1 directly, and the class holds the edges and the identity map both need. Function-typed members are read inside their own visitor methods, as topology-dsl@v2 requires. No evidence against; a reviewer preferring two classes would not change behavior.",
+      "evidence": ["hsdd/contract/topology-dsl.md (The plan: visitStage, visitSink, the note on reading function-typed members)", "docs/auto-run/experiments/projection-graphs-plan/draft/lib/src/ir/projection.dart"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T16:30:35Z",
+      "artifact": "docs/superpowers/plans/nidana.model.11.md",
+      "question": "How are the phase's deliverables cut into at most 7 tasks?",
+      "options": [
+        { "label": "Five: projection; ShellClaim; TopologyGraph with toGraph and render; the routed messages; gate and verification doc", "consequence": "Each code task has its own failing replay or tests and one reviewable seam; the graph task depends on the claim task, as G11's cases construct claims." },
+        { "label": "Four: claim and graph in one task", "consequence": "One task fewer, but a larger review and a G12 case and three G11 cases turning green in one step." },
+        { "label": "Six or seven, splitting the projection or G3 and G7 tests out", "consequence": "Tests separated from the code they pin, against the skill's right-sizing rule." }
+      ],
+      "chosen": "Five: projection; ShellClaim; TopologyGraph with toGraph and render; the routed messages; gate and verification doc",
+      "why": "The seams match the cases: Task 1 turns 5 recording and 3 G8 cases green, Task 2 the G12 case, Task 3 the three G11 cases; the messages are independent polish a reviewer can reject alone. S139's notes proposed the same seams. The dry run ran the tasks in this order with each failing step failing and each passing step passing (T1.2 to T4.4).",
+      "evidence": ["docs/auto-run/steps/S139.json (notes_for_orchestrator, FOR THE PLAN WRITER (6))", "docs/auto-run/experiments/projection-graphs-plan/output.txt (T1.2 to T4.4)"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T16:30:35Z",
+      "artifact": "docs/superpowers/plans/nidana.model.11.md",
+      "question": "Which of the routed items does the plan take, given the cap and one review sitting?",
+      "options": [
+        { "label": "All ten, the four message fixes in one task of their own", "consequence": "Every routed item lands here; the message task adds about 30 library lines and one test file, reviewable alone." },
+        { "label": "Only the items the projection and graphs need", "consequence": "Leaves the grammar and naming fixes, which touch the DSL library this phase already edits, for no later phase that owns those files." }
+      ],
+      "chosen": "All ten, the four message fixes in one task of their own",
+      "why": "nidana.model.11 is the last phase that edits the DSL library (D4: nidana.model.4, .9, .11), so the builder's message fixes have no later owner; the IR message fixes are two lines. The dry run's Task 4 is 15 edits, 4 tests, and the analyzer and every replay stay green (T4.4). One line per item's disposition is in the plan's Routed items section and below in notes_for_orchestrator.",
+      "evidence": ["docs/auto-run/impl-execution-plan.md (Routed to later phases)", "hsdd/spec/nidana.model.md D4", "docs/auto-run/experiments/projection-graphs-plan/output.txt (T4.2, T4.4)"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T16:30:35Z",
+      "artifact": "docs/superpowers/plans/nidana.model.11.md",
+      "question": "elementsEqual takes Lists and its dartdoc names only envelopes and lineages: widen the helper, compare writes.toList(), and does this phase touch the dartdoc in lib/src/topic/, which D4 assigns to nidana.model.3 and .8?",
+      "options": [
+        { "label": "Compare writes.toList() and rewrite the dartdoc only", "consequence": "No code change in lib/src/topic/; one comment that now names every user of the helper; a file outside this phase's declared Collides with list (both owners merged long ago)." },
+        { "label": "Compare writes.toList() and leave the dartdoc", "consequence": "Stays inside D4's directories; the stale dartdoc has no later owner and stays wrong." },
+        { "label": "Widen elementsEqual to Iterable", "consequence": "A code change to a helper envelope and lineage equality use, for no gain over toList()." }
+      ],
+      "chosen": "Compare writes.toList() and rewrite the dartdoc only",
+      "why": "D4 splits directories so that phases running side by side edit disjoint files; nidana.model.11 runs alone (nidana.model.12 and .13 depend on it), so a comment edit risks no merge conflict, and no later phase owns lib/src/topic/. The routed item names the dartdoc explicitly. A reviewer who reads D4 as file ownership rather than parallelism would route the dartdoc to the end-of-node sweep instead; the code is unaffected either way.",
+      "evidence": ["hsdd/spec/nidana.model.md D4", "docs/auto-run/impl-execution-plan.md (nidana.model.11 from S135's final review)", "docs/auto-run/experiments/projection-graphs-plan/output.txt (T2.4, X: diff of list_equality.dart)"],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T16:30:35Z",
+      "artifact": "docs/superpowers/plans/nidana.model.11.md",
+      "question": "How does _checkMade name a foreign handle by its position?",
+      "options": [
+        { "label": "A names list per call: the parameter name, or inputs[i] for a list element", "consequence": "ArgumentError.name is the parameter the caller wrote (stream, events, a to d, latest, b to d) or the element (inputs[1]); ten call sites pass a const list or _elementNames('inputs', n)." },
+        { "label": "One name per call and the index in the message", "consequence": "Fewer call-site changes, but combine4's fourth handle would still be named by its list position, not its parameter." }
+      ],
+      "chosen": "A names list per call: the parameter name, or inputs[i] for a list element",
+      "why": "The finding was that a foreign fourth handle of combine4 reads 'Invalid argument (handle)'; naming the parameter as the Interface declares it (topology-dsl@v2 The builder and The handle) answers it exactly. No test or fixture pins the old name 'handle' (checked by grep; the suites assert throwsArgumentError only), and the dry run keeps topology-dsl 24 of 24 (T4.4).",
+      "evidence": ["hsdd/contract/topology-dsl.md (The builder, The handle)", "docs/auto-run/experiments/projection-graphs-plan/output.txt (T4.2, T4.4)"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T16:30:35Z",
+      "artifact": "docs/superpowers/plans/nidana.model.11.md",
+      "question": "What argument names do ShellClaim's and TopologyGraph's rejections carry, and what do the messages say? topology-ir@v1 says only 'throws ArgumentError'.",
+      "options": [
+        { "label": "The parameter at fault: source, writes, topologies; messages without an article built from a variant name", "consequence": "Consistent with nidana.model.10's IR factories, which name the argument at fault; tests pin the names." },
+        { "label": "Unnamed ArgumentError(message)", "consequence": "Matches the contract's wording just as well but gives a caller less to go on and leaves nothing to pin." }
+      ],
+      "chosen": "The parameter at fault: source, writes, topologies; messages without an article built from a variant name",
+      "why": "Precedent from nidana.model.10 (every IR rejection names its argument) and S132's grammar finding. Pinned by shell_claim_test.dart and topology_graph_test.dart.",
+      "evidence": ["hsdd/contract/topology-ir.md (Graphs; G11; G12)", "docs/superpowers/plans/nidana.model.10.md (Global Constraints, Errors)"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T16:30:35Z",
+      "artifact": "docs/superpowers/plans/nidana.model.11.md",
+      "question": "Does a graph read each Iterable argument once? topology-ir@v1 types the arguments Iterable and states nothing about how often they are read.",
+      "options": [
+        { "label": "Read each once, and pin it with a counting iterable", "consequence": "A lazy argument (a map over declarations, reversed, where) is evaluated once; the factory copies before it derives anything. One test." },
+        { "label": "Leave it unstated", "consequence": "An implementation that iterates twice (a length check, a second pass for topics) passes every case; a costly lazy argument would be evaluated twice." }
+      ],
+      "chosen": "Read each once, and pin it with a counting iterable",
+      "why": "It costs nothing (sortedCopy calls toList() once and everything else derives from the copies) and it is what a caller passing a lazy view expects. The dry run's D8 (an argument read twice) passes the whole gate and fails only this test. Not a contract rule, so not a contract gap; a reviewer could drop the assertion without changing the code.",
+      "evidence": ["hsdd/contract/topology-ir.md (Graphs: the factory takes Iterables)", "docs/auto-run/experiments/projection-graphs-plan/output.txt (D8)"],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T16:30:35Z",
+      "artifact": "docs/superpowers/plans/nidana.model.11.md",
+      "question": "Which 'contracts' example topologies' does the phase Verification line mean, beyond the two the suite's G8 cases project (CheckoutFlow and every-combinator)?",
+      "options": [
+        { "label": "Add topology-ir@v1's JSON example and two samples, transcribed from their valid/ documents", "consequence": "Package tests project the Interface's search example, the forms sample and the findings sample's quiet topology and compare with the edges the valid/ documents list; no decoder needed (nidana.model.13's)." },
+        { "label": "Rely on the suite's G8 cases only", "consequence": "The other samples' projections are first compared with their documents at nidana.model.13's G19 cases." }
+      ],
+      "chosen": "Add topology-ir@v1's JSON example and two samples, transcribed from their valid/ documents",
+      "why": "The Verification line asks for the contracts' example topologies; the JSON example is the only topology the Interface itself writes out, and forms and quiet exercise one read feeding several consumers, which the suite's G8 cases do not isolate. Transcribed by hand from hsdd/contract/fixture/topology-ir/valid/forms.json and findings.json; they pass in the dry run (C).",
+      "evidence": ["hsdd/contract/topology-ir.md (The JSON form example)", "hsdd/contract/fixture/topology-ir/valid/forms.json", "hsdd/contract/fixture/topology-ir/valid/findings.json", "docs/auto-run/experiments/projection-graphs-plan/output.txt (C)"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T16:30:35Z",
+      "artifact": "docs/superpowers/plans/nidana.model.11.md",
+      "question": "How does TopologyGraph sort claims with compareClaimKeys, which takes a record of a claim's parts, from lib/src/graph/?",
+      "options": [
+        { "label": "A private getter ShellClaim._key returning the ClaimKey record", "consequence": "One line in ShellClaim, read by TopologyGraph in the same library; added in Task 3, where it is first used, so Task 2 has no unused element." },
+        { "label": "Build the record inline in the comparator", "consequence": "No new member; a longer comparator expression." }
+      ],
+      "chosen": "A private getter ShellClaim._key returning the ClaimKey record",
+      "why": "Names the concept the order compares, keeps the comparator one line, and needs no public member (the Interface bullet forbids new public members). The dry run's Task 2 variant omits it and analyzes clean (T2.4).",
+      "evidence": ["packages/nidana_dart_contracts/lib/src/ir/canonical_order.dart (ClaimKey, compareClaimKeys)", "docs/auto-run/experiments/projection-graphs-plan/output.txt (T2.4, T3.4)"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T16:30:35Z",
+      "artifact": "docs/auto-run/experiments/projection-graphs-plan/",
+      "question": "How are the plan's exact expected outputs, formatter-stable blocks and the G3 and G7 coverage claim settled?",
+      "options": [
+        { "label": "A dry run of every task in a temporary copy of HEAD, with seeded defects", "consequence": "Every Expected line in the plan is a captured output; the blocks are the formatter's output; the defects show which tests pin what the gate leaves open. About ten minutes per run, three runs." },
+        { "label": "Write expectations by reading", "consequence": "Faster, but counts, failure messages and the analyzer's view of the import cycle would be guesses." }
+      ],
+      "chosen": "A dry run of every task in a temporary copy of HEAD, with seeded defects",
+      "why": "The preamble asks to settle runtime facts by experiment, and nidana.model.10's plan did the same (ir-values-plan). The final run (output.txt) shows every failing step failing, every passing step passing, the gate exiting 0 with 223 package tests, 24 of 24 and 17 of 17, fixture diagnostics unchanged (3143 in 70 libraries), and seeded defects D3, D4, D5, D6 and D8 passing the gate while failing package tests.",
+      "evidence": ["docs/auto-run/impl-step-preamble.md (Experiments)", "docs/auto-run/experiments/projection-graphs-plan/output.txt"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    }
+  ],
+  "experiments": [
+    {
+      "path": "docs/auto-run/experiments/projection-graphs-plan/",
+      "question": "Does the plan's task sequence, run in a copy of HEAD 3979408, fail each failing step and pass each passing step with the counts the plan states; does the ir/ to topology/ import cycle analyze clean; are the blocks formatter-stable; does the gate pass; which seeded defects pass the gate but fail the package tests?",
+      "finding": "Yes throughout. S1: 200 tests, topology-dsl 19/24, topology-ir restricted 10/17. T1.2 +0 -7 (six UnimplementedError, one expected ArgumentError), topology-dsl 19/24, G8 0/3; T1.4 +207, No issues found!, topology-dsl 24/24, G8 3/3. T2.2 +0 -4, G12 0/1; T2.4 +211, G12 1/1, one ignore line left. T3.2 +0 -8, G11 0/3; T3.4 +219, G11 3/3, restriction 17/17 and 61 fixtures passed, no ignore line. T4.2 +0 -4; T4.4 +223, topology-dsl 24/24. X: the six new files equal the drafts after the formatter. G: gate exit 0 (Got dependencies!, No issues found!, 102 fixtures, +223, topic-model 41 passed, topology-dsl 24 passed, 59 fixtures, topology-ir 17 passed, 61 fixtures). U: topology-ir unrestricted 19 passed, 24 failed (all call analyses, codec or renderers); the G3 copies case passes by name. A: fixture diagnostics unchanged, 3143 in 70 libraries; no const set or map in the new tests. D: D1 (apply for combiner) fails a package test and the gate's G8 cases; D2 and D7 (claim writes not copied or not sorted) fail package tests and the gate's G11 claims case; D3, D4, D5, D6 and D8 pass the whole gate and fail exactly one package test each."
+    }
+  ],
+  "self_check": [
+    { "gate": "Spec coverage: Skim each section/requirement in the spec. Can you point to a task that implements it?", "status": "pass", "note": "Projection and visitor behind definition and buildDefinition (Task 1); calling none of the functions and scheduling nothing (the suite's G10 cases turned green by Task 1, D6 purity test); ShellClaim's rules (Task 2); TopologyGraph orders, duplicates, rejection, topics (Task 3); graph equality ignoring argument order and unmodifiable copies for graphs and claims, pinned by package tests (Tasks 2 and 3); toGraph and render (Task 3); gate and verification doc (Task 5); the Verification line mapped in the plan." },
+    { "gate": "Step scan: Every step must let the implementer write exactly one reasonable thing, and no step may carry more than that.", "status": "pass", "note": "Tests are given whole (they are the assertions with the spec's values); library steps give signatures, the algorithms the tests do not determine (edge order and identity map, dedupe by id, equality), exact messages, and a table for the twenty visitor methods instead of their bodies." },
+    { "gate": "Type consistency: Do the types, method signatures, and property names you used in later tasks match what you defined in earlier tasks?", "status": "pass", "note": "projectPlan, _Projection, ShellClaim._key (ClaimKey), _distinctById, _checkMade(List<H>, List<String>), _elementNames, _variantOf are named the same wherever they appear; every plan code block was checked against the dry-run drafts or edits.py by script (all found)." },
+    { "gate": "Review Focus: For each input class or failure mode the spec implies, is there a task whose tests exercise it?", "status": "pass", "note": "Five items, each with its named test in Tasks 1 to 4; four of them backed by seeded defects that pass the gate's replay." },
+    { "gate": "Proportion: Compare the plan's length to the spec's.", "status": "pass", "note": "Plan about 1590 lines against the derivative's 1555 and nidana.model.10's plan of 1770; most of the length is the four test files, given whole; library code appears only where the signature and tests leave the algorithm open." },
+    { "gate": "Plan check: The plan's Global Constraints contain constraints 1 to 8 above, verbatim.", "status": "pass", "note": "node docs/auto-run/tools/impl-gate.mjs code-plan nidana.model.11: 0 error(s), 0 warning(s)." },
+    { "gate": "Plan check: Every ### Task N: except the last starts with a failing-test step.", "status": "pass", "note": "Tasks 1 to 4 open with 'Step 1: Write the failing test'; impl-gate agrees." },
+    { "gate": "Plan check: The last task writes the verification doc named in constraint 5.", "status": "pass", "note": "Task 5 writes hsdd/verify/nidana.model.11.verification.md, titled '# Verification: nidana.model.11 - Projection, graphs and claims', Sign-off left empty." },
+    { "gate": "Plan check: The plan has at most 7 tasks.", "status": "pass", "note": "5 tasks." },
+    { "gate": "Plan check: The plan is saved under docs/superpowers/plans/.", "status": "pass", "note": "docs/superpowers/plans/nidana.model.11.md, with **Spec:** naming hsdd-context/superpowers/nidana.model.11.md." },
+    { "gate": "Prose rules: no em-dash, never the banned phrase.", "status": "pass", "note": "impl-gate's prose check on the plan passes; the dry-run sources contain neither." }
+  ],
+  "contract_gaps": [
+    {
+      "contract": "topology-ir@v1",
+      "where": "hsdd/contract/fixture/topology-ir/behavior/topology_ir_conformance.dart, G11 cases (lines 1017 to 1057) and samples",
+      "problem": "Low, non-blocking: no case or sample builds two claims that tie on source and scope with different writes, so the third key of the claim order ('their writes element by element in canonical order, a shorter list first when one is a prefix of the other') is unreplayed; an implementation ordering claims by source and scope only passes every case (dry run seeded defect D4). G7's graph case also leaves the restriction until nidana.model.12, so claim and graph hash codes and graph equality over claims are pinned only by this phase's package tests until then.",
+      "proposed_fix": "A compatible hsdd-contract touch adding one G11 case with claims of one source and scope whose writes are [a], [a, b] and [b] given out of order; routed to the end-of-node governance sweep, as the plan's first Learning says."
+    }
+  ],
+  "notes_for_orchestrator": [
+    "STATUS: completed. Plan at docs/superpowers/plans/nidana.model.11.md, 5 tasks of the allowed 7: (1) projection behind definition and buildDefinition, new lib/src/ir/projection.dart, recursive boundary test; (2) ShellClaim; (3) TopologyGraph, toGraph, render; (4) the routed error messages; (5) gate and verification doc. `node docs/auto-run/tools/impl-gate.mjs code-plan nidana.model.11` printed 0 errors, 0 warnings.",
+    "WHICH TASK TURNS WHICH CASE GREEN: Task 1 turns topology-dsl@v2's five failing recording cases green (G9 buildDefinition L279, G10 L310 and L321, G12 L488 and L501; unrestricted 19/24 to 24/24) and topology-ir@v1's three G8 cases (L858, L875, L923); Task 2 the G12 case (L1060); Task 3 the three G11 cases (L1017, L1035, L1044), completing the restriction at 17/17. Task 4 turns no case. After the phase the unrestricted topology-ir behavior set passes 19 of 43 (the 17, G7 L774, and G3 L539 'the IR copies the lists it is given').",
+    "EXPECTED GATE (dry run G): exit 0 with Got dependencies!, No issues found!, 102 fixtures: 102 passed, +223: All tests passed! (200 today + 23 planned; implementers may add more), topic-model 41 passed, topology-dsl 24 passed, 59 fixtures: 59 passed (the two-slug command), topology-ir 17 passed restricted to G2, G5, G6, G8 to G12, 61 fixtures: 61 passed.",
+    "ROUTED ITEMS, one line each: combiner never apply: Task 1 (test + gate G8; seeded D1). Stage-to-edge index by identity: Task 1, Map.identity() fixed in the plan (untestable while stages keep Object's ==). Rendered-alike corner: Task 1 propagates TopologyDefinition's ArgumentError from definition and buildDefinition (test); Task 4 rewords the message (test). 'an replay topic' grammar: Task 4, exhaustive switch over MultiWriterTopic. _checkMade naming: Task 4, parameter names or inputs[i]. compareClaimKeys and compareTopologyIds with dedupe and rejection: Task 3. Recursive ir/-never-imports-graph/ test: Task 1. elementsEqual takes Lists: Task 2 compares writes.toList() and rewrites the helper's dartdoc (comment-only edit in lib/src/topic/, decision 6). 'takes exactly 1 inputs' grammar: Task 4. Two ignore: unused_element in graph.dart: Task 2 (ShellClaim._) and Task 3 (TopologyGraph._). S116's claim order over parts: done by nidana.model.10; Task 3 uses it through ShellClaim._key.",
+    "RUN RULINGS CARRIED: fvm dart format before each commit; each implementer's commit trailer names its own model (plan uses '<the co-author trailer your harness gives>'); tests beyond the plan's allowed where a rule would otherwise go unpinned; no test starts flutter; no test pins a hash value; no non-empty const set or map of value-equal types (A: none in the new tests); the 200 package tests and the topic-model replay stay green throughout (S1, every T step).",
+    "G3 AND G7: outside the gate's restriction (their graph and claim cases first replay at nidana.model.12). The plan pins them in shell_claim_test.dart and topology_graph_test.dart; seeded defects D3, D4, D5, D6 and D8 pass the whole gate and each fails one of those tests (output.txt section D). The plan's Task 5 carries that as its first Learning.",
+    "SPOT-CHECK TIER: implementers are sonnet. Every test file is given whole and the dry run shows each block is the formatter's output (X), so an implementer copies tests verbatim and writes library bodies from signatures, tables and the given algorithms.",
+    "WRITE SET: the plan, this report, and docs/auto-run/experiments/projection-graphs-plan/ (run.sh, edits.py, output.txt, draft/). The dry run used temporary directories under $TMPDIR, removed at its end (none left). No git state changed; nothing under hsdd/ or packages/ touched."
+  ]
+}

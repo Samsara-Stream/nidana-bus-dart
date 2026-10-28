@@ -1,0 +1,420 @@
+{
+  "step_ref": "S146",
+  "skill": "superpowers:writing-plans",
+  "target": "nidana.model.13",
+  "status": "completed",
+  "stop": null,
+  "artifacts": [
+    "docs/superpowers/plans/nidana.model.13.md",
+    "docs/auto-run/experiments/json-form-plan/",
+    "docs/auto-run/steps/S146.json"
+  ],
+  "decisions": [
+    {
+      "at": "2026-10-27T19:57:35Z",
+      "artifact": "docs/superpowers/plans/nidana.model.13.md",
+      "question": "How many tasks, and where do the seams fall? The Scope names the encoder with JsonRenderer, the decoder with its rules, and two property tests; the cap is 6, and every task but the last must start with a failing test.",
+      "options": [
+        {
+          "label": "Four tasks: encoder and JsonRenderer; the decoder reads every document of the right shape; the decoder's rules; gate and verification doc",
+          "consequence": "Each code task has a failing step that fails for its own reason (T1.2: 10 of 10 on UnimplementedError; T2.2: 9 of 10; T3.2: 27 of 46, ArgumentError, an AssertionError and accepted documents), each property test lands in the task whose code it checks and fails first there (F4: Task 2's codec lets 22 documents and 52 definition objects throw something other than a FormatException), and a reviewer can reject the rules while approving the reading."
+        },
+        {
+          "label": "Five tasks, the property tests apart",
+          "consequence": "A property-test task after the decoder could not start with a failing test, because the decoder would already pass it (the same finding as S143 decision 13)."
+        },
+        {
+          "label": "Three tasks, the decoder whole",
+          "consequence": "One task of about 300 library lines and two test files; the routed AssertionError and ArgumentError leaks would never show as a failing test, and a reviewer could not approve the reading apart from the rules."
+        }
+      ],
+      "chosen": "Four tasks: encoder and JsonRenderer; the decoder reads every document of the right shape; the decoder's rules; gate and verification doc",
+      "why": "The dry run (docs/auto-run/experiments/json-form-plan/, T1.2 to T3.4) shows each failing step failing and each passing step passing, the gate's restriction going 17, 19, 23 (5 of 7 G4/G20/G21) and 26 of 26. Task 2 deliberately reads any integer and calls the factories bare, so that Task 3's failing step shows the routed StageInput AssertionError and the factories' ArgumentError, then fixes them; the plan says so in Task 2's opening paragraph. 4 of the allowed 6 tasks.",
+      "evidence": [
+        "docs/auto-run/experiments/json-form-plan/output.txt (T1.2, T1.4, T2.2, T2.4, T3.2, T3.4, F4)",
+        "docs/auto-run/steps/S143.json decision on property tests inside their tasks",
+        "hsdd-context/superpowers/nidana.model.13.md Global Constraints 1 to 3"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T19:57:35Z",
+      "artifact": "docs/superpowers/plans/nidana.model.13.md",
+      "question": "Does the decoder get a library of its own beside codec.dart, or do encoder, decoder and renderer share codec.dart?",
+      "options": [
+        {
+          "label": "One library, codec.dart",
+          "consequence": "All helpers private; topology_ir.dart and its export test unchanged; one 468-line file (C)."
+        },
+        {
+          "label": "codec.dart plus an internal decoder.dart",
+          "consequence": "Smaller files, but the public decoders declared in codec.dart (nidana.model.5) delegate to src-public functions of decoder.dart, and the shared format string either crosses an import cycle or is written twice."
+        }
+      ],
+      "chosen": "One library, codec.dart",
+      "why": "The JSON form is one unit whose keys both directions name, and files that change together live together; D4 names one area for 'the codec and JsonRenderer'. The size (468 lines, of which about 230 decoder) is in line with lib/src/ir/definition.dart (about 420). The signal that would have changed it: a decoder above about 400 lines on its own.",
+      "evidence": [
+        "hsdd/spec/nidana.model.md D4",
+        "docs/auto-run/experiments/json-form-plan/output.txt (C: codec.dart lines: 468)"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T19:57:35Z",
+      "artifact": "docs/superpowers/plans/nidana.model.13.md",
+      "question": "What does the encoder return: fresh mutable map and list literals, or unmodifiable maps and lists?",
+      "options": [
+        {
+          "label": "Fresh mutable literals",
+          "consequence": "Insertion order gives key order (F1.4); the caller owns a new value per call and may edit it (the suite's _edited and Task 1's test do); no copy."
+        },
+        {
+          "label": "Unmodifiable maps and lists",
+          "consequence": "Closer to the owner's immutability preference, but the value is a transfer object made fresh on each call, nothing shares it, and every caller that edits a document first deep-copies it."
+        }
+      ],
+      "chosen": "Fresh mutable literals",
+      "why": "The Interface says 'a JSON value (maps, lists, strings, integers, booleans and null)' and fixes nothing about mutability; since no IR value shares the encoding, mutability exposes no state. Task 1's test pins that each call returns a new value.",
+      "evidence": [
+        "hsdd/contract/topology-ir.md, The JSON form",
+        "docs/auto-run/experiments/json-form-plan/output.txt (F1.4, F1.5)"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T19:57:35Z",
+      "artifact": "docs/superpowers/plans/nidana.model.13.md",
+      "question": "How does the decoder guarantee 'FormatException and no other error': restate the factories' rules before calling them, catch every error and convert it, or test shapes explicitly and convert only the factories' ArgumentError?",
+      "options": [
+        {
+          "label": "Explicit shape tests, the factories as the rule book, their ArgumentError converted at the object's path",
+          "consequence": "One place for each rule (the stage-edge table and the well-formed-definition rules stay in definition.dart); the decoder adds only what no factory checks; a TypeError or AssertionError escaping it is a defect the property tests catch (F4: none against the final draft)."
+        },
+        {
+          "label": "Restate every rule in the decoder before constructing",
+          "consequence": "Two copies of the stage-edge table and the definition rules to keep in step; better messages for those rules, at the cost of duplication."
+        },
+        {
+          "label": "Catch Object around decoding and convert",
+          "consequence": "Short, but it hides decoder defects (a failed cast reads as a malformed document) and catches Errors, which the codebase treats as defects."
+        }
+      ],
+      "chosen": "Explicit shape tests, the factories as the rule book, their ArgumentError converted at the object's path",
+      "why": "It is what the routed items ask (S135, S141: check the StageInput index before constructing, convert the factories' ArgumentError) and keeps each rule in one place. `on ArgumentError` also catches RangeError, which no factory throws. Seeded defect D14 (no conversion) fails twelve invalid/ files and the gate.",
+      "evidence": [
+        "docs/auto-run/impl-execution-plan.md, Routed to later phases (S135, S141 entries naming nidana.model.13)",
+        "packages/nidana_dart_contracts/lib/src/ir/definition.dart, lib/src/graph/graph.dart, lib/src/ir/function_ref.dart",
+        "docs/auto-run/experiments/json-form-plan/output.txt (F4, D14)"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T19:57:35Z",
+      "artifact": "docs/superpowers/plans/nidana.model.13.md",
+      "question": "What does a FormatException say? The contract fixes only the type.",
+      "options": [
+        {
+          "label": "'$path: $problem', the JSONPath of the place and a fixed phrase; a factory's rejection as '$path: {name}: {message}'; never the value",
+          "consequence": "A CI log names where and what; a self-containing or huge value cannot break or flood the message; the phrases are pinned by the tests, 38 invalid/ files included."
+        },
+        {
+          "label": "Include ArgumentError.toString() or the rejected value",
+          "consequence": "ArgumentError renders its invalid value as Instance of 'FunctionRef' or Instance of 'TopologySource' (T3.2), and rendering a value with jsonEncode throws on a cycle (D16)."
+        },
+        {
+          "label": "Pin only the type, leave the message free",
+          "consequence": "Less plan text, but D7 (repeats left to the reads comparison) passes every test then: the rejection would come from the wrong rule."
+        }
+      ],
+      "chosen": "'$path: $problem', the JSONPath of the place and a fixed phrase; a factory's rejection as '$path: {name}: {message}'; never the value",
+      "why": "The person acting on a rejected topology-graph.json needs the place; pinning the message also pins that each invalid/ file is rejected for its own reason, which the suite does not (it checks the type only). JSONPath ($, .key, [i]) is a known notation; the root of decodeTopologyDefinition is the definition object.",
+      "evidence": [
+        "docs/auto-run/experiments/json-form-plan/output.txt (F2.6, F2.7, I2, T3.2, D7, D16)"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T19:57:35Z",
+      "artifact": "docs/superpowers/plans/nidana.model.13.md",
+      "question": "Is a whole-number double such as 5000.0 an integer for durationMicros and an input's edge? The contract says 'an integer'; jsonDecode returns a double for any number with a fraction part or an exponent.",
+      "options": [
+        {
+          "label": "Accept an int, or a double with no fraction below 2^63; reject the rest",
+          "consequence": "The decoder agrees with the schema and the replay tool's validator, which accept 5000.0 and 1.0 (F3), and with Ajv, for which the two are the same number; a whole number of 2^63 or more, which the schema also accepts (1e30, F3), cannot be held by Duration or an int and is rejected, a low contract gap."
+        },
+        {
+          "label": "Accept only int",
+          "consequence": "Simpler; but a schema-valid document from another tool (Python writes 5000.0 for a float) is rejected with no decoder rule naming it; seeded defect D13 passes the gate's replay."
+        }
+      ],
+      "chosen": "Accept an int, or a double with no fraction below 2^63; reject the rest",
+      "why": "The JSON form says the schema states the document exactly, and draft 2020-12 counts 5000.0 as an integer. double.toInt() clamps at 2^63 (F2.3), so the bound keeps the conversion exact. Task 2's test pins acceptance; Task 3's pins rejection of 1e30, NaN, infinity, -0.5 and a string.",
+      "evidence": [
+        "docs/auto-run/experiments/json-form-plan/output.txt (F2.2, F2.3, F3, D13)",
+        "hsdd/contract/schema/topology-ir.schema.json (timeStage.durationMicros, edgeInput edge)"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T19:57:35Z",
+      "artifact": "docs/superpowers/plans/nidana.model.13.md",
+      "question": "Which Dart values are a JSON object and a JSON array to the decoder, which takes Object??",
+      "options": [
+        {
+          "label": "Any Map whose keys are all Strings, read through cast; any List",
+          "consequence": "jsonDecode's maps, a Map<Object?, Object?> with string keys and const maps decode; a Set, an Iterable or a map with a non-string key is rejected with a FormatException."
+        },
+        {
+          "label": "Only Map<String, Object?> and List<Object?>",
+          "consequence": "A Map<Object?, Object?> holding the same JSON object would be rejected as 'must be an object' (F2.5)."
+        }
+      ],
+      "chosen": "Any Map whose keys are all Strings, read through cast; any List",
+      "why": "A JSON object is a map from strings; jsonEncode accepts such a Map whatever its type arguments. Task 2's test pins both kinds; Task 3's pins a Set, a DateTime and a self-containing list.",
+      "evidence": [
+        "docs/auto-run/experiments/json-form-plan/output.txt (F2.5)"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T19:57:35Z",
+      "artifact": "docs/superpowers/plans/nidana.model.13.md",
+      "question": "Where does each check the factories do not make sit, and in what order: the claim source's kind, raw repeats, reads and writes against the edges, distinct ids?",
+      "options": [
+        {
+          "label": "Source kind in _decodeClaim at .source; repeats in _decodeTopics at the repeating element; reads and writes after TopologyDefinition derives its own; ids after every topology",
+          "consequence": "Each invalid/ file is rejected at its own place (I2); TopologyGraph's ArgumentError can no longer arise; the definition's derived sets are the reference, so no second derivation."
+        },
+        {
+          "label": "Leave the source kind to ShellClaim's ArgumentError and derive reads and writes in the decoder before constructing",
+          "consequence": "invalid/claim_topology_source.json would read '$.claims[0]: source: is not a service, page or executor source', and the decoder would restate what TopologyDefinition derives."
+        }
+      ],
+      "chosen": "Source kind in _decodeClaim at .source; repeats in _decodeTopics at the repeating element; reads and writes after TopologyDefinition derives its own; ids after every topology",
+      "why": "The source pattern is the schema's, a reading rule, so it is checked where the source is read; reads and writes are compared with the definition's own derivation, so the rule lives once. Required keys are checked in the plan's order, then unexpected keys, members in document order; Design decision 7 and the tests pin it.",
+      "evidence": [
+        "docs/auto-run/experiments/json-form-plan/output.txt (I2, D6 to D9)",
+        "hsdd/contract/schema/topology-ir.schema.json (shellClaim.source pattern)"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T19:57:35Z",
+      "artifact": "docs/superpowers/plans/nidana.model.13.md",
+      "question": "Which generator do the property tests use, and what does the 'generated JSON values either decode or throw FormatException' property draw?",
+      "options": [
+        {
+          "label": "A JSON-form generator of its own in test/src/json_support.dart, plus mutations of generated documents and arbitrary values, with floors",
+          "consequence": "Every combinator and input form, named and anonymous function references with VM-rendered names, every variant, scope and source kind, an empty topic name, durations up to 365000 days (the floor test pins them); one to three mutations per document; floors at about half of what 500 seeds reach (F4: 19 decode, 481 rejected)."
+        },
+        {
+          "label": "Reuse test/src/analysis_support.dart's generatedGraph",
+          "consequence": "Fewer lines, but it never generates retries, anonymous references, most combinators, replay reads with names that need escaping, or executor and page sources."
+        }
+      ],
+      "chosen": "A JSON-form generator of its own in test/src/json_support.dart, plus mutations of generated documents and arbitrary values, with floors",
+      "why": "The round-trip property is only as strong as the forms it reaches. The generator never gives a dedup to an event or replay read and never an empty typeName (routed item). Against Task 2's codec the mutation property finds 22 documents and 52 definition objects that throw something else (F4), so it fails first; against the final draft, none. The suite runs in about 1 s (F5).",
+      "evidence": [
+        "docs/auto-run/experiments/json-form-plan/output.txt (F4, F5)",
+        "packages/nidana_dart_contracts/test/src/analysis_support.dart"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T19:57:35Z",
+      "artifact": "docs/superpowers/plans/nidana.model.13.md",
+      "question": "Do this phase's package tests pin what the gate's restricted replay leaves open, G22's JSON rendering and no-scheduling rule included, though G22 is nidana.model.14's guarantee?",
+      "options": [
+        {
+          "label": "Pin them: key order, rendered bytes, each rejection's place, constructor leniencies, whole-number doubles, no scheduled work",
+          "consequence": "Nine seeded defects that pass the gate's replay fail a package test (D2, D3, D4, D7, D8, D10, D11, D13, D16); the codec is this phase's, so its bytes are too."
+        },
+        {
+          "label": "Rely on the replay, and on nidana.model.14 for G22",
+          "consequence": "A renderer without its newline or with another key order would merge here and fail only at nidana.model.14."
+        }
+      ],
+      "chosen": "Pin them: key order, rendered bytes, each rejection's place, constructor leniencies, whole-number doubles, no scheduled work",
+      "why": "The run ruling asks for tests beyond the plan's where a rule would otherwise go unpinned; the suite's G19 and G20 compare maps, whose == ignores key order (D2 passes them).",
+      "evidence": [
+        "docs/auto-run/experiments/json-form-plan/output.txt (D, U)"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T19:57:35Z",
+      "artifact": "docs/superpowers/plans/nidana.model.13.md",
+      "question": "How much code does the plan carry for spot-check, sonnet implementers: the test files in full, or test names and assertions only; library bodies or signatures?",
+      "options": [
+        {
+          "label": "Test files in full, generated from the dry run's drafts; library as signatures, exact messages and order, with bodies only for _integer and _build",
+          "consequence": "The plan is about 2040 lines, about the size of the code (470 library, 1630 test), as the nidana.model.11 and .12 plans were; every value a test pins is in the plan, and fill_plan.py keeps plan and dry run identical."
+        },
+        {
+          "label": "Test names and key assertions only",
+          "consequence": "A shorter plan, but 38 exact messages, the generators and the mutation property would be the implementer's to reinvent, and a sonnet implementer's variant would be unverified."
+        }
+      ],
+      "chosen": "Test files in full, generated from the dry run's drafts; library as signatures, exact messages and order, with bodies only for _integer and _build",
+      "why": "Precedent (docs/superpowers/plans/nidana.model.11.md, .12.md) and the brief: each task stands alone with exact values and test inputs. The library is described, not transcribed, except the two functions whose bodies are the decision (the 2^63 bound, the message rebuilt from name and message).",
+      "evidence": [
+        "docs/auto-run/experiments/json-form-plan/fill_plan.py",
+        "docs/superpowers/plans/nidana.model.12.md"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T19:57:35Z",
+      "artifact": "docs/auto-run/steps/S146.json",
+      "question": "Are the two findings that the governance does not settle contract gaps to report, or plan-local choices?",
+      "options": [
+        {
+          "label": "Report both as low contract gaps; plan around them",
+          "consequence": "hsdd-contract can amend compatibly: a decoder rule bounding durationMicros and edge, and three invalid/ files; nothing blocks the phase."
+        },
+        {
+          "label": "Record them in the plan only",
+          "consequence": "The bound would stay unstated in the contract, and the three uncovered rejections would stay unreplayed by nidana.model.14's unrestricted gate."
+        }
+      ],
+      "chosen": "Report both as low contract gaps; plan around them",
+      "why": "Both touch a contract's text or fixtures, which ADR-001 item 8 routes to hsdd-contract; neither changes what this phase builds.",
+      "evidence": [
+        "docs/auto-run/experiments/json-form-plan/output.txt (F3, D8, D10, D11)",
+        "hsdd/adr/001-executable-contract-validation.md item 8"
+      ],
+      "blast_radius": "contract",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    }
+  ],
+  "experiments": [
+    {
+      "path": "docs/auto-run/experiments/json-form-plan/",
+      "question": "Does the plan's task sequence, run in a temporary copy of HEAD ec540de with the drafted files, fail and pass where the plan says; what does dart:convert do with the codec's values (layout, escapes, key order, numbers); what does the replay tool's validator accept that the governance leaves unstated; does the final draft reject every invalid/ file with a FormatException at its own place and render every valid/ file byte for byte; which seeded defects pass the gate's replay?",
+      "finding": "S1: 270 package tests, topic-model 41/41, topology-dsl 24/24, topology-ir restricted 17 of 26 with 46 schema documents passing. F1: JsonEncoder.withIndent('  ') writes [] for an empty list, no trailing newline, keys in insertion order, raw non-ASCII. F2: jsonDecode gives a double for 5000.0, 5e3 and integers beyond 2^63; double.toInt clamps at 2^63; values.byName throws ArgumentError, asNameMap gives null. F3: json_schema 5.2.2 validates durationMicros 5000.0 and 1e30, edge 1.0, an empty topic name, two equal claims, 'service:a:b'; rejects a claim repeating a topic, 'service:', a replay-read dedup. T1.2 to T3.4: failing steps 10/10, 9/10, 27/46; passing steps +280, +290, +336, analyzer clean; restriction 26/26 after Task 3. I: 7 valid/ files render back byte for byte; 38 of 38 invalid/ files rejected with a FormatException, each at its own place. F4: final draft, 0 non-FormatException outcomes over 500 seeds; Task 2's codec, 22 documents and 52 definition objects. G: the gate exits 0 (+336, 26/26, 61 fixtures, 46 schema lines). U: unrestricted 41/43, only G22's Mermaid/Graphviz cases fail. D: of 17 seeded defects, D2, D3, D4, D7, D8, D10, D11, D13 and D16 pass the gate's replay and fail a package test; every defect fails at least one package test."
+    }
+  ],
+  "self_check": [
+    {
+      "gate": "Spec coverage: Skim each section/requirement in the spec. Can you point to a task that implements it?",
+      "status": "pass",
+      "note": "Encoder and key order, canonical lists, durationMicros, dedup only when given (G19): Task 1. JsonRenderer: Task 1. Decoder of every document, any order, G4 and G20: Task 2. FormatException only, decoder rules (definition rules, reads and writes, distinct ids), G21: Task 3. Both property tests: Task 2 (round trip, any order) and Task 3 (decode or FormatException). Verification line: the plan's 'Which task turns which failing case green' section. Gate and verification doc: Task 4. Every routed item: the Routed items section."
+    },
+    {
+      "gate": "Step scan: Every step must let the implementer write exactly one reasonable thing, and no step may carry more than that",
+      "status": "pass",
+      "note": "Test steps carry the files (formatter-stable, X); code steps carry signatures, the exact message table and the order of checks, with bodies only for _integer and _build; run steps carry the command and the expected line from the dry run."
+    },
+    {
+      "gate": "Type consistency: Do the types, method signatures, and property names you used in later tasks match what you defined in earlier tasks?",
+      "status": "pass",
+      "note": "The plan's names are the draft's, which compiled and passed (T1.4 to T3.4): _decodeDefinition, _decodeEdge, _decodeOneInput, _decodeInput, _decodeTopic, _decodeTopics, _decodeFunction, _decodeClaim, _object, _list, _string, _integer, _named, _reject, _build, _checkDistinctIds, _checkSameTopics; test support fixtureText, fixtureJson, fixtureNames, interfaceExample, interfaceExampleGraph, seeds, generatedGraph."
+    },
+    {
+      "gate": "Review Focus: For each input class or failure mode the spec implies, is there a task whose tests exercise it?",
+      "status": "pass",
+      "note": "Five lines (CI byte diffs, documents another tool wrote, values the constructors accept, rejections a person acts on, Dart callers' collections), each with its tests named in the owning task and a seeded defect that passes the gate's replay."
+    },
+    {
+      "gate": "Proportion: Compare the plan's length to the spec's.",
+      "status": "pass",
+      "note": "About 2040 lines against about 2100 lines of code (470 library, 1630 tests); 1630 of the plan's lines are the test files; the library is described, not transcribed. The same proportion as the nidana.model.11 and .12 plans."
+    },
+    {
+      "gate": "The plan's Global Constraints contain constraints 1 to 8 above, verbatim.",
+      "status": "pass",
+      "note": "Filled from the derivative by fill_plan.py; impl-gate code-plan reports 0 errors."
+    },
+    {
+      "gate": "Every `### Task N:` except the last starts with a failing-test step.",
+      "status": "pass",
+      "note": "Tasks 1 to 3 start with 'Step 1: Write the failing test'."
+    },
+    {
+      "gate": "The last task writes the verification doc named in constraint 5.",
+      "status": "pass",
+      "note": "Task 4 writes hsdd/verify/nidana.model.13.verification.md, titled '# Verification: nidana.model.13 - JSON form', Sign-off empty."
+    },
+    {
+      "gate": "The plan has at most 6 tasks.",
+      "status": "pass",
+      "note": "4 tasks."
+    },
+    {
+      "gate": "The plan is saved under docs/superpowers/plans/.",
+      "status": "pass",
+      "note": "docs/superpowers/plans/nidana.model.13.md; its **Spec:** line names hsdd-context/superpowers/nidana.model.13.md. `node docs/auto-run/tools/impl-gate.mjs code-plan nidana.model.13`: 0 error(s), 0 warning(s), exit 0."
+    }
+  ],
+  "contract_gaps": [
+    {
+      "contract": "topology-ir@v1",
+      "where": "hsdd/contract/topology-ir.md, The JSON form (the bullet 'a duration is durationMicros, an integer' and the decoder-rules bullet), G21; hsdd/contract/schema/topology-ir.schema.json, $defs.timeStage.properties.durationMicros and $defs.edgeInput (edge)",
+      "problem": "The schema bounds durationMicros and an input's edge below by 0 and not above, and package:json_schema 5.2.2 validates 1e30 for either (docs/auto-run/experiments/json-form-plan/ F3), while the Dart IR holds a Duration (int microseconds) and an int, so a decoder must reject a whole number of 2^63 or more although no decoder rule of The JSON form names it, against G21's 'for any value that is not a graph document of this version or breaks a rule of the decoder'. The text 'an integer' also leaves whole-number doubles (5000.0) implicit; the schema accepts them, and this plan's decoder reads them as the integer they equal.",
+      "proposed_fix": "Compatible amend by hsdd-contract: add to The JSON form's decoder-rules bullet 'durationMicros and edge are below 2^63; a number with no fraction part, 5000.0 included, is the integer it equals', or add \"maximum\": 9223372036854775807 to both in the schema (validators that read numbers as doubles cannot state that bound exactly, so the text rule is the safer of the two). Low."
+    },
+    {
+      "contract": "topology-ir@v1",
+      "where": "hsdd/contract/fixture/topology-ir/invalid/ (38 files) and G21",
+      "problem": "No invalid/ file holds an empty typeName (topic_ref_without_type_name.json omits the key), a dedup on a replay read (dedup_on_event_read.json covers an event read only) or a claim that lists one topic twice (uniqueItems on shellClaim.writes), so a decoder that accepts any of them passes every replay of this node, nidana.model.14's unrestricted one included (seeded defects D8, D10, D11 in docs/auto-run/experiments/json-form-plan/output.txt). TopicRef, TopicInput and a Set accept all three, so nothing below the decoder rejects them (the end-of-node sweep item from S135 is the constructors' side of the same gap).",
+      "proposed_fix": "Compatible fixture addition by hsdd-contract: three invalid/ files, each valid/forms.json with one rule broken: topic_ref_empty_type_name.json (reads[0].typeName \"\"), dedup_on_replay_read.json (transforms[0].inputs[0] a replay topic with \"dedup\": \"none\"), claim_repeats_topic.json (claims[0].writes listing forms.claimed twice); the Validation section's count of invalid/ documents moves from 38 to 41. Low."
+    }
+  ],
+  "notes_for_orchestrator": [
+    "superpowers:writing-plans, phase nidana.model.13. STATUS: completed. Plan: docs/superpowers/plans/nidana.model.13.md (about 2040 lines, 4 tasks of the allowed 6), generated by docs/auto-run/experiments/json-form-plan/fill_plan.py from plan.template.md and the dry run's drafts, so every test block equals what run.sh ran. `node docs/auto-run/tools/impl-gate.mjs code-plan nidana.model.13`: 0 errors, 0 warnings, exit 0. Nothing committed; no git state changed; nothing under hsdd/ touched. Write set: the plan, this report, docs/auto-run/experiments/json-form-plan/ (run.sh, output.txt, variants.py, defects.py, fill_plan.py, plan.template.md, facts/, draft/). Temporary workspaces were under the session scratchpad and are removed by run.sh.",
+    "TASKS: 1 the encoder and JsonRenderer (test/src/json_support.dart part 1, test/json_encode_test.dart, 10 tests; G19 x2 green); 2 the decoder reads every document of the right shape (json_support.dart part 2, test/json_decode_test.dart, 10 tests; G4, G20 x3 and G21 'any other value' green); 3 the decoder's rules (test/json_reject_test.dart, 46 tests; G21 x2 green, restriction 26/26); 4 gate and spot-check verification doc. Expected gate: exit 0, `+336: All tests passed!` (270 + 66), topic-model 41/41, topology-dsl 24/24, topology-ir 26/26 restricted to G2, G4 to G6, G8 to G12, G19 to G21, 46 schema lines, `61 fixtures: 61 passed`. Unrestricted topology-ir after the phase: 41/43, only G22's Mermaid/Graphviz cases failing (nidana.model.14); G22's JSON case passes ahead of its phase.",
+    "ROUTED ITEMS (dispositions, one line each, as in the plan's Routed items section): (S115) dart:convert import: Task 1. (S135) StageInput index checked before constructing: Task 3's _integer rejects a negative index at .edge; D12. (S135, S141) factories', ShellClaim's and TopologyGraph's ArgumentError to FormatException: Task 3's _build at the object's path, message '{path}: {name}: {message}'; TopologyGraph's is unreachable after the raw id check but goes through _build; D14. (S135, S141) raw repeats of reads, writes, topology ids and claim topics before constructing: Task 3's _decodeTopics and _checkDistinctIds; the invalid/claim_*.json files test claim source, scope and writes rules, not repeats, so a package test pins claim repeats; D6, D7, D8. (S135 sweep) dedup on an event or replay read and an empty typeName rejected by the decoder: Task 3; D10, D11. (S135) round-trip generators avoid both: Task 2's json_support.dart. (S141 Task 4 review) the second-sink message passes through _build, pinned by a Task 3 test.",
+    "CONTRACT GAPS (both low, neither blocks): (1) topology-ir@v1 bounds durationMicros and edge only below; json_schema validates 1e30; the decoder rejects >= 2^63 with no stated rule; also make whole-number doubles explicit. (2) invalid/ lacks an empty typeName, a replay-read dedup and a claim repeating a topic; D8, D10, D11 pass every replay of the node. Route to hsdd-contract (compatible amends). The plan writes both as Learnings with 'dropped (reported to hsdd-contract as a low contract gap by S146)'.",
+    "FOR THE IMPLEMENTERS (sonnet, spot-check): the plan's Task 2 deliberately leaves the sign of integers, the factories' ArgumentError and the other rules to Task 3, so Task 2's decoder still leaks errors after its task (F4) by design; reviewers of Task 2 should not flag that. Exact FormatException messages are pinned by tests (the plan's two message tables); the factories' messages come from definition.dart, graph.dart and function_ref.dart as they stand.",
+    "DECISION TIMESTAMPS: the decisions were recorded together at 2026-10-27T19:57:35Z (from `date -u`); the work they describe ran from 19:36:03Z (experiment directory created) through four dry runs (19:49:55Z to 19:51:36Z, 19:52:33Z to 19:54:16Z, 19:57:33Z to 19:59:19Z, and the recorded one, about 20:00:30Z to 20:02:22Z, whose output is docs/auto-run/experiments/json-form-plan/output.txt). The plan was refilled from the drafts after the last run and checked at 20:07:46Z (impl-gate code-plan: 0 errors, 0 warnings).",
+    "RUN RULING ON CONST COLLECTIONS: no test of the plan writes a const set or a const map, not even one keyed by String (the error-message table is a final map, and the decoder's unmodifiable-map case uses Map.unmodifiable), so the ruling holds on its strictest reading. Const lists of value-equal types (TopicRef, MessageSource, Duration) remain, as in nidana.model.11's and .12's tests.",
+    "PLAN SIZE: docs/superpowers/plans/nidana.model.13.md is 2038 lines; 1630 of them are the three new test files and test/src/json_support.dart, which fill_plan.py inlines from draft/ so that plan and dry run cannot drift. To change a test, edit draft/, rerun run.sh, then fill_plan.py."
+  ]
+}

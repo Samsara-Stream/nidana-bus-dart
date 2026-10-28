@@ -2,7 +2,8 @@ flowchart LR
   t0(["odd.#lt;record#gt;<br/>event ({int a, String b})"])
   t1(["odd.back\slash<br/>event String"])
   t2(["odd.café#10;line<br/>state int?"])
-  t3(["odd.table #quot;x#quot; #35;1<br/>state List#lt;Map#lt;String, int#gt;#gt;"])
+  t3(["odd.it's [a|b] & c<br/>event String"])
+  t4(["odd.table #quot;x#quot; #35;1<br/>state List#lt;Map#lt;String, int#gt;#gt;"])
   subgraph p0["idle<br/>page"]
   end
   subgraph p1["odd #quot;quoted#quot; #35;1 #lt;tag#gt; back\slash café<br/>module"]
@@ -11,9 +12,10 @@ flowchart LR
     p1e2["write"]
     p1e3["write"]
     p1e4["write"]
+    p1e5["write"]
   end
   s0["page:checkout/cart?step=#quot;2#quot;<br/>module"]
-  t3 --> p1e0
+  t4 --> p1e0
   t0 --> p1e1
   p1e0 --> p1e2
   p1e2 --> t1
@@ -21,4 +23,6 @@ flowchart LR
   p1e3 --> t0
   t2 -->|dedup equality| p1e4
   p1e4 --> t2
-  s0 --> t3
+  p1e0 --> p1e5
+  p1e5 --> t3
+  s0 --> t4

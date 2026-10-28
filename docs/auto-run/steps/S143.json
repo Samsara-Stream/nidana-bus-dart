@@ -1,0 +1,276 @@
+{
+  "step_ref": "S143",
+  "skill": "superpowers:writing-plans",
+  "target": "nidana.model.12",
+  "status": "completed",
+  "stop": null,
+  "artifacts": [
+    "docs/superpowers/plans/nidana.model.12.md",
+    "docs/auto-run/experiments/analyses-plan/",
+    "docs/auto-run/steps/S143.json"
+  ],
+  "decisions": [
+    {
+      "at": "2026-10-27T17:40:00Z",
+      "artifact": "docs/superpowers/plans/nidana.model.12.md",
+      "question": "How many tasks, split where? The cap is 6 (Global Constraint 3), every task but the last must start with a failing test, and the Scope asks for property tests (cycles against brute-force reachability, G17's removal property, order independence).",
+      "options": [
+        { "label": "Five tasks, property tests inside", "consequence": "One task per analysis family, leaves first (cycles; self-references; writer conflicts with scope violations, which share one owner list; analyzeTopologyGraph with findTopicNameCollisions), then the gate and verification doc. Each property test joins the task whose analysis it checks and fails there first because the stub throws." },
+        { "label": "Six tasks, a separate property-test task", "consequence": "The property-test task could not start with a failing test, because the analyses would already pass it (Global Constraint 1)." },
+        { "label": "Six tasks, conflicts and violations apart", "consequence": "Two tasks build the same owner list; a reviewer could not reject one while approving the other in any useful way." }
+      ],
+      "chosen": "Five tasks, property tests inside",
+      "why": "Matches the seams S142 suggested and the right-sizing rule (split only where a reviewer could reject one task and approve its neighbour); keeps Global Constraint 1 true for every property test.",
+      "evidence": ["docs/auto-run/steps/S142.json notes_for_orchestrator (FOR THE PLAN WRITER, item 6)", "docs/auto-run/experiments/analyses-plan/output.txt T1.2 to T4.4"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T17:47:00Z",
+      "artifact": "docs/superpowers/plans/nidana.model.12.md",
+      "question": "Which strongly-connected-components algorithm, and recursive or not?",
+      "options": [
+        { "label": "Iterative Tarjan", "consequence": "Linear; the depth-first path lives in two lists, so any chain length works (a ring of 300000 in 0.7 s); about 50 lines with a non-obvious loop, so the plan gives its body." },
+        { "label": "Recursive Tarjan", "consequence": "Shorter, but overflows the stack at a ring of 10000 topologies under dart test (F1) while passing every conformance case." },
+        { "label": "Warshall reachability closure", "consequence": "Simplest to read, cubic in topologies; it is the property test's oracle, so the test would compare an algorithm with itself." }
+      ],
+      "chosen": "Iterative Tarjan",
+      "why": "The governance names strongly connected sets and asks for a brute-force reachability check as the property oracle; a long catalog chain must not crash activation or the workspace scan. Settled by experiment: the first draft was recursive and failed at 10000.",
+      "evidence": ["docs/auto-run/experiments/analyses-plan/output.txt F1", "docs/auto-run/experiments/analyses-plan/facts/ring_depth_test.dart", "hsdd/contract/topology-ir.md G13"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T17:41:00Z",
+      "artifact": "docs/superpowers/plans/nidana.model.12.md",
+      "question": "Which topics does a cycle list? The Interface says 'the topics one member writes and another reads'.",
+      "options": [
+        { "label": "Written by one member, read by a different member", "consequence": "A member's own self-read is not listed unless another member reads it; a topic between a member and an outsider is not listed; topics collected in a set, so each once (routed item from S135)." },
+        { "label": "Written by a member and read by any member", "consequence": "A member's self-read joins the cycle's topics, mixing the inter-topology finding with the intra-topology one the Interface keeps apart." }
+      ],
+      "chosen": "Written by one member, read by a different member",
+      "why": "'another' contrasts with 'one member', and arcs exist only between distinct topologies (Analyses, Cycles). The conformance case has no member self-read, so the reading is pinned by Task 1's own test; the dry run's D2 passes the gate's replay.",
+      "evidence": ["hsdd/contract/topology-ir.md lines 359 to 365 and 433", "docs/auto-run/experiments/analyses-plan/output.txt D2, D14"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T17:41:30Z",
+      "artifact": "docs/superpowers/plans/nidana.model.12.md",
+      "question": "How do the cycles come out in 'the order of the first of its ids'?",
+      "options": [
+        { "label": "Sort after the search", "consequence": "Sort the cycles by compareTopologyIds of their first (smallest) id; total, since components are disjoint. Task 1's first test builds a graph where Tarjan completes the later-named cycle first." },
+        { "label": "Rely on the search order", "consequence": "Tarjan completes components in reverse topological order; the conformance case happens to agree, so the dry run's D1 passes the gate's replay but returns the wrong order on other graphs." }
+      ],
+      "chosen": "Sort after the search",
+      "why": "The order is the contract's, not an accident of the visit order.",
+      "evidence": ["docs/auto-run/experiments/analyses-plan/output.txt D1"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T17:42:00Z",
+      "artifact": "docs/superpowers/plans/nidana.model.12.md",
+      "question": "How does findSelfReferences find 'every edge on any unmediated path', and how does a read match its topic?",
+      "options": [
+        { "label": "Forward and backward passes", "consequence": "Edges are in dependency order (G6), so one forward pass (reached from a read through edges bearing no state) and one backward pass (reaching a write through such edges) mark them; an edge is on a path exactly when both do. Linear. A read matches by TopicInput.topic, whatever its dedup; a write is an edge bearing no state whose output is the topic." },
+        { "label": "Enumerate every path", "consequence": "Direct but exponential in the worst case; it is the property test's oracle instead." },
+        { "label": "Forward pass only", "consequence": "Lists edges that lead to another topic's write (the dry run's D3 fails one G14 case and passes the other and the G17 sample)." }
+      ],
+      "chosen": "Forward and backward passes",
+      "why": "Exact by construction, linear, and checked against a walk of every path over 500 seeds; matching by topic keeps a dedup read a read of its topic (dry run D4 shows the suite would miss it).",
+      "evidence": ["hsdd/contract/topology-ir.md line 434", "docs/auto-run/experiments/analyses-plan/output.txt D3, D4, D5"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T17:43:00Z",
+      "artifact": "docs/superpowers/plans/nidana.model.12.md",
+      "question": "How are writer conflicts and scope violations computed?",
+      "options": [
+        { "label": "One owner list per state topic", "consequence": "_owners(graph, topic): topologies writing it (TopologySource with their scope) in graph order, then claims claiming it, one entry per claim; empty for event and replay topics. Conflicts are topics of graph.topics with two or more owners; violations iterate owners and readers." },
+        { "label": "Two separate scans", "consequence": "The same owner rules written twice, free to drift apart." }
+      ],
+      "chosen": "One owner list per state topic",
+      "why": "Spec §3.11 and §7.2 define one notion of owner for both checks (Refinement 3); graph.claims already keeps equal claims, so 'one entry per claim' falls out (routed item from S141).",
+      "evidence": ["hsdd/contract/topology-ir.md lines 435 and 436", "docs/auto-run/experiments/analyses-plan/output.txt D9"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T17:43:30Z",
+      "artifact": "docs/superpowers/plans/nidana.model.12.md",
+      "question": "Scope violations are 'Ordered by topic, then owner, then reader'. How do two owners with one source and two scopes order (one service claiming unbound and bound to a module), and how are equal owners counted?",
+      "options": [
+        { "label": "Source rendering, then scope; equal owners once", "consequence": "Matches the claim order's tie-break after the source; a Set literal drops the equal violations of equal owners in iteration order (the G16 case's two page:form claims give one violation per reader). Reported as a low contract gap: the tie-break is not in the text." },
+        { "label": "Source rendering, then graph order of the owners", "consequence": "Topologies before claims for one source cannot happen (distinct prefixes), so this equals the first for claims (claim order is source then scope) but states nothing; same gap." },
+        { "label": "Stop and ask", "consequence": "Blocks the plan on a tie the conformance suite never builds." }
+      ],
+      "chosen": "Source rendering, then scope; equal owners once",
+      "why": "The only reading consistent with the canonical claim order; pinned by Task 3's test. An analysis's result order is in topology-ir@v1's Breaking list, so the text should name the tie-break; compatible to add (no fixture builds the tie). The signal that would change my mind: the owner wanting violations grouped by claim rather than by owner.",
+      "evidence": ["hsdd/contract/topology-ir.md lines 53 and 436, Versioning line 470", "hsdd/contract/fixture/topology-ir/behavior/topology_ir_conformance.dart line 1175", "docs/auto-run/experiments/analyses-plan/output.txt D6, D7"],
+      "blast_radius": "contract",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T17:44:00Z",
+      "artifact": "docs/superpowers/plans/nidana.model.12.md",
+      "question": "How does findTopicNameCollisions order names, count repeats and read its argument?",
+      "options": [
+        { "label": "String.compareTo names, a map of sets, one pass", "consequence": "Names in code-unit order (the order the canonical topic order uses for names); a TopicDeclaration is a value, so a repeat is one element; a lazy iterable from a scanner is read once." },
+        { "label": "Names in first-seen order", "consequence": "Not 'ordered by name'; the dry run's D11 passes the gate's replay." }
+      ],
+      "chosen": "String.compareTo names, a map of sets, one pass",
+      "why": "Interface: 'ordered by name'; G18: 'counts a repeated declaration once'; nidana.model.11 read graph arguments once for the same reason.",
+      "evidence": ["hsdd/contract/topology-ir.md lines 437 and 460", "docs/auto-run/experiments/analyses-plan/output.txt D10, D11"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T17:44:30Z",
+      "artifact": "docs/superpowers/plans/nidana.model.12.md",
+      "question": "Which results are unmodifiable?",
+      "options": [
+        { "label": "Every analysis, empty included", "consequence": "List.unmodifiable everywhere; one G3 test per analysis (routed item from S141)." },
+        { "label": "analyzeTopologyGraph only", "consequence": "Passes G3's case, which only clears analyzeTopologyGraph's result; the dry run's D8 shows a growable findScopeViolations passes the gate's replay." }
+      ],
+      "chosen": "Every analysis, empty included",
+      "why": "G3 covers findings and the Analyses section says 'every returned list is unmodifiable'.",
+      "evidence": ["hsdd/contract/topology-ir.md lines 431 and 445", "docs/auto-run/experiments/analyses-plan/output.txt D8"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T17:50:00Z",
+      "artifact": "docs/superpowers/plans/nidana.model.12.md",
+      "question": "How are the property tests built: generator, oracles, seed count, floors, and how does G17's removal property get clean graphs?",
+      "options": [
+        { "label": "One seeded generator, independent oracles, greedy clean graphs, floors near half of F2", "consequence": "test/src/analysis_support.dart with dart:math Random(seed), 500 seeds (as lineage_property_test.dart); Warshall closure for cycles, a walk of every path for self-references; G17 over graphs grown topology by topology and claim by claim while they stay clean; floors at about half of what the seeds reach, so the properties cannot turn vacuous silently." },
+        { "label": "G17 over whichever generated graphs happen to be clean", "consequence": "Most generated graphs have a finding; the property would rest on few, mostly tiny, graphs." },
+        { "label": "No floors", "consequence": "A generator change could make a property pass vacuously." }
+      ],
+      "chosen": "One seeded generator, independent oracles, greedy clean graphs, floors near half of F2",
+      "why": "No new dependency (ADR-002 item 3; package:test has no generator); the oracles differ from the implementations; F2 measured the counts (225 graphs with a cycle, 180 unmediated and 701 mediated self-reads, 90 grown clean graphs of three parts or more).",
+      "evidence": ["docs/auto-run/experiments/analyses-plan/output.txt F2", "docs/auto-run/experiments/analyses-plan/facts/generator_stats_test.dart", "packages/nidana_dart_contracts/test/lineage_property_test.dart"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T17:45:00Z",
+      "artifact": "docs/superpowers/plans/nidana.model.12.md",
+      "question": "The Interface gives dartdoc only to analyzeTopologyGraph. What do the other five public functions carry?",
+      "options": [
+        { "label": "A // comment naming the rule and guarantee", "consequence": "The public documentation stays exactly the Interface's; the comment follows the == comments of nidana.model.10 and .11." },
+        { "label": "New dartdoc", "consequence": "Public docs that the contract does not state." }
+      ],
+      "chosen": "A // comment naming the rule and guarantee",
+      "why": "Run rules: dartdoc carried from a contract's Interface is copied as written; nothing says to add public documentation beyond it.",
+      "evidence": ["docs/auto-run/impl-step-preamble.md Prose rules", "docs/superpowers/plans/nidana.model.11.md Global Constraints, Comments"],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T17:46:00Z",
+      "artifact": "docs/superpowers/plans/nidana.model.12.md",
+      "question": "How much code does the plan carry? Precedent plans (nidana.model.11) wrote every body; the writing-plans skill asks for signatures, exact test code and a body only for an algorithm the signature and tests do not determine.",
+      "options": [
+        { "label": "Exact tests, one algorithm body, the rest by signature and approach", "consequence": "The test files are the drafts the dry run ran, filled by fill_plan.py so they cannot drift; _components (the iterative search) is given whole; every other helper by signature, the expression that matters, and its decision. 1722 lines against a 1555-line derivative." },
+        { "label": "Every body, as nidana.model.11's plan did", "consequence": "About 280 more lines of library code the implementer would only copy; the skill calls that a transcript." }
+      ],
+      "chosen": "Exact tests, one algorithm body, the rest by signature and approach",
+      "why": "Opus implementers on a full-review tier; the generator must be exact because the floors depend on every Random call; the iterative loop is the one place a reasonable implementer could get it subtly wrong.",
+      "evidence": ["docs/auto-run/experiments/analyses-plan/fill_plan.py", "docs/auto-run/experiments/analyses-plan/output.txt X"],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T17:52:00Z",
+      "artifact": "docs/superpowers/plans/nidana.model.12.md",
+      "question": "Does this phase pin G22's clause that the analyses create no timer and schedule no microtask?",
+      "options": [
+        { "label": "No new test", "consequence": "D6's purity_test.dart already rejects every scheduling token under lib/, the analyses are synchronous, and G22's case first replays at nidana.model.14 (unrestricted)." },
+        { "label": "A zone-counting test now", "consequence": "One more test for a guarantee another phase's gate replays." }
+      ],
+      "chosen": "No new test",
+      "why": "Nothing the analyses do can schedule, and two checks already exist; the verification doc says so under Outstanding.",
+      "evidence": ["hsdd/spec/nidana.model.md D6", "hsdd/contract/topology-ir.md G22"],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    }
+  ],
+  "experiments": [
+    {
+      "path": "docs/auto-run/experiments/analyses-plan/",
+      "question": "Does this plan's task sequence, replayed in a temporary copy of HEAD 58ac350, fail each task first and pass after, turn the 12 red cases of the gate's topology-ir restriction green, and pass the phase gate; how deep can the cycle search go; what do the generated graphs reach; which seeded defects does the gate's replay miss?",
+      "finding": "Yes. S1: 235 tests, restriction 19 of 31. T1.2/T1.4: 6 tests red on UnimplementedError, G13 0/2 then 241 tests and G13 2/2; T2: 8 red, then 249 and G14 2/2; T3: 6 red, then 255 and G15,G16 2/2; T4: 9 red, G3,G7,G17,G18,G23 2/8, then 264 tests, 8/8 and the restriction 31/31. G: gate exit 0. U: unrestricted 31 of 43 (the 12 others are the codec and renderers). F1: recursive Tarjan overflows at a ring of 10000 under dart test; the iterative search does 300000 in 0.7 s. F2: 225 graphs with a cycle (158 of three or more), 180 unmediated and 701 mediated self-reads, findings by kind [226, 180, 635, 553], 90 grown clean graphs of three parts or more. A: 3143 fixture diagnostics before and after. D: of 14 seeded defects, D1, D2, D4, D7, D8, D11, D14 (and the recursive search) pass the gate's replay and fail the plan's package tests."
+    }
+  ],
+  "self_check": [
+    { "gate": "Spec coverage: skim each section/requirement in the spec. Can you point to a task that implements it?", "status": "pass", "note": "G13 Task 1; G14 Task 2; G15, G16 Task 3; G17, G18 and the G3, G7, G23 cases Task 4; the three property tests (reachability, removal, order) Tasks 1 and 4; the Verification line mapped part by part in the plan." },
+    { "gate": "Step scan: every step must let the implementer write exactly one reasonable thing, and no step may carry more than that.", "status": "pass", "note": "Tests are exact files; each helper has a signature and its rule; one body (_components) is given because the iterative loop is not determined by the tests." },
+    { "gate": "Type consistency: do the types, method signatures, and property names used in later tasks match what earlier tasks defined?", "status": "pass", "note": "Helper and support names checked across tasks; one ordering inconsistency in Task 1's helper bullets fixed (_components before _cycle, as the code orders them)." },
+    { "gate": "Review Focus: for each input class or failure mode the spec implies, is there a task whose tests exercise it?", "status": "pass", "note": "Five items, each with its test in the owning task and the seeded defect that the gate's replay misses." },
+    { "gate": "Proportion: compare the plan's length to the spec's.", "status": "pass", "note": "1722 lines against the 1555-line derivative; about 1300 of them are the exact test files." },
+    { "gate": "Plan check: the plan's Global Constraints contain constraints 1 to 8 verbatim", "status": "pass", "note": "Filled from the derivative by fill_plan.py; impl-gate code-plan reports 0 errors." },
+    { "gate": "Plan check: every ### Task N: except the last starts with a failing-test step", "status": "pass", "note": "Tasks 1 to 4 start with 'Step 1: Write the failing test'." },
+    { "gate": "Plan check: the last task writes the verification doc named in constraint 5", "status": "pass", "note": "Task 5 writes hsdd/verify/nidana.model.12.verification.md, first line '# Verification: nidana.model.12 - Analyses', Sign-off left empty." },
+    { "gate": "Plan check: the plan has at most 6 tasks", "status": "pass", "note": "5 tasks." },
+    { "gate": "Plan check: the plan is saved under docs/superpowers/plans/", "status": "pass", "note": "docs/superpowers/plans/nidana.model.12.md; node docs/auto-run/tools/impl-gate.mjs code-plan nidana.model.12 exits 0 with 0 errors, 0 warnings." }
+  ],
+  "contract_gaps": [
+    {
+      "contract": "topology-ir@v1",
+      "where": "hsdd/contract/topology-ir.md line 436 (Analyses, Scope violations: 'Ordered by topic, then owner, then reader'), with G16 and the Versioning Breaking list (line 470: 'an analysis's semantics or result order')",
+      "problem": "An owner is a source with a scope, and two owners can share a source (one service claiming unbound and bound to a module). The canonical order of message sources ties them, so the result order of findScopeViolations is not fixed by the text for that input; two conforming implementations can differ. No fixture builds the tie. Low: no consumer depends on the order within such a tie today.",
+      "proposed_fix": "hsdd-contract, compatible within v1: 'Ordered by topic, then owner by its source's rendering and then its scope (application, module, page), then reader', optionally with one G16 case building the tie. nidana.model.12 implements this reading (plan decision 8)."
+    }
+  ],
+  "notes_for_orchestrator": [
+    "writing-plans, phase nidana.model.12. STATUS: completed. Plan: docs/superpowers/plans/nidana.model.12.md (1722 lines, 5 tasks of the allowed 6). `node docs/auto-run/tools/impl-gate.mjs code-plan nidana.model.12`: 0 errors, 0 warnings, exit 0. Not committed; write set is the plan, this report and docs/auto-run/experiments/analyses-plan/.",
+    "TASKS: 1 findTopologyCycles (iterative Tarjan) + test/src/analysis_support.dart (seeded generator) + test/topology_cycles_test.dart; 2 findSelfReferences + test/self_references_test.dart; 3 findWriterConflicts and findScopeViolations + test/ownership_test.dart; 4 analyzeTopologyGraph and findTopicNameCollisions + test/analyze_graph_test.dart; 5 gate and the full-review verification doc. Only lib/src/analysis/analyses.dart changes under lib/. Package tests 235 -> 264 in the dry run.",
+    "RED TO GREEN (restricted replay, 31 cases, 19 green today): Task 1 G13 L1077, L1096; Task 2 G14 L1112, L1130; Task 3 G15 L1150, G16 L1175; Task 4 G3 L508, G7 L821, G17 L1216, L1243, G18 L1262, G23 L1508; then 31/31 and gate exit 0 (dry run G). Unrestricted topology-ir behavior after this phase: 31 of 43, the 12 others are G4 and G19 to G22 (nidana.model.13 and .14).",
+    "ROUTED ITEMS, dispositions: (S135) constructors keep repeats, analyses pass distinct values: taken, Tasks 1, 2, 4 (D14 shows the gate's replay misses it); (S141) analyses return unmodifiable lists: taken, every task, one G3 test per analysis (D8 shows the replay misses a growable findScopeViolations); (S141) graph orders as delivered: taken as invariants, not re-checked (Global Constraints, Graph orders as delivered). Strike the two nidana.model.12 entries in impl-execution-plan.md 'Routed to later phases'.",
+    "EXECUTION NOTES for subagent-driven-development: implementers are opus (full-review); the test files must be copied exactly, because the property floors depend on every Random call of test/src/analysis_support.dart (F2); the package suite takes about 2 s (F3); no step starts flutter. Seeded defects that pass the gate's replay and only the plan's package tests catch: D1 (cycle order), D2 (self-read in cycle topics), D4 (dedup read), D7 (owner order), D8 (growable result), D11 (collision name order), D14 (repeated cycle topics), and a recursive search (F1). Reviewers should treat those tests as the phase's real check.",
+    "LEARNING CANDIDATES the verification doc will carry: the owner tie-break contract gap above; no conformance case is deep enough to reject a recursive cycle search (a compatible G13 case for the end-of-node sweep, hsdd-contract on topology-ir@v1, low); sizing (~380 lines estimated; the dry run is 278 library lines plus 1296 test lines).",
+    "EXECUTION HANDOFF: the skill's hand-off question was not asked (preamble); the run's method is superpowers:subagent-driven-development, which the plan header names."
+  ]
+}

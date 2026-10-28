@@ -1,0 +1,247 @@
+
+### S0 setup: the committed tree, resolved offline
+tree from cd476bf judgement: S105
+Got dependencies!
+
+### S1 the replay before the package exists
+PASS structure lines: 17
+PENDING surface hsdd/contract/fixture/topic-model/surface/envelopes.dart: package nidana_dart_contracts is absent from .dart_tool/package_config.json
+PENDING surface hsdd/contract/fixture/topic-model/surface/observers.dart: package nidana_dart_contracts is absent from .dart_tool/package_config.json
+PENDING surface hsdd/contract/fixture/topic-model/surface/topics.dart: package nidana_dart_contracts is absent from .dart_tool/package_config.json
+PENDING reject hsdd/contract/fixture/topic-model/reject/envelope_requires_metadata.dart: package nidana_dart_contracts is absent from .dart_tool/package_config.json
+PENDING reject hsdd/contract/fixture/topic-model/reject/no_dispatcher_hint.dart: package nidana_dart_contracts is absent from .dart_tool/package_config.json
+PENDING reject hsdd/contract/fixture/topic-model/reject/observer_has_no_publish_path.dart: package nidana_dart_contracts is absent from .dart_tool/package_config.json
+PENDING reject hsdd/contract/fixture/topic-model/reject/only_state_topics_carry_values.dart: package nidana_dart_contracts is absent from .dart_tool/package_config.json
+PENDING reject hsdd/contract/fixture/topic-model/reject/replay_buffer_is_positive.dart: package nidana_dart_contracts is absent from .dart_tool/package_config.json
+PENDING reject hsdd/contract/fixture/topic-model/reject/source_family_is_closed.dart: package nidana_dart_contracts is absent from .dart_tool/package_config.json
+PENDING reject hsdd/contract/fixture/topic-model/reject/state_topic_is_not_multi_writer.dart: package nidana_dart_contracts is absent from .dart_tool/package_config.json
+PENDING reject hsdd/contract/fixture/topic-model/reject/state_topic_requires_initial.dart: package nidana_dart_contracts is absent from .dart_tool/package_config.json
+PENDING reject hsdd/contract/fixture/topic-model/reject/topic_family_is_closed.dart: package nidana_dart_contracts is absent from .dart_tool/package_config.json
+PENDING reject hsdd/contract/fixture/topic-model/reject/values_are_immutable.dart: package nidana_dart_contracts is absent from .dart_tool/package_config.json
+30 fixtures: 17 passed, 0 failed, 13 pending
+exit: 1
+
+### T1.2 the purity test alone, before the package has a pubspec
+00:00 +0: loading packages/nidana_dart_contracts/test/purity_test.dart
+00:00 +0: packages/nidana_dart_contracts/test/purity_test.dart: G26 depends on meta alone, with test its only dev dependency
+00:00 +0 -1: packages/nidana_dart_contracts/test/purity_test.dart: G26 depends on meta alone, with test its only dev dependency [E]
+  PathNotFoundException: Cannot open file, path = '/private{ws}/packages/nidana_dart_contracts/pubspec.yaml' (OS Error: No such file or directory, errno = 2)
+00:00 +0 -1: packages/nidana_dart_contracts/test/purity_test.dart: G25 G26 no library imports dart:io, dart:isolate, dart:ffi, dart:html or a package other than meta and its own
+00:00 +0 -2: packages/nidana_dart_contracts/test/purity_test.dart: G25 G26 no library imports dart:io, dart:isolate, dart:ffi, dart:html or a package other than meta and its own [E]
+  PathNotFoundException: Directory listing failed, path = '/private{ws}/packages/nidana_dart_contracts/lib/' (OS Error: No such file or directory, errno = 2)
+00:00 +0 -2: packages/nidana_dart_contracts/test/purity_test.dart: G25 no library reads a clock, schedules work, generates an id or reaches a zone
+00:00 +0 -3: packages/nidana_dart_contracts/test/purity_test.dart: G25 no library reads a clock, schedules work, generates an id or reaches a zone [E]
+  PathNotFoundException: Directory listing failed, path = '/private{ws}/packages/nidana_dart_contracts/lib/' (OS Error: No such file or directory, errno = 2)
+00:00 +0 -3: packages/nidana_dart_contracts/test/purity_test.dart: the readers see every directive form and pubspec section
+00:00 +1 -3: Some tests failed.
+exit: 1
+
+### T1.3 the scaffold: pubspec, README, CHANGELOG, LICENSE, an empty main library, the workspace entry
+name: nidana_workspace
+publish_to: none
+environment:
+  sdk: ^3.13.0
+workspace:
+  - packages/nidana_contract_check
+  - packages/nidana_dart_contracts
+dev_dependencies:
+  lints: ^6.1.0
+Got dependencies!
+pubspec.lock: unchanged
+LICENSE: byte-identical to the root's
+
+### T1.4 the purity test, the analyzer and the replay with an empty main library
+00:00 +0: loading packages/nidana_dart_contracts/test/purity_test.dart
+00:00 +0: packages/nidana_dart_contracts/test/purity_test.dart: G26 depends on meta alone, with test its only dev dependency
+00:00 +1: packages/nidana_dart_contracts/test/purity_test.dart: G25 G26 no library imports dart:io, dart:isolate, dart:ffi, dart:html or a package other than meta and its own
+00:00 +2: packages/nidana_dart_contracts/test/purity_test.dart: G25 no library reads a clock, schedules work, generates an id or reaches a zone
+00:00 +3: packages/nidana_dart_contracts/test/purity_test.dart: the readers see every directive form and pubspec section
+00:00 +4: All tests passed!
+exit: 0
+Analyzing tmdp.A0OfpU...
+No issues found!
+exit: 0
+PASS structure lines: 17
+FAIL surface hsdd/contract/fixture/topic-model/surface/envelopes.dart: diagnostic (line 6: ERROR const_initialized_with_non_constant_value: Const variables must be initialized with a constant value.); diagnostic (line 6:
+FAIL surface hsdd/contract/fixture/topic-model/surface/observers.dart: diagnostic (line 7: ERROR implements_non_class: Classes and mixins can only implement other classes and mixins.); diagnostic (line 9: ERROR non_type_
+FAIL surface hsdd/contract/fixture/topic-model/surface/topics.dart: diagnostic (line 39: ERROR const_initialized_with_non_constant_value: Const variables must be initialized with a constant value.); diagnostic (line 39: 
+FAIL reject hsdd/contract/fixture/topic-model/reject/envelope_requires_metadata.dart: missing-diagnostic (line 11: missing_required_argument, named by the marker on line 10, not reported); unexpected-diagnostic (line 11:
+FAIL reject hsdd/contract/fixture/topic-model/reject/no_dispatcher_hint.dart: missing-diagnostic (line 7: undefined_named_parameter, named by the marker on line 6, not reported); unexpected-diagnostic (line 7: ERROR unde
+FAIL reject hsdd/contract/fixture/topic-model/reject/observer_has_no_publish_path.dart: unexpected-diagnostic (line 6: ERROR implements_non_class: Classes and mixins can only implement other classes and mixins.); unexpec
+FAIL reject hsdd/contract/fixture/topic-model/reject/only_state_topics_carry_values.dart: unexpected-diagnostic (line 7: ERROR undefined_class: Undefined class 'StateTopic'.); unexpected-diagnostic (line 9: ERROR undefin
+FAIL reject hsdd/contract/fixture/topic-model/reject/replay_buffer_is_positive.dart: missing-diagnostic (line 7: const_eval_throws_exception, named by the marker on line 6, not reported); unexpected-diagnostic (line 7: E
+FAIL reject hsdd/contract/fixture/topic-model/reject/source_family_is_closed.dart: missing-diagnostic (line 8: invalid_use_of_type_outside_library, named by the marker on line 7, not reported); unexpected-diagnostic (lin
+FAIL reject hsdd/contract/fixture/topic-model/reject/state_topic_is_not_multi_writer.dart: unexpected-diagnostic (line 8: ERROR undefined_class: Undefined class 'MultiWriterTopic'.); unexpected-diagnostic (line 10: ERROR
+FAIL reject hsdd/contract/fixture/topic-model/reject/state_topic_requires_initial.dart: missing-diagnostic (line 8: missing_required_argument, named by the marker on line 7, not reported); unexpected-diagnostic (line 8: 
+FAIL reject hsdd/contract/fixture/topic-model/reject/topic_family_is_closed.dart: missing-diagnostic (line 8: invalid_use_of_type_outside_library, named by the marker on line 7, not reported); unexpected-diagnostic (line
+FAIL reject hsdd/contract/fixture/topic-model/reject/values_are_immutable.dart: unexpected-diagnostic (line 8: ERROR undefined_class: Undefined class 'StateTopic'.); unexpected-diagnostic (line 9: ERROR undefined_class: 
+30 fixtures: 17 passed, 13 failed, 0 pending
+exit: 1
+
+### T1.5 seeded violations the purity test catches (each restored after)
+-- an aliased dart:io import
+00:00 +0: loading packages/nidana_dart_contracts/test/purity_test.dart
+00:00 +0: G26 depends on meta alone, with test its only dev dependency
+00:00 +1: G25 G26 no library imports dart:io, dart:isolate, dart:ffi, dart:html or a package other than meta and its own
+00:00 +1 -1: G25 G26 no library imports dart:io, dart:isolate, dart:ffi, dart:html or a package other than meta and its own [E]
+  Expected: true
+    Actual: <false>
+00:00 +1 -1: G25 no library reads a clock, schedules work, generates an id or reaches a zone
+00:00 +2 -1: the readers see every directive form and pubspec section
+00:00 +3 -1: Some tests failed.
+exit: 1
+-- Timer( in a comment
+00:00 +0: loading packages/nidana_dart_contracts/test/purity_test.dart
+00:00 +0: G26 depends on meta alone, with test its only dev dependency
+00:00 +1: G25 G26 no library imports dart:io, dart:isolate, dart:ffi, dart:html or a package other than meta and its own
+00:00 +2: G25 no library reads a clock, schedules work, generates an id or reaches a zone
+00:00 +2 -1: G25 no library reads a clock, schedules work, generates an id or reaches a zone [E]
+  Expected: false
+    Actual: <true>
+00:00 +2 -1: the readers see every directive form and pubspec section
+00:00 +3 -1: Some tests failed.
+exit: 1
+-- path as a second dependency
+00:00 +0: loading packages/nidana_dart_contracts/test/purity_test.dart
+00:00 +0: G26 depends on meta alone, with test its only dev dependency
+00:00 +0 -1: G26 depends on meta alone, with test its only dev dependency [E]
+  Expected: Set:['meta']
+    Actual: Set:['meta', 'path']
+     Which: larger than expected
+00:00 +0 -1: G25 G26 no library imports dart:io, dart:isolate, dart:ffi, dart:html or a package other than meta and its own
+00:00 +1 -1: G25 no library reads a clock, schedules work, generates an id or reaches a zone
+00:00 +2 -1: the readers see every directive form and pubspec section
+00:00 +3 -1: Some tests failed.
+exit: 1
+
+### T2.2 the declarations test for topics, before topic.dart and scope.dart exist
+  packages/nidana_dart_contracts/test/declarations_test.dart:33:42: Error: 'Topic' isn't a type.
+  packages/nidana_dart_contracts/test/declarations_test.dart:34:13: Error: Couldn't find constructor 'StateTopic'.
+  packages/nidana_dart_contracts/test/declarations_test.dart:35:13: Error: Couldn't find constructor 'EventTopic'.
+  packages/nidana_dart_contracts/test/declarations_test.dart:36:13: Error: Couldn't find constructor 'ReplayTopic'.
+  packages/nidana_dart_contracts/test/declarations_test.dart:38:24: Error: 'Topic' isn't a type.
+  packages/nidana_dart_contracts/test/declarations_test.dart:38:58: Error: 'TopicVariant' isn't a type.
+  packages/nidana_dart_contracts/test/declarations_test.dart:39:7: Error: Undefined name 'TopicVariant'.
+  packages/nidana_dart_contracts/test/declarations_test.dart:40:7: Error: Undefined name 'TopicVariant'.
+  packages/nidana_dart_contracts/test/declarations_test.dart:41:7: Error: Undefined name 'TopicVariant'.
+  packages/nidana_dart_contracts/test/declarations_test.dart:43:24: Error: 'Topic' isn't a type.
+  packages/nidana_dart_contracts/test/declarations_test.dart:52:13: Error: Couldn't find constructor 'StateTopic'.
+  packages/nidana_dart_contracts/test/declarations_test.dart:63:13: Error: Method not found: 'ReplayTopic'.
+  packages/nidana_dart_contracts/test/declarations_test.dart:68:13: Error: Method not found: 'ReplayTopic'.
+00:00 +0 -1: Some tests failed.
+exit: 1
+
+### T2.4 topic.dart, scope.dart and their exports
+00:00 +0: loading packages/nidana_dart_contracts/test/purity_test.dart
+00:00 +0: packages/nidana_dart_contracts/test/purity_test.dart: G26 depends on meta alone, with test its only dev dependency
+00:00 +1: packages/nidana_dart_contracts/test/purity_test.dart: G26 depends on meta alone, with test its only dev dependency
+00:00 +2: packages/nidana_dart_contracts/test/purity_test.dart: G26 depends on meta alone, with test its only dev dependency
+00:00 +3: packages/nidana_dart_contracts/test/purity_test.dart: G26 depends on meta alone, with test its only dev dependency
+00:00 +4: packages/nidana_dart_contracts/test/purity_test.dart: G26 depends on meta alone, with test its only dev dependency
+00:00 +5: packages/nidana_dart_contracts/test/purity_test.dart: G25 G26 no library imports dart:io, dart:isolate, dart:ffi, dart:html or a package other than meta and its own
+00:00 +6: packages/nidana_dart_contracts/test/purity_test.dart: G25 no library reads a clock, schedules work, generates an id or reaches a zone
+00:00 +7: packages/nidana_dart_contracts/test/purity_test.dart: the readers see every directive form and pubspec section
+00:00 +8: All tests passed!
+exit: 0
+Analyzing tmdp.A0OfpU...
+No issues found!
+exit: 0
+PASS structure lines: 17
+FAIL surface hsdd/contract/fixture/topic-model/surface/envelopes.dart: diagnostic (line 14: ERROR undefined_class: Undefined class 'MessageSource'.); diagnostic (line 15: ERROR undefined_class: Undefined class 'TopologyS
+FAIL surface hsdd/contract/fixture/topic-model/surface/observers.dart: diagnostic (line 7: ERROR implements_non_class: Classes and mixins can only implement other classes and mixins.); diagnostic (line 9: ERROR non_type_
+PASS surface hsdd/contract/fixture/topic-model/surface/topics.dart
+FAIL reject hsdd/contract/fixture/topic-model/reject/envelope_requires_metadata.dart: missing-diagnostic (line 11: missing_required_argument, named by the marker on line 10, not reported); unexpected-diagnostic (line 11:
+PASS reject hsdd/contract/fixture/topic-model/reject/no_dispatcher_hint.dart
+FAIL reject hsdd/contract/fixture/topic-model/reject/observer_has_no_publish_path.dart: unexpected-diagnostic (line 6: ERROR implements_non_class: Classes and mixins can only implement other classes and mixins.); unexpec
+PASS reject hsdd/contract/fixture/topic-model/reject/only_state_topics_carry_values.dart
+PASS reject hsdd/contract/fixture/topic-model/reject/replay_buffer_is_positive.dart
+FAIL reject hsdd/contract/fixture/topic-model/reject/source_family_is_closed.dart: missing-diagnostic (line 8: invalid_use_of_type_outside_library, named by the marker on line 7, not reported); unexpected-diagnostic (lin
+PASS reject hsdd/contract/fixture/topic-model/reject/state_topic_is_not_multi_writer.dart
+PASS reject hsdd/contract/fixture/topic-model/reject/state_topic_requires_initial.dart
+PASS reject hsdd/contract/fixture/topic-model/reject/topic_family_is_closed.dart
+FAIL reject hsdd/contract/fixture/topic-model/reject/values_are_immutable.dart: unexpected-diagnostic (line 10: ERROR undefined_class: Undefined class 'MessageEnvelope'.); unexpected-diagnostic (line 11: ERROR undefined_
+30 fixtures: 24 passed, 6 failed, 0 pending
+exit: 1
+
+### T3.2 the declarations test for the rest, before its declarations exist
+  packages/nidana_dart_contracts/test/declarations_test.dart:78:18: Error: Method not found: 'ExecutorSource'.
+      expect(() => ExecutorSource(empty), throwsA(isA<AssertionError>()));
+  packages/nidana_dart_contracts/test/declarations_test.dart:80:18: Error: Method not found: 'ServiceSource'.
+  packages/nidana_dart_contracts/test/declarations_test.dart:86:11: Error: 'MessageSource' isn't a type.
+  packages/nidana_dart_contracts/test/declarations_test.dart:86:34: Error: Method not found: 'ServiceSource'.
+  packages/nidana_dart_contracts/test/declarations_test.dart:87:11: Error: 'MessageEnvelope' isn't a type.
+  packages/nidana_dart_contracts/test/declarations_test.dart:87:43: Error: Method not found: 'MessageEnvelope'.
+  packages/nidana_dart_contracts/test/declarations_test.dart:107:11: Error: 'Lineage' isn't a type.
+  packages/nidana_dart_contracts/test/declarations_test.dart:107:26: Error: Undefined name 'Lineage'.
+  packages/nidana_dart_contracts/test/declarations_test.dart:107:34: Error: Method invocation is not a constant expression.
+  packages/nidana_dart_contracts/test/declarations_test.dart:112:11: Error: 'Lineage' isn't a type.
+  packages/nidana_dart_contracts/test/declarations_test.dart:112:29: Error: Undefined name 'Lineage'.
+  packages/nidana_dart_contracts/test/declarations_test.dart:112:37: Error: Method invocation is not a constant expression.
+00:00 +0 -1: Some tests failed.
+exit: 1
+
+### T3.4 message_source.dart, envelope.dart, lineage.dart, redacted_payload.dart, observer.dart and their exports
+00:00 +0: loading packages/nidana_dart_contracts/test/purity_test.dart
+00:00 +0: packages/nidana_dart_contracts/test/purity_test.dart: G26 depends on meta alone, with test its only dev dependency
+00:00 +1: packages/nidana_dart_contracts/test/purity_test.dart: G26 depends on meta alone, with test its only dev dependency
+00:00 +2: packages/nidana_dart_contracts/test/purity_test.dart: G26 depends on meta alone, with test its only dev dependency
+00:00 +3: packages/nidana_dart_contracts/test/purity_test.dart: G26 depends on meta alone, with test its only dev dependency
+00:00 +4: packages/nidana_dart_contracts/test/purity_test.dart: G26 depends on meta alone, with test its only dev dependency
+00:00 +5: packages/nidana_dart_contracts/test/purity_test.dart: G26 depends on meta alone, with test its only dev dependency
+00:00 +6: packages/nidana_dart_contracts/test/purity_test.dart: G26 depends on meta alone, with test its only dev dependency
+00:00 +7: packages/nidana_dart_contracts/test/purity_test.dart: G26 depends on meta alone, with test its only dev dependency
+00:00 +8: packages/nidana_dart_contracts/test/purity_test.dart: G25 G26 no library imports dart:io, dart:isolate, dart:ffi, dart:html or a package other than meta and its own
+00:00 +9: packages/nidana_dart_contracts/test/purity_test.dart: G25 no library reads a clock, schedules work, generates an id or reaches a zone
+00:00 +10: packages/nidana_dart_contracts/test/purity_test.dart: the readers see every directive form and pubspec section
+00:00 +11: All tests passed!
+exit: 0
+Analyzing tmdp.A0OfpU...
+No issues found!
+exit: 0
+PASS structure lines: 17
+PASS surface hsdd/contract/fixture/topic-model/surface/envelopes.dart
+PASS surface hsdd/contract/fixture/topic-model/surface/observers.dart
+PASS surface hsdd/contract/fixture/topic-model/surface/topics.dart
+PASS reject hsdd/contract/fixture/topic-model/reject/envelope_requires_metadata.dart
+PASS reject hsdd/contract/fixture/topic-model/reject/no_dispatcher_hint.dart
+PASS reject hsdd/contract/fixture/topic-model/reject/observer_has_no_publish_path.dart
+PASS reject hsdd/contract/fixture/topic-model/reject/only_state_topics_carry_values.dart
+PASS reject hsdd/contract/fixture/topic-model/reject/replay_buffer_is_positive.dart
+PASS reject hsdd/contract/fixture/topic-model/reject/source_family_is_closed.dart
+PASS reject hsdd/contract/fixture/topic-model/reject/state_topic_is_not_multi_writer.dart
+PASS reject hsdd/contract/fixture/topic-model/reject/state_topic_requires_initial.dart
+PASS reject hsdd/contract/fixture/topic-model/reject/topic_family_is_closed.dart
+PASS reject hsdd/contract/fixture/topic-model/reject/values_are_immutable.dart
+30 fixtures: 30 passed, 0 failed, 0 pending
+exit: 0
+Formatted 10 files (0 changed) in 0.01 seconds.
+format exit: 0
+
+### G the phase gate, from the workspace root
+gate exit: 0
+Got dependencies!
+No issues found!
+102 fixtures: 102 passed, 0 failed, 0 pending
+00:00 +11: All tests passed!
+30 fixtures: 30 passed, 0 failed, 0 pending
+
+### R every (line, code) pair reported in each reject library; a line with two codes is flagged
+envelope_requires_metadata.dart 11:missing_required_argument 14:missing_required_argument 17:missing_required_argument 20:missing_required_argument 23:missing_required_argument 26:missing_required_argument 29:missing_required_argument 32:missing_required_argument one code per line
+no_dispatcher_hint.dart 7:undefined_named_parameter 10:undefined_named_parameter 13:undefined_named_parameter one code per line
+observer_has_no_publish_path.dart 19:undefined_method 21:undefined_getter 23:undefined_method 25:undefined_method 27:undefined_method one code per line
+only_state_topics_carry_values.dart 11:undefined_method 13:undefined_method 15:undefined_getter 17:undefined_getter 19:argument_type_not_assignable 21:invalid_assignment 26:undefined_named_parameter 29:undefined_named_parameter one code per line
+replay_buffer_is_positive.dart 7:const_eval_throws_exception one code per line
+source_family_is_closed.dart 8:invalid_use_of_type_outside_library 11:invalid_use_of_type_outside_library 16:non_exhaustive_switch_expression one code per line
+state_topic_is_not_multi_writer.dart 12:argument_type_not_assignable 14:argument_type_not_assignable 16:argument_type_not_assignable 18:invalid_assignment 23:set_element_type_not_assignable one code per line
+state_topic_requires_initial.dart 8:missing_required_argument 11:missing_required_argument 14:argument_type_not_assignable 17:argument_type_not_assignable one code per line
+topic_family_is_closed.dart 8:invalid_use_of_type_outside_library 13:invalid_use_of_type_outside_library 19:non_exhaustive_switch_expression 25:invalid_use_of_type_outside_library 31:non_exhaustive_switch_expression one code per line
+values_are_immutable.dart 16:assignment_to_final 18:assignment_to_final 20:assignment_to_final 22:assignment_to_final 24:assignment_to_final 26:assignment_to_final 28:assignment_to_final 30:assignment_to_final one code per line
+
+### B topic-model@v1's behavior binding against the declarations (not in this gate)
+No issues found!
+exit: 1
+00:00 +9 -32: Some tests failed.
+UnimplementedError mentions: 27
+
+### cleanup
+removed the temporary workspace

@@ -1,0 +1,4 @@
+gen:generate
+--echo
+hsdd/contract/fixture/gen/input/word.txt
+{output}

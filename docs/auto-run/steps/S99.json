@@ -1,0 +1,374 @@
+{
+  "step_ref": "S99",
+  "skill": "superpowers:writing-plans",
+  "target": "nidana.model.1",
+  "status": "completed",
+  "stop": null,
+  "artifacts": [
+    "docs/superpowers/plans/nidana.model.1.md",
+    "docs/auto-run/experiments/structure-set-plan/run.sh",
+    "docs/auto-run/experiments/structure-set-plan/structure_proto.dart",
+    "docs/auto-run/experiments/structure-set-plan/output.txt",
+    "docs/auto-run/experiments/structure-set-plan/args-probe/pubspec.yaml",
+    "docs/auto-run/experiments/structure-set-plan/args-probe/bin/args_probe.dart",
+    "docs/auto-run/experiments/structure-set-plan/args-probe/output.txt"
+  ],
+  "decisions": [
+    {
+      "at": "2026-10-26T17:35:08Z",
+      "artifact": "docs/superpowers/plans/nidana.model.1.md",
+      "question": "How is packages/nidana_contract_check laid out under lib/src/, and does this phase add a public library?",
+      "options": [
+        { "label": "one file per responsibility, no public library", "consequence": "ids, request, contract, dart_scanner, dart_library, snapshot, outcome, structure, run, report, shell plus bin/; tests import package:nidana_contract_check/src/...; the later tool phases add files beside these and share outcome, run and report" },
+        { "label": "a few larger files", "consequence": "fewer files to review, but readers, checks and the report change together and the tool phases edit the same large files" },
+        { "label": "a public library exporting the core", "consequence": "a stable import for tests, but ADR-002 item 3 names public libraries by contract, and the only public library fixtures import is nidana.model.2's fixture.dart" }
+      ],
+      "chosen": "one file per responsibility, no public library",
+      "why": "writing-plans asks for focused files with one responsibility; the four tool phases collide on the set dispatch and the report (Collides with), so keeping those in their own small files narrows each later diff. No evidence beyond the skill's guidance; a reviewer preferring fewer files would merge run.dart into report.dart.",
+      "evidence": ["hsdd/spec/nidana.model.md nidana.model.1 Collides with", "hsdd/adr/002-package-workspace-layout.md item 3"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-26T17:35:08Z",
+      "artifact": "docs/superpowers/plans/nidana.model.1.md",
+      "question": "What algebraic data type carries a set's findings and results?",
+      "options": [
+        { "label": "sealed FixtureOutcome with Problem(Rule, detail)", "consequence": "Passed | Failed(problems) per fixture path; Rule is an interface each set implements with its own enum (StructureRule here); nidana.model.2 adds a Pending variant and the report's exhaustive switch forces every printer to handle it; SetRun is sealed too (SetChecked | SetUnavailable)" },
+        { "label": "string rule names", "consequence": "no type ties a rule label to its set; typos in labels go unnoticed" },
+        { "label": "exceptions for failures", "consequence": "one failure stops the replay; the gate needs every fixture's line" }
+      ],
+      "chosen": "sealed FixtureOutcome with Problem(Rule, detail)",
+      "why": "The owner's preference for sealed classes, and the later variants (PENDING at nidana.model.2) are closed alternatives the compiler should force every consumer to handle.",
+      "evidence": ["hsdd/adr/001-executable-contract-validation.md item 9 (PENDING, exit codes)", "docs/auto-run/impl-step-preamble.md owner's engineering preferences"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-26T17:35:08Z",
+      "artifact": "docs/superpowers/plans/nidana.model.1.md",
+      "question": "How does the request parser report usage errors, and which inputs are usage errors?",
+      "options": [
+        { "label": "sealed ParseResult over the discovered slugs", "consequence": "parseRequest(arguments, slugs:) returns ParsedRequest or UsageError(message); unknown slugs, unknown sets, malformed ids, an unknown slug inside {slug}/G{n}, a bare id with other than one replayed slug, --all with a slug, and neither slug nor --all are all decided purely, with fixed messages that quote the bad value; repeated slugs are dropped" },
+        { "label": "throw a usage exception", "consequence": "control flow by exception in the pure core" },
+        { "label": "syntax in the core, slug checks in the shell", "consequence": "the unknown-slug rule of ADR-001 item 9 would sit in the imperative shell, untested by direct calls" }
+      ],
+      "chosen": "sealed ParseResult over the discovered slugs",
+      "why": "Keeps every rule of ADR-001 item 9's command line in one pure function testable by direct calls. Treating an unknown slug inside {slug}/G{n} as a usage error and --all with a slug as a usage error are readings the ADR leaves open; a bare id under --all is an error whenever --all replays more than one slug.",
+      "evidence": ["hsdd/adr/001-executable-contract-validation.md item 9", "hsdd/spec/nidana.model.md D2 item 1", "docs/auto-run/experiments/structure-set-plan/args-probe/output.txt"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-26T17:35:08Z",
+      "artifact": "docs/superpowers/plans/nidana.model.1.md",
+      "question": "How does the shell map outcomes to exit codes when kinds of outcome mix?",
+      "options": [
+        { "label": "64 first, then 2 over 1 over 0", "consequence": "a usage error stops before any replay; no workspace root, a FileSystemException or a set this version does not implement is 2 even when fixtures also failed; any Failed is 1" },
+        { "label": "1 over 2", "consequence": "an incomplete replay with failures reads as a complete one" },
+        { "label": "first error wins", "consequence": "the exit code depends on slug order" }
+      ],
+      "chosen": "64 first, then 2 over 1 over 0",
+      "why": "ADR-001 item 9 defines each code but not their mix; an environment error means the replay did not run in full, so a gate reading 1 would take the printed failures for the whole story.",
+      "evidence": ["hsdd/adr/001-executable-contract-validation.md item 9", "hsdd/spec/nidana.model.md D2 item 1"],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-26T17:35:08Z",
+      "artifact": "docs/superpowers/plans/nidana.model.1.md",
+      "question": "What does the tool do at nidana.model.1 when a request selects a set the tool does not implement yet (every set but structure; the default request selects all a slug has)?",
+      "options": [
+        { "label": "SetUnavailable: ERROR line on stderr, exit 2", "consequence": "a default replay of topic-model before nidana.model.2 exits 2 instead of passing on structure alone; each later tool phase replaces one branch of an exhaustive switch over CheckSet" },
+        { "label": "run structure only, silently", "consequence": "a gate that names surface would pass while surface never ran" },
+        { "label": "usage error 64", "consequence": "the command is valid under ADR-001 item 9; only this version lacks the set" },
+        { "label": "a FAIL line per slug", "consequence": "reads as a defect in the fixtures, which are not at fault" }
+      ],
+      "chosen": "SetUnavailable: ERROR line on stderr, exit 2",
+      "why": "The tool lands by set (D1); between landings the honest answer is that the environment lacks the set. No planned gate hits it: every gate names only sets landed before it.",
+      "evidence": ["hsdd/spec/nidana.model.md D1 item 1 and the gates of nidana.model.2 to .14"],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-26T17:35:08Z",
+      "artifact": "docs/superpowers/plans/nidana.model.1.md",
+      "question": "What is 'one line per fixture' for the structure set, and what does a line look like?",
+      "options": [
+        { "label": "one line per checked subject plus each failing path", "consequence": "PASS|FAIL {set} {path}, with ': {rule} ({detail}); ...' on a failure; subjects are the contract text, the fixture directory and each Dart library under surface/, reject/, behavior/; an unlisted entry, an absent binding or an invocation directory gets its own FAIL line; problems at one path share its line; a final '{n} fixtures: {p} passed, {f} failed' summary; ERROR lines go to stderr. 102 lines over the nine contracts." },
+        { "label": "one line per slug", "consequence": "cannot name the fixture at fault, which the phase Verification asks for" },
+        { "label": "one line per problem", "consequence": "a fixture with two problems prints two lines, against 'one line per fixture'" },
+        { "label": "per-guarantee lines as the topology-ir prototype printed", "consequence": "guarantees are not fixtures" }
+      ],
+      "chosen": "one line per checked subject plus each failing path",
+      "why": "ADR-001 item 9 asks for one line per fixture and the phase Verification asks that a seeded defect name the fixture and the rule; the summary line is an addition no rule forbids, and it gives the verification doc a count to cite. Detail texts are fixed in the plan so tests pin them.",
+      "evidence": ["hsdd/adr/001-executable-contract-validation.md item 9", "hsdd/spec/nidana.model.md nidana.model.1 Verification", "docs/auto-run/experiments/structure-set-plan/output.txt S1"],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-26T17:15:53Z",
+      "artifact": "docs/superpowers/plans/nidana.model.1.md",
+      "question": "How does the fixture reader read behavior case names as the name field of the ConformanceCase record literals without matching name: text?",
+      "options": [
+        { "label": "a small hand-written Dart token scanner", "consequence": "about 120 lines (strings, raw and triple quotes, interpolation, nested comments, brackets); finds the public List<ConformanceCase<...>> at depth 0 and reads each record's own name field; no new dependency" },
+        { "label": "a regular expression on a '(' line followed by name:", "consequence": "the topology-ir prototype's way; it is text matching, which the phase scope rules out, and breaks on formatting" },
+        { "label": "package:analyzer", "consequence": "exact, but outside ADR-002 item 3's dependency row; it would need a node D{n} and a resolution probe, a governance change this phase cannot make" }
+      ],
+      "chosen": "a small hand-written Dart token scanner",
+      "why": "The only option inside the frozen dependency row that reads the record fields rather than text. The prototype scanner read the same case counts the earlier experiments recorded for every suite (bus-api 109, bus-testing 50, flutter-binding 69, navigation-api 68, topic-model 41, topology-dsl 73, topology-ir 43) and ignored a seeded topic constructor's name: inside a body.",
+      "evidence": ["hsdd/spec/nidana.model.md nidana.model.1 Scope (3)", "hsdd/adr/002-package-workspace-layout.md item 3", "docs/auto-run/experiments/structure-set-plan/output.txt S1 and S3"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-26T17:35:08Z",
+      "artifact": "docs/superpowers/plans/nidana.model.1.md",
+      "question": "Which declarations count as a conformance library's exported case list, and which elements and names are valid?",
+      "options": [
+        { "label": "exactly one public list, both declaration forms, record literals with literal names", "consequence": "List<ConformanceCase<...>> NAME = or NAME = <ConformanceCase<...>>[; private names skipped; an element must be an optional const and a record literal; a name is one or more adjacent string literals without interpolation; anything else is a case-name failure" },
+        { "label": "any number of lists", "consequence": "a binding registers 'every case of one conformance library' (ADR-001 item 4), which two lists make ambiguous" },
+        { "label": "the annotated form only", "consequence": "a list declared with an inferred type would go unread and its cases uncovered" }
+      ],
+      "chosen": "exactly one public list, both declaration forms, record literals with literal names",
+      "why": "ADR-001 item 4: each library 'exports its cases as a value of type List<ConformanceCase<H>>' and 'every name is a string literal that begins with the guarantee id'. All nine contracts' suites meet it (S1).",
+      "evidence": ["hsdd/adr/001-executable-contract-validation.md item 4", "docs/auto-run/experiments/structure-set-plan/output.txt S1"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-26T17:15:53Z",
+      "artifact": "docs/superpowers/plans/nidana.model.1.md",
+      "question": "Must a not-executable line name its node in '; checked by {node}'s gates'? bus-api@v2's partial line for G13 names none.",
+      "options": [
+        { "label": "required on whole lines, read where present on partial lines", "consequence": "a whole line counts as coverage only with its node (item 3's coverage form); a partial line is read for its id, which must be declared, covers nothing, and its node is optional; all nine contracts pass; the bus-api line is reported as a contract gap but does not block the gate" },
+        { "label": "required on every line", "consequence": "the strict reading of item 3's two forms; structure fails on hsdd/contract/bus-api.md, so the phase gate fails and the phase pauses until hsdd-contract amends bus-api@v2's Validation" },
+        { "label": "never required", "consequence": "a whole not-executable line would cover a guarantee that names no gate that checks it, against item 3's coverage form" }
+      ],
+      "chosen": "required on whole lines, read where present on partial lines",
+      "why": "Item 9 lists what structure checks: marker and header syntax, item 3's coverage, listed bindings, layout, src/ imports. Coverage needs the node on a whole line, because that line is the coverage; a partial line covers nothing, so coverage does not depend on its node. Item 3's last bullet says structure 'reads' the id and the node, which a strict reader takes as 'requires'. The signal that would flip it: the owner reading 'reads ... the node' as a syntax requirement, in which case Task 5's not-executable row applies to partial lines too and hsdd-contract amends bus-api.md first.",
+      "evidence": ["hsdd/adr/001-executable-contract-validation.md items 3 and 9", "hsdd/contract/bus-api.md line 437", "docs/auto-run/experiments/structure-set-plan/output.txt S1 and S2"],
+      "blast_radius": "contract",
+      "confidence": "medium",
+      "would_have_asked": true,
+      "stop_class": "shape",
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-26T17:15:53Z",
+      "artifact": "docs/superpowers/plans/nidana.model.1.md",
+      "question": "How strictly is the {ids} grammar of ADR-001 item 3 read?",
+      "options": [
+        { "label": "strictly", "consequence": "G{n} with no leading zero and n >= 1, ranges G{a} to G{b} with a < b, separators exactly ', ' and ' and ', no trimming; a header, clause or cell outside it is malformed" },
+        { "label": "leniently", "consequence": "trimmed parts, G01 and G5 to G5 accepted; malformed lists would cover ids silently" }
+      ],
+      "chosen": "strictly",
+      "why": "The grammar is short and every list in the nine contracts and their reject headers parses under it (S1); a lenient parser would hide a typo that changes which guarantee a fixture covers.",
+      "evidence": ["hsdd/adr/001-executable-contract-validation.md item 3", "docs/auto-run/experiments/structure-set-plan/output.txt S1"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-26T17:15:53Z",
+      "artifact": "docs/superpowers/plans/nidana.model.1.md",
+      "question": "Which set directories does each contract kind have for the layout check?",
+      "options": [
+        { "label": "items 4 to 7 literally", "consequence": "api: surface, reject, behavior, valid, invalid; shared-model: surface, reject, behavior; schema: valid, invalid; file: input, expected, valid, invalid, invocation; cli: invocation" },
+        { "label": "shared-model also gets valid/ and invalid/", "consequence": "the file-invocations prototype's table; item 4 gives the serialized-form clause to api contracts only" }
+      ],
+      "chosen": "items 4 to 7 literally",
+      "why": "Item 9's layout names 'a set directory that items 4 to 7 give the contract's kind'; item 4's serialized-form bullet names api, and item 4 says shared-model contracts carry no schema. topic-model, the one shared-model contract, passes either way.",
+      "evidence": ["hsdd/adr/001-executable-contract-validation.md items 4 to 7 and 9", "docs/auto-run/experiments/structure-set-plan/output.txt S1"],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-26T17:35:08Z",
+      "artifact": "docs/superpowers/plans/nidana.model.1.md",
+      "question": "Are hidden entries (names beginning with '.', such as .DS_Store) part of a slug's fixture tree?",
+      "options": [
+        { "label": "no: the snapshot reader and slug discovery skip them", "consequence": "a .DS_Store Finder writes into a fixture directory does not fail the gate locally; a deliberately hidden directory would go unchecked" },
+        { "label": "yes: every entry counts", "consequence": "the literal reading of item 9's layout; a local run fails on files git never commits, while a clean checkout passes" },
+        { "label": "skip .DS_Store only", "consequence": "a list of OS names to maintain" }
+      ],
+      "chosen": "no: the snapshot reader and slug discovery skip them",
+      "why": ".gitignore ignores .DS_Store and similar files, so they are never part of a committed fixture tree; the committed tree holds no hidden entry. A reviewer who wants the literal reading would drop the skip and Review Focus line 5.",
+      "evidence": [".gitignore", "hsdd/adr/001-executable-contract-validation.md item 9 (Layout)"],
+      "blast_radius": "node-local",
+      "confidence": "medium",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-26T17:35:08Z",
+      "artifact": "docs/superpowers/plans/nidana.model.1.md",
+      "question": "Does structure check that every cited id is a declared guarantee?",
+      "options": [
+        { "label": "yes, as unknown-id where cited", "consequence": "a reject header, case name, covers clause, Covers cell or not-executable line naming an undeclared id fails, reported at the citing library or the contract text" },
+        { "label": "no", "consequence": "a renumbered or mistyped id would pass while the guarantee it meant goes uncovered or is covered by accident" }
+      ],
+      "chosen": "yes, as unknown-id where cited",
+      "why": "Item 3: ids are never renumbered or reused; a cited id the contract lacks is a fixture defect. No committed citation is unknown (S1).",
+      "evidence": ["hsdd/adr/001-executable-contract-validation.md item 3", "docs/auto-run/experiments/structure-set-plan/output.txt S1 and S3 k"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-26T17:35:08Z",
+      "artifact": "docs/superpowers/plans/nidana.model.1.md",
+      "question": "What exactly are 'marker and header syntax' and 'the ban on src/ imports'?",
+      "options": [
+        { "label": "header in the leading comment block, own-line markers followed by code, imports and exports", "consequence": "a reject library has exactly one '// covers: {ids}' line among its leading comment lines; every line mentioning expect-diagnostic is exactly '// expect-diagnostic: {code}' with a lowercase code, followed by a line that is neither blank nor a comment; at least one marker; any import or export of package:{name}/src/ in surface/, reject/ or behavior/ fails" },
+        { "label": "header anywhere, markers followed by any line, imports only", "consequence": "a header after the imports, a stacked or trailing marker, or a src/ export would pass structure and fail later, or never" }
+      ],
+      "chosen": "header in the leading comment block, own-line markers followed by code, imports and exports",
+      "why": "Item 4 calls the covers line the library's header and the marker 'a comment on its own line' that expects a diagnostic 'on the next line', which a blank or comment line cannot carry. Every committed reject library meets these rules (S1); an export reaches src/ as an import does.",
+      "evidence": ["hsdd/adr/001-executable-contract-validation.md items 2 and 4", "docs/auto-run/experiments/structure-set-plan/output.txt S1"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-26T17:35:08Z",
+      "artifact": "docs/superpowers/plans/nidana.model.1.md",
+      "question": "In which directions are bindings and recorded invocations checked against ## Validation?",
+      "options": [
+        { "label": "both directions", "consequence": "a listed binding that is absent, a binding present but unlisted, a listed binding outside the slug's own behavior/; an invocation directory with no Case row and a Case row with no directory" },
+        { "label": "listed against present only", "consequence": "an unlisted binding or an unrecorded case directory would run unaccounted for" }
+      ],
+      "chosen": "both directions",
+      "why": "Item 4: the Validation section lists each binding, and a binding lives in the fixture directory of the contract that declares the implementation; item 3: every recorded invocation has one row. Both prototypes checked both directions and all nine contracts pass (S1).",
+      "evidence": ["hsdd/adr/001-executable-contract-validation.md items 3, 4 and 9", "docs/auto-run/experiments/structure-set-plan/output.txt S1, S3 d, g, h"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-26T17:35:08Z",
+      "artifact": "docs/superpowers/plans/nidana.model.1.md",
+      "question": "How are the tests laid out and how do shell tests run the tool?",
+      "options": [
+        { "label": "in-memory samples for the core, seeded temp trees and the bin script by path for the shell", "consequence": "one test file per core file; test/support/sample.dart holds a clean api slug and a clean file slug as strings and builds snapshots; cli_test seeds temp directories and spawns Platform.resolvedExecutable on the bin script's absolute path, asserting exact lines and exit codes, the five verification defects among them" },
+        { "label": "every test through the process", "consequence": "slow (a compile per run) and coarse for rule-level cases" },
+        { "label": "in-process runCli only", "consequence": "never exercises the bin script or the exit code a gate sees" },
+        { "label": "seeded .dart fixture files under test/", "consequence": "a seeded violation would sit in the member's analyzed code, which D2 item 5 and ADR-002 Consequences forbid" }
+      ],
+      "chosen": "in-memory samples for the core, seeded temp trees and the bin script by path for the shell",
+      "why": "D2 item 5 has the core tested over in-memory snapshots and tests write seeded trees into temporary directories; the experiment showed the bin script run by absolute path from a directory outside the workspace resolves its packages and keeps the exit code.",
+      "evidence": ["hsdd/spec/nidana.model.md D2 item 5", "docs/auto-run/experiments/structure-set-plan/output.txt W5, W7"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-26T17:35:08Z",
+      "artifact": "docs/superpowers/plans/nidana.model.1.md",
+      "question": "How are the phase's deliverables cut into at most eight tasks?",
+      "options": [
+        { "label": "seven code tasks and the verification task", "consequence": "root files with id lists; request; contract reader; Dart reader; structure set; run plan and report; shell and bin with the committed replay and the gate; verification doc" },
+        { "label": "fold the run plan and report into the shell task", "consequence": "a larger shell task mixing pure and effectful code under one review" },
+        { "label": "split the structure set in two", "consequence": "nine tasks, over the phase's limit" }
+      ],
+      "chosen": "seven code tasks and the verification task",
+      "why": "Each task carries its own failing test and a deliverable a reviewer can reject alone; the root files fold into the first task whose test needs a resolved workspace. The gate runs at the end of Task 7 (Global Constraint 4, before the last task) and again first in Task 8 (the step prompt's last-task rule).",
+      "evidence": ["hsdd-context/superpowers/nidana.model.1.md Global Constraints 1 to 4", "superpowers:writing-plans Task Right-Sizing"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-26T17:15:53Z",
+      "artifact": "docs/superpowers/plans/nidana.model.1.md",
+      "question": "What goes into the member pubspec beyond what ADR-002 fixes?",
+      "options": [
+        { "label": "a one-line description, nothing else", "consequence": "name, description, publish_to: none, sdk ^3.13.0, resolution: workspace and the dependency row; no version, no options file" },
+        { "label": "no description", "consequence": "equally valid for an unpublished member" }
+      ],
+      "chosen": "a one-line description, nothing else",
+      "why": "Conventional and harmless; the experiment resolved, analyzed and ran with exactly this file. No evidence favors either.",
+      "evidence": ["hsdd/adr/002-package-workspace-layout.md items 3, 4, 9", "docs/auto-run/experiments/structure-set-plan/output.txt W1 to W4"],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "stop_class": null,
+      "would_upstream": false
+    }
+  ],
+  "experiments": [
+    {
+      "path": "docs/auto-run/experiments/structure-set-plan/",
+      "question": "W: what does fvm dart pub get write and resolve with the phase's exact root and member files in a copy of the repository layout; do --enforce-lockfile, the root analyze, fvm dart run nidana_contract_check from the root (arguments, cwd, exit code), fvm dart test packages/nidana_contract_check from the root, and a test running the bin script by absolute path from outside the workspace work? S: do the plan's structure rules accept the nine contracts as committed, what does the strict not-executable reading reject, and is every seeded defect reported?",
+      "finding": "W1: pub get exits 0 and writes pubspec.lock, .dart_tool/package_config.json, .dart_tool/package_graph.json, .dart_tool/pub/workspace_ref.json and packages/nidana_contract_check/.dart_tool/pub/workspace_ref.json, nothing under hsdd/ or docs/. W2: args 2.7.0, json_schema 5.2.2, matcher 0.12.20, package_config 2.2.0, path 1.9.1, test 1.33.0 (test_api 0.7.15, test_core 0.6.21), lints 6.1.0. W3 enforce-lockfile 0. W4 analyze clean with a type error under docs/ and the fixtures under hsdd/. W5 dart run from the root passes arguments, cwd is the root, exit codes 0, 1 and 64 propagate. W6 package:args collects comma lists and repeats. W7 dart test from the root runs with cwd at the root; a test runs the bin script by absolute path from a temp dir outside the workspace and it resolves its packages; Platform.resolvedExecutable is the fvm SDK's dart. W8 the same from inside the member. S1: 0 problems over the nine contracts (bus-api 42 guarantees 109 cases, bus-testing 20/50, flutter-binding 20/69, navigation-api 27/68, nidana-checks 18 with 17 rows, topic-codegen 21 with 22 rows and data directory rejected, topic-model 27/41, topology-dsl 30/73, topology-ir 23/43 with data directory render), 102 subjects. S2: the strict reading rejects hsdd/contract/bus-api.md's G13 partial line only. S3: all twelve seeded defects reported with path and rule; a topic constructor's name: inside a body is not read as a case. args-probe: --set '' gives one empty value, --guarantee 'G1, G2' gives ' G2', --set= gives an empty value."
+    }
+  ],
+  "self_check": [
+    { "gate": "The plan's Global Constraints contain constraints 1 to 8 above, verbatim.", "status": "pass", "note": "impl-gate code-plan reported no verbatim error; constraints copied line for line, project-wide requirements listed beside them" },
+    { "gate": "Every `### Task N:` except the last starts with a failing-test step.", "status": "pass", "note": "Tasks 1 to 7 open with 'Step 1: Write the failing test' and record the failure in Step 2; impl-gate found no task without it" },
+    { "gate": "The last task writes the verification doc named in constraint 5.", "status": "pass", "note": "Task 8 writes hsdd/verify/nidana.model.1.verification.md from hsdd/templates/verification.md, title with a spaced hyphen, Learnings dispositioned, Sign-off left empty; it runs the gate first" },
+    { "gate": "The plan has at most 8 tasks.", "status": "pass", "note": "8 tasks" },
+    { "gate": "The plan is saved under docs/superpowers/plans/.", "status": "pass", "note": "docs/superpowers/plans/nidana.model.1.md, named after the phase per hsdd/conventions.md Plan naming" },
+    { "gate": "Spec coverage: Skim each section/requirement in the spec. Can you point to a task that implements it? List any gaps.", "status": "pass", "note": "Scope (1) root files: Task 1; (2) member pubspec: Task 1; (3) request: Task 2, contract reader: Task 3, fixture reader: Task 4; (4) structure set: Task 5; (5) slug discovery, one line per fixture, exit codes: Tasks 6 and 7; Verification: nine contracts accepted (Task 7 Step 5, Task 8), five seeded defects (Task 7 cli_test), root files (Tasks 1 and 8); gate (Task 7 Step 6, Task 8 Step 1); verification doc (Task 8). No gap." },
+    { "gate": "Step scan: Every step must let the implementer write exactly one reasonable thing, and no step may carry more than that: a line that decides nothing is a gap, a function body the signature and tests already determine is a transcript.", "status": "pass", "note": "No TBD or 'handle edge cases'; code steps give signatures, files, exact messages and rule tables; the only body is the four-line bin main; the case-list algorithm is prose because the signature and tests leave it open" },
+    { "gate": "Type consistency: Do the types, method signatures, and property names you used in later tasks match what you defined in earlier tasks?", "status": "pass", "note": "Checked every Consumes block against the Produces block it names: ids, request, contract, scanner, library, snapshot, outcome, structure, run, report, shell names and field names agree" },
+    { "gate": "Review Focus: For each input class or failure mode the spec implies, is there a task whose tests exercise it?", "status": "pass", "note": "Five lines (CRLF, strings that look like structure, option spellings, running from a subdirectory, hidden OS files), each with its test in Tasks 2, 3, 4 and 7" },
+    { "gate": "Proportion: Compare the plan's length to the spec's.", "status": "pass", "note": "94 KB against the derivative's 47 KB (about 2x); code blocks are tests, seeded samples and signatures, with no implementation body beyond the bin main. The tests are long because the phase is full-review and the samples carry exact values later tasks reuse." }
+  ],
+  "contract_gaps": [
+    {
+      "contract": "bus-api@v2",
+      "where": "hsdd/contract/bus-api.md line 437 (## Validation): '- not executable: G13's last sentence, on an exception the bus's own delivery code raises, because no case can make a conforming runtime raise one'",
+      "problem": "ADR-001 item 3 gives the partial not-executable form as '- not executable: G{n}'s {part}, {reason}; checked by {node}'s gates', and its last bullet says the structure set reads the id and the node in 'checked by {node}'s gates'. This line names no node. Under the strict reading (the node required on every not-executable line) the structure set rejects bus-api and the phase gate fails (docs/auto-run/experiments/structure-set-plan/output.txt S2). The plan adopts the reading that requires the node only on whole lines, so the gate passes as committed; the line still departs from the form.",
+      "proposed_fix": "hsdd-contract touches bus-api@v2 within v2 (non-breaking, no guarantee changes): end the line with '; checked by nidana.runtime's gates, by review of the bus's delivery code' or reword it to the form; or hsdd-adr clarifies in item 3 that a partial line may omit the node when no gate checks the rest."
+    }
+  ],
+  "notes_for_orchestrator": [
+    "Running node docs/auto-run/tools/impl-gate.mjs code-plan nidana.model.1 now reports only two errors, both the orchestrator's own uncommitted files (docs/auto-run/impl-execution-plan.md, docs/auto-run/tools/step-commit.sh); the plan checks (constraints verbatim, failing-test first steps, last task, task count, prose) pass.",
+    "Size: the plan creates 12 library and bin files and 8 test and support files; with tests the phase will likely land well over the ~450-line, ~10-file estimate. nidana.model D1 names the opposite signal (structure well under its estimate) for folding nidana.model.2 into nidana.model.1, so nothing in the plan changes; Task 8 records the actual figures under Metrics.",
+    "Decision on the bus-api G13 line is marked would_have_asked. If the owner's stand-in decides the strict reading, change Task 5's not-executable row to apply to partial lines and its coverage paragraph, and route hsdd/contract/bus-api.md line 437 to hsdd-contract before Task 7 Step 5, or the gate fails there.",
+    "Task 1 resolves from pub.dev (W1 resolved on this machine; the pub cache held only some of the packages).",
+    "Implementers see only their task: each task restates fvm, the repository root, purity, and the names it consumes; Task 7's cli_test spawns about 13 Dart processes (a compile each, roughly 1 to 2 s), so that file takes some seconds.",
+    "Task 7 Step 5 is where a committed fixture defect would surface (expected 102 PASS lines); the plan tells the implementer to stop with BLOCKED and never edit hsdd/."
+  ]
+}

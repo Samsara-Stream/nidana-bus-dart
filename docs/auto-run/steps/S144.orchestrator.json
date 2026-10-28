@@ -1,0 +1,83 @@
+{
+  "step_ref": "S144",
+  "decisions": [
+    {
+      "at": "2026-10-27T18:03:49Z",
+      "artifact": null,
+      "question": "SDD pre-flight for nidana.model.12 (full-review): which model implements each task?",
+      "options": [
+        {
+          "label": "Opus for Tasks 1 to 4, sonnet for Task 5",
+          "consequence": "The analyses (the single implementation bus-api and nidana-checks run) get the most capable model; the verification doc a mid-tier one."
+        },
+        {
+          "label": "Sonnet for every task",
+          "consequence": "Cheaper; departs from the run's full-review rule."
+        }
+      ],
+      "chosen": "Opus for Tasks 1 to 4, sonnet for Task 5",
+      "why": "The run's model rule for full-review phases (S97, as nidana.model.1, .2, .6, .7).",
+      "evidence": [
+        "docs/auto-run/impl-execution-plan.md How a phase runs item 3"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T19:20:20Z",
+      "artifact": "packages/nidana_dart_contracts/lib/src/analysis/analyses.dart",
+      "question": "nidana.model.12 Task 3's review measured findWriterConflicts and findScopeViolations as quadratic in catalog size (8.5 s and 18.9 s at 16000 topologies) because the plan's _owners(graph, topic) scans every topology and claim per topic. Index in one pass?",
+      "options": [
+        {
+          "label": "Carry into Task 4 as a separate commit: owners per state topic and readers per topic indexed once, identical results",
+          "consequence": "Linear like the cycle search (26.5 s to 48 ms for analyzeTopologyGraph at 16000 topologies); one deviation from the plan's helper signature, recorded."
+        },
+        {
+          "label": "Keep the plan's per-topic scans",
+          "consequence": "bus-api's activation and nidana-checks' workspace scan pay seconds per call at catalog scale."
+        }
+      ],
+      "chosen": "Carry into Task 4 as a separate commit: owners per state topic and readers per topic indexed once, identical results",
+      "why": "Review Focus 1 names workspace scans over thousands of topologies; the analyses are the single implementation bus-api and nidana-checks run. Equivalence confirmed over 50,301 graphs (0 mismatches); the missing equal-claims test was added in a fix round.",
+      "evidence": [
+        "docs/auto-run/steps/S144.sdd-progress.md (Task 3, Task 4)"
+      ],
+      "blast_radius": "node-local",
+      "confidence": "high",
+      "would_have_asked": false,
+      "would_upstream": false
+    },
+    {
+      "at": "2026-10-27T19:20:21Z",
+      "artifact": "hsdd/verify/nidana.model.12.verification.md",
+      "question": "nidana.model.12's final review: topology-ir@v1 line 436 also reads as owners in graph order (topologies, then claims), while the code orders owners by source rendering, which nidana-checks' scope-violation fixtures were traced to match. Stop, change the code, or record and route?",
+      "options": [
+        {
+          "label": "Record both ambiguities in the doc's Learning and the widened sweep entry; keep the code's reading",
+          "consequence": "The sweep settles the wording; either reading is a one-line change in _byOwner; the owner signs a doc that names the open question."
+        },
+        {
+          "label": "Change the code to graph order now",
+          "consequence": "Departs from the reading nidana-checks' fixtures were traced against, before governance decides."
+        },
+        {
+          "label": "Stop for the owner",
+          "consequence": "Not every path is a guess; the routed wording settles it."
+        }
+      ],
+      "chosen": "Record both ambiguities in the doc's Learning and the widened sweep entry; keep the code's reading",
+      "why": "The stop policy reserves stops for guesswork; here the contract owner decides at the sweep and the change is local either way.",
+      "evidence": [
+        "docs/auto-run/steps/S144.sdd-progress.md (final review)",
+        "hsdd/contract/topology-ir.md line 436"
+      ],
+      "blast_radius": "contract",
+      "confidence": "medium",
+      "would_have_asked": true,
+      "stop_class": "upstream",
+      "would_upstream": false
+    }
+  ]
+}

@@ -1,0 +1,60 @@
+
+### K1 a fresh offline resolution
+dart pub get --offline: exit 0
+  | Got dependencies!
+pubspec.yaml=+0 packages/gen/pubspec.yaml=+0 pubspec.lock=+3 .dart_tool/package_config.json=+3 
+dart run from files/: exit 0
+
+### K2 a member pubspec.yaml touched after it
+pubspec.yaml=+0 packages/gen/pubspec.yaml=+5 pubspec.lock=+3 .dart_tool/package_config.json=+3 
+dart run from files/: exit 255
+  | Could not find a file named "pubspec.yaml" in "{T-real}/fcs.mWkDet/hsdd/contract/fixture/sample/invocation/case/files".
+
+### K3 then dart pub get --enforce-lockfile
+dart pub get --enforce-lockfile: exit 0
+  | Got dependencies!
+pubspec.yaml=+0 packages/gen/pubspec.yaml=+5 pubspec.lock=+3 .dart_tool/package_config.json=+3 
+dart run from files/: exit 255
+  | Could not find a file named "pubspec.yaml" in "{T-real}/fcs.mWkDet/hsdd/contract/fixture/sample/invocation/case/files".
+
+### K4 then dart pub get --offline
+dart pub get --offline: exit 0
+  | Got dependencies!
+pubspec.yaml=+0 packages/gen/pubspec.yaml=+5 pubspec.lock=+3 .dart_tool/package_config.json=+3 
+dart run from files/: exit 255
+  | Could not find a file named "pubspec.yaml" in "{T-real}/fcs.mWkDet/hsdd/contract/fixture/sample/invocation/case/files".
+
+### K5 the root pubspec.yaml touched; dart run from the root, then from files/
+pubspec.yaml=+11 packages/gen/pubspec.yaml=+5 pubspec.lock=+3 .dart_tool/package_config.json=+3 
+dart run from the root: exit 0
+  | wrote {T}/fcs.mWkDet/out-k5
+  | cwd {T-real}/fcs.mWkDet
+pubspec.yaml=+11 packages/gen/pubspec.yaml=+5 pubspec.lock=+11 .dart_tool/package_config.json=+3 
+dart run from files/: exit 255
+  | Could not find a file named "pubspec.yaml" in "{T-real}/fcs.mWkDet/hsdd/contract/fixture/sample/invocation/case/files".
+
+### K6 a member pubspec.yaml touched, then dart pub get --enforce-lockfile twice
+pubspec.yaml=+11 packages/gen/pubspec.yaml=+13 pubspec.lock=+11 .dart_tool/package_config.json=+3 
+dart pub get --enforce-lockfile: exit 0
+  | Got dependencies!
+pubspec.yaml=+11 packages/gen/pubspec.yaml=+13 pubspec.lock=+11 .dart_tool/package_config.json=+3 
+dart pub get --enforce-lockfile: exit 0
+  | Got dependencies!
+pubspec.yaml=+11 packages/gen/pubspec.yaml=+13 pubspec.lock=+11 .dart_tool/package_config.json=+3 
+dart run from files/: exit 255
+  | Could not find a file named "pubspec.yaml" in "{T-real}/fcs.mWkDet/hsdd/contract/fixture/sample/invocation/case/files".
+
+### K7 a member pubspec.yaml touched, then pubspec.lock touched
+pubspec.yaml=+11 packages/gen/pubspec.yaml=+20 pubspec.lock=+22 .dart_tool/package_config.json=+3 
+dart run from files/: exit 255
+  | Could not find a file named "pubspec.yaml" in "{T-real}/fcs.mWkDet/hsdd/contract/fixture/sample/invocation/case/files".
+
+### K8 then package_config.json made older than pubspec.lock
+pubspec.yaml=+11 packages/gen/pubspec.yaml=+20 pubspec.lock=+22 .dart_tool/package_config.json=+-846423218 
+dart run from files/: exit 255
+  | Could not find a file named "pubspec.yaml" in "{T-real}/fcs.mWkDet/hsdd/contract/fixture/sample/invocation/case/files".
+dart pub get --enforce-lockfile: exit 0
+  | Got dependencies!
+pubspec.yaml=+11 packages/gen/pubspec.yaml=+20 pubspec.lock=+22 .dart_tool/package_config.json=+-846423218 
+dart run from files/: exit 255
+  | Could not find a file named "pubspec.yaml" in "{T-real}/fcs.mWkDet/hsdd/contract/fixture/sample/invocation/case/files".

@@ -41,7 +41,11 @@ decisions, keeps the decision ledger, and owns every branch operation.
   `docs/auto-run/experiments/`, whose programs are evidence the tree cites);
   the reference architecture under `ref/nidana-docs/arch/`, the
   `*-v0_15_1.md` files only (the Specification normative, the Guide and the
-  Rationale informative); the HSDD skills under `.agents/skills/` and
+  Rationale informative), which is not checked out on this machine (the
+  submodule is a private repository; the run does not fetch it): build from
+  the governance under `hsdd/`, which states every Interface, guarantee and
+  rule a phase implements, and report as a contract gap any rule you find
+  only cited to the Specification and not stated in the governance; the HSDD skills under `.agents/skills/` and
   `~/git/hsdd/spec/hsdd-spec-v0_10.md`; the Dart and Flutter SDKs through
   fvm; public package documentation (pub.dev, api.dart.dev).
 - **Prose rules** for everything you write that gets committed (code
@@ -58,8 +62,11 @@ decisions, keeps the decision ledger, and owns every branch operation.
 - **Commits** (only when your task says to commit): stage explicit paths,
   never `git add -A` or `git add .`; one logical change per commit; a
   conventional subject (`feat(contract_check): parse the replay request`);
-  the body ends, after a blank line, with
-  `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`.
+  the body ends, after a blank line, with the co-author trailer your own
+  harness's attribution instructions give (it names the model that wrote the
+  commit, for example `Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>`
+  for a Sonnet subagent). Where a brief's commit step names another model's
+  trailer, use your own instead (orchestrator ruling, S107).
 - **Dangerous or outside actions.** If your task seems to need deleting files
   you did not create, a network action beyond pub.dev resolution and reading
   documentation, a credential, or anything irreversible, do not do it: report

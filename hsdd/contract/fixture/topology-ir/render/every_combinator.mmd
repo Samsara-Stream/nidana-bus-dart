@@ -1,13 +1,16 @@
 flowchart LR
   t0(["every.count<br/>state int"])
-  t1(["every.flag<br/>state bool"])
-  t2(["every.label<br/>state String"])
-  t3(["every.log<br/>replay int"])
-  t4(["every.names<br/>event String"])
-  t5(["every.out<br/>event int"])
-  t6(["every.sizes<br/>event int"])
-  t7(["every.taps<br/>event int"])
-  t8(["every.total<br/>state int"])
+  t1(["every.count<br/>event int"])
+  t2(["every.flag<br/>state bool"])
+  t3(["every.label<br/>state String"])
+  t4(["every.log<br/>replay int"])
+  t5(["every.names<br/>event String"])
+  t6(["every.out<br/>event int"])
+  t7(["every.retried<br/>event String"])
+  t8(["every.retried<br/>event int"])
+  t9(["every.sizes<br/>event int"])
+  t10(["every.taps<br/>event int"])
+  t11(["every.total<br/>state int"])
   subgraph p0["every-combinator<br/>page"]
     p0e0["map<br/>twice"]
     p0e1["filter<br/>isPositive"]
@@ -31,26 +34,32 @@ flowchart LR
     p0e19["map<br/>describePair"]
     p0e20["map<br/>label"]
     p0e21["merge"]
-    p0e22["write"]
-    p0e23["write"]
-    p0e24["write"]
-    p0e25["write"]
-    p0e26["reduceInto<br/>reduceCount"]
-    p0e27["reduceInto<br/>reduceTotal"]
+    p0e22["merge"]
+    p0e23["switchMap<br/>ticks<br/>retry (anonymous)"]
+    p0e24["throttle 1500ms"]
+    p0e25["map<br/>label"]
+    p0e26["write"]
+    p0e27["write"]
     p0e28["write"]
+    p0e29["write"]
+    p0e30["reduceInto<br/>reduceCount"]
+    p0e31["reduceInto<br/>reduceTotal"]
+    p0e32["write"]
+    p0e33["write"]
+    p0e34["write"]
   end
   t0 --> p0e0
   p0e0 --> p0e1
   t0 --> p0e2
-  t7 --> p0e2
+  t10 --> p0e2
   p0e2 --> p0e3
   p0e1 --> p0e3
-  t7 --> p0e4
+  t10 --> p0e4
   t0 --> p0e4
-  t1 -->|dedup none| p0e4
+  t2 -->|dedup none| p0e4
   p0e4 --> p0e5
   p0e3 --> p0e5
-  t3 --> p0e5
+  t4 --> p0e5
   p0e5 --> p0e6
   p0e6 --> p0e7
   p0e7 --> p0e8
@@ -66,19 +75,28 @@ flowchart LR
   p0e14 --> p0e18
   p0e8 --> p0e19
   t0 --> p0e20
-  t8 --> p0e21
-  t7 --> p0e21
-  p0e17 --> p0e22
-  p0e22 --> t5
-  p0e18 --> p0e23
-  p0e23 --> t6
-  p0e19 --> p0e24
-  p0e24 --> t2
-  p0e20 --> p0e25
-  p0e25 --> t4
-  t7 --> p0e26
-  p0e26 --> t0
-  p0e21 --> p0e27
-  p0e27 --> t8
-  t7 --> p0e28
+  t11 --> p0e21
+  t10 --> p0e21
+  t1 --> p0e22
+  t1 --> p0e22
+  p0e22 --> p0e23
+  p0e23 --> p0e24
+  p0e24 --> p0e25
+  p0e17 --> p0e26
+  p0e26 --> t6
+  p0e18 --> p0e27
+  p0e27 --> t9
+  p0e19 --> p0e28
   p0e28 --> t3
+  p0e20 --> p0e29
+  p0e29 --> t5
+  t10 --> p0e30
+  p0e30 --> t0
+  p0e21 --> p0e31
+  p0e31 --> t11
+  t10 --> p0e32
+  p0e32 --> t4
+  p0e24 --> p0e33
+  p0e33 --> t8
+  p0e25 --> p0e34
+  p0e34 --> t7

@@ -109,7 +109,18 @@ final List<TopologyFinding> constructed = <TopologyFinding>[
     readerId: 'b',
     readerScope: Scope.application,
   ),
+  pageOwned,
 ];
+
+/// A finding built as a constant, as a diagnostic mapper's table may hold
+/// one: ScopeViolation's constructor is const.
+const ScopeViolation pageOwned = ScopeViolation(
+  topic: TopicRef(name: 'nav.depth', variant: TopicVariant.state, typeName: 'int'),
+  owner: PageSource('settings/profile'),
+  ownerScope: Scope.page,
+  readerId: 'b',
+  readerScope: Scope.application,
+);
 
 /// Topic name uniqueness over declarations a scan found.
 List<String> collisions(List<TopicDeclaration> declarations) => <String>[

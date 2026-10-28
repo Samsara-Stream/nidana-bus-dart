@@ -1,0 +1,127 @@
+
+### S0 setup: the committed tree, resolved offline
+tree from 85e394f auto-run: record the merge of nidana.model.14 and plan the end-of-node governance sweep
+Dart SDK version: 3.13.5 (stable) (Tue Sep 29 01:00:52 2026 -0700) on "macos_arm64"
+Try `dart pub outdated` for more information.
+
+### F facts/facts.dart against the shipped package (packages/ is unchanged in the working tree)
+packages/ changes in the working tree: 0
+S1 RedactedPayload.of('String') = <redacted String #13be81c3>
+S2 its rendering contains the payload's rendering: true
+S3 RedactedPayload.of('a') contains 'a': true
+S4 sensitive envelope with payload 'redacted' renders it inside: true
+W1 secret.toString() payload part: payload: <redacted String #3448503b>
+W2 secret.redacted().payload = <redacted String #3448503b> (RedactedPayload); sensitive true
+W3 secret.redacted().toString() payload part: payload: <redacted RedactedPayload #01683cca>
+W4 secret.redacted().redacted().payload = <redacted RedactedPayload #01683cca>
+W5 redacted() twice keeps the type name String: false
+P1 Lineage.combine([]) throws ArgumentError
+P2 Lineage.combine([root], trigger: 1) throws IndexError
+P3 RangeError is an ArgumentError: true
+E1 1 == 1.0: true; hash codes equal: true
+E2 RedactedPayload.of(1) = <redacted int #00002d51>; RedactedPayload.of(1.0) = <redacted double #00002d51>
+E3 RedactedPayload.of(1) == RedactedPayload.of(1.0): false
+N1 identical(nan, nan): true; nan == nan: false; nan == nanAgain: false
+N2 nan.hashCode == nanAgain.hashCode: true
+N3 {nan}.contains(nan): false
+N4 {nan}.remove(nan): false; length after: 1
+N5 [nan].contains(nan): false; indexOf: -1
+N6 {nan: 1}[nan]: null
+N7 double.nan == double.nan: false; {double.nan}.contains(double.nan): false; [double.nan].contains(double.nan): false
+N8 record (nan,) == itself: true; == (nan,): true; {record}.contains(record): true
+N9 a value never == itself: false; in a record, the record == itself: true; == (never,): true
+N10 a redacted NaN envelope == itself: true
+R1 Topic: Instance of 'StateTopic<int>'
+R2 TopicRef: Instance of 'TopicRef'
+R3 Lineage: Instance of 'Lineage'
+R4 MessageSource: topology:flow
+
+### L the Message sources doc comment under the root analysis options
+-- angle_brackets.dart
+   info - probe_angle_brackets.dart:5:30 - Angle brackets will be interpreted as HTML. Try using backticks around the content with angle brackets, or try replacing `<` with `&lt;` and `>` with `&gt;`. - unintended_html_in_doc_comment
+   info - probe_angle_brackets.dart:5:46 - Angle brackets will be interpreted as HTML. Try using backticks around the content with angle brackets, or try replacing `<` with `&lt;` and `>` with `&gt;`. - unintended_html_in_doc_comment
+   info - probe_angle_brackets.dart:5:61 - Angle brackets will be interpreted as HTML. Try using backticks around the content with angle brackets, or try replacing `<` with `&lt;` and `>` with `&gt;`. - unintended_html_in_doc_comment
+   info - probe_angle_brackets.dart:6:15 - Angle brackets will be interpreted as HTML. Try using backticks around the content with angle brackets, or try replacing `<` with `&lt;` and `>` with `&gt;`. - unintended_html_in_doc_comment
+-- backticks.dart
+No issues found!
+
+### B the committed fixtures, unrestricted
+-- nidana_contract_check topic-model
+PASS behavior hsdd/contract/fixture/topic-model/behavior/nidana_dart_contracts_test.dart: 41 passed, 0 failed, 0 skipped under dart test
+31 fixtures: 31 passed, 0 failed, 0 pending
+exit: 0
+
+### N S151's conformance library (three new cases), unrestricted
+-- cases added:
+name: 'G13 an envelope whose payload is not equal to itself is not equal to itself',
+name: 'G15 an envelope that redacted() returned is redacted again',
+name: 'G24 equal payloads of two runtime types redact apart',
+-- nidana_contract_check topic-model
+PASS behavior hsdd/contract/fixture/topic-model/behavior/nidana_dart_contracts_test.dart: 44 passed, 0 failed, 0 skipped under dart test
+31 fixtures: 31 passed, 0 failed, 0 pending
+exit: 0
+
+### D1 identity shortcut in MessageEnvelope ==
+-- seeded diff:
+73a74
+>       identical(this, other) ||
+- committed cases:
+-- nidana_contract_check topic-model --guarantee G13
+PASS behavior hsdd/contract/fixture/topic-model/behavior/nidana_dart_contracts_test.dart: 2 passed, 0 failed, 0 skipped under dart test, restricted to topic-model G13
+31 fixtures: 31 passed, 0 failed, 0 pending
+exit: 0
+- with S151's cases:
+-- nidana_contract_check topic-model --guarantee G13
+FAIL behavior hsdd/contract/fixture/topic-model/behavior/nidana_dart_contracts_test.dart: cases (2 passed, 1 failed, 0 skipped under dart test, restricted to topic-model G13)
+    failed-case (G13 an envelope whose payload is not equal to itself is not equal to itself)
+31 fixtures: 30 passed, 1 failed, 0 pending
+exit: 1
+
+### D2 redaction keeps a payload that is already a RedactedPayload
+-- seeded diff:
+61c61
+<           payload: RedactedPayload.of(payload),
+---
+>           payload: payload is RedactedPayload ? payload : RedactedPayload.of(payload),
+100c100
+<       'payload: ${sensitive ? RedactedPayload.of(payload) : payload}, '
+---
+>       'payload: ${sensitive && payload is! RedactedPayload ? RedactedPayload.of(payload) : payload}, '
+- committed cases:
+-- nidana_contract_check topic-model --guarantee G15
+PASS behavior hsdd/contract/fixture/topic-model/behavior/nidana_dart_contracts_test.dart: 3 passed, 0 failed, 0 skipped under dart test, restricted to topic-model G15
+31 fixtures: 31 passed, 0 failed, 0 pending
+exit: 0
+- with S151's cases:
+-- nidana_contract_check topic-model --guarantee G15
+FAIL behavior hsdd/contract/fixture/topic-model/behavior/nidana_dart_contracts_test.dart: cases (3 passed, 1 failed, 0 skipped under dart test, restricted to topic-model G15)
+    failed-case (G15 an envelope that redacted() returned is redacted again)
+31 fixtures: 30 passed, 1 failed, 0 pending
+exit: 1
+
+### D3 RedactedPayload == compares the hash alone
+-- seeded diff:
+22,24c22
+<       other is RedactedPayload &&
+<       other.typeName == typeName &&
+<       other.hash == hash;
+---
+>       other is RedactedPayload && other.hash == hash;
+- committed cases:
+-- nidana_contract_check topic-model --guarantee G24
+PASS behavior hsdd/contract/fixture/topic-model/behavior/nidana_dart_contracts_test.dart: 2 passed, 0 failed, 0 skipped under dart test, restricted to topic-model G24
+31 fixtures: 31 passed, 0 failed, 0 pending
+exit: 0
+- with S151's cases:
+-- nidana_contract_check topic-model --guarantee G24
+FAIL behavior hsdd/contract/fixture/topic-model/behavior/nidana_dart_contracts_test.dart: cases (2 passed, 1 failed, 0 skipped under dart test, restricted to topic-model G24)
+    failed-case (G24 equal payloads of two runtime types redact apart)
+31 fixtures: 30 passed, 1 failed, 0 pending
+exit: 1
+
+### R restored: S151's cases against the shipped package once more
+the copy's lib/ equals HEAD's
+-- nidana_contract_check topic-model
+PASS behavior hsdd/contract/fixture/topic-model/behavior/nidana_dart_contracts_test.dart: 44 passed, 0 failed, 0 skipped under dart test
+31 fixtures: 31 passed, 0 failed, 0 pending
+exit: 0
