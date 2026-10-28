@@ -624,3 +624,9 @@ that phase's writing-plans dispatch and strikes it here when the phase's plan co
   lists it); a new fixture or case must pass against the shipped package and, where it is meant to pin a
   seeded defect, fail it in a dry run. Each step's gate: `gate.mjs` for its skill, then the node gate
   (nidana.model.14's Gate line). The S104 checkpoint entry (sizing) is the owner's, for the report.
+- 2026-10-28 (UTC), after S156: the sweep needed no reconcile (S156 emitted no pending governance update);
+  `impl/nidana.model.sweep` merged into `impl/nidana.model` as `590983e` (node gate exit 0: 371 package tests,
+  topic-model@v1 44, topology-dsl@v2 31, topology-ir@v1 56 behavior cases, 120/120; the replay tool's 468 tests;
+  `--all` 321 fixtures, 238 passed, 0 failed, 83 PENDING; `gate.mjs --final` the same 4 errors and 44 warnings
+  as the planning tip). `docs/auto-run/REPORT-impl-nidana.model.md` written; `impl/nidana.model` merges into
+  `auto/v1-impl-1` with `--no-ff`, and the run stops.
